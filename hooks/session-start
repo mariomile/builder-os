@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SessionStart hook for PM Toolkit plugin
+# SessionStart hook for BuilderOS plugin
 
 set -euo pipefail
 
@@ -7,8 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Read pm-toolkit hub skill content
-pm_toolkit_content=$(cat "${PLUGIN_ROOT}/skills/pm-toolkit/SKILL.md" 2>&1 || echo "Error reading pm-toolkit skill")
+# Read BuilderOS hub skill content
+hub_content=$(cat "${PLUGIN_ROOT}/skills/pm-toolkit/SKILL.md" 2>&1 || echo "Error reading BuilderOS hub skill")
 
 # Escape string for JSON embedding
 escape_for_json() {
@@ -21,8 +21,8 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
-pm_toolkit_escaped=$(escape_for_json "$pm_toolkit_content")
-session_context="You have the PM Toolkit plugin installed.\n\n**Below is the PM Toolkit hub skill content. For specialized PM skills, use the Skill tool:**\n\n${pm_toolkit_escaped}"
+hub_escaped=$(escape_for_json "$hub_content")
+session_context="You have BuilderOS installed — The Operating System for Product Builders.\n\n**Below is the BuilderOS hub skill content. For specialized skills, use the Skill tool:**\n\n${hub_escaped}"
 
 # Output context injection — platform-aware
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then

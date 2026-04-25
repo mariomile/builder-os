@@ -1,10 +1,12 @@
-# PM Toolkit
+# BuilderOS
 
-Operational Product Management toolkit for Claude Code. Connects to live analytics, databases, and docs via MCP to produce actionable PM artifacts.
+**The Operating System for Product Builders.**
+
+Connects to live analytics, databases, and docs via MCP to produce actionable PM artifacts. 8 specialized agents that pull real data and do real work.
 
 ## What It Does
 
-PM Toolkit adds 8 specialized PM agents to Claude Code:
+BuilderOS adds 8 specialized agents to Claude Code:
 
 | Agent | Purpose | Data Source |
 |-------|---------|-------------|
@@ -20,7 +22,7 @@ PM Toolkit adds 8 specialized PM agents to Claude Code:
 ## Installation
 
 ```bash
-claude plugins install pm-toolkit
+claude plugins install builder-os
 ```
 
 ## Prerequisites
@@ -54,11 +56,11 @@ claude plugins install pm-toolkit
 ## Philosophy
 
 ```
-KNOW (Lenny skills)  →  UNDERSTAND (b2b-saas-analytics)  →  DO (PM Toolkit)
+KNOW (Lenny skills)  →  UNDERSTAND (b2b-saas-analytics)  →  DO (BuilderOS)
      Theory                    Metrics & Formulas              Execution
 ```
 
-PM Toolkit doesn't duplicate frameworks or metric definitions. It sits on top of existing knowledge skills and adds the **execution layer** — pulling real data, running real queries, producing real artifacts.
+BuilderOS doesn't duplicate frameworks or metric definitions. It sits on top of existing knowledge skills and adds the **execution layer** — pulling real data, running real queries, producing real artifacts.
 
 ## License
 

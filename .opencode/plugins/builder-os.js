@@ -1,7 +1,8 @@
 /**
- * PM Toolkit plugin for OpenCode.ai
+ * BuilderOS plugin for OpenCode.ai
  *
- * Injects PM Toolkit bootstrap context via system prompt transform.
+ * The Operating System for Product Builders.
+ * Injects BuilderOS bootstrap context via system prompt transform.
  * Auto-registers skills directory via config hook.
  * Zero dependencies — uses only Node.js built-ins.
  */
@@ -45,14 +46,14 @@ const normalizePath = (p, homeDir) => {
   return path.resolve(normalized);
 };
 
-export const PmToolkitPlugin = async ({ client, directory }) => {
+export const BuilderOSPlugin = async ({ client, directory }) => {
   const homeDir = os.homedir();
-  const pmToolkitSkillsDir = path.resolve(__dirname, '../../skills');
+  const builderOSSkillsDir = path.resolve(__dirname, '../../skills');
   const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
   const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
   const getBootstrapContent = () => {
-    const skillPath = path.join(pmToolkitSkillsDir, 'pm-toolkit', 'SKILL.md');
+    const skillPath = path.join(builderOSSkillsDir, 'pm-toolkit', 'SKILL.md');
     if (!fs.existsSync(skillPath)) return null;
 
     const fullContent = fs.readFileSync(skillPath, 'utf8');
@@ -65,9 +66,9 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 - \`Skill\` tool → OpenCode's native \`skill\` tool
 - \`Read\`, \`Write\`, \`Edit\`, \`Bash\` → Your native tools`;
 
-    return `You have the PM Toolkit plugin installed.
+    return `You have BuilderOS installed — The Operating System for Product Builders.
 
-**The pm-toolkit hub skill content is included below. It is ALREADY LOADED. Do NOT use the Skill tool to load "pm-toolkit" again.**
+**The BuilderOS hub skill content is included below. It is ALREADY LOADED. Do NOT use the Skill tool to load "pm-toolkit" again.**
 
 ${content}
 
@@ -78,8 +79,8 @@ ${toolMapping}`;
     config: async (config) => {
       config.skills = config.skills || {};
       config.skills.paths = config.skills.paths || [];
-      if (!config.skills.paths.includes(pmToolkitSkillsDir)) {
-        config.skills.paths.push(pmToolkitSkillsDir);
+      if (!config.skills.paths.includes(builderOSSkillsDir)) {
+        config.skills.paths.push(builderOSSkillsDir);
       }
     },
 
@@ -88,7 +89,7 @@ ${toolMapping}`;
       if (!bootstrap || !output.messages.length) return;
       const firstUser = output.messages.find(m => m.info.role === 'user');
       if (!firstUser || !firstUser.parts.length) return;
-      if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('PM Toolkit plugin installed'))) return;
+      if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('BuilderOS installed'))) return;
       const ref = firstUser.parts[0];
       firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
     }

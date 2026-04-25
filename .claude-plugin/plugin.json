@@ -1,22 +1,24 @@
 {
-  "name": "pm-toolkit",
-  "description": "Product Management operational toolkit for Claude Code — connects to live analytics via MCP to produce actionable PM artifacts",
+  "name": "builder-os",
+  "description": "BuilderOS — The Operating System for Product Builders. Connects to live analytics via MCP to produce actionable PM artifacts.",
   "version": "0.1.0",
   "author": {
     "name": "Mario Miletta",
     "email": "mario@marioverse.ai"
   },
-  "homepage": "https://github.com/mariomiletta/pm-toolkit",
-  "repository": "https://github.com/mariomiletta/pm-toolkit",
+  "homepage": "https://github.com/mariomile/builder-os",
+  "repository": "https://github.com/mariomile/builder-os",
   "license": "MIT",
   "keywords": [
     "product-management",
+    "product-builder",
     "analytics",
     "saas",
     "metrics",
     "growth",
     "tracking",
     "mixpanel",
-    "b2b"
+    "b2b",
+    "builder-os"
   ]
 }

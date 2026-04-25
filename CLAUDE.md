@@ -1,8 +1,8 @@
-# CLAUDE.md — PM Toolkit
+# CLAUDE.md — BuilderOS
 
 ## What This Is
 
-PM Toolkit is a Claude Code plugin that provides operational Product Management capabilities via specialized agents connected to live data sources (Mixpanel, PostHog, Supabase, Notion) through MCP.
+BuilderOS is a Claude Code plugin — The Operating System for Product Builders. It provides operational Product Management capabilities via specialized agents connected to live data sources (Mixpanel, PostHog, Supabase, Notion) through MCP.
 
 ## Architecture
 
