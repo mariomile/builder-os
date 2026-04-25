@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# SessionStart hook for PM Toolkit plugin
+
+set -euo pipefail
+
+# Determine plugin root directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Read pm-toolkit hub skill content
+pm_toolkit_content=$(cat "${PLUGIN_ROOT}/skills/pm-toolkit/SKILL.md" 2>&1 || echo "Error reading pm-toolkit skill")
+
+# Escape string for JSON embedding
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+pm_toolkit_escaped=$(escape_for_json "$pm_toolkit_content")
+session_context="You have the PM Toolkit plugin installed.\n\n**Below is the PM Toolkit hub skill content. For specialized PM skills, use the Skill tool:**\n\n${pm_toolkit_escaped}"
+
+# Output context injection — platform-aware
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+fi
+
+exit 0

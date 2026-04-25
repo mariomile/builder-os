@@ -1,0 +1,1 @@
+I need to write a PRD for our new team collaboration feature. Help me structure it with user stories, requirements, and success metrics.

@@ -1,0 +1,1 @@
+I think adding a progress bar to our setup wizard will increase completion rate. Can you help me design an A/B test for this?
