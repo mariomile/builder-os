@@ -3,13 +3,13 @@ name: pm-toolkit
 description: "Use when performing any product management task — metrics analysis, growth diagnostics, tracking plans, experiments, financial modeling, competitive analysis, PRDs, or discovery synthesis"
 ---
 
-# PM Toolkit
+# PM Toolkit (BuilderOS)
 
-Operational Product Management toolkit. Connects to live analytics (Mixpanel, PostHog), databases (Supabase), and docs (Notion, Google Drive) via MCP to produce actionable PM artifacts.
+Operational Product Management toolkit. Works in three modes: **MCP-connected** (live analytics), **vault-based** (Obsidian notes), or **codebase-based** (Claude Code on a project). Adapts automatically to the available data sources.
 
 ## Iron Law
 
-**Never invent data.** If you cannot pull real numbers from MCP, say so and ask the user. Estimated or hallucinated metrics are worse than no metrics.
+**Never invent data.** If you cannot pull real numbers, work with what you have — vault notes, user-provided data, or codebase analysis. Label every data point with its source. Estimated or hallucinated metrics are worse than no metrics.
 
 ## When to Use
 
@@ -22,6 +22,76 @@ Use this skill when the user asks to:
 - Research competitors or market positioning
 - Write PRDs, release notes, stakeholder updates
 - Synthesize user research or interview transcripts
+
+## Operating Modes
+
+BuilderOS adapts to the environment it's running in. **Detect the mode before dispatching any agent.**
+
+### Mode Detection Protocol
+
+Run these checks in order:
+
+```
+1. Check for MCP tools:
+   - mcp__claude_ai_DeepAgent_Mixpanel__* → Mixpanel available
+   - mcp__plugin_supabase-toolkit_supabase__* → Supabase available
+   - mcp__claude_ai_Notion__* → Notion available
+   - mcp__claude_ai_PostHog__* → PostHog available
+   - mcp__claude_ai_Readwise__* → Readwise available
+   - mcp__claude_ai_Randrop_io__* → Raindrop available
+
+2. Check for vault context:
+   - Is working directory an Obsidian vault? (look for .obsidian/)
+   - Are there PM-related notes? (grep for metric, product, growth, etc.)
+
+3. Check for codebase context:
+   - Is there a package.json, Gemfile, requirements.txt, etc.?
+   - Is there analytics tracking code? (grep for mixpanel, posthog, segment, etc.)
+   - Is there a PM-CONTEXT.md?
+```
+
+### Three Operating Modes
+
+| Mode | When | Data Sources | Power Level |
+|------|------|-------------|-------------|
+| **MCP-connected** | MCP tools detected | Live queries to Mixpanel, Supabase, Notion, etc. | Full — real-time data, automated dashboards |
+| **Vault-based** | Obsidian vault detected, no MCP | Vault notes, Readwise highlights, Raindrop bookmarks | Medium — curated knowledge, manual metrics |
+| **Codebase-based** | Code project, no vault/MCP | Source code, configs, git history, README | Focused — code-aware analysis, tracking audit |
+
+### Mode-Specific Behavior
+
+**MCP-connected mode:**
+- Agents make explicit MCP calls for live data
+- Output includes real numbers with source attribution
+- Can create dashboards, write to Notion, export to Google Drive
+
+**Vault-based mode:**
+- Agents search vault notes for documented metrics, decisions, strategies
+- Use `Grep` and `Glob` to find relevant notes
+- Use Readwise/Raindrop MCP if available for enrichment
+- Output references vault notes with `[[wikilinks]]`
+- Suggest: "For live data, connect Mixpanel MCP: `mcp__claude_ai_DeepAgent_Mixpanel`"
+
+**Codebase-based mode:**
+- Agents analyze code for tracking implementation, feature structure, config
+- Read `package.json`, analytics configs, event definitions in code
+- Output includes file paths and code references
+- Suggest: "For product metrics, connect Mixpanel or PostHog MCP"
+
+### MCP Enhancement Suggestions
+
+When an agent operates WITHOUT a useful MCP, include a suggestion at the end of its output:
+
+```markdown
+> **Enhance this analysis:** Connect [{MCP name}] for [{what it enables}].
+> - Mixpanel MCP → live metrics, funnels, retention cohorts
+> - Supabase MCP → revenue data, billing queries, user tables
+> - PostHog MCP → session replays, feature flags, experiments
+> - Notion MCP → write PRDs directly, sync interview databases
+> - Linear MCP → connect roadmap items to metrics
+```
+
+Only suggest MCPs that are **directly relevant** to the current analysis. Don't list all of them.
 
 ## Available Agents
 
@@ -72,30 +142,18 @@ digraph routing {
 
 ## Product Context Protocol
 
-Before dispatching any agent, check for product context:
+Before dispatching any agent, gather product context:
 
 1. **Look for `PM-CONTEXT.md`** in the current project root
-2. **If not found**, look for `.pm-toolkit/context.md`
-3. **If neither exists**, ask the user for minimal context:
+2. **If in an Obsidian vault**, look for `context.md` of the relevant project in `1. Actions/`
+3. **If in a codebase**, extract context from `package.json`, `README.md`, analytics configs
+4. **If nothing found**, ask the user for minimal context:
    - Product name
    - Stage (seed / series-a / growth)
-   - Mixpanel project ID (if analytics agent needed)
-   - Key activation event name
-4. **Save the context** to `PM-CONTEXT.md` for future sessions
+   - Key activation event (if analytics-related)
+5. **Save the context** to `PM-CONTEXT.md` for future sessions
 
-Pass the full context to the dispatched agent.
-
-## Multi-Agent Orchestration
-
-For `/pm-audit` or requests like "give me a full product analysis":
-
-1. Dispatch **Product Diagnostician** + **Growth Architect** + **Finance Analyst** in parallel using the Agent tool
-2. Wait for all three to complete (look for their completion markers)
-3. Synthesize findings into a unified executive summary:
-   - Health scorecard (from Diagnostician)
-   - Growth bottlenecks and recommendations (from Growth Architect)
-   - Revenue health and projections (from Finance Analyst)
-   - Cross-cutting themes and priority actions
+Pass the full context AND the detected operating mode to the dispatched agent.
 
 ## Agent Dispatch Pattern
 
@@ -105,18 +163,36 @@ When routing to an agent, use the Agent tool with:
 Agent({
   description: "[Agent purpose] for [product name]",
   subagent_type: "[agent-name]",
-  prompt: "Product context:\n[PM-CONTEXT.md content]\n\nUser request:\n[what the user asked for]\n\nSpecific parameters:\n[any specific metrics, date ranges, segments mentioned]"
+  prompt: "Operating mode: [mcp-connected / vault-based / codebase-based]
+Available MCP tools: [list detected MCP tools, or 'none']
+Product context:
+[PM-CONTEXT.md content or extracted context]
+
+User request:
+[what the user asked for]
+
+Specific parameters:
+[any specific metrics, date ranges, segments mentioned]"
 })
 ```
 
 Always include:
-- Full PM-CONTEXT.md content (don't make the agent search for it)
+- The detected operating mode
+- List of available MCP tools
+- Full product context
 - The user's original request
-- Any specific parameters mentioned (date ranges, segments, metrics)
+
+## Multi-Agent Orchestration
+
+For `/pm-audit` or requests like "give me a full product analysis":
+
+1. Dispatch **Product Diagnostician** + **Growth Architect** + **Finance Analyst** in parallel using the Agent tool
+2. Wait for all three to complete (look for their completion markers)
+3. Synthesize findings into a unified executive summary
 
 ## Completion Markers
 
-Each agent ends its output with a structured marker. Verify you see the marker before presenting results to the user:
+Each agent ends its output with a structured marker:
 
 | Agent | Marker |
 |-------|--------|
@@ -135,8 +211,8 @@ STOP and correct course if you notice:
 
 | Behavior | Problem | Fix |
 |----------|---------|-----|
-| Agent reports metrics without MCP calls | Data is hallucinated | Re-run with explicit MCP queries |
-| "Approximately" or "estimated" for live data | Agent guessed instead of querying | Force MCP pull |
-| Agent suggests frameworks without data | Generic advice, not operational | Pull data first, then recommend |
+| Agent reports metrics without any data source | Data is hallucinated | Must use MCP, vault, or user-provided data |
+| "Approximately" or "estimated" without label | Source unclear | Label every number: `[Mixpanel]`, `[vault note]`, `[user-provided]` |
+| Agent ignores available MCP tools | Missed opportunity | Re-dispatch with explicit MCP tool list |
+| Agent suggests MCP when it's already available | Didn't detect tools | Fix mode detection |
 | Output missing completion marker | Agent didn't finish | Re-dispatch or investigate |
-| Multiple agents returning contradictory data | Data inconsistency | Verify source queries, reconcile |
