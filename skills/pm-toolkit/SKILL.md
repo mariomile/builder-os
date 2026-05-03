@@ -108,6 +108,10 @@ Route to the appropriate agent based on user intent:
 | PRDs, release notes, stakeholder updates | `product-writer` | `/pm-prd` or `/pm-release` |
 | Interview synthesis, opportunity scoring | `discovery-synthesizer` | `/pm-discovery` |
 | Full product audit (parallel agents) | Multi-agent orchestration | `/pm-audit` |
+| PMF assessment, positioning audit, strategic gaps | `product-strategist` | `/pm-strategy` |
+| North Star metric selection, metric alignment | `north-star-analyst` | `/pm-northstar` |
+| Quarterly OKRs, goal setting, KR writing | `okr-architect` | `/pm-okr` |
+| Full strategy session (PMF → NSM → OKRs) | Sequential: `product-strategist` → `north-star-analyst` → `okr-architect` | `/pm-strategy-session` |
 
 ## Routing Logic
 
@@ -137,6 +141,15 @@ digraph routing {
     intent -> writer [label="PRD, release notes,\nupdate, summary"];
     intent -> discovery [label="interviews, feedback,\nopportunities, research"];
     intent -> audit [label="audit, full analysis,\ncomprehensive review"];
+    strategist [label="Product\nStrategist"];
+    northstar [label="North Star\nAnalyst"];
+    okr [label="OKR\nArchitect"];
+    strategy_session [label="Strategy\nSession", shape=doubleoctagon];
+
+    intent -> strategist [label="PMF, positioning,\nstrategy audit"];
+    intent -> northstar [label="North Star,\nmetric alignment"];
+    intent -> okr [label="OKRs, quarterly\ngoals, planning"];
+    intent -> strategy_session [label="full strategy\nsession"];
 }
 ```
 
@@ -204,6 +217,9 @@ Each agent ends its output with a structured marker:
 | Competitive Analyst | `## COMPETITIVE ANALYSIS COMPLETE` |
 | Product Writer | `## ARTIFACT WRITTEN` |
 | Discovery Synthesizer | `## DISCOVERY SYNTHESIS COMPLETE` |
+| Product Strategist | `## STRATEGY AUDIT COMPLETE` |
+| North Star Analyst | `## NORTH STAR COMPLETE` |
+| OKR Architect | `## OKR COMPLETE` |
 
 ## Red Flags
 
