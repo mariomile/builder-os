@@ -1,0 +1,2 @@
+# expects: skill=opportunity-mapping agent=opportunity-mapper command=/bos-define
+Ho fatto otto interviste, ho un sacco di insight sparsi. Su cosa dovrei puntare e come misuro se funziona?

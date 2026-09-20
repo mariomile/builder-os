@@ -68,20 +68,23 @@ Nothing else functions without this. Delivers a working `/bos-init` → `/bos-st
 
 The part that makes the promise true: an idea can now enter the system.
 
-- [ ] **2.1 — Phase 0: Frame**
+- [x] **2.1 — Phase 0: Frame**
   `problem-framing` skill: problem-vs-solution separation, the "so what" test, ICP definition, why-now analysis, riskiest-assumption extraction. `problem-framer` agent: tri-modal, 5 phases, writes `00-frame.md` + drafts `PRODUCT.md`, marker `## FRAME COMPLETE`. Command `/bos-frame`. Test prompt.
 
-- [ ] **2.2 — Phase 1: Discover**
+- [x] **2.2 — Phase 1: Discover**
   `research-methods` skill: JTBD interview design, non-leading question construction, sample sizing for qualitative work, source mining (Notion, Readwise, Raindrop, support, analytics), saturation criteria. `research-planner` agent: produces the plan, ingests transcripts, hands to the existing `discovery-synthesizer`. Writes `01-discovery.md` with the evidence ledger and the `VALIDATED`/`KILLED`/`RESHAPED` verdict. Marker `## DISCOVERY COMPLETE`. Command `/bos-discover`. Test prompt.
 
-- [ ] **2.3 — Phase 2: Define**
+- [x] **2.3 — Phase 2: Define**
   `opportunity-mapping` skill: opportunity solution trees, opportunity sizing and scoring, the traceability rule (every opportunity cites Phase 1 evidence), coherence check against PMF stage. `opportunity-mapper` agent: builds the tree, scores, selects, chains to `product-strategist` and `north-star-analyst`. Writes `02-definition.md`. Marker `## DEFINITION COMPLETE`. Command `/bos-define`. Test prompt.
 
-- [ ] **2.4 — Chain command `/bos-discovery-sprint`**
+- [x] **2.4 — Chain command `/bos-discovery-sprint`**
   Sequential 0 → 1 → 2 in one session, gates enforced between steps. Mirrors the existing `/pm-strategy-session` pattern.
 
-- [ ] **2.5 — Verify and commit**
-  Each agent refuses to advance on a failed gate, and the refusal names the failed condition. Verified against a real idea, not a toy one.
+- [x] **2.5 — Structural verification and commit**
+  All three agents carry `model: inherit`, Phase 0 mode detection, a Fallback section, a completion marker and a Common Mistakes table — checked. Skill frontmatter is `name` + triggering-condition `description` only — checked. Four test prompts added. Hub Availability section updated to mark phases 0–2 live.
+
+- [ ] **2.6 — Behavioral verification**
+  Run `/bos-discovery-sprint` against a real idea in a clean session. Confirm each agent refuses to advance on a failed gate and names the condition. Confirm phase 1 pauses with a plan rather than fabricating a verdict when no transcripts exist. Not yet executed: requires a live session with the plugin installed.
 
 ---
 

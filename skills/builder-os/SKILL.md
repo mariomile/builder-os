@@ -40,9 +40,13 @@ Phases 0–4 are design thinking: empathize, define, ideate, prototype, test. Ph
 
 Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`.
 
+Chains: `/bos-discovery-sprint` runs phases 0 → 1 → 2 in one session with gates enforced between steps.
+
 ### Availability
 
-The spine (state, gates, evidence ledger, pressure testing, `/bos-init`, `/bos`, `/bos-status`, `/bos-gate`) and phase 7 are live. Phases 0–6 have their gates defined and enforceable, but their dedicated skills and agents ship in later clusters — see `docs/plans/2026-09-20-lifecycle-os-v1.md`.
+Live: the spine (state, gates, evidence ledger, pressure testing, `/bos-init`, `/bos`, `/bos-status`, `/bos-gate`), phases 0–2 with their own skills and agents, the `/bos-discovery-sprint` chain, and phase 7 through the existing `pm-*` agents.
+
+Not yet shipped: phases 3–6 have their gates defined and enforceable, but their dedicated skills and agents land in later clusters — see `docs/plans/2026-09-20-lifecycle-os-v1.md`.
 
 When a phase's agent does not exist yet, do not fabricate a dispatch and do not silently skip. Say which agent is missing, then run the phase inline using this hub, `pressure-testing` for the interview and `gate-checks` for the exit conditions, writing the same artifact to `.builderos/`. The pipeline stays honest and usable; only the specialization is missing.
 

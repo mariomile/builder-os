@@ -1,0 +1,2 @@
+# expects: skill=problem-framing agent=problem-framer command=/bos-frame
+Voglio costruire un assistente AI che scriva i report delle chiamate al posto dei commerciali.
