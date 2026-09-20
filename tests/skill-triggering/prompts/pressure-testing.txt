@@ -1,0 +1,2 @@
+# expects: skill=pressure-testing
+Sono convinto che il problema principale sia l'onboarding. Mettimi in discussione prima che ci costruisca sopra il trimestre.

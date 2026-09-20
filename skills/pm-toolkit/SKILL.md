@@ -7,6 +7,14 @@ description: "Use when performing any product management task — metrics analys
 
 Operational Product Management toolkit. Works in three modes: **MCP-connected** (live analytics), **vault-based** (Obsidian notes), or **codebase-based** (Claude Code on a project). Adapts automatically to the available data sources.
 
+## Scope
+
+This skill is the **analysis surface**: stateless questions about a product that already exists and already emits data. Health, growth, tracking, finance, experiments, competition, artifacts, strategy.
+
+For taking an idea or a problem *toward* a product — framing, research, opportunity mapping, bet selection, spec, delivery, release — load `builder-os` instead. That skill owns the gated 8-phase pipeline and routes back here for phase 7 (Learn).
+
+Rule of thumb: `pm-*` answers a question, `bos-*` walks a pipeline.
+
 ## Iron Law
 
 **Never invent data.** If you cannot pull real numbers, work with what you have — vault notes, user-provided data, or codebase analysis. Label every data point with its source. Estimated or hallucinated metrics are worse than no metrics.

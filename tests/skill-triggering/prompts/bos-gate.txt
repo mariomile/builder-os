@@ -1,0 +1,2 @@
+# expects: skill=gate-checks command=/bos-gate
+Ho finito la discovery, ho parlato con sei persone. Posso passare alla fase successiva?

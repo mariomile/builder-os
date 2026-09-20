@@ -35,29 +35,32 @@ Task syntax: `- [ ]` pending, `- [x]` done. Tick on commit, not on write.
 
 Nothing else functions without this. Delivers a working `/bos-init` → `/bos-status` loop even with zero phase skills installed.
 
-- [ ] **1.1 — `references/product-md-template.md`**
+- [x] **1.1 — `references/product-md-template.md`**
   Durable product truth: product name, one-line purpose, primary ICP with size, secondary ICP, problem, non-goals, constraints (technical, regulatory, resource), voice, current stage, evidence links. Every field carries a source tag or `[assumption:unvalidated]`. Extends the existing `pm-context-template.md` rather than replacing it; that file stays for `pm-*` command compatibility and gains a pointer to this one.
 
-- [ ] **1.2 — `references/builderos-state-schema.md`**
+- [x] **1.2 — `references/builderos-state-schema.md`**
   Documents `.builderos/state.json`: `{ product, current_phase, phases: { "0": { status, gate: { passed, failed_conditions[], overridden, override_reason }, artifact, updated_at } }, history[] }`. Plus the naming rules for phase artifacts and the `decisions/ADR-NNN-slug.md` convention.
 
-- [ ] **1.3 — `skills/evidence-ledger/SKILL.md`**
+- [x] **1.3 — `skills/evidence-ledger/SKILL.md`**
   Tag grammar (`[mcp:*]`, `[interview:*]`, `[doc:*]`, `[estimate:*]`, `[assumption:*]`), source hierarchy, counting rules gates use, and the rewrite protocol for untagged claims. Includes a worked before/after example of an untagged paragraph becoming a tagged one.
 
-- [ ] **1.4 — `skills/gate-checks/SKILL.md`**
+- [x] **1.4 — `skills/gate-checks/SKILL.md`**
   All 8 gates with their machine-checkable conditions, the refusal protocol (name failed condition → state what satisfies it → offer cheapest path → do not advance), and the override protocol (allowed, logged in `state.json` with a reason, surfaced in `/bos-status`).
 
-- [ ] **1.5 — `skills/pressure-testing/SKILL.md`**
+- [x] **1.5 — `skills/pressure-testing/SKILL.md`**
   The adversarial interview primitive. Question banks per phase, the branch-resolution stop condition, and the rule that agreement is not a stop condition. Explicitly model-invoked; any gate may call it.
 
-- [ ] **1.6 — `skills/builder-os/SKILL.md`**
+- [x] **1.6 — `skills/builder-os/SKILL.md`**
   The lifecycle hub. Inherits the tri-modal detection protocol from `pm-toolkit` verbatim, adds phase detection (read `state.json`), the full phase → skill → agent → command routing table, the gate model, and the handoff contract between phases. Routes phase-7 intents to `pm-toolkit`. Declares interop detection for Superpowers and Impeccable.
 
-- [ ] **1.7 — Commands `bos`, `bos-init`, `bos-status`, `bos-gate`**
+- [x] **1.7 — Commands `bos`, `bos-init`, `bos-status`, `bos-gate`**
   `bos-init` interviews for `PRODUCT.md` and scaffolds `.builderos/`. `bos` reads state and routes. `bos-status` renders the one-screen pipeline view. `bos-gate` runs the current gate and reports per-condition pass/fail.
 
-- [ ] **1.8 — Verify and commit**
-  Frontmatter valid on all new skills (`name`, `description` = triggering conditions only). Every new command references a real agent or skill. `/bos-init` → `/bos-status` runs end to end on an empty directory.
+- [x] **1.8 — Verify and commit**
+  Frontmatter valid on all new skills (`name`, `description` = triggering conditions only) — checked. Every skill referenced by the hub and the new commands resolves to a real directory, or is marked unavailable in the hub's Availability section — checked. Test prompts added for the four spine skills.
+
+- [ ] **1.9 — Runtime verification**
+  Run `/bos-init` → `/bos-gate` → `/bos-status` in a clean session on an empty directory. Confirm `PRODUCT.md` and `state.json` are written to schema, and that a deliberately weak `00-frame.md` fails gate 0 with a named condition. Not yet executed: requires a live session with the plugin installed.
 
 ---
 
