@@ -9,7 +9,7 @@ Dispatch the `research-planner` agent to run BuilderOS phase 1.
 
 1. **Check pipeline state.** Read `.builderos/state.json`. Phase 0 must have passed or been overridden; if not, refuse with the failed condition per `gate-checks`.
 2. **Read `.builderos/00-frame.md`.** The riskiest assumption in it is the research target. Without it, stop and route to `/bos-frame`.
-3. **Detect operating mode.**
+3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
 ```
@@ -17,7 +17,7 @@ Agent({
   description: "Discovery research for [product]",
   subagent_type: "research-planner",
   prompt: "Operating mode: [detected mode]
-Available MCP tools: [list or 'none']
+Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: phase 1, cycle [C], mode [full|lite]
 
 PRODUCT.md:

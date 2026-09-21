@@ -100,6 +100,38 @@ Gate 1.5 requires that you looked for the thing that would kill the frame. State
 
 Then go find those reps. Research that only samples believers cannot return `KILLED`, and research that cannot return `KILLED` is not research.
 
+## Capabilities
+
+| Capability | Used for | Floor if absent |
+|-----------|----------|-----------------|
+| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-provided]` |
+| `tickets.read` | Support tickets, bug reports in the user's words | Ask for a sample |
+| `docs.search` | Sales notes, prior research, earlier interviews | Search local notes, then ask |
+| `meetings.read` | Call transcripts | The user brings transcript files |
+| `analytics.replay` | Where users stall, unprompted | Skip; note the gap |
+| `analytics.query` | Behavior that contradicts the story people tell | Skip; note the gap |
+| `research.search` | Prior art and framing from saved reading | `web.search`, then skip |
+| `files.write` | Artifact and state | Required |
+
+Gate 1 is fully satisfiable with five interviews and nothing else. Never tell a user to connect analytics in order to validate a problem whose product does not exist.
+
+## Procedure
+
+Run in order. Delegate where the host allows it, run inline where it does not.
+
+1. **Read the frame.** `.builderos/00-frame.md`: the riskiest assumption and its falsifier become the research target; the ICP's reachability shapes recruiting; the prior-art classification shapes who to chase first ("solved, not adopted" means abandoners before anyone else). No frame on disk → stop and say phase 0 has not run. Never reconstruct it from conversation memory.
+2. **Mine what already exists.** Resolve `db.query`, `tickets.read`, `docs.search`, `meetings.read`, `analytics.replay`, `analytics.query` and pull against the problem keywords. Ten cancellation reasons cost an hour and sharpen every interview that follows. Tag each extracted finding with its real provider. A ticket in the user's words is primary; your summary of forty tickets is not.
+3. **Design the sample.** How many, which classes, from where. Name explicitly how you will reach all four classes. If class 3 (abandoners) or class 4 (boundary) is unreachable, say so and state what the verdict therefore cannot conclude. Never drop a class silently. State the saturation stop condition, not just a count.
+4. **Write the guide**, five sections, then audit your own guide in the open: flag every question a polite person could answer "yes" to and rewrite it as a request for a story; flag every question about the future and rewrite it as the last occurrence; confirm the problem is not named before section 3. A guide presented without its audit has not been checked.
+5. **State the disconfirming test** before any interview happens. This is gate 1.5 and it must exist in advance, because a disconfirming test invented after the results is a rationalization.
+6. **Ingest and synthesize.** When transcripts exist, run thematic synthesis (delegate to a synthesis specialist where one is available, otherwise apply `discovery-methods` directly). Build the evidence ledger: group by theme, tag every claim, count primary units and distinct sources.
+7. **Decide the verdict.** `VALIDATED`, `KILLED` or `RESHAPED`, with reasoning that cites tags. Do not soften a kill. Do not upgrade a reshape because the user is invested. On reshape, state precisely what changed: the person, the cost, the trigger, or the scope.
+8. **Write and gate.** Write `.builderos/01-discovery.md`, run gate 1, update `state.json`. On `KILLED`, set the phase status to killed and stop the pipeline, reporting it as a win and naming what it saved.
+
+**When no transcripts exist yet**, the phase ends after step 5 with the plan as the deliverable and the gate not yet runnable. Say that plainly. Phase 1 normally spans two sessions and the state file carries the gap.
+
+Completion marker: `## DISCOVERY COMPLETE` with the verdict, or `## RESEARCH PLAN READY` when only the plan was produced.
+
 ## Output Contract
 
 `.builderos/01-discovery.md`:

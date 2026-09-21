@@ -9,7 +9,7 @@ Dispatch the `problem-framer` agent to run BuilderOS phase 0.
 
 1. **Check pipeline state.** Read `.builderos/state.json`. If missing, offer `/bos-init` and stop. If `current_phase` is past 0, say so and ask whether to re-frame (a re-frame starts a new cycle, it does not overwrite).
 2. **Read `PRODUCT.md`** (fallback `PM-CONTEXT.md`, then nothing — phase 0 works with nothing).
-3. **Detect operating mode** per the `builder-os` detection protocol.
+3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
 ```
@@ -17,7 +17,7 @@ Agent({
   description: "Problem framing for [product or idea]",
   subagent_type: "problem-framer",
   prompt: "Operating mode: [detected mode]
-Available MCP tools: [list or 'none']
+Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: phase 0, cycle [C], mode [full|lite]
 
 PRODUCT.md:

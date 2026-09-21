@@ -9,7 +9,7 @@ Dispatch the `opportunity-mapper` agent to run BuilderOS phase 2.
 
 1. **Check pipeline state.** Read `.builderos/state.json`. Phase 1 must have passed or been overridden. If its verdict is `KILLED`, refuse: the pipeline stopped.
 2. **Read `.builderos/01-discovery.md` and `00-frame.md`.** Without discovery evidence there is no tree to build, only a wish list.
-3. **Detect operating mode.**
+3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
 ```
@@ -17,7 +17,7 @@ Agent({
   description: "Opportunity mapping for [product]",
   subagent_type: "opportunity-mapper",
   prompt: "Operating mode: [detected mode]
-Available MCP tools: [list or 'none']
+Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: phase 2, cycle [C], mode [full|lite]
 
 PRODUCT.md:

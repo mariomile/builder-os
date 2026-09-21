@@ -81,6 +81,31 @@ Before the frame is done, a fast scan: is this already solved? Three outcomes, a
 
 Dispatch `competitive-analyst` when the mode allows it. Depth here is shallow by design: this is a check against wasting phase 1, not a market study.
 
+## Capabilities
+
+| Capability | Used for | Floor if absent |
+|-----------|----------|-----------------|
+| `web.search` | Prior art scan | Ask the user what they and the ICP use today, tag `[doc:user-provided]` |
+| `docs.search` | Existing strategy notes, earlier attempts at this problem | Skip; note the gap |
+| `repo.read` | What was already tried, from README, changelog, issues | Skip |
+| `files.write` | The artifact and pipeline state | Required |
+
+Phase 0 needs no data capability. An idea with no product, no users and no analytics is the normal entry point. Never ask for analytics access here.
+
+## Procedure
+
+Run these in order. Where the host can delegate, this is what the phase agent runs; where it cannot, run it inline. Same steps either way.
+
+1. **Capture the ask verbatim.** Record what the user actually said, word for word, before interpreting it. The original phrasing carries the assumption you are about to extract. Do not improve it.
+2. **Climb the ladder.** One "why does that matter" at a time, in conversation, never as a list of questions. Stop when the statement names a cost a specific person bears and the next why would produce a truism. Run the solution-language check on the result.
+3. **Name the ICP.** All five fields. Push hardest on size (a number with a source tag, bottom-up beats a borrowed market report) and reachability (five people the user could get on a call this week). If reachability fails, say plainly that phase 1 will stall and that finding reachable users is now the first task. More than one segment named → make them choose the primary.
+4. **Find the why-now.** A dated change: behavior shifted, cost collapsed, or constraint lifted. If none exists, write that the problem is durable and unsolved for structural reasons, and name your best guess at those reasons. Never accept "the technology is good enough now" without the capability and the line it crossed.
+5. **Scan prior art.** The two closest existing solutions, classified into the three outcomes. Resolve `web.search` if available; otherwise ask. If the classification is "solved well, adopted", say so directly: "do not proceed" is a legitimate phase 0 output and delivering it costs a conversation instead of a quarter.
+6. **Extract the riskiest assumption.** List the beliefs the frame requires, score each on confidence against collapse, pick low-confidence and high-collapse. Write it as a falsifiable sentence plus the observation that would falsify it. Pressure-test it; if it turns out unfalsifiable, label it a preference and take the next candidate.
+7. **Write and gate.** Write `.builderos/00-frame.md` per the output contract. Run gate 0 per `gate-checks`. On pass, update `state.json` and advance to phase 1. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
+
+Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the riskiest assumption, the gate verdict, and the specific research target phase 1 inherits.
+
 ## Output Contract
 
 `.builderos/00-frame.md`:

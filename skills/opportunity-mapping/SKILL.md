@@ -95,6 +95,32 @@ Both are honest. Inventing "roughly 30% today" is not.
 
 The success metric is usually an input to the North Star, not the North Star itself. Dispatch `north-star-analyst` when the product has no North Star yet, or when the chosen opportunity implies a different one. Phase 2 does not need to select a North Star to proceed, but it must state how the success metric connects to one.
 
+## Capabilities
+
+| Capability | Used for | Floor if absent |
+|-----------|----------|-----------------|
+| `analytics.query` | Opportunity reach and frequency; the success metric baseline | Bottom-up estimate with the method named; baseline becomes unknown-with-a-date or explicit zero |
+| `db.query` | Account counts by segment, revenue baselines | Same |
+| `docs.search` | Existing strategy docs, prior PMF assessments | Ask the user |
+| `repo.read` | Which events are tracked, and therefore what is measurable today | Skip; assume nothing is measurable and make instrumentation a phase 4 requirement |
+| `files.write` | Artifact and state | Required |
+
+Gate 2 is fully satisfiable with no data capability at all: the tree comes from interview evidence, sizing is bottom-up with stated methods, and the baseline is an explicit zero. What gate 2.4 rejects is an *estimated* baseline, not an absent one.
+
+## Procedure
+
+Run in order. Delegate where the host allows it, run inline where it does not.
+
+1. **Read discovery and the frame.** Check the verdict first: `VALIDATED` proceeds; `RESHAPED` means confirming `PRODUCT.md` was amended before mapping against a stale ICP; `KILLED` means refusing, because the pipeline stopped. No `01-discovery.md` on disk → stop. Never build a tree from conversation memory.
+2. **Build the tree.** Group the evidence into three to seven mutually exclusive opportunities. Run the verb check on each: add, build, integrate, redesign mean you wrote a solution. Attach every supporting evidence tag. Drop untagged candidates and say which you dropped and why. Set the root: the desired outcome, which becomes the success metric.
+3. **Size.** Reach, severity and frequency per opportunity. Resolve `analytics.query` and `db.query` for real population counts where they exist; otherwise bottom-up with the method named in the tag. Present the ranking, then state explicitly that it sorts rather than decides.
+4. **Check PMF coherence.** Score the PMF signals per `strategy-frameworks`, or read a recent assessment if one exists. If the leading opportunity is an acquisition or scale bet at a signal score of 4 or below, flag it before the user commits, not after: gate 2.5 will refuse it.
+5. **Select.** Apply evidence strength, strategic fit, PMF coherence and reversibility, in that order. Write the rejections, each with a reason and a revisit condition. Pressure-test the selection before committing: which opportunity would a competitor pick, and why are they wrong?
+6. **Define the success metric.** Metric, baseline, target, measurement. Pull the baseline with a real query where a data capability resolved, tagged with the provider and the window. Where none did, choose honestly between unknown-with-a-first-measurement-date (product exists, uninstrumented, and instrumentation becomes a phase 4 requirement) and explicit zero (product does not exist). Never estimate a baseline. Show the reasoning behind the target; "double it" is not reasoning.
+7. **Write and gate.** Write `.builderos/02-definition.md`, run gate 2, update `state.json`, advance to phase 3 on pass.
+
+Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, the metric with baseline and target, the PMF coherence verdict and the gate result.
+
 ## Output Contract
 
 `.builderos/02-definition.md`:

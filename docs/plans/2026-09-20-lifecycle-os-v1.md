@@ -88,6 +88,51 @@ The part that makes the promise true: an idea can now enter the system.
 
 ---
 
+## Cluster 2b — Host Portability
+
+Added 2026-09-21. BuilderOS must run on Claude Code and Codex, and degrade sanely anywhere else. Spec: `docs/specs/2026-09-21-host-portability.md`.
+
+- [x] **2b.1 — `references/capability-map.md`**
+  15 capabilities, the runtime resolution protocol, the degradation ladder per capability, and operating modes restated in capability terms.
+
+- [x] **2b.2 — Invert skills and agents on the v1.0 surface**
+  Procedure moved from `problem-framer`, `research-planner` and `opportunity-mapper` into `problem-framing`, `research-methods` and `opportunity-mapping`. Each skill gained a Capabilities table with a floor per capability and a numbered Procedure. The three agents became thin adapters: role, Iron Law, context contract, reporting.
+
+- [x] **2b.3 — Host-agnostic hub**
+  `builder-os` Dispatch Protocol became a Run Protocol with two paths: delegate where `subagent.dispatch` resolves, run inline where it does not. Mode detection rewritten in capability terms. Interop and Red Flags de-vendored.
+
+- [x] **2b.4 — `AGENTS.md` and `docs/hosts.md`**
+  Repo-root standing rules for `AGENTS.md`-aware hosts, and the per-host setup and difference table.
+
+- [x] **2b.5 — Portability rules in `CLAUDE.md`**
+  Six enforced rules, a new Skill Contract, a rewritten Agent Contract, and design principles 4 and 6 replaced.
+
+- [ ] **2b.6 — Cross-host verification**
+  Run phases 0–2 on Codex with `skills/` reachable and no `agents/` or `commands/`, and confirm identical artifacts and gate behavior against a Claude Code run of the same idea. Not yet executed.
+
+---
+
+## Cluster 5 — Legacy Retrofit
+
+The 11 v0.1/v0.2 agents predate the portability contract: ~74 hardcoded tool references, several of them one user's connector instances (`mcp__claude_ai_DeepAgent_Mixpanel__*`), and all of their procedure sits in the agent rather than the skill. Must land before 1.0.0.
+
+- [ ] **5.1 — Audit**
+  Per agent: which tool references, which capability each maps to, which procedure belongs in which skill. Produces the retrofit table.
+
+- [ ] **5.2 — Move procedure into skills**
+  `pm-artifacts`, `growth-frameworks`, `tracking-standards`, `financial-models`, `experiment-methodology`, `competitive-intel`, `discovery-methods`, `strategy-frameworks`, `okr-frameworks` each gain the Procedure and Capabilities sections their agents currently hold.
+
+- [ ] **5.3 — Convert agents to adapters**
+  Same shape as the phase-0–2 agents.
+
+- [ ] **5.4 — De-vendor `pm-toolkit`**
+  Mode detection in capability terms; MCP enhancement suggestions rewritten as capability gaps.
+
+- [ ] **5.5 — Verify**
+  Each retrofitted agent produces the same output on the same input as before the change, on a host where the same capabilities resolve.
+
+---
+
 ## Cluster 3 — Middle (Phases 3–5)
 
 - [ ] **3.1 — Phase 3: Ideate**
