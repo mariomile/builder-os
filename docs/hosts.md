@@ -6,10 +6,19 @@
 |-------|----------|-------|
 | `skills/` | Yes | Method **and** procedure. Works on any agent that reads `SKILL.md` |
 | `references/` | Yes | Templates, schema, capability map |
-| `AGENTS.md` | Yes | Standing rules, read by Codex and other `AGENTS.md`-aware tools |
+| `AGENTS.md` | Yes | The shared contract. Read directly by Codex, and by Claude Code through the import in `CLAUDE.md` |
+| `CLAUDE.md` | No | Claude Code additions only. First line imports `AGENTS.md` |
 | `agents/` | No | Claude Code subagent wrappers. Thin by design |
 | `commands/` | No | Claude Code slash commands |
 | `.claude-plugin/` | No | Claude Code plugin manifest |
+
+## One Contract, Two Files
+
+Claude Code reads `AGENTS.md` directly only when no `CLAUDE.md` exists in the working directory or above it. This repo has both, so `CLAUDE.md` starts with `@AGENTS.md`: the shared contract is imported, and `CLAUDE.md` carries only what is Claude-specific. Codex reads `AGENTS.md` on its own.
+
+The rule for contributors: anything true on every host goes in `AGENTS.md`. Anything about subagents, slash commands or the plugin manifest goes in `CLAUDE.md`. Never duplicate a rule across both.
+
+Two caveats worth knowing. Reading `AGENTS.md` directly needs a recent Claude Code; the import path works regardless, which is why this repo uses it. And a `CLAUDE.md` anywhere *above* the working directory also suppresses direct `AGENTS.md` reading, so the import is what makes the contract reliable when BuilderOS sits inside a larger repo.
 
 Delete `agents/`, `commands/` and `.claude-plugin/` and BuilderOS still takes someone from idea to production. That is the portability test, and it is the reason procedure lives in skills.
 
