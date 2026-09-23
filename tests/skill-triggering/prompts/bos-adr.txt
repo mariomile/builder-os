@@ -1,0 +1,2 @@
+# expects: command=/bos-adr
+Questa scelta non la possiamo più tornare indietro facilmente. Scriviamola da qualche parte con le alternative che abbiamo scartato.
