@@ -1,0 +1,2 @@
+# expects: command=/bos-discovery-sprint
+Ho un'idea e vorrei arrivare in una sessione sola a capire su quale opportunita' puntare, partendo da zero.

@@ -1,0 +1,2 @@
+# expects: skill=release-ops agent=release-manager command=/bos-ship
+È pronto per andare in produzione. Come lo rilascio senza rischiare grosso, e cosa devo misurare prima di accendere tutto?

@@ -1,0 +1,2 @@
+# expects: skill=ux-architecture agent=ux-architect
+Questa feature ha solo il percorso felice disegnato. Mancano stato vuoto, errori, permessi. Puoi mettere giù la struttura e il livello minimo di accessibilità?

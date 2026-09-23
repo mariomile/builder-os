@@ -1,0 +1,2 @@
+# expects: skill=outcome-review command=/bos-learn
+Abbiamo rilasciato tre settimane fa. Ha funzionato o no? E cosa decidiamo adesso: teniamo, iteriamo o buttiamo?

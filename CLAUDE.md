@@ -1,51 +1,22 @@
-# CLAUDE.md — BuilderOS
+@AGENTS.md
 
-## What This Is
+# CLAUDE.md — BuilderOS on Claude Code
 
-BuilderOS is a Claude Code plugin — The Operating System for Product Builders. It provides operational Product Management capabilities via specialized agents connected to live data sources (Mixpanel, PostHog, Supabase, Notion) through MCP.
+The shared contract is in `AGENTS.md`, imported above: architecture, design principles, non-negotiables, portability rules, skill contract, testing, contributing. Everything here is Claude Code specific and applies on top of it.
 
-## Architecture
+The import exists because Claude Code reads `AGENTS.md` only when no `CLAUDE.md` is present in the working directory or above it. Without it, this file would silently shadow the shared contract and the two would drift. Single source, both hosts.
 
-```
-Hub Skill (pm-toolkit) → Routes intent → Specialized Agents → MCP Data Sources
-                                              ↓
-                                        Knowledge Skills (frameworks, formulas, templates)
-```
+## Claude Code Adapters
 
-### Components
+| Directory | Role |
+|-----------|------|
+| `agents/` | Subagent wrappers. Thin by design: role, Iron Law, context contract, reporting format |
+| `commands/` | Slash-command entry points and argument parsing |
+| `.claude-plugin/plugin.json` | Plugin manifest |
 
-- **Skills** (`skills/`): Knowledge modules — frameworks, formulas, templates. Loaded by agents as reference.
-- **Agents** (`agents/`): Execution specialists — pull data, analyze, produce artifacts. Each has explicit MCP call sequences.
-- **Commands** (`commands/`): Quick-access entry points — thin routing layers that dispatch to agents.
-- **References** (`references/`): Shared templates, context schemas, prompt fragments.
+These three are deletable. Deleting them costs slash commands and per-phase context isolation, nothing else. See `docs/hosts.md`.
 
-### Design Principles
-
-1. **Zero dependencies** — Only Node.js built-ins in plugin loader
-2. **Data over guessing** — Every number must come from an MCP query
-3. **Structured output** — Every agent has a completion marker and handoff contract
-4. **Explicit MCP calls** — Agent prompts contain exact MCP tool names and query parameters
-5. **Graceful fallback** — If MCP is unavailable, report clearly and ask for manual data
-
-### File Naming
-
-- Skills: `skills/{skill-name}/SKILL.md`
-- Agents: `agents/{agent-name}.md`
-- Commands: `commands/{command-name}.md`
-- All names use hyphens, lowercase
-
-### Skill Frontmatter
-
-```yaml
----
-name: skill-name
-description: "Use when [specific triggering conditions]"
----
-```
-
-Description = triggering conditions ONLY. Not a workflow summary.
-
-### Agent Frontmatter
+## Agent Frontmatter
 
 ```yaml
 ---
@@ -55,26 +26,26 @@ model: inherit
 ---
 ```
 
-### Agent Contract
+## Agent Contract
 
-Every agent MUST:
-1. Follow numbered phases
-2. Make explicit MCP calls (not vague "analyze data")
-3. End with a completion marker (`## TYPE COMPLETE`)
-4. Produce output in the documented handoff format
-5. Have a fallback if MCP is unavailable
-6. Include a "Common Mistakes" table
+Agents are adapters over skills. Every agent MUST:
 
-### Testing
+1. Name the skill it loads and instruct running that skill's procedure
+2. State its role and its Iron Law
+3. Define the context contract its dispatch prompt carries
+4. End with a completion marker (`## TYPE COMPLETE`)
 
-Skills are tested via pressure scenarios (following Superpowers TDD-for-skills methodology):
-1. Run prompt WITHOUT skill loaded — document agent failures
-2. Load skill — verify agent complies
-3. Find rationalization loopholes — plug them
+Agents MUST NOT duplicate the procedure, the frameworks or the output contract. Those live in the skill, where every host can reach them. An agent longer than about 40 lines has almost certainly stolen something from its skill.
 
-## Contributing
+## Command Contract
 
-- Every agent change must be tested against real MCP data
-- Every skill change must include updated examples
-- No placeholder content ("TBD", "TODO", "implement later")
-- Follow existing patterns — read 2-3 existing files before creating new ones
+Commands are routing layers, not logic. Every command MUST:
+
+1. Check pipeline state before dispatching, and refuse on a failed upstream gate
+2. Resolve capabilities per `references/capability-map.md` and pass the derived mode
+3. Read and pass the previous phase artifact
+4. Verify the completion marker before presenting results
+
+## Dispatch Context Package
+
+Every lifecycle dispatch carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, the previous phase artifact, the user's request verbatim, and the instruction to write the phase artifact, update `state.json`, and run the gate before reporting.

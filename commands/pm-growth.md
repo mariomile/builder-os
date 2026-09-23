@@ -8,8 +8,9 @@ Dispatch the `growth-architect` agent to analyze growth bottlenecks and design i
 ## Steps
 
 1. **Find product context**: Look for `PM-CONTEXT.md` in the current project root or `.pm-toolkit/context.md`
-2. **If no context found**: Ask the user for: product name, Mixpanel project ID, activation event, retention event, key segments
-3. **Dispatch agent**:
+2. **Resolve capabilities** per `references/capability-map.md`, and record what each resolved to
+3. **If no context found**: ask for product name, the funnel steps, the retention event and the segments that matter. Never ask for a provider account or project id
+4. **Dispatch agent**:
 
 ```
 Agent({
@@ -19,8 +20,8 @@ Agent({
 })
 ```
 
-4. **Verify completion**: Look for `## GROWTH ANALYSIS COMPLETE` in the agent's output
-5. **Present results** to the user with funnel analysis, retention curves, and prioritized interventions
+5. **Verify completion**: Look for `## GROWTH ANALYSIS COMPLETE` in the agent's output
+6. **Present results** to the user with funnel analysis, retention curves, and prioritized interventions
 
 ## Arguments
 

@@ -5,7 +5,15 @@ description: "Use when performing any product management task — metrics analys
 
 # PM Toolkit (BuilderOS)
 
-Operational Product Management toolkit. Works in three modes: **MCP-connected** (live analytics), **vault-based** (Obsidian notes), or **codebase-based** (Claude Code on a project). Adapts automatically to the available data sources.
+Operational Product Management toolkit. It resolves whatever data capabilities the session exposes and adapts to them, from a live analytics connection down to nothing but the conversation. Prerequisites are zero: reading and writing files is the only hard dependency.
+
+## Scope
+
+This skill is the **analysis surface**: stateless questions about a product that already exists and already emits data. Health, growth, tracking, finance, experiments, competition, artifacts, strategy.
+
+For taking an idea or a problem *toward* a product — framing, research, opportunity mapping, bet selection, spec, delivery, release — load `builder-os` instead. That skill owns the gated 8-phase pipeline and routes back here for phase 7 (Learn).
+
+Rule of thumb: `pm-*` answers a question, `bos-*` walks a pipeline.
 
 ## Iron Law
 
@@ -25,73 +33,41 @@ Use this skill when the user asks to:
 
 ## Operating Modes
 
-BuilderOS adapts to the environment it's running in. **Detect the mode before dispatching any agent.**
+BuilderOS adapts to whatever the session actually exposes. **Resolve capabilities before dispatching anything.**
 
-### Mode Detection Protocol
+### Resolution Protocol
 
-Run these checks in order:
+Run the protocol in `references/capability-map.md`: enumerate the tools this session exposes, match them to capabilities by shape rather than by name, record what resolved, and degrade explicitly where nothing does.
 
-```
-1. Check for MCP tools:
-   - mcp__claude_ai_DeepAgent_Mixpanel__* → Mixpanel available
-   - mcp__plugin_supabase-toolkit_supabase__* → Supabase available
-   - mcp__claude_ai_Notion__* → Notion available
-   - mcp__claude_ai_PostHog__* → PostHog available
-   - mcp__claude_ai_Readwise__* → Readwise available
-   - mcp__claude_ai_Randrop_io__* → Raindrop available
+Never test for a specific tool identifier. Connector instances are named per user, so `mixpanel` in one session is a different string from `mixpanel` in another, and a skill that tests for either is broken for everyone else.
 
-2. Check for vault context:
-   - Is working directory an Obsidian vault? (look for .obsidian/)
-   - Are there PM-related notes? (grep for metric, product, growth, etc.)
+The analytics side of that resolution is specified in `references/analytics-contract.md`: five question shapes, answered by whichever of Mixpanel, Amplitude, PostHog, a warehouse or the user resolved.
 
-3. Check for codebase context:
-   - Is there a package.json, Gemfile, requirements.txt, etc.?
-   - Is there analytics tracking code? (grep for mixpanel, posthog, segment, etc.)
-   - Is there a PM-CONTEXT.md?
-```
+### Operating Modes
 
-### Three Operating Modes
+A mode is a summary of what resolved, not a configuration anyone sets.
 
-| Mode | When | Data Sources | Power Level |
-|------|------|-------------|-------------|
-| **MCP-connected** | MCP tools detected | Live queries to Mixpanel, Supabase, Notion, etc. | Full — real-time data, automated dashboards |
-| **Vault-based** | Obsidian vault detected, no MCP | Vault notes, Readwise highlights, Raindrop bookmarks | Medium — curated knowledge, manual metrics |
-| **Codebase-based** | Code project, no vault/MCP | Source code, configs, git history, README | Focused — code-aware analysis, tracking audit |
+| Mode | Means | Strongest for |
+|------|-------|---------------|
+| **connected** | `analytics.query` or `db.query` resolved | Everything. Baselines are real |
+| **vault-based** | `docs.search` resolved against notes; no live data | Strategy, discovery, artifacts |
+| **codebase-based** | Only `repo.read` and `files.*` | Tracking audits, spec work, instrumentation gaps |
+| **conversational** | Nothing resolved | Framing, strategy, artifact drafting. The normal state for a new idea |
 
-### Mode-Specific Behavior
+**Zero prerequisites.** Every command in this toolkit runs with nothing connected. `files.read` and `files.write` are the only hard dependency. Each skill states its floor per capability, and no floor is a fabricated number: it is reading the code, reading a document, asking the user, or naming the gap.
 
-**MCP-connected mode:**
-- Agents make explicit MCP calls for live data
-- Output includes real numbers with source attribution
-- Can create dashboards, write to Notion, export to Google Drive
+### Capability Gaps
 
-**Vault-based mode:**
-- Agents search vault notes for documented metrics, decisions, strategies
-- Use `Grep` and `Glob` to find relevant notes
-- Use Readwise/Raindrop MCP if available for enrichment
-- Output references vault notes with `[[wikilinks]]`
-- Suggest: "For live data, connect Mixpanel MCP: `mcp__claude_ai_DeepAgent_Mixpanel`"
-
-**Codebase-based mode:**
-- Agents analyze code for tracking implementation, feature structure, config
-- Read `package.json`, analytics configs, event definitions in code
-- Output includes file paths and code references
-- Suggest: "For product metrics, connect Mixpanel or PostHog MCP"
-
-### MCP Enhancement Suggestions
-
-When an agent operates WITHOUT a useful MCP, include a suggestion at the end of its output:
+When a capability did not resolve and it would have sharpened the work, say so once, at the end, in capability terms:
 
 ```markdown
-> **Enhance this analysis:** Connect [{MCP name}] for [{what it enables}].
-> - Mixpanel MCP → live metrics, funnels, retention cohorts
-> - Supabase MCP → revenue data, billing queries, user tables
-> - PostHog MCP → session replays, feature flags, experiments
-> - Notion MCP → write PRDs directly, sync interview databases
-> - Linear MCP → connect roadmap items to metrics
+> **What would sharpen this:** a retention curve would replace the stated assumption about
+> week-4 behavior with a measured one. Any product analytics source answers it; so does a
+> CSV export.
 ```
 
-Only suggest MCPs that are **directly relevant** to the current analysis. Don't list all of them.
+Name the shape and the question it would answer. Never name a product the user should go install, and never list every possible integration: only the gap that mattered to this analysis.
+
 
 ## Available Agents
 
@@ -176,8 +152,8 @@ When routing to an agent, use the Agent tool with:
 Agent({
   description: "[Agent purpose] for [product name]",
   subagent_type: "[agent-name]",
-  prompt: "Operating mode: [mcp-connected / vault-based / codebase-based]
-Available MCP tools: [list detected MCP tools, or 'none']
+  prompt: "Operating mode: [connected / vault-based / codebase-based / conversational]
+Resolved capabilities: [capability → the concrete tool it resolved to, or 'none']
 Product context:
 [PM-CONTEXT.md content or extracted context]
 
@@ -190,10 +166,12 @@ Specific parameters:
 ```
 
 Always include:
-- The detected operating mode
-- List of available MCP tools
+- The operating mode, as a summary of what resolved
+- The resolved capabilities, each named with the concrete tool behind it, so the agent's evidence tags can name the real source
 - Full product context
 - The user's original request
+
+Where `subagent.dispatch` does not resolve, there is no Agent tool. Run the same skill Procedure inline, in sequence, and produce the same artifact. The procedure lives in the skill precisely so this path exists.
 
 ## Multi-Agent Orchestration
 
@@ -227,8 +205,8 @@ STOP and correct course if you notice:
 
 | Behavior | Problem | Fix |
 |----------|---------|-----|
-| Agent reports metrics without any data source | Data is hallucinated | Must use MCP, vault, or user-provided data |
-| "Approximately" or "estimated" without label | Source unclear | Label every number: `[Mixpanel]`, `[vault note]`, `[user-provided]` |
-| Agent ignores available MCP tools | Missed opportunity | Re-dispatch with explicit MCP tool list |
-| Agent suggests MCP when it's already available | Didn't detect tools | Fix mode detection |
+| Agent reports a metric with no tag | The number is invented | Every number carries its source, or is marked unavailable |
+| "Approximately" or "estimated" without a tag | Source unclear | Tag every number per `evidence-ledger`: `[mcp:{provider}:{query}]`, `[doc:{source}]`, `[doc:user-provided]` |
+| Agent ignores a capability that resolved | Missed data | Re-dispatch with the resolved capability list explicit |
+| Agent names a product for the user to install | Vendor coupling | State the capability gap and the question it would answer |
 | Output missing completion marker | Agent didn't finish | Re-dispatch or investigate |

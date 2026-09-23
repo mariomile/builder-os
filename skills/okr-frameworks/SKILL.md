@@ -9,6 +9,66 @@ Operational reference for writing and managing OKRs. Reference when the OKR Arch
 
 **REQUIRED BACKGROUND:** For metric definitions and MCP query patterns when setting baselines, load `saas-metrics-reference`.
 
+**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/analytics-contract.md` for the query shapes behind a baseline. `references/capability-map.md` before touching any data source.
+
+## Capabilities
+
+| Capability | Used for | Floor when absent |
+|-----------|----------|-------------------|
+| `analytics.query` | The baseline behind every key result | Ask the user; tag `[doc:user-provided]`; a KR whose baseline is user-provided says so |
+| `db.query` | Baselines that live in the application database: accounts, revenue, usage | Same floor |
+| `docs.search` | Strategy, prior OKRs, the company objectives these ladder up to | Ask for them; without the level above, alignment cannot be checked |
+| `docs.write` | Publishing the set where the team reads it | Write the file; the artifact is the deliverable, publishing is optional |
+| `files.read` / `files.write` | The artifact itself | Always present |
+
+## Procedure
+
+### 1. Resolve capabilities and read the level above
+
+Company or group objectives, current strategy, the north star metric, and the previous cycle's OKRs with how they actually scored. Without the level above, you are writing goals, not OKRs, and you should say so rather than inventing an alignment.
+
+### 2. Derive objectives
+
+Three at most. Qualitative, time-bound, and written so that someone outside the team can tell whether it happened. An objective that survives unchanged for four quarters is a mission statement.
+
+### 3. Find the baseline for every key result, first
+
+Baseline before target, always. Run the Baseline Discovery Protocol below. A key result written as "improve activation to 40%" with no current number is unscoreable, and the team discovers this at review, not now.
+
+Where no baseline resolves: state the KR as "establish the baseline for X by {date}" for this cycle. That is a legitimate key result and a far better one than a target invented to look decisive.
+
+### 4. Set targets
+
+From the baseline plus the rate the team has actually achieved before, adjusted for what is changing. Then apply the KR quality check below.
+
+### 5. Check alignment
+
+Each objective maps to the level above. Each key result maps to an owner. Anything that maps to nothing gets cut or gets a reason.
+
+### 6. Report
+
+Emit the output contract. Every baseline tagged. Every KR whose baseline is user-provided or absent flagged as such on its face.
+
+## Output Contract
+
+```markdown
+## OKR COMPLETE
+
+**Cycle:** {period} · **Ladders up to:** {the objective above, or "none supplied"}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
+
+### Objective {n}: {title}
+| KR | Baseline (tag) | Target | Owner | How it will be measured |
+
+### Alignment Matrix
+{objective → level above; KR → owner}
+
+### Measurement Gaps
+{KRs with no baseline, and the shape that would establish one}
+
+### Review Cadence
+```
+
 ## OKR Methodology
 
 **Objectives** — qualitative, inspirational, time-bound. Answer: "Where are we going?"
@@ -53,7 +113,7 @@ OKRs cascade: Company → Product → Team. BuilderOS focuses on the **Product-l
 
 For each KR, find a real baseline — never estimate:
 
-1. **MCP-connected**: `mcp__claude_ai_DeepAgent_Mixpanel__Run-Query` or `mcp__plugin_supabase-toolkit_supabase__execute_sql`
+1. **Live data**: the Volume, Funnel or Retention shape via `analytics.query`, or `db.query` where the number lives in the application database
 2. **Vault-based**: Grep for metric name + product name in vault; check periodic notes
 3. **User-provided**: Ask directly: "What's the current value of [metric]?"
 4. **Unknown**: Mark as `TBD — tracking ticket required` and add to Tracking Requirements section

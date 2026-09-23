@@ -1,0 +1,2 @@
+# expects: skill=builder-os command=/bos-init
+Ho un'idea: i commerciali perdono un sacco di tempo a scrivere a mano i report delle chiamate. Vorrei partire e capire se ha senso costruire qualcosa.

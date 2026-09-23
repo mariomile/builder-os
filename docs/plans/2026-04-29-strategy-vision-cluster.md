@@ -10,6 +10,9 @@
 
 ---
 
+> **Status: closed.** Every task below shipped in May 2026 (commits `1a73ed9` through `76f4dbc`) and the boxes were retro-ticked on 2026-09-23. The v1.0 retrofit later rewrote much of what this plan produced: the three agents became thin adapters and their procedure moved into `strategy-frameworks` and `okr-frameworks`, and the hardcoded tool references this plan specified were removed. Read it as the record of how v0.2 was built, not as a description of the current files.
+
+
 ## File Map
 
 | # | Path | Type | Task |
@@ -39,7 +42,7 @@
 - Create: `skills/strategy-frameworks/SKILL.md`
 - Create: `skills/okr-frameworks/SKILL.md`
 
-- [ ] **Step 1.1: Create skills/strategy-frameworks/SKILL.md**
+- [x] **Step 1.1: Create skills/strategy-frameworks/SKILL.md**
 
 ```markdown
 ---
@@ -145,7 +148,7 @@ Max score: 9. Minimum viable NSM: 6+. If no candidate scores 6+, define what "va
 | **Growth** | Maintain 7+, compound | Monetization + expansion metric | Annual + quarterly |
 ```
 
-- [ ] **Step 1.2: Create skills/okr-frameworks/SKILL.md**
+- [x] **Step 1.2: Create skills/okr-frameworks/SKILL.md**
 
 ```markdown
 ---
@@ -237,11 +240,11 @@ Every Objective should have KRs covering 3 types:
 | OKR retrospective | After scoring | What to write differently next quarter? |
 ```
 
-- [ ] **Step 1.3: Verify both skill files have correct frontmatter**
+- [x] **Step 1.3: Verify both skill files have correct frontmatter**
 
 Check that both files start with `---`, have `name:` and `description:` fields, and close with `---`. The `description:` value is what Claude Code uses for skill matching — it must be specific enough to match the right queries.
 
-- [ ] **Step 1.4: Commit**
+- [x] **Step 1.4: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os
@@ -259,7 +262,7 @@ Expected: `2 files changed, N insertions(+)`
 - Create: `agents/product-strategist.md`
 - Create: `tests/skill-triggering/prompts/pm-strategy.txt`
 
-- [ ] **Step 2.1: Create tests/skill-triggering/prompts/pm-strategy.txt**
+- [x] **Step 2.1: Create tests/skill-triggering/prompts/pm-strategy.txt**
 
 Write the naive user prompt that should trigger this agent — before writing the agent itself:
 
@@ -267,7 +270,7 @@ Write the naive user prompt that should trigger this agent — before writing th
 I want to understand if my product has product-market fit. Can you assess where we are and what the biggest strategic gaps are?
 ```
 
-- [ ] **Step 2.2: Create agents/product-strategist.md**
+- [x] **Step 2.2: Create agents/product-strategist.md**
 
 ```markdown
 ---
@@ -469,7 +472,7 @@ Derive gaps from Phase 2 and Phase 3 evidence:
 | Coherence check without competitor data | Note "competitive coherence check skipped — no competitive data available" |
 ```
 
-- [ ] **Step 2.3: Verify agent structure**
+- [x] **Step 2.3: Verify agent structure**
 
 Check that `agents/product-strategist.md` has:
 - YAML frontmatter with `name`, `description`, `model: inherit`
@@ -478,7 +481,7 @@ Check that `agents/product-strategist.md` has:
 - Completion marker `## STRATEGY AUDIT COMPLETE` in the output format
 - `REQUIRED BACKGROUND:` referencing `strategy-frameworks`
 
-- [ ] **Step 2.4: Commit**
+- [x] **Step 2.4: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os
@@ -496,13 +499,13 @@ Expected: `2 files changed, N insertions(+)`
 - Create: `agents/north-star-analyst.md`
 - Create: `tests/skill-triggering/prompts/pm-northstar.txt`
 
-- [ ] **Step 3.1: Create tests/skill-triggering/prompts/pm-northstar.txt**
+- [x] **Step 3.1: Create tests/skill-triggering/prompts/pm-northstar.txt**
 
 ```
 We're not sure what our North Star metric should be. We want to pick the right metric that captures the core value we deliver and aligns our team around what matters most.
 ```
 
-- [ ] **Step 3.2: Create agents/north-star-analyst.md**
+- [x] **Step 3.2: Create agents/north-star-analyst.md**
 
 ```markdown
 ---
@@ -652,7 +655,7 @@ Cross-reference with any existing metric tree from `## DIAGNOSIS COMPLETE` outpu
 | Defining NSM too broadly | Precise definition required — "engagement" is not a metric |
 ```
 
-- [ ] **Step 3.3: Verify agent structure**
+- [x] **Step 3.3: Verify agent structure**
 
 Check that `agents/north-star-analyst.md` has:
 - YAML frontmatter with `name`, `description`, `model: inherit`
@@ -661,7 +664,7 @@ Check that `agents/north-star-analyst.md` has:
 - Completion marker `## NORTH STAR COMPLETE` in output format
 - `REQUIRED BACKGROUND:` referencing `strategy-frameworks` and `saas-metrics-reference`
 
-- [ ] **Step 3.4: Commit**
+- [x] **Step 3.4: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os
@@ -677,13 +680,13 @@ git commit -m "feat: add north-star-analyst agent and test prompt"
 - Create: `agents/okr-architect.md`
 - Create: `tests/skill-triggering/prompts/pm-okr.txt`
 
-- [ ] **Step 4.1: Create tests/skill-triggering/prompts/pm-okr.txt**
+- [x] **Step 4.1: Create tests/skill-triggering/prompts/pm-okr.txt**
 
 ```
 It's Q2 planning time. Help me write OKRs for the next quarter based on where we are with the product. I want ambitious but achievable goals with measurable key results.
 ```
 
-- [ ] **Step 4.2: Create agents/okr-architect.md**
+- [x] **Step 4.2: Create agents/okr-architect.md**
 
 ```markdown
 ---
@@ -796,12 +799,12 @@ Apply 0.7 scoring philosophy:
 ### KR Quality Check
 
 For each KR, verify:
-- [ ] Starts with a verb
-- [ ] Has a specific metric name
-- [ ] Has a real baseline (or explicit TBD)
-- [ ] Has a specific target
-- [ ] Has a date
-- [ ] Measurement method is specified
+- [x] Starts with a verb
+- [x] Has a specific metric name
+- [x] Has a real baseline (or explicit TBD)
+- [x] Has a specific target
+- [x] Has a date
+- [x] Measurement method is specified
 
 ## Phase 4: Alignment Matrix
 
@@ -889,7 +892,7 @@ mcp__claude_ai_Notion__notion-create-pages
 | No alignment matrix | Every KR must trace to the NSM metric tree |
 ```
 
-- [ ] **Step 4.3: Verify agent structure**
+- [x] **Step 4.3: Verify agent structure**
 
 Check that `agents/okr-architect.md` has:
 - YAML frontmatter with `name`, `description`, `model: inherit`
@@ -898,7 +901,7 @@ Check that `agents/okr-architect.md` has:
 - Completion marker `## OKR COMPLETE` in output format
 - `REQUIRED BACKGROUND:` referencing `okr-frameworks`
 
-- [ ] **Step 4.4: Commit**
+- [x] **Step 4.4: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os
@@ -917,13 +920,13 @@ git commit -m "feat: add okr-architect agent and test prompt"
 - Create: `commands/pm-strategy-session.md`
 - Create: `tests/skill-triggering/prompts/pm-strategy-session.txt`
 
-- [ ] **Step 5.1: Create tests/skill-triggering/prompts/pm-strategy-session.txt**
+- [x] **Step 5.1: Create tests/skill-triggering/prompts/pm-strategy-session.txt**
 
 ```
 I want to do a full strategy session — assess our PMF, nail down our North Star metric, and build Q2 OKRs in one go.
 ```
 
-- [ ] **Step 5.2: Create commands/pm-strategy.md**
+- [x] **Step 5.2: Create commands/pm-strategy.md**
 
 ```markdown
 ---
@@ -963,7 +966,7 @@ User request: Assess PMF signals, audit positioning coherence, and identify stra
 - `[--focus pmf|positioning|gaps]` — Focus on one phase only
 ```
 
-- [ ] **Step 5.3: Create commands/pm-northstar.md**
+- [x] **Step 5.3: Create commands/pm-northstar.md**
 
 ```markdown
 ---
@@ -1006,7 +1009,7 @@ User request: Evaluate North Star metric candidates and select the best one.
 - `[--candidates "metric1,metric2"]` — Pre-specify candidates to evaluate
 ```
 
-- [ ] **Step 5.4: Create commands/pm-okr.md**
+- [x] **Step 5.4: Create commands/pm-okr.md**
 
 ```markdown
 ---
@@ -1053,7 +1056,7 @@ Period: [quarter from user or 'next 90 days']"
 - `[product]` — Optional product name
 ```
 
-- [ ] **Step 5.5: Create commands/pm-strategy-session.md**
+- [x] **Step 5.5: Create commands/pm-strategy-session.md**
 
 ```markdown
 ---
@@ -1165,7 +1168,7 @@ Wait for `## OKR COMPLETE`.
 - `[quarter]` — Optional quarter, e.g. "Q2 2026"
 ```
 
-- [ ] **Step 5.6: Verify all 4 command files**
+- [x] **Step 5.6: Verify all 4 command files**
 
 Each command file must have:
 - YAML frontmatter with `name` and `description`
@@ -1178,7 +1181,7 @@ Verify agent name → subagent_type mapping:
 - `pm-okr.md` → `subagent_type: "okr-architect"` ✓
 - `pm-strategy-session.md` → all three in sequence ✓
 
-- [ ] **Step 5.7: Commit**
+- [x] **Step 5.7: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os
@@ -1194,7 +1197,7 @@ git commit -m "feat: add pm-strategy, pm-northstar, pm-okr, pm-strategy-session 
 **Files:**
 - Modify: `skills/pm-toolkit/SKILL.md`
 
-- [ ] **Step 6.1: Add 4 rows to the Available Agents routing table**
+- [x] **Step 6.1: Add 4 rows to the Available Agents routing table**
 
 In `skills/pm-toolkit/SKILL.md`, find the `## Available Agents` section. The current table ends with:
 
@@ -1211,7 +1214,7 @@ Add these 4 rows immediately after that line:
 | Full strategy session (PMF → NSM → OKRs) | Sequential: `product-strategist` → `north-star-analyst` → `okr-architect` | `/pm-strategy-session` |
 ```
 
-- [ ] **Step 6.2: Add 4 edges to the Routing Logic graphviz diagram**
+- [x] **Step 6.2: Add 4 edges to the Routing Logic graphviz diagram**
 
 In `skills/pm-toolkit/SKILL.md`, find the `digraph routing` block. The current block ends before the closing `}`. Add after the last `intent ->` line:
 
@@ -1227,7 +1230,7 @@ In `skills/pm-toolkit/SKILL.md`, find the `digraph routing` block. The current b
     intent -> strategy_session [label="full strategy\nsession"];
 ```
 
-- [ ] **Step 6.3: Add 3 rows to the Completion Markers table**
+- [x] **Step 6.3: Add 3 rows to the Completion Markers table**
 
 In `skills/pm-toolkit/SKILL.md`, find the `## Completion Markers` table. Add after the last row:
 
@@ -1237,14 +1240,14 @@ In `skills/pm-toolkit/SKILL.md`, find the `## Completion Markers` table. Add aft
 | OKR Architect | `## OKR COMPLETE` |
 ```
 
-- [ ] **Step 6.4: Verify the hub update**
+- [x] **Step 6.4: Verify the hub update**
 
 Read `skills/pm-toolkit/SKILL.md` and confirm:
 - The Available Agents table has 12 rows total (8 original + 4 new)
 - The graphviz digraph has `strategist`, `northstar`, `okr`, `strategy_session` nodes
 - The Completion Markers table has 11 rows total (8 original + 3 new)
 
-- [ ] **Step 6.5: Commit**
+- [x] **Step 6.5: Commit**
 
 ```bash
 cd /Users/mariomiletta/Projects/builder-os

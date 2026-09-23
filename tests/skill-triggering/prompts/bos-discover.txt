@@ -1,0 +1,2 @@
+# expects: skill=research-methods agent=research-planner command=/bos-discover
+Devo parlare con degli utenti per capire se il problema esiste davvero. Con quante persone parlo e cosa chiedo?

@@ -7,6 +7,73 @@ description: "Use when synthesizing user research, analyzing interview transcrip
 
 Reference for qualitative research synthesis: affinity mapping, opportunity scoring, and insight generation.
 
+**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/capability-map.md` before reaching for any source.
+
+## Capabilities
+
+| Capability | Used for | Floor when absent |
+|-----------|----------|-------------------|
+| `docs.search` / `docs.read` | Interview notes, feedback collections, research already written down | Work from what the user pastes in |
+| `tickets.read` | Support tickets and bug reports as unsolicited feedback | Skip, and note the gap |
+| `meetings.read` | Call transcripts | Skip, and note the gap |
+| `research.search` | Saved highlights and reading on the problem space | Skip; it is enrichment, never evidence about *these* users |
+| `files.read` / `files.write` | Transcripts on disk and the artifact itself | Always present |
+
+**Text the user provides is the primary input in every configuration.** Connected sources are enrichment. A synthesis of eight pasted transcripts with nothing connected is the normal case, not the degraded one.
+
+## Procedure
+
+### 1. Resolve capabilities and ingest
+
+Run the resolution protocol from `references/capability-map.md`. Collect every available input: pasted text first, then whatever `docs.search`, `tickets.read` and `meetings.read` reach.
+
+Per entry, extract: participant (role, company size, plan, anonymized as needed), context (what they were doing, what triggered the feedback), exact quotes marked as quotes, and researcher observations marked as observations. The distinction between a quote and an observation is load-bearing: one is evidence, the other is interpretation, and a synthesis that blurs them cannot be audited.
+
+### 2. Code the observations
+
+One code per distinct observation, phrased in the participant's language rather than yours. Resist naming the solution in the code: "could not find where to invite a teammate" is a code, "needs better invite UX" is a conclusion wearing a code's clothes.
+
+### 3. Group into themes
+
+Affinity-map the codes. A theme needs a name, the codes under it, and the count of distinct participants (not mentions) who produced it. Three mentions from one person is one participant.
+
+### 4. Quantify
+
+Per theme: participants affected, share of the sample, segments over-represented in it, and severity as the participants described it rather than as you rank it. State the sample size next to every percentage. "60% of users" from a sample of five is a number that will be quoted back without its denominator, so write it as "3 of 5 participants".
+
+### 5. Score opportunities
+
+Apply the ODT scoring below. Every opportunity cites the themes and therefore the participants behind it.
+
+### 6. Write insight cards and report
+
+One card per insight that survived scoring. Then emit the output contract, including the gaps: the questions this research did not answer and the sample it would take to answer them.
+
+## Output Contract
+
+```markdown
+## DISCOVERY SYNTHESIS COMPLETE
+
+**Sample:** {n participants, how recruited, over what period}
+**Sources:** {each, with what it contributed}
+**Capabilities resolved:** {capability → concrete source, or "none: user-provided text only"}
+
+### Themes
+{name, participants affected of n, segments, representative quote}
+
+### Opportunity Map
+{scored, each citing its themes}
+
+### Insight Cards
+{one per surviving insight}
+
+### Confidence
+{per theme, with the reason}
+
+### Research Gaps
+{what this sample cannot answer, and what would}
+```
+
 ## Synthesis Process
 
 ```

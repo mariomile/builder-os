@@ -1,7 +1,7 @@
 {
   "name": "builder-os",
   "description": "BuilderOS — The Operating System for Product Builders. Connects to live analytics via MCP to produce actionable PM artifacts.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": {
     "name": "Mario Miletta",
     "email": "mario@marioverse.ai"

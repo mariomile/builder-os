@@ -7,6 +7,64 @@ description: "Use when designing experiments, calculating sample sizes, formulat
 
 Statistical reference for product experimentation. Formulas, lookup tables, and interpretation guides.
 
+**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/analytics-contract.md` for the query shapes. `references/capability-map.md` before touching any data source.
+
+## Capabilities
+
+| Capability | Used for | Floor when absent |
+|-----------|----------|-------------------|
+| `analytics.query` | The baseline the experiment is powered against, and the results readout | Ask the user for the baseline, tag it, and state that the power calculation inherits its uncertainty |
+| `analytics.events` | Whether the output and guardrail metrics are even emitted | Grep the repo for the call sites; an unemitted metric makes the experiment unreadable before it starts |
+| `db.query` | Results where the outcome lives in the application database rather than events | Same floor: ask |
+| `repo.read` | Feature flag and assignment code, to verify randomization | Ask how assignment works |
+| `files.read` / `files.write` | The pre-registration and the readout | Always present |
+
+Design mode needs nothing connected. Analysis mode needs numbers from somewhere, and a user pasting two conversion counts is a legitimate somewhere.
+
+## Procedure
+
+This skill runs in one of two modes. Determine which from the request: a change not yet shipped is **design**; results in hand are **analysis**.
+
+### Design mode
+
+1. **Resolve capabilities and establish the baseline.** The current rate of the output metric, with its tag. Everything downstream is powered against this number, so a guessed baseline produces a confidently wrong sample size.
+2. **Write the hypothesis** in the template below. It names the change, the metric, the direction, the size of effect worth detecting, and the reason to expect it. A hypothesis with no mechanism is a coin flip with extra steps.
+3. **Define the metrics triad:** output, input, guardrail. All three, always. An experiment with no guardrail cannot fail in the way that matters, which is by winning on the target while breaking something else.
+4. **Verify the metrics are instrumented.** If the output metric is not emitted, the experiment is unreadable and this is the finding; hand it to `tracking-standards` before anything ships.
+5. **Calculate sample size and runtime** from the baseline, the minimum detectable effect, and the traffic. Then state the calendar date the experiment can first be read.
+6. **Pre-register.** Decision rule before data: what result ships it, what result kills it, what result extends it, and who decides. Written down, before the experiment starts, or the readout becomes a negotiation.
+
+### Analysis mode
+
+1. **Collect the results** for all three metrics, per variant, with the tag for each.
+2. **Check validity before significance.** Did it run the full planned duration, covering whole weeks? Was the split as intended? Did any instrumentation change mid-flight? A significant result from a broken assignment is a significant artifact.
+3. **Compute significance** per the formula below, on the pre-registered metric. One primary metric. Testing six and reporting the one that reached significance is how teams ship noise.
+4. **Read the guardrails.** A guardrail breach overrides an output win.
+5. **Apply the pre-registered decision rule**, and say plainly when the result is inconclusive. Inconclusive is a real outcome and usually means the effect is smaller than the experiment could see, which is itself information about the size of the bet.
+6. **Report**, including what the experiment cannot conclude.
+
+## Output Contracts
+
+```markdown
+## EXPERIMENT DESIGN COMPLETE
+
+**Hypothesis:** {statement with mechanism}
+**Baseline:** {value, tag} · **MDE:** {%} · **Sample per variant:** {n} · **Runtime:** {days, first readable on date}
+**Metrics:** output {…} · input {…} · guardrail {…}
+**Instrumentation:** {emitted / missing, per metric}
+**Decision rule:** ship if {…} · kill if {…} · extend if {…}
+```
+
+```markdown
+## EXPERIMENT ANALYSIS COMPLETE
+
+**Validity:** {duration, split, instrumentation stability}
+**Result:** {metric, control, variant, lift, p-value or interval}
+**Guardrails:** {each, with verdict}
+**Decision:** {ship / kill / extend / inconclusive}, per the pre-registered rule
+**Cannot conclude:** {what this experiment does not answer}
+```
+
 ## Hypothesis Template
 
 ```

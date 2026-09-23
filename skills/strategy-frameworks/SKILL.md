@@ -9,16 +9,123 @@ Operational frameworks for product strategy work. Reference when the Product Str
 
 **REQUIRED BACKGROUND:** For retention curve interpretation and activation patterns, load `growth-frameworks`. For metric definitions and benchmarks, load `saas-metrics-reference`.
 
+**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/analytics-contract.md` for the query shapes. `references/capability-map.md` before touching any data source.
+
+## Capabilities
+
+| Capability | Used for | Floor when absent |
+|-----------|----------|-------------------|
+| `analytics.query` | The retention curve behind the PMF read, and the retention correlation behind a north star candidate | Ask for the curve; without it the retention signal is recorded unavailable, not guessed |
+| `analytics.events` | Whether a candidate north star can be measured today at all | Grep the repo for the call sites |
+| `db.query` | Organic pull and account-level signals that live in the application database | Ask |
+| `docs.search` | Survey results, interview notes, prior strategy and positioning work | Ask the user for them |
+| `files.read` / `files.write` | The artifact itself | Always present |
+
+A PMF assessment with two of four signals measured and two recorded unavailable is a useful artifact. One with four signals invented is the most expensive document a team can produce, because everything after it is planned against a fiction.
+
+## Procedure: PMF and Positioning Audit
+
+### 1. Resolve capabilities and ingest context
+
+`PRODUCT.md`, current positioning, stage, and whatever prior strategy work exists.
+
+### 2. Read the four signals
+
+Work the PMF Signal Framework below. Per signal, one of three outcomes: measured with its tag, stated by the user with a `[doc:user-provided]` tag, or **unavailable** with the question that would resolve it. Never a fourth.
+
+- **Survey score.** Search documents for an existing "how disappointed" survey. If none exists, the signal is unavailable and running the survey is the recommendation.
+- **Retention curve shape.** The Retention shape, with its definition stated. Flattening by week 6 to 8 is the signal; a curve still falling is the absence of one.
+- **Organic pull.** Share of signups arriving without paid acquisition, or inbound mentions. Often lives in the application database rather than analytics.
+- **Desperate users.** Qualitative, from interviews and support: people who would be genuinely stuck without this. Search the research rather than inferring it from usage.
+
+### 3. Score
+
+Total the signals that were actually measured. Report the score as a fraction of what was measurable, never as a fraction of four when only two were read. "3 of 4 signals, 2 measured" is the honest form.
+
+### 4. Audit positioning
+
+Against the framework below: category, for whom, against what alternative, on what proof. Flag every claim with no evidence behind it, because positioning is where unsupported claims are most expensive.
+
+### 5. Gap analysis and report
+
+What would have to be true for the next stage, and what is missing. Emit the output contract.
+
+## Procedure: North Star Selection
+
+### 1. Generate candidates
+
+Three to five, from the candidates table below, appropriate to the product type and stage. Per candidate: a precise definition of what counts and what does not, the query shape that would measure it, and the share of active users who could contribute to it.
+
+The definition is the work. "Reports shared" means nothing until it says whether a report shared with a teammate counts, whether re-sharing counts, and whether the sender has to be active.
+
+### 2. Score on breadth, depth, frequency
+
+One to three on each axis, per the framework below.
+
+### 3. Check measurability today
+
+Pull the catalogue. Per candidate: measurable now, or measurable only after new instrumentation. Where `analytics.events` did not resolve, read the emitted events from the code instead.
+
+Then, where a retention curve is available, test each measurable candidate against retention: do users who hit this metric retain materially better? A north star with no retention relationship is a vanity metric with a good name.
+
+### 4. Choose
+
+Highest total wins. Tie-break toward what is measurable today: an operational north star beats a theoretically superior one nobody can compute this quarter.
+
+### 5. Build the metric tree
+
+Three levels: the north star, its breadth, depth and frequency drivers, and the inputs under each. Every node names the shape that measures it. Connect it to the existing diagnostic metric tree rather than creating a parallel framework, and say which nodes need instrumentation that does not exist yet.
+
+## Output Contracts
+
+```markdown
+## STRATEGY AUDIT COMPLETE
+
+**Product:** {name} · **Stage:** {stage}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
+
+### PMF Signals
+| Signal | Reading | Source | Status |
+{measured / user-provided / unavailable, per signal}
+
+**Score:** {n} of {m} signals measured
+
+### Positioning
+{category, for whom, against what, on what proof; unsupported claims flagged}
+
+### Gap Analysis
+{what must be true for the next stage, and what is missing}
+
+### Recommended Next Step
+```
+
+```markdown
+## NORTH STAR COMPLETE
+
+**Chosen:** {metric, with its precise definition}
+**Capabilities resolved:** {capability → concrete source}
+
+### Candidates Evaluated
+| Candidate | Breadth | Depth | Frequency | Measurable today | Retention relationship | Total |
+
+### Why this one
+### Metric Tree
+{3 levels, every node naming the shape that measures it}
+
+### Instrumentation Required
+{nodes that cannot be measured today}
+```
+
 ## PMF Signal Framework (4 Signals)
 
 Assess PMF using four independent signals. Each signal scored 0–2: `0` = absent, `1` = weak/partial, `2` = strong. Total: 0–8.
 
 | Signal | Score 2 | Score 1 | Source |
 |--------|---------|---------|--------|
-| **Sean Ellis score** | >40% "very disappointed" | 25–40% | User survey (user-provided or Notion) |
-| **Retention curve** | Flattens by W6–8, ≥5% floor | Flattens, <5% floor | Mixpanel cohorts / vault notes |
-| **Organic pull** | >30% new users from WoM or organic | 15–30% organic | Mixpanel acquisition source / user-provided |
-| **Desperate users** | 3+ users call product irreplaceable without prompting | 1–2 unprompted mentions | Interview notes / Notion |
+| **Sean Ellis score** | >40% "very disappointed" | 25–40% | A survey the team ran: `docs.search`, or user-provided |
+| **Retention curve** | Flattens by W6–8, ≥5% floor | Flattens, <5% floor | Retention shape via `analytics.query`, or recorded |
+| **Organic pull** | >30% new users from WoM or organic | 15–30% organic | Breakdown by acquisition source, or `db.query`, or user-provided |
+| **Desperate users** | 3+ users call product irreplaceable without prompting | 1–2 unprompted mentions | Interview and support records via `docs.search` |
 
 **PMF Level Thresholds:**
 - 7–8: **Strong PMF** — scale acquisition

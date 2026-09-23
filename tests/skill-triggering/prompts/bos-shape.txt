@@ -1,0 +1,2 @@
+# expects: skill=spec-writing agent=spec-writer,ux-architect command=/bos-shape
+Ho deciso cosa costruire. Ora mi serve la spec: cosa è dentro e cosa è fuori, i flussi con tutti gli stati, e i criteri di accettazione che gli sviluppatori possono testare.

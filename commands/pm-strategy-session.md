@@ -96,10 +96,11 @@ Wait for `## OKR COMPLETE`.
 {Consolidated list from all three agents}
 ```
 
-7. **Offer to save** the brief:
+7. **Write the brief to a file**, always:
    - Vault: `1. Actions/Projects/{product}/strategy/{YYYY-QN}-strategy-session.md`
-   - Notion: `mcp__claude_ai_Notion__notion-create-pages` (if Notion MCP available)
    - Codebase: `docs/strategy/{YYYY-QN}-strategy-session.md`
+
+   Then, only if the user asks and `docs.write` resolved, also publish it to their knowledge base and record where it went.
 
 ## Arguments
 
