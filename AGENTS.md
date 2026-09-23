@@ -54,6 +54,10 @@ Two surfaces: the **lifecycle** (`builder-os` plus the phase skills) walks the p
 
 **Never name a tool in a skill.** Skills name capabilities (`analytics.query`, `docs.search`, `subagent.dispatch`, …) and resolve them against whatever this session exposes. See `references/capability-map.md`. A hardcoded tool name breaks on another host, another analytics stack, and another user's connector.
 
+**Prerequisites are zero.** Every skill runs with nothing connected. `files.read` and `files.write` are the only hard dependency; every other capability has a floor, and no floor is a fabricated number. Never tell the user to install or connect a named product: state the capability gap and the question closing it would answer.
+
+**Analytics is a contract, not a vendor.** Five question shapes in `references/analytics-contract.md`. A skill asks for a shape; whichever provider resolved answers it.
+
 **Never require a host feature.** Where a host can delegate to a separate agent, phases run in isolated contexts. Where it cannot, the identical procedure runs inline. No phase is unavailable because of the host.
 
 ## Host Portability
@@ -116,3 +120,4 @@ Triggering tests live in `tests/skill-triggering/`; the protocol is in its READM
 - No placeholder content: no TBD, no TODO, no "implement later".
 - Every skill change includes updated examples.
 - Every capability change updates `references/capability-map.md`.
+- Every change to what BuilderOS asks of analytics updates `references/analytics-contract.md`.

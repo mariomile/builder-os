@@ -18,6 +18,7 @@ Task syntax: `- [ ]` pending, `- [x]` done. Tick on commit, not on write.
 | 4 | `skills/pressure-testing/SKILL.md` | Cross-cutting skill | 1 |
 | 5 | `references/product-md-template.md` | Template | 1 |
 | 6 | `references/builderos-state-schema.md` | Schema | 1 |
+| 6b | `references/analytics-contract.md` | Contract | 5 |
 | 7 | `commands/bos.md`, `bos-init.md`, `bos-status.md`, `bos-gate.md` | Commands | 1 |
 | 8 | `skills/problem-framing/SKILL.md` + `agents/problem-framer.md` + `commands/bos-frame.md` | Phase 0 | 2 |
 | 9 | `skills/research-methods/SKILL.md` + `agents/research-planner.md` + `commands/bos-discover.md` | Phase 1 | 2 |
@@ -114,24 +115,27 @@ Added 2026-09-21. BuilderOS must run on Claude Code and Codex, and degrade sanel
 
 ## Cluster 5 — Legacy Retrofit
 
-The 11 v0.1/v0.2 agents predate the portability contract: ~74 hardcoded tool references, several of them one user's connector instances (`mcp__claude_ai_DeepAgent_Mixpanel__*`), and all of their procedure sits in the agent rather than the skill. Must land before 1.0.0.
+The 11 v0.1/v0.2 agents predated the portability contract. Spec: `docs/specs/2026-09-23-zero-prereq-analytics-agnostic.md`, which adds the owner's two rules of 2026-09-23: prerequisites are zero, and analytics is a category rather than a product.
 
-- [ ] **5.1 — Audit**
-  Per agent: which tool references, which capability each maps to, which procedure belongs in which skill. Produces the retrofit table.
+- [x] **5.1 — Audit**
+  43 literal tool identifiers across 14 files, plus 129 vendor-name mentions assuming one stack. Per-file table in the spec. The sharpest case was `mcp__claude_ai_DeepAgent_Mixpanel__Run-Query`, one named workspace belonging to one person, which resolves for nobody else.
 
-- [ ] **5.2 — Move procedure into skills**
-  `pm-artifacts`, `growth-frameworks`, `tracking-standards`, `financial-models`, `experiment-methodology`, `competitive-intel`, `discovery-methods`, `strategy-frameworks`, `okr-frameworks` each gain the Procedure and Capabilities sections their agents currently hold.
+- [x] **5.2 — Move procedure into skills**
+  `saas-metrics-reference`, `growth-frameworks`, `financial-models`, `tracking-standards`, `discovery-methods`, `competitive-intel`, `experiment-methodology`, `strategy-frameworks`, `okr-frameworks` and `pm-artifacts` each gained a Capabilities table with a stated floor per capability, a numbered Procedure and an output contract. `saas-metrics-reference` was not on the original list and is the right home for the diagnostic procedure; `pm-artifacts` absorbed the four document templates that lived in the agent.
 
-- [ ] **5.3 — Convert agents to adapters**
-  Same shape as the phase-0–2 agents.
+- [x] **5.3 — Convert agents to adapters**
+  All 11 legacy agents now carry role, Iron Law, context contract and reporting only. Every agent in the repo is under 35 lines, down from up to 305.
 
-- [ ] **5.4 — De-vendor `pm-toolkit`**
-  Mode detection in capability terms; MCP enhancement suggestions rewritten as capability gaps.
+- [x] **5.4 — De-vendor `pm-toolkit`**
+  Mode detection replaced by the capability resolution protocol; the four modes restated as summaries of what resolved; MCP enhancement suggestions replaced by capability gaps that name a shape and a question rather than a product. The five `pm-*` commands that asked for a provider account or project id no longer do.
 
-- [ ] **5.5 — Verify**
-  Each retrofitted agent produces the same output on the same input as before the change, on a host where the same capabilities resolve.
+- [x] **5.5 — Added: `references/analytics-contract.md`**
+  Five question shapes (catalogue, volume, funnel, retention, breakdown) with their result shapes, their floors, the provider vocabulary for Mixpanel, Amplitude and PostHog, and the two traps that make a number silently wrong: an unread conversion window and a retention definition compared across bounded and unbounded.
 
----
+- [ ] **5.6 — Behavioral equivalence**
+  Each retrofitted agent produces equivalent output on the same input as before the change, on a host where the same capabilities resolve. Not yet executed: requires a live session with the plugin installed.
+
+**Structural verification, run 2026-09-23:** `grep -r 'mcp__' skills/ agents/ commands/` returns nothing. No skill, agent or command names a product for the user to install. All 14 agents are 29 to 31 lines. Skill frontmatter is `name` plus a triggering-condition `description` throughout. The dangling `b2b-saas-analytics` reference is gone.
 
 ## Cluster 3 — Middle (Phases 3–5)
 

@@ -148,6 +148,10 @@ The floor is always the same: say what could not be retrieved and ask. The floor
 
 A hardcoded tool name breaks three ways at once: on a different agent, on a different analytics stack, and on a different user's connector. So there are none. Full list in [`references/capability-map.md`](references/capability-map.md).
 
+**Prerequisites are zero.** Nothing connected, no API key, no vault, no analytics account: every command still runs and still writes its artifact. Reading and writing files is the only hard dependency.
+
+Analytics in particular is a category, not a product. BuilderOS asks five question shapes (catalogue, volume, funnel, retention, breakdown) and Mixpanel, Amplitude, PostHog, a warehouse or a pasted CSV are all valid answers. The shapes, the provider differences that matter, and the floor for each are in [`references/analytics-contract.md`](references/analytics-contract.md).
+
 ---
 
 ## Two surfaces
@@ -253,6 +257,7 @@ Patterns borrowed, not dependencies. BuilderOS installs on its own.
 | [`docs/architecture.md`](docs/architecture.md) | How the pieces fit, in diagrams |
 | [`docs/hosts.md`](docs/hosts.md) | Running on Claude Code, Codex, anything else |
 | [`references/capability-map.md`](references/capability-map.md) | The 15 capabilities and their degradation ladders |
+| [`references/analytics-contract.md`](references/analytics-contract.md) | The five analytics question shapes, and what they mean per provider |
 | [`references/builderos-state-schema.md`](references/builderos-state-schema.md) | `.builderos/` layout and `state.json` |
 
 MIT.
