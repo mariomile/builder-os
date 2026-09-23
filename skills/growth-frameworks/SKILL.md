@@ -5,9 +5,104 @@ description: "Use when designing growth strategies, analyzing activation funnels
 
 # Growth Frameworks
 
-Operational frameworks for growth analysis and strategy. Use these when the Growth Architect agent needs to interpret data and design interventions.
+Activation and retention diagnosis, and the interventions that follow from it. Holds both the method and the frameworks it applies.
 
-**REQUIRED BACKGROUND:** For comprehensive analytics methodology, load `b2b-saas-analytics`.
+**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/analytics-contract.md` for the query shapes. `references/capability-map.md` before touching any data source. `saas-metrics-reference` for definitions and benchmark bands.
+
+## Capabilities
+
+| Capability | Used for | Floor when absent |
+|-----------|----------|-------------------|
+| `analytics.query` | The activation funnel and the retention curve, segmented | Map the funnel from the onboarding code, then ask the user for the rates |
+| `analytics.events` | Whether each funnel step is emitted at all | Grep the repo for the analytics SDK's call sites |
+| `analytics.replay` | Watching where users actually stall in the drop-off step | Skip; the drop-off is still located, just not explained |
+| `docs.search` | Previously recorded funnel and retention numbers | Skip, and mark the step unavailable |
+| `repo.read` | Onboarding flow, tracking coverage, missing instrumentation | Skip when there is no codebase |
+| `files.read` / `files.write` | The artifact itself | Always present |
+
+A growth diagnosis with no data is still worth running: mapping the funnel from the code and naming which steps are untracked is a finding, and often the finding that matters most.
+
+## Procedure
+
+### 1. Resolve capabilities and establish the funnel
+
+Run the resolution protocol from `references/capability-map.md`.
+
+Define the funnel steps before pulling anything: signup, first login, the setup step that gates value, the activation event, the repeated core action. Take them from `PRODUCT.md` or the dispatch prompt. A funnel invented at query time measures nothing.
+
+### 2. Pull the funnel
+
+Funnel shape, over the ordered steps, with the conversion window stated (7 to 14 days is typical for B2B, but state the one you used). Then the same funnel broken down by each segment property, and the time-to-convert distribution.
+
+Without `analytics.query`: read the onboarding flow in the repo, map the journey step by step, then compare the steps against the emitted events. Every step with no event is a blind spot and goes in the report as one. Present the mapped funnel and ask for the rates.
+
+### 3. Pull retention
+
+Retention shape, cohorts by signup, returning on the core action, weekly, definition stated. Then: by segment, by activation status (activated versus not), and the last four cohorts against four cohorts from sixty days earlier.
+
+### 4. Analyze activation
+
+Locate the biggest drop:
+
+```
+drop_rate at step N = 1 − (actors at step N+1 ÷ actors at step N)
+```
+
+The largest drop is the first lever. A ten-point improvement there beats a fifty-point improvement at a smaller step, and saying which step it is with its number is the core deliverable of this phase.
+
+Then segment that step (who converts, who does not) and read the timing: a median time to activate above a day means a re-engagement trigger is missing; under thirty minutes means onboarding is working and the constraint is upstream.
+
+### 5. Analyze retention
+
+Classify the curve shape, compute the activation-retention multiplier, and find the segment with the highest week-4 retention. The last one is ICP evidence, not a growth tactic, and it belongs in the report even when it contradicts the stated ICP.
+
+### 6. Design interventions
+
+One per bottleneck, in the format below, each ranked by ICE. Present the top three, not all of them.
+
+### 7. Report
+
+Emit the output contract. Every number tagged. Every step whose data was unavailable named as unavailable, with the shape that would fill it.
+
+## Intervention Format
+
+```markdown
+### Intervention: {name}
+
+**Bottleneck:** {step or retention week, with the number and its tag}
+**Hypothesis:** If we {change}, then {metric} improves by {estimate} because {reasoning}
+**Type:** {onboarding / re-engagement / feature discovery / value delivery}
+**Loop:** {viral / content / product / paid / sales-assisted}
+
+**Implementation:** {steps}
+
+**Metrics:** output {…} · input {…} · guardrail {…}
+**ICE:** impact {1-10} × confidence {1-10} × ease {1-10} ÷ 10 = {score}
+```
+
+## Output Contract
+
+```markdown
+## GROWTH ANALYSIS COMPLETE
+
+**Product:** {name} · **Period:** {range}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
+
+### Activation Funnel
+{step, actors, conversion from previous, tag; conversion window stated}
+
+### Retention
+{curve with its definition, shape classification, activation multiplier, best segment}
+
+### Bottlenecks
+{ranked, each with its number}
+
+### Interventions
+{top 3 by ICE}
+
+### Tracking Gaps
+{steps with no event, properties missing for the segments that matter}
+```
 
 ## Growth Loop Patterns
 
