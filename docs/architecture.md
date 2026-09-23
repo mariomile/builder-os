@@ -173,13 +173,15 @@ Two design notes.
 | 0 | Frame | `problem-framing` | `problem-framer` | `/bos-frame` |
 | 1 | Discover | `research-methods`, `discovery-methods` | `research-planner`, `discovery-synthesizer` | `/bos-discover` |
 | 2 | Define | `opportunity-mapping`, `strategy-frameworks` | `opportunity-mapper`, `product-strategist`, `north-star-analyst` | `/bos-define` |
-| 3 | Ideate | `ideation-methods`*, `experiment-methodology` | `solution-architect`*, `experiment-designer` | `/bos-ideate`* |
-| 4 | Shape | `spec-writing`*, `ux-architecture`*, `pm-artifacts` | `spec-writer`*, `ux-architect`*, `product-writer` | `/bos-shape`* |
-| 5 | Build | `delivery-discipline`*, `tracking-standards` | `delivery-planner`*, `build-reviewer`*, `tracking-architect` | `/bos-build`* |
-| 6 | Ship | `release-ops`*, `pm-artifacts` | `release-manager`*, `product-writer` | `/bos-ship`* |
-| 7 | Learn | `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks`, `financial-models` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn`* |
+| 3 | Ideate | `ideation-methods`, `experiment-methodology` | `solution-architect`, `experiment-designer` | `/bos-ideate` |
+| 4 | Shape | `spec-writing`, `ux-architecture`, `pm-artifacts` | `spec-writer`, `ux-architect`, `product-writer` | `/bos-shape` |
+| 5 | Build | `delivery-discipline`, `tracking-standards` | `delivery-planner`, `build-reviewer`, `tracking-architect` | `/bos-build` |
+| 6 | Ship | `release-ops`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
+| 7 | Learn | `outcome-review`, `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks`, `financial-models` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn` |
 
-`*` not yet shipped. Their gates exist and are enforceable; the hub runs those phases inline against `gate-checks` and says which specialist is missing rather than faking a dispatch.
+All eight phases are live. Phase 7 adds no new specialist: it orchestrates the analysis agents against the phase 2 target and the phase 3 kill criteria, with `outcome-review` holding the judging procedure so the phase also runs on a host with no agents at all.
+
+`/bos-adr` is callable from any phase, the moment a decision becomes expensive to unwind.
 
 Cross-cutting, callable from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`.
 
@@ -220,10 +222,8 @@ Stated plainly rather than discovered later.
 
 | Debt | Size | Plan |
 |------|------|------|
-| 11 legacy agents carry ~74 hardcoded tool references, several of them one user's connector instances | Large | Cluster 5, before 1.0.0 |
-| Those agents also hold procedure that belongs in their skills | Large | Same cluster |
-| Version is 0.1.0 while the repo is mid-v1.0 | Small | Release cluster |
 | No automated skill-triggering harness — prompts exist, no runner | Medium | Out of scope for v1.0; gates are the mechanical safety net |
-| Runtime verification of the v1.0 surface not yet executed | Medium | Tasks 1.9, 2.6, 2b.6 in the plan |
+| Nothing has been executed in a live session: structurally complete, behaviorally unverified | Large | Tasks 1.9, 2.6, 2b.6, 3.4, 4.3, 5.6 in the plan |
+| The benchmark bands in `saas-metrics-reference` are working heuristics, not sourced benchmarks | Small | Replace with the product's own history once two quarters exist |
 
 Roadmap: [`plans/2026-09-20-lifecycle-os-v1.md`](plans/2026-09-20-lifecycle-os-v1.md).

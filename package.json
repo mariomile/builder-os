@@ -1,6 +1,6 @@
 {
   "name": "builder-os",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "main": ".opencode/plugins/builder-os.js",
   "description": "BuilderOS — The Operating System for Product Builders. Connects to live analytics via MCP to produce actionable PM artifacts.",

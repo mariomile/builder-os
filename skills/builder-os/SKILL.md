@@ -42,21 +42,21 @@ Phases 0–4 are design thinking: empathize, define, ideate, prototype, test. Ph
 | **4 Shape** | Spec, scope, flows, UX, acceptance criteria, tracking plan | `spec-writing`, `ux-architecture`, `pm-artifacts` | `spec-writer`, `ux-architect`, `product-writer` | `/bos-shape` |
 | **5 Build** | Decompose, test-first, review against spec, verify instrumentation | `delivery-discipline`, `tracking-standards` | `delivery-planner`, `build-reviewer`, `tracking-architect` | `/bos-build` |
 | **6 Ship** | Rollout, rollback, baseline capture, release notes | `release-ops`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
-| **7 Learn** | Did it move the number, keep/iterate/kill | `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn` |
+| **7 Learn** | Did it move the number, keep/iterate/kill | `outcome-review`, `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn` |
 
 Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`.
 
-Chains: the discovery sprint runs phases 0 → 1 → 2 in one session with gates enforced between steps.
+Chains: `/bos-discovery-sprint` runs phases 0 → 1 → 2 in one session with gates enforced between steps. `/bos-adr` is callable from any phase, the moment a decision becomes expensive to unwind.
 
 The Command column lists the Claude Code slash-command entry points. On hosts without slash commands, name the phase or the skill instead: the skills are the product, the commands are one host's front door.
 
 ### Availability
 
-Live: the spine (state, gates, evidence ledger, pressure testing, `/bos-init`, `/bos`, `/bos-status`, `/bos-gate`), phases 0–2 with their own skills and agents, the `/bos-discovery-sprint` chain, and phase 7 through the existing `pm-*` agents.
+All eight phases are live: every phase has its own skills, its own procedure and its enforceable gate. `/bos-discovery-sprint` chains 0 → 1 → 2 in one session, and `/bos-adr` writes a decision record from any phase.
 
-Not yet shipped: phases 3–6 have their gates defined and enforceable, but their dedicated skills and agents land in later clusters — see `docs/plans/2026-09-20-lifecycle-os-v1.md`.
+Phase 7 adds no new specialist. It orchestrates the analysis surface (`product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect`) against the phase 2 target and the phase 3 kill criteria, and `outcome-review` holds the judging procedure so the phase runs on a host with no agents at all.
 
-When a phase's agent does not exist yet, do not fabricate a dispatch and do not silently skip. Say which agent is missing, then run the phase inline using this hub, `pressure-testing` for the interview and `gate-checks` for the exit conditions, writing the same artifact to `.builderos/`. The pipeline stays honest and usable; only the specialization is missing.
+If a skill or agent this hub names is genuinely unreachable in a session, do not fabricate a dispatch and do not silently skip. Say what is missing, then run the phase inline using this hub, `pressure-testing` for the interview and `gate-checks` for the exit conditions, writing the same artifact to `.builderos/`.
 
 ## Run Protocol
 
@@ -133,10 +133,10 @@ Two prefixes, two jobs:
 | 1 | Research Planner | `## DISCOVERY COMPLETE` |
 | 2 | Opportunity Mapper | `## DEFINITION COMPLETE` |
 | 3 | Solution Architect | `## BET SELECTED` |
-| 4 | Spec Writer / UX Architect | `## SPEC COMPLETE` |
-| 5 | Delivery Planner / Build Reviewer | `## BUILD VERIFIED` |
+| 4 | UX Architect, then Spec Writer | `## DESIGN COMPLETE`, then `## SPEC COMPLETE` |
+| 5 | Delivery Planner, then Build Reviewer | `## BUILD VERIFIED` (the reviewer emits it) |
 | 6 | Release Manager | `## SHIPPED` |
-| 7 | (analytics cluster) | `## OUTCOME RECORDED` |
+| 7 | `outcome-review`, over the analytics cluster | `## OUTCOME RECORDED` |
 
 Markers from the `pm-*` agents are listed in `pm-toolkit` and unchanged.
 

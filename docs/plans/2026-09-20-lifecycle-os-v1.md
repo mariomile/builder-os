@@ -124,7 +124,7 @@ The 11 v0.1/v0.2 agents predated the portability contract. Spec: `docs/specs/202
   `saas-metrics-reference`, `growth-frameworks`, `financial-models`, `tracking-standards`, `discovery-methods`, `competitive-intel`, `experiment-methodology`, `strategy-frameworks`, `okr-frameworks` and `pm-artifacts` each gained a Capabilities table with a stated floor per capability, a numbered Procedure and an output contract. `saas-metrics-reference` was not on the original list and is the right home for the diagnostic procedure; `pm-artifacts` absorbed the four document templates that lived in the agent.
 
 - [x] **5.3 — Convert agents to adapters**
-  All 11 legacy agents now carry role, Iron Law, context contract and reporting only. Every agent in the repo is under 35 lines, down from up to 305.
+  All 11 legacy agents now carry role, Iron Law, context contract and reporting only. No agent in the repo is longer than 35 lines, down from up to 305.
 
 - [x] **5.4 — De-vendor `pm-toolkit`**
   Mode detection replaced by the capability resolution protocol; the four modes restated as summaries of what resolved; MCP enhancement suggestions replaced by capability gaps that name a shape and a question rather than a product. The five `pm-*` commands that asked for a provider account or project id no longer do.
@@ -139,38 +139,36 @@ The 11 v0.1/v0.2 agents predated the portability contract. Spec: `docs/specs/202
 
 ## Cluster 3 — Middle (Phases 3–5)
 
-- [ ] **3.1 — Phase 3: Ideate**
-  `ideation-methods` skill: divergence techniques that produce mechanically distinct options, impact/confidence/effort/reversibility scoring, kill-criteria construction, the cheapest-test catalogue (fake door, concierge, Wizard of Oz, prototype, smoke test) with cost bands. `solution-architect` agent. Command `/bos-ideate`. Test prompt.
+- [x] **3.1 — Phase 3: Ideate**
+  `ideation-methods`: the four divergence prompts, mechanical distinctness as a deterministic check (different primary user action, written as a sentence), four-axis scoring with confidence read from evidence tags rather than enthusiasm, kill criteria as metric plus threshold plus date, and the cheapest-test catalogue with cost bands and the 20% rule. Agent `solution-architect`, command `/bos-ideate`, test prompt.
 
-- [ ] **3.2 — Phase 4: Shape**
-  `spec-writing` skill: scope boundaries, testable acceptance criteria, state and edge-case enumeration, tracking-plan-before-build. `ux-architecture` skill: information architecture, flow design, state coverage (loading, empty, error, partial), component inventory, accessibility floor. `spec-writer` and `ux-architect` agents; Impeccable detection and handoff for visual craft. Command `/bos-shape`. Test prompts.
+- [x] **3.2 — Phase 4: Shape**
+  `spec-writing`: scope boundaries in three forms (not now, not ever, not until X), the adjective test for acceptance criteria, six states per flow, four edge-case categories, and tracking designed backwards from the phase 2 metric before the build. `ux-architecture`: placement with a current-versus-proposed diff, flows with every entry point and an explicit abandonment behavior, six states with real error copy, the three-way component inventory, and the accessibility floor as keyboard path, contrast ratio and focus behavior. Agents `spec-writer` and `ux-architect`, command `/bos-shape`, two test prompts. Interop with a design-quality toolchain is a session check, never an install prompt.
 
-- [ ] **3.3 — Phase 5: Build**
-  `delivery-discipline` skill: tracer-bullet decomposition with blocking edges, test baselines, red-green-refactor, two-axis review (standards + spec), instrumentation verification. `delivery-planner` and `build-reviewer` agents. Superpowers detection and delegation; native path when absent. Command `/bos-build`. Test prompt.
+- [x] **3.3 — Phase 5: Build**
+  `delivery-discipline`: tracer-bullet slices with explicit blocking edges and a computed critical path, a pasted test baseline before any change, the red-green loop with "watch it fail" as a named step, two-axis review that catches a well-built misunderstanding, the scope-creep check against the phase 4 out-of-scope list, and instrumentation verified by arrival rather than by reading the call site. Agents `delivery-planner` and `build-reviewer`, command `/bos-build`, test prompt. Delegates the implementation loop to a delivery toolchain where one is present, natively otherwise.
 
-- [ ] **3.4 — Verify and commit**
-  Gate 5 proves acceptance criteria → tests mapping with pasted output. Scope-creep check catches an out-of-scope item planted in a fixture.
+- [x] **3.4 — Structural verification and commit**
+  Every new skill carries a Capabilities table with a stated floor, a numbered Procedure and an output contract. No new agent is longer than 35 lines, and none holds procedure. Frontmatter valid throughout. Behavioral verification (gate 5 proving the mapping with pasted output; the scope-creep check catching a planted item) requires a live session and is open.
 
 ---
 
 ## Cluster 4 — Close (Phases 6–7) and Release
 
-- [ ] **4.1 — Phase 6: Ship**
-  `release-ops` skill: rollout strategies (flag, canary, percentage), rollback design, pre-launch instrumentation verification, baseline capture protocol, release-note authorship for the real audience. `release-manager` agent, chaining to `product-writer` and `tracking-architect`. Command `/bos-ship`. Test prompt.
+- [x] **4.1 — Phase 6: Ship**
+  `release-ops`: five rollout strategies with the honest note that a full release beats a fake percentage rollout on a small product, rollback as mechanism plus owner plus an actual test, the data-written-while-live question made explicit, irreversibility stated as a fact rather than described away, the baseline captured and timestamped before exposure with its method recorded for phase 7 to rerun, guardrails included, and the production instrumentation check that catches an empty analytics key before launch. Agent `release-manager`, command `/bos-ship`, test prompt.
 
-- [ ] **4.2 — Phase 7: Learn**
-  No new agents. `/bos-learn` orchestrates the existing analytics cluster against the Phase 2 target and the Phase 3 kill criteria, writes `07-outcome.md`, records the `KEEP`/`ITERATE`/`KILL` decision and the re-entry point. `/bos-adr` writes ADRs.
+- [x] **4.2 — Phase 7: Learn**
+  The plan called for commands only. Procedure in a command is invisible on a host with no `commands/` directory, so phase 7 gained `outcome-review` like every other phase: the identical-rerun rule, the two separate comparisons against target and against kill criteria, the three honest handlings of an ambiguous result, the override-reading table, and the test that separates a learning from a summary. No new agents: `/bos-learn` orchestrates the analysis cluster against the phase 2 target and the phase 3 kill criteria. `/bos-adr` writes decision records from any phase. Two test prompts.
 
 - [ ] **4.3 — Full-loop test**
-  One idea driven 0 → 7 in a single session against a real project. Every gate exercised. Every artifact written. No fabricated numbers anywhere: audit every claim for a source tag.
+  One idea driven 0 → 7 in a single session against a real project. Every gate exercised, every artifact written, every claim audited for a source tag. Not yet executed: requires a live session with the plugin installed.
 
-- [ ] **4.4 — Documentation and release**
-  README rewritten around the lifecycle (current one claims 8 agents and 11 commands; both are already wrong). `CHANGELOG.md` created with v0.1, v0.2, v1.0 entries. Version bumped to `1.0.0` in `package.json` and `.claude-plugin/plugin.json`. Git tag `v1.0.0`.
+- [x] **4.4 — Documentation and release**
+  README rewritten around the lifecycle with corrected counts (24 skills, 20 agents, 30 commands). `CHANGELOG.md` created with v0.1.0, v0.2.0 and v1.0.0 entries, including the known limitations. Version bumped to `1.0.0` in `package.json` and `.claude-plugin/plugin.json`. `docs/architecture.md` phase map no longer marks phases 3–7 as pending.
 
-- [ ] **4.5 — Retro-tick the v0.2 plan**
-  `docs/plans/2026-04-29-strategy-vision-cluster.md` has 34 unticked boxes for work that shipped. Tick them and mark the plan closed.
-
----
+- [x] **4.5 — Retro-tick the v0.2 plan**
+  All 34 boxes in `docs/plans/2026-04-29-strategy-vision-cluster.md` ticked and the plan marked closed, with a note that the v1.0 retrofit has since rewritten much of what it produced: read it as a record of how v0.2 was built, not as a description of the current files.
 
 ## Test Strategy
 

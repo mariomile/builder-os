@@ -195,11 +195,11 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**18 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, and the rest split between lifecycle phases and the analysis surface.
+**24 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, and the rest split between the eight lifecycle phases and the analysis surface.
 
-**14 agents.** Claude Code adapters. The three lifecycle ones are ~30 lines each by contract; the eleven analysis ones predate that contract and are being retrofitted.
+**20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
-**24 commands.** Eight `/bos-*`, sixteen `/pm-*`.
+**30 commands.** Fourteen `/bos-*`, sixteen `/pm-*`.
 
 ### Pipeline state
 
@@ -224,16 +224,17 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 0.1.0 on disk; v1.0 is in progress. Honest state:
+Version 1.0.0. Honest state:
 
 | Area | Status |
 |------|--------|
 | Spine — state, gates, evidence ledger, pressure testing, `/bos-init`, `/bos`, `/bos-status`, `/bos-gate` | Shipped |
-| Phases 0–2 — Frame, Discover, Define, plus `/bos-discovery-sprint` | Shipped |
-| Phases 3–6 — Ideate, Shape, Build, Ship | Gates defined and enforceable; dedicated skills pending |
-| Phase 7 — Learn | Works through the existing analysis agents |
-| Host portability | Applied to the v1.0 surface; 11 legacy agents still carry hardcoded tool references |
-| Runtime verification | Not yet run end to end in a live session |
+| Phases 0–7 — all eight, each with its own skills, procedure and enforceable gate | Shipped |
+| Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
+| Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
+| Runtime verification | **Not yet run end to end in a live session.** Structurally complete, behaviorally unverified |
+
+That last row is the one to read. Everything here is written to contract and checked mechanically; none of it has been executed against a real product yet.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
