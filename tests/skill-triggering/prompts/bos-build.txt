@@ -1,0 +1,2 @@
+# expects: skill=delivery-discipline agent=delivery-planner,build-reviewer command=/bos-build
+La spec è pronta. Come spacchetto il lavoro senza fare tre settimane di backend prima di vedere qualcosa, e come verifico che ho costruito davvero quello che c'era scritto?
