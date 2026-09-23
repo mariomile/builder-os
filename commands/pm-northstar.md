@@ -8,15 +8,15 @@ Dispatch the `north-star-analyst` agent to evaluate NSM candidates and select th
 ## Steps
 
 1. **Find product context**: Look for `PM-CONTEXT.md`; also check for `## STRATEGY AUDIT COMPLETE` output in current session
-2. **Detect operating mode**: Check for Mixpanel MCP → vault → codebase
+2. **Resolve capabilities** per `references/capability-map.md`; the operating mode is the summary of what resolved
 3. **Dispatch agent**:
 
 ```
 Agent({
   description: "North Star metric selection for [product name]",
   subagent_type: "north-star-analyst",
-  prompt: "Operating mode: [detected mode]
-Available MCP tools: [list or 'none']
+  prompt: "Operating mode: [connected / vault-based / codebase-based / conversational]
+Resolved capabilities: [capability → the concrete tool behind it, or 'none']
 Product context:
 [PM-CONTEXT.md content]
 

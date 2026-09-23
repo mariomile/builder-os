@@ -8,15 +8,15 @@ Dispatch the `product-strategist` agent to assess PMF signals, audit positioning
 ## Steps
 
 1. **Find product context**: Look for `PM-CONTEXT.md` in the current project root or `.pm-toolkit/context.md`
-2. **Detect operating mode**: Check for Mixpanel MCP → vault → codebase
+2. **Resolve capabilities** per `references/capability-map.md`; the operating mode is the summary of what resolved
 3. **Dispatch agent**:
 
 ```
 Agent({
   description: "PMF assessment and strategy audit for [product name]",
   subagent_type: "product-strategist",
-  prompt: "Operating mode: [detected mode]
-Available MCP tools: [list or 'none']
+  prompt: "Operating mode: [connected / vault-based / conversational]
+Resolved capabilities: [capability → the concrete tool behind it, or 'none']
 Product context:
 [PM-CONTEXT.md content or extracted context]
 
