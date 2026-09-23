@@ -1,0 +1,2 @@
+# expects: skill=ideation-methods agent=solution-architect command=/bos-ideate
+Ok, so su quale problema puntare. Ora come lo risolvo? Ho già un'idea in testa ma non vorrei partire con la prima cosa che mi è venuta in mente.
