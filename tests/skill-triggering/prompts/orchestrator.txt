@@ -1,0 +1,2 @@
+# expects: skill=orchestrator command=/bos-ask (reads memory, at most three questions with recommended answers, proposes a route)
+Non so bene da dove partire. Abbiamo un prodotto con qualche centinaio di utenti, le conversioni da trial a pagamento sono basse e un concorrente ci sta rubando clienti. Cosa dovrei fare?

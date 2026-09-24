@@ -44,7 +44,7 @@ Phases 0–4 are design thinking: empathize, define, ideate, prototype, test. Ph
 | **6 Ship** | Rollout, rollback, baseline capture, release notes | `release-ops`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
 | **7 Learn** | Did it move the number, keep/iterate/kill | `outcome-review`, `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn` |
 
-Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`.
+Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`. When it is unclear which phase or skill a request belongs to, `orchestrator` finds out by asking.
 
 Chains: `/bos-discovery-sprint` runs phases 0 → 1 → 2 in one session with gates enforced between steps. `/bos-adr` is callable from any phase, the moment a decision becomes expensive to unwind.
 

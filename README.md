@@ -197,11 +197,11 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**25 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, a session-start bootstrap (`using-builder-os`) that routes between them, and the rest split between the eight lifecycle phases and the analysis surface.
+**26 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, a session-start bootstrap (`using-builder-os`) that routes between them, an `orchestrator` that asks up to three questions when the route is unclear, and the rest split between the eight lifecycle phases and the analysis surface.
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
-**30 commands.** Fourteen `/bos-*`, sixteen `/pm-*`.
+**31 commands.** Fifteen `/bos-*`, sixteen `/pm-*`. Not sure which one? `/bos-ask`.
 
 ### Project memory
 

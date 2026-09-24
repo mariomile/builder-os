@@ -17,6 +17,7 @@ Neither: a request with no product question in it goes to whatever else this ses
 1. **Look for `.builderos/state.json`.** If it exists, this project has memory. Before answering anything, read `state.json`, `.builderos/ROADMAP.md` and `PRODUCT.md` (plus `TECH.md` when the request touches code), and brief the user in at most five lines: the active initiative and its phase, the last gate result, open overrides, the most recent decision, what comes next. Then route through `builder-os`. A request that belongs to another phase or another initiative is named as such before anything runs.
 2. **No state, and the request is a product change** ("I have an idea", "we want to add X", "is Y worth doing"): load `builder-os`. Initialization classifies the track (`spike`, `feature` or `product`) and says the classification out loud so the user can correct it.
 3. **No state, and the request is a question about existing numbers** ("what's our churn", "write a PRD for this"): load `pm-toolkit`.
+4. **Not clear which of these, or the user asks what to do, where to start, or which skill to use:** load `orchestrator`. It reads the memory, asks at most three questions, and proposes a route through the skills.
 
 `files.read` is the only capability this needs. A host that cannot load skills by name reads the named `SKILL.md` directly.
 
