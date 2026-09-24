@@ -13,7 +13,7 @@ Event naming, property schemas, quality assurance, and the procedure for turning
 
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
-| `analytics.events` | The existing event catalogue and its properties, so you do not redesign what already ships | Grep the repo for the analytics SDK's call sites and collect the literal event names |
+| `analytics.events` | The existing event catalogue and its properties, so you do not redesign what already ships | Search the repository for the analytics SDK's call sites and collect the literal event names |
 | `analytics.query` | Volume per existing event, to find the dead ones | Skip; design proceeds without it |
 | `repo.read` | The feature's actual states and transitions, which is what the taxonomy has to cover | Ask the user to walk through the flow |
 | `files.read` / `files.write` | The tracking plan itself | Always present |

@@ -25,6 +25,8 @@ Three kinds of boundary, all worth writing:
 
 Write the boundary that someone will argue with. An out-of-scope list containing only things nobody wanted is not a boundary, it is padding.
 
+**Out of scope is not the same as not yet specified.** Out of scope lies beyond what this release is for: it never comes back unless the bet changes. Not yet specified lies inside the scope and is simply not decided yet: how a limit is enforced, which of two error behaviors applies. Filing an open question under out of scope quietly drops it; leaving it unfiled hands the decision to whoever implements it. Each open question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, so phase 5 can build the slices that do not.
+
 ## Acceptance Criteria
 
 Gate 4.1: **every criterion is a testable assertion.** The mechanical check is a subject plus a verifiable verb, with no adjective doing the work.
@@ -128,6 +130,10 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Item | Kind | Reason |
 | {item} | not now / not ever / not until X | {reason, or the trigger} |
 
+## Not yet specified
+| Open question | Decides | Blocks |
+| {in-scope question still open} | {person} | {AC numbers that wait on it, or "none"} |
+
 ## Flows
 {reference to DESIGN.md, with the flow list and where each is specified}
 
@@ -155,6 +161,7 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Empty out-of-scope list | Gate 4.2 fails; scope was described, not bounded | Write the boundary someone will argue with |
+| An open question filed under out of scope | The question disappears and the implementer answers it silently | Out of scope is beyond the bet; an undecided in-scope question goes under Not yet specified |
 | An adjective doing the work in a criterion | Nothing to test in phase 5 | Strike the adjectives; what remains must be verifiable |
 | Unnumbered acceptance criteria | Phase 5 maps tests by number | Number them |
 | Only happy-path states | The partial and permission states generate the support load | Six states per flow, every time |

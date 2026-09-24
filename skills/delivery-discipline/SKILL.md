@@ -37,6 +37,8 @@ A layer-first decomposition ("build the schema, then the API, then the UI") prod
 
 Write them as a list, not a diagram: `3 blocks on 1`. Then check the critical path: the longest chain of blocking edges is the minimum duration regardless of how many people work on it. Where that chain is most of the work, the decomposition is still layered in disguise.
 
+A slice whose acceptance criteria appear in the spec's **Not yet specified** table also blocks on that decision. Write it as an edge (`4 blocks on decision: retry limit`) and build the unblocked slices first; never resolve the open question in code.
+
 ## Test Baseline
 
 Before writing any code, record what the test suite does today: how many pass, how many fail, how long it takes. Pasted output, not a summary.
@@ -88,6 +90,18 @@ Per event in the phase 4 tracking plan:
 Three failures worth expecting: the event fires but a required property is null, the event fires twice for one action, and the event fires in development but the production configuration was never set. Each one is invisible until someone tries to use the data, which is phase 7, which is too late to fix cheaply.
 
 Where no analytics capability resolved, verification falls to the code path plus a local emission log, tagged as such. That is weaker evidence and the artifact says so; it is still evidence, and it still catches the null property.
+
+## Claims and Their Evidence
+
+Every status claim in the build artifact or the review is backed by output produced in this phase, pasted, not described. The claim alone is not evidence, and neither is a delegated agent reporting it.
+
+| Claim | Requires | Not enough |
+|-------|----------|------------|
+| Tests pass | The suite's output with the pass and fail counts, from a run after the last change | An earlier run, "should pass" |
+| This test covers AC-3 | The test failing with the behavior removed, then passing with it restored | The test passing once |
+| Instrumentation works | The event observed arriving, with its properties | The tracking call present in the code |
+| Nothing out of scope was built | The diff read against the spec's scope boundaries | The implementer saying so |
+| The slice is done | Every acceptance criterion it owns mapped to a test that ran | Tests green overall |
 
 ## Capabilities
 

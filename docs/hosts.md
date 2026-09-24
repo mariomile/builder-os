@@ -36,7 +36,9 @@ Install as a plugin. Skills, agents and slash commands all load: this is the ric
 
 ## Codex
 
-Two pieces, no plugin manifest involved.
+**As a plugin.** The repo ships `.codex-plugin/plugin.json` (it points Codex at `skills/`) and `.agents/plugins/marketplace.json` (a one-plugin marketplace rooted at the repo). Both follow the shape Superpowers publishes for Codex. The manifest format belongs to Codex and may change between versions; if yours does not load it, the manual setup below gives the same result.
+
+**Manually.** Two pieces.
 
 1. **`AGENTS.md`** is picked up from the repository root automatically, giving Codex the pipeline map and the non-negotiables.
 2. **The skills** need to be discoverable by the host. Copy or symlink this repo's `skills/` into the directory your Codex version scans for skills, then invoke a skill by name or let the description match your request.

@@ -36,7 +36,7 @@ Write .builderos/03-solution-bet.md and run gate 3 before declaring completion."
 })
 ```
 
-5. **Verify completion:** `## BET SELECTED` with a gate 3 verdict.
+5. **Verify completion:** `## BET SELECTED` with a gate 3 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 3 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present** the option set with its primary actions, the selected bet, the kill criteria and the test order.
 
 ## Arguments

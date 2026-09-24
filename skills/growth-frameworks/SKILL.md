@@ -14,7 +14,7 @@ Activation and retention diagnosis, and the interventions that follow from it. H
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
 | `analytics.query` | The activation funnel and the retention curve, segmented | Map the funnel from the onboarding code, then ask the user for the rates |
-| `analytics.events` | Whether each funnel step is emitted at all | Grep the repo for the analytics SDK's call sites |
+| `analytics.events` | Whether each funnel step is emitted at all | Search the repository for the analytics SDK's call sites |
 | `analytics.replay` | Watching where users actually stall in the drop-off step | Skip; the drop-off is still located, just not explained |
 | `docs.search` | Previously recorded funnel and retention numbers | Skip, and mark the step unavailable |
 | `repo.read` | Onboarding flow, tracking coverage, missing instrumentation | Skip when there is no codebase |

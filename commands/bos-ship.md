@@ -43,7 +43,7 @@ Capture the baseline before any exposure; gate 6.2 checks the timestamp order."
 })
 ```
 
-5. **Verify completion:** `## SHIPPED` with a gate 6 verdict.
+5. **Verify completion:** `## SHIPPED` with a gate 6 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 6 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review.
 
 ## Arguments

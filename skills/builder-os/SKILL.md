@@ -78,6 +78,8 @@ Then run the phase. Two paths, same procedure:
 
 Never make the second path apologize for itself. It is the normal path on most hosts.
 
+On either path, the phase is not done when a completion marker appears. The marker is a claim. Re-read the artifact on disk and run the phase gate on it per `gate-checks`; only that result advances `state.json`. A delegated agent that reports success over a missing file or a failing condition has not finished the phase.
+
 ## Operating Modes
 
 The mode is a summary of which capabilities resolved, not a list of installed products. Full definitions in `references/capability-map.md`.

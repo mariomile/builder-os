@@ -16,7 +16,7 @@ Operational frameworks for product strategy work. Reference when the Product Str
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
 | `analytics.query` | The retention curve behind the PMF read, and the retention correlation behind a north star candidate | Ask for the curve; without it the retention signal is recorded unavailable, not guessed |
-| `analytics.events` | Whether a candidate north star can be measured today at all | Grep the repo for the call sites |
+| `analytics.events` | Whether a candidate north star can be measured today at all | Search the repository for the call sites |
 | `db.query` | Organic pull and account-level signals that live in the application database | Ask |
 | `docs.search` | Survey results, interview notes, prior strategy and positioning work | Ask the user for them |
 | `files.read` / `files.write` | The artifact itself | Always present |

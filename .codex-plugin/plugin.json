@@ -1,0 +1,38 @@
+{
+  "name": "builder-os",
+  "version": "1.0.0",
+  "description": "BuilderOS — the operating system for product builders. Eight gated phases from an idea to a product in production, with source-tagged evidence and zero prerequisites.",
+  "author": {
+    "name": "Mario Miletta",
+    "email": "mario@marioverse.ai"
+  },
+  "homepage": "https://github.com/mariomile/builder-os",
+  "repository": "https://github.com/mariomile/builder-os",
+  "license": "MIT",
+  "keywords": [
+    "product-management",
+    "product-builder",
+    "discovery",
+    "specs",
+    "gates",
+    "builder-os"
+  ],
+  "skills": "./skills/",
+  "hooks": {},
+  "interface": {
+    "displayName": "BuilderOS",
+    "shortDescription": "Gated lifecycle from idea to production for product builders",
+    "longDescription": "Use BuilderOS to take an idea or a problem through framing, discovery, definition, ideation, spec, build, release and outcome review, with a gate between every phase and a source tag on every claim. Works with nothing connected.",
+    "developerName": "Mario Miletta",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "I have an idea and want to know if it is worth building.",
+      "We want to add a feature to our product."
+    ]
+  }
+}

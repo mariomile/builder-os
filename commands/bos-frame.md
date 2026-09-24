@@ -30,7 +30,7 @@ Write .builderos/00-frame.md and run gate 0 before declaring completion."
 })
 ```
 
-5. **Verify completion:** look for `## FRAME COMPLETE` and a gate 0 verdict.
+5. **Verify completion:** look for `## FRAME COMPLETE` and a gate 0 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 0 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present** the frame, then the next command or the failed condition.
 
 ## Arguments

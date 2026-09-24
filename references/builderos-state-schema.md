@@ -17,6 +17,8 @@ The pipeline's memory. Created by `/bos-init`, read by every lifecycle command, 
   07-outcome.md         actual vs. target, decision
   decisions/
     ADR-001-{slug}.md   one file per irreversible decision
+  questionnaires/
+    {recipient}.md      async questions for someone the user cannot interview, phase 1
 ```
 
 Phase artifacts are Markdown for humans. `state.json` is the machine surface: no agent should have to parse prose to know where the pipeline stands.
@@ -117,4 +119,4 @@ Phase artifacts are Markdown for humans. `state.json` is the machine surface: no
 {The observation that would reopen this.}
 ```
 
-ADRs are written at phase 7, and any time a decision is irreversible or expensive to unwind. "Revisit when" is mandatory: a decision without a reopening condition becomes dogma.
+ADRs are written at phase 7, and any time a decision is hard to reverse, surprising without context, and the result of a real trade-off. All three, or no ADR: `/bos-adr` runs the test. "Revisit when" is mandatory: a decision without a reopening condition becomes dogma.

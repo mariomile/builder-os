@@ -59,6 +59,14 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 
 {How this product speaks. Two or three adjectives with a counter-example each: "direct, not blunt". Used by every artifact-writing agent.}
 
+## Language
+
+| Term | Means | Not to be confused with |
+|------|-------|------------------------|
+| {the word the team and the ICP use} | {one sentence, no implementation detail} | {the neighboring term it gets mixed up with} |
+
+{Added the moment a term is settled, not in batches. A glossary, not a spec: no implementation, no decisions. When a user or an artifact uses a term against its definition here, say so before continuing.}
+
 ## Success
 
 **North Star:** {metric, or "not yet selected — phase 2"} `[tag]`

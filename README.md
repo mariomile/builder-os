@@ -247,7 +247,7 @@ Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/
 Patterns borrowed, not dependencies. BuilderOS installs on its own.
 
 - [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims", the short bootstrap skill with its red-flags table, and classifying work into paths before starting
-- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, the interview primitive, durable shared context
+- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, interview rounds with a recommended answer per question, the async questionnaire, the ADR test, the glossary, and "not yet specified" kept apart from out of scope
 - [pbakaus/impeccable](https://github.com/pbakaus/impeccable) — durable product truth kept separate from surface decisions, deterministic detectors
 
 ---

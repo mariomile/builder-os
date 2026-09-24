@@ -114,7 +114,7 @@ OKRs cascade: Company → Product → Team. BuilderOS focuses on the **Product-l
 For each KR, find a real baseline — never estimate:
 
 1. **Live data**: the Volume, Funnel or Retention shape via `analytics.query`, or `db.query` where the number lives in the application database
-2. **Vault-based**: Grep for metric name + product name in vault; check periodic notes
+2. **Vault-based**: Search the vault for metric name + product name; check periodic notes
 3. **User-provided**: Ask directly: "What's the current value of [metric]?"
 4. **Unknown**: Mark as `TBD — tracking ticket required` and add to Tracking Requirements section
 

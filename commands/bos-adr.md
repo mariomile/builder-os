@@ -9,7 +9,12 @@ Usually called at phase 7, and callable at any phase the moment a decision becom
 
 ## Steps
 
-1. **Establish the decision.** From the user, or from the current phase artifact. If it is reversible and cheap, say so and offer to skip: an ADR for every choice makes the directory unreadable and the important ones invisible.
+1. **Establish the decision and test it.** From the user, or from the current phase artifact. An ADR is worth writing only when all three hold:
+   - **Hard to reverse:** changing your mind later costs something real.
+   - **Surprising without context:** a reader in six months would ask "why did they do it this way?"
+   - **A real trade-off:** there were genuine alternatives, and this one won for stated reasons.
+
+   If any of the three is missing, say which and offer to skip: an ADR for every choice makes the directory unreadable and the important ones invisible.
 2. **Find the next number.** Read `.builderos/decisions/`; the next ADR is the highest existing number plus one, zero-padded to three digits.
 3. **Gather the context with its tags.** What forced the decision, with evidence tags per `evidence-ledger`. An ADR whose context is untagged records an opinion.
 4. **Write the file** to `.builderos/decisions/ADR-{NNN}-{slug}.md`, in the format from `references/builderos-state-schema.md`:

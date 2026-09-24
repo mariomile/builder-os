@@ -64,7 +64,7 @@ Complete .builderos/05-build-plan.md and run gate 5 before declaring completion.
 })
 ```
 
-8. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict.
+8. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 5 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 9. **Present** the criterion-to-test mapping, the test output, the instrumentation evidence and the scope check.
 
 ## Arguments

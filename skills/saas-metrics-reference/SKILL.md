@@ -14,7 +14,7 @@ Definitions, formulas and benchmark bands for the metrics a product health diagn
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
 | `analytics.query` | Volume, funnel and retention shapes behind the metric tree | Read instrumentation from code to learn what *could* be measured, then ask the user for current values |
-| `analytics.events` | Which events exist, and their volume | Grep the repo for the analytics SDK's call sites |
+| `analytics.events` | Which events exist, and their volume | Search the repository for the analytics SDK's call sites |
 | `db.query` | Revenue, account and subscription metrics | Read the schema from migrations, then ask for the numbers |
 | `docs.search` | Previously recorded metrics, dashboards, analytics notes | Skip, and mark the metric unavailable |
 | `repo.read` | Instrumentation audit, data model, feature inventory | Skip when there is no codebase |

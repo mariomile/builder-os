@@ -28,7 +28,7 @@ Each dispatch carries the baseline, the target, the kill criteria and the measur
 7. **Load `outcome-review` and run its Procedure** over the returned numbers: compare against target, evaluate the kill criteria literally, read the overrides, decide, generalize the learning.
 8. **Write `.builderos/07-outcome.md`** and run gate 7.
 9. **Update state.** On KEEP the cycle closes. On ITERATE or KILL, increment `cycle` and set `current_phase` to the re-entry phase.
-10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict.
+10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 7 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 
 ## Arguments
 

@@ -28,6 +28,21 @@ Agreement is the most common false stop. A user who agrees quickly has usually n
 5. **Price the answer.** "What is the cheapest way to find out you are wrong?" Every unresolved branch exits with a test and a cost, or an explicit decision to proceed without one.
 6. **Log the deferrals.** An accepted risk is fine. An unnoticed one is not.
 
+## Rounds
+
+Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the whole frontier at once, numbered, each with your **recommended answer** and the reason for it. The user corrects a proposal faster than they write from nothing, and a disagreement with your recommendation is itself evidence.
+
+```markdown
+**Q1 — {short title}.** {The question, with the options when there are options.}
+→ Recommended: {your answer}, because {reason, with a source tag if it rests on a fact}.
+
+**Q2 — {short title}.** …
+```
+
+A question whose answer depends on another question in the same round belongs to the next round. The attack on the load-bearing assumption (Method, steps 2 to 5) is a chain: each answer decides the next question, so that chain runs one question per round. Independent branches (who the ICP is, what changed, who solved it before) go together.
+
+**Facts are yours, decisions are theirs.** Before a question reaches the user, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Decisions (what to bet on, what to cut, which risk to accept) always go to the user, and you never answer them on the user's behalf.
+
 ## Question Banks
 
 **Phase 0 — Frame**
@@ -77,7 +92,7 @@ Agreement is the most common false stop. A user who agrees quickly has usually n
 
 ## Tone
 
-Direct, not hostile. The target is the reasoning, never the person. One question at a time — a list of six questions gets one answer to the easiest of them.
+Direct, not hostile. The target is the reasoning, never the person. A round asks only the frontier: a list of six questions where four depend on the first two gets answers to the easiest, not to the ones that matter.
 
 Follow the answer, not the script. The question banks are a starting point for a phase; the actual interview follows whichever branch is load-bearing in this specific case.
 
@@ -100,7 +115,9 @@ Unresolved branches at a gate are gate failures. Deferred branches with a named 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Stopping when the user agrees | Agreement is not resolution | Stop when branches are resolved or deferred with a test |
-| Asking six questions at once | The user answers the easiest | One question, then follow the answer |
+| Asking dependent questions in the same round | The user answers questions whose premise the first answer changes | Ask only the frontier; dependent questions wait for the next round |
+| A question with no recommended answer | The user writes from nothing, and you learn nothing from their disagreement | Every question carries your recommendation and why |
+| Asking the user for a fact the session could retrieve | Wastes their turn and signals you did not look | Resolve the capability first; ask only when the ladder is exhausted |
 | Attacking peripheral details | Feels rigorous, changes nothing | Attack the load-bearing assumption |
 | Accepting an unfalsifiable claim | It is a preference, not a claim | Label it a preference and move on |
 | Softening the question to be agreeable | The premise survives unexamined and gets elaborated | Ask it plainly |

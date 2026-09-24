@@ -13,7 +13,7 @@ Entry point for any idea, problem, or existing product entering the BuilderOS li
 
 2. **Migrate, do not re-ask.** If `PM-CONTEXT.md` exists, read it and pre-fill every field it covers. Ask only for what is missing.
 
-3. **Interview for `PRODUCT.md`.** One question at a time. Do not present a form. The fields:
+3. **Interview for `PRODUCT.md`.** In rounds per `pressure-testing` (Rounds): the fields below are mostly independent, so ask them together, numbered, each with a recommended answer drawn from whatever the session can already read (a README, existing docs, `PM-CONTEXT.md`). A field whose answer depends on another (non-goals depend on the purpose) waits for the next round. The fields:
    - Product name and one-sentence purpose
    - The problem, stated without solution language
    - Primary ICP, and how they solve it today

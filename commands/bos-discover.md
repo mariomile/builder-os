@@ -37,7 +37,7 @@ If no transcripts exist yet, deliver the plan and say the gate runs later."
 })
 ```
 
-5. **Verify completion:** `## DISCOVERY COMPLETE` with a verdict, or `## RESEARCH PLAN READY`.
+5. **Verify completion:** `## DISCOVERY COMPLETE` with a verdict, or `## RESEARCH PLAN READY`. The marker is the agent's claim, not the evidence: for `## DISCOVERY COMPLETE`, re-read `01-discovery.md` and run gate 1 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present.** On `KILLED`, report the pipeline stop as a successful outcome and name what it saved.
 
 ## Arguments

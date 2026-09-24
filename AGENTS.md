@@ -32,6 +32,7 @@ Analysis hub (pm-toolkit) → specialist skills → standalone answers
 | `references/` | Templates, state schema, capability map | Yes |
 | `docs/` | Specs, plans, host setup | Yes |
 | `agents/`, `commands/`, `.claude-plugin/` | Claude Code adapters | No |
+| `.codex-plugin/`, `.agents/plugins/` | Codex plugin manifest and marketplace. Metadata only, no procedure | No |
 
 Pipeline state lives in `.builderos/state.json` and `PRODUCT.md` at the working-directory root. Read state before starting a phase; write it after finishing one.
 

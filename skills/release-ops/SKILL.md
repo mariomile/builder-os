@@ -82,6 +82,17 @@ The date comes from the phase 3 kill criteria, which already named one. If phase
 
 A review with no owner does not happen. A review with no date happens when someone remembers, which is after the result has become obvious enough that there is nothing left to learn.
 
+## Claims and Their Evidence
+
+Release claims are the ones most often made from memory, under time pressure. Each needs its own evidence, captured in this phase.
+
+| Claim | Requires | Not enough |
+|-------|----------|------------|
+| Rollback works | The rollback executed once, with its result | A written procedure |
+| Baseline captured | The value, its source tag and a timestamp earlier than exposure | A dashboard link |
+| Events are flowing in production | Events observed from the production environment after deploy | Events seen in staging |
+| Outcome review scheduled | An owner and a date recorded in the artifact | "We'll check in a few weeks" |
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
