@@ -53,7 +53,7 @@ export const BuilderOSPlugin = async ({ client, directory }) => {
   const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
 
   const getBootstrapContent = () => {
-    const skillPath = path.join(builderOSSkillsDir, 'pm-toolkit', 'SKILL.md');
+    const skillPath = path.join(builderOSSkillsDir, 'using-builder-os', 'SKILL.md');
     if (!fs.existsSync(skillPath)) return null;
 
     const fullContent = fs.readFileSync(skillPath, 'utf8');
@@ -68,7 +68,7 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 
     return `You have BuilderOS installed — The Operating System for Product Builders.
 
-**The BuilderOS hub skill content is included below. It is ALREADY LOADED. Do NOT use the Skill tool to load "pm-toolkit" again.**
+**The using-builder-os skill is included below and already loaded. It routes to builder-os (the lifecycle) or pm-toolkit (analysis); load those with the skill tool.**
 
 ${content}
 

@@ -31,19 +31,24 @@ Entry point for any idea, problem, or existing product entering the BuilderOS li
 5. **Scaffold:**
    ```
    PRODUCT.md
-   .builderos/state.json      schema 1, current_phase 0, cycle 1, all phases pending
+   .builderos/state.json      schema 1, current_phase 0, cycle 1, all phases pending, track per step 6
    .builderos/decisions/
    ```
 
-6. **Detect the starting phase.** An idea with nothing built starts at 0. An existing product with a validated problem may legitimately start at 2 or 3 — ask, and record the skipped phases in `history` as `skipped_at_init` so phase 7 knows what was never checked.
+6. **Classify the track** per `builder-os`, section Tracks, and say it out loud with the reason before anything else runs. `spike` when the user wants an answer, not a product. `feature` when a product already exists and the request changes it. `product` otherwise, and whenever two tracks both fit.
+   - `feature`: run the coverage check in `gate-checks` against the `PRODUCT.md` just written. Pass: record phases 0 and 1 as `covered`, start at phase 2. Fail: say which condition failed, set the track to `product`, start at phase 0.
+   - `spike` and `product`: start at phase 0.
 
-7. **Report and route.** One screen: what was created, the starting phase, and the next command.
+   Write `track` to `state.json` and a `track_set` event with the reason. For `feature`, default the mode question in step 4 to `lite`.
+
+7. **Report and route.** One screen: what was created, the track and why, the starting phase, and the next command.
 
 ## Arguments
 
 - `[idea]` — Optional one-line idea or problem. Seeds the interview.
 - `[--lite]` — Skip the mode question, set lite.
 - `[--from-pm-context]` — Force migration from `PM-CONTEXT.md` without prompting.
+- `[--track spike|feature|product]` — Propose a track. Still announced, and `feature` still has to pass the coverage check.
 
 ## Output
 
@@ -53,11 +58,12 @@ Entry point for any idea, problem, or existing product entering the BuilderOS li
 **Product:** {name}
 **Stage:** {stage}
 **Mode:** {full | lite}
-**Starting phase:** {N} — {phase name}
+**Track:** {spike | feature | product} — {one-line reason}
+**Starting phase:** {N} — {phase name}{, phases 0–1 covered by PRODUCT.md, if feature}
 
 Created: PRODUCT.md, .builderos/state.json
 
 {One line on what phase N will do.}
 
-Next: `/bos-frame`
+Next: `/bos-frame`, or `/bos-define` on the feature track
 ```

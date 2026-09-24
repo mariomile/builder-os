@@ -34,7 +34,7 @@ Adapted from Teresa Torres's continuous discovery structure, with one addition t
 
 1. **One desired outcome** at the root. Multiple outcomes means multiple trees, which means the strategy is unchosen.
 2. **Three to seven opportunities** at the first level. Fewer means the research was thin; more means they are not yet grouped.
-3. **Every opportunity traces to a tag** from `01-discovery.md`.
+3. **Every opportunity traces to a tag** from `01-discovery.md`, or from `PRODUCT.md` when phase 1 is `covered`.
 4. **Siblings are mutually exclusive.** Overlapping opportunities produce double-counted impact.
 5. **Sub-opportunities only where the evidence actually splits.** Decomposing for symmetry invents structure.
 
@@ -111,7 +111,7 @@ Gate 2 is fully satisfiable with no data capability at all: the tree comes from 
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
-1. **Read discovery and the frame.** Check the verdict first: `VALIDATED` proceeds; `RESHAPED` means confirming `PRODUCT.md` was amended before mapping against a stale ICP; `KILLED` means refusing, because the pipeline stopped. No `01-discovery.md` on disk → stop. Never build a tree from conversation memory.
+1. **Read discovery and the frame.** Check the verdict first: `VALIDATED` proceeds; `RESHAPED` means confirming `PRODUCT.md` was amended before mapping against a stale ICP; `KILLED` means refusing, because the pipeline stopped. No `01-discovery.md` on disk → stop, unless `state.json` records phase 1 as `covered` on the feature track: then the tagged claims in `PRODUCT.md` are the evidence opportunities trace to. Never build a tree from conversation memory.
 2. **Build the tree.** Group the evidence into three to seven mutually exclusive opportunities. Run the verb check on each: add, build, integrate, redesign mean you wrote a solution. Attach every supporting evidence tag. Drop untagged candidates and say which you dropped and why. Set the root: the desired outcome, which becomes the success metric.
 3. **Size.** Reach, severity and frequency per opportunity. Resolve `analytics.query` and `db.query` for real population counts where they exist; otherwise bottom-up with the method named in the tag. Present the ranking, then state explicitly that it sorts rather than decides.
 4. **Check PMF coherence.** Score the PMF signals per `strategy-frameworks`, or read a recent assessment if one exists. If the leading opportunity is an acquisition or scale bet at a signal score of 4 or below, flag it before the user commits, not after: gate 2.5 will refuse it.
@@ -161,7 +161,7 @@ Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Opportunities that are features | Jumps to phase 3 with the choice already made | Unmet need, no verbs like add or build |
-| An opportunity with no evidence tag | Gate 2.1 fails; it is an idea, not a finding | Trace to `01-discovery.md` or drop it |
+| An opportunity with no evidence tag | Gate 2.1 fails; it is an idea, not a finding | Trace to `01-discovery.md` (or `PRODUCT.md` on the feature track) or drop it. On the feature track, no traceable opportunity means the track upgrades to `product` |
 | Selecting without writing rejections | The choice becomes unreviewable later | One line per rejection, plus a revisit condition |
 | An acquisition bet at pre-PMF | Optimizes a leaking bucket | Gate 2.5 refuses it; deepen value first |
 | Estimated baseline | Makes the target unfalsifiable and phase 7 decorative | Real query, or explicit 0 with a measurement date |

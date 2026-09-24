@@ -120,6 +120,25 @@ An override never silently disappears. It is not shame, it is provenance.
 | 7.3 | Decision recorded | `KEEP` / `ITERATE` / `KILL`, with the re-entry phase |
 | 7.4 | Generalized learning | One sentence that outlives the feature, written into `decisions/` |
 
+## Coverage Check (feature track)
+
+Runs once, at initialization, when the work is classified as `feature`. It stands in for gates 0 and 1 by reading `PRODUCT.md` instead of a phase artifact. The conditions are the load-bearing ones from those gates, applied to evidence that already exists.
+
+| # | Condition | Check |
+|---|-----------|-------|
+| C.1 | Problem stated without solution language | The same word list as 0.1, applied to `PRODUCT.md` → The Problem |
+| C.2 | Exactly one primary ICP | `PRODUCT.md` → ICP names one primary segment, its size carrying a source tag |
+| C.3 | The problem is evidenced, not assumed | The Problem, Who has it, and What that costs them each carry a primary-source tag. `[assumption:unvalidated]` on any of the three fails |
+| C.4 | The change serves that ICP | The request names which part of the evidenced problem it addresses. A change aimed at a different segment is a new problem |
+
+Pass: phases 0 and 1 are written `covered`, one `phase_covered` event each with the tags that satisfied C.1 to C.3, and the pipeline starts at phase 2. For gate 2.1 on this track, `PRODUCT.md` tags count as phase 1 evidence tags.
+
+Fail: the work is a `product`. Use the refusal protocol with the failed C condition, then start at phase 0. Not a penalty: phase 0 and 1 are exactly what produces the evidence C.3 was looking for. The coverage check cannot be overridden, because an override would record phases as covered by evidence nobody has.
+
+## Spike Stop (spike track)
+
+A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `answered` instead of `passed` and `current_phase` does not advance. The verdict (`VALIDATED`, `KILLED` or `RESHAPED`) is the answer, reported as a recommendation. Continuing means reclassifying to `feature` or `product`, stated to the user and logged as `track_upgraded`.
+
 ## Lite Mode
 
 `state.json` may set `mode: "lite"` for small features. Lite mode keeps every hard condition (evidence thresholds, kill criteria, test mapping, rollback, baseline) and drops the elaboration conditions: 2.1 relaxes to ≥2 opportunities, 3.1 to ≥2 options, 4.5 and 6.4 become warnings rather than failures.
@@ -134,5 +153,6 @@ Lite mode never relaxes: 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 6.1, 6.2, 7.3. 
 | Failing a gate without naming the condition | The user cannot act on it | Use the refusal format |
 | Treating `KILLED` as a failure | Killing early is the cheapest win available | Report it as a successful pass and stop |
 | Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an explicit zero |
+| Overriding the coverage check | Phases recorded as covered by evidence that does not exist | Classify as `product` and start at phase 0 |
 | Silently proceeding after a failure | Destroys the value of the whole model | Refuse, or override and log |
 | Running gate 4 conditions on a phase 2 artifact | Wrong gate, wasted cycle | Read `current_phase` from `state.json` first |

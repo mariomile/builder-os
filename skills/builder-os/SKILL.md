@@ -68,7 +68,7 @@ Before starting any phase:
 2. **Read `PRODUCT.md`.** Durable truth carries into every phase. If absent, fall back to `PM-CONTEXT.md`, then to asking.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Read the previous phase artifact.** Every phase consumes the one before it. Starting phase 3 without `02-definition.md` produces confident fiction.
-5. **Check the previous gate.** If it did not pass and was not overridden, refuse and say which condition blocks.
+5. **Check the previous gate.** If it did not pass, was not overridden and is not `covered`, refuse and say which condition blocks.
 
 Then run the phase. Two paths, same procedure:
 
@@ -102,7 +102,28 @@ A phase advances only through its gate. `gate-checks` holds the conditions; this
 - **Overridden** → advances, logged in `state.json`, visible in every `/bos-status` from then on
 - **Killed** (phase 1 or 7) → pipeline stops. Report it as a win: an unbuilt wrong thing is the cheapest outcome available
 
-Never skip a phase to be helpful. A user who asks to jump from an idea straight to a spec gets one sentence naming what phases 1 and 2 would have caught, and then a choice: run them, or override and proceed with the risk logged.
+Never skip a phase to be helpful. A user who asks to jump from an idea straight to a spec gets one sentence naming what phases 1 and 2 would have caught, and then a choice: run them, or override and proceed with the risk logged. The one sanctioned way to start later is the `feature` track, and it is earned by `PRODUCT.md`, not by the user's confidence.
+
+## Tracks
+
+Not every request needs all eight phases. Before the first phase runs, classify the work into a track and **say the classification out loud**, with its reason, so the user can correct it: "this is a change to a product that already has evidence behind it, so I'm treating it as a feature and starting at phase 2".
+
+| Track | The request | Runs | Ends |
+|-------|-------------|------|------|
+| `spike` | "Is X worth doing?", "does anyone actually have this problem?" The output is an answer, not a product | Phases 0 and 1 | The phase 1 verdict is the answer. Status `answered`, pipeline stops |
+| `feature` | A change to a product that exists, whose `PRODUCT.md` already carries evidence for the problem and the ICP | Coverage check, then phases 2 to 7 | Phase 7, like any pipeline |
+| `product` | A new product, a new segment, or anything whose problem has never been evidenced | Phases 0 to 7 | Phase 7 |
+
+When torn between two tracks, take the heavier one. Choosing a track to avoid work is the doubt itself.
+
+**The coverage check** stands in for phases 0 and 1 on the `feature` track. `gate-checks` holds its conditions. Pass, and phases 0 and 1 are recorded `covered`, each with the `PRODUCT.md` tags that covered it. Fail, and the work is a `product`, starting at phase 0: say which condition failed and why that means the problem has not been evidenced yet.
+
+**The ratchet goes one way.** A track upgrades when the work reveals it was heavier than classified, and never downgrades:
+
+- A `spike` whose answer is "build it" becomes `feature` or `product` by a new classification stated to the user. The spike's phase 0 and 1 artifacts carry over as they are.
+- A `feature` upgrades to `product` when a phase 2 or later gate fails because the evidence the covered phases should have supplied is missing: an opportunity that traces to nothing, an ICP that the change does not serve, a problem the phase 2 work contradicts. Re-enter phase 0, keep every artifact written so far, log `track_upgraded` with the observation that forced it.
+
+Stop and say so the moment an upgrade is due. Finishing the current phase on a track already known to be wrong produces an artifact built on the wrong foundation.
 
 ## Interop
 
@@ -147,6 +168,8 @@ Markers from the `pm-*` agents are listed in `pm-toolkit` and unchanged.
 | Advancing a phase without reading the previous artifact | The output will be confident and unfounded | Read it, or refuse |
 | A number in an artifact with no source tag | The Iron Law is broken | Rewrite per `evidence-ledger` |
 | Skipping to phase 4 because "we know what to build" | Phases 1–3 exist to test exactly that belief | Name what is being skipped, offer the override |
+| Classifying as `feature` because the user sounds sure | Confidence is not evidence; the covered phases end up covered by nothing | Run the coverage check. It decides, not the tone |
+| Silently continuing a `spike` into a build | The build rests on an answer nobody chose to act on | Stop at the verdict, reclassify out loud |
 | Passing a gate because the user is frustrated | The gate is the only thing preventing expensive fiction | Offer the logged override instead |
 | Treating `KILLED` as a failure | Killing early is the highest-ROI outcome in the system | Report it as a successful pass, stop the pipeline |
 | Building a phase artifact without updating `state.json` | The pipeline loses its memory | Write both, always |

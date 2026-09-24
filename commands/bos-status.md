@@ -14,11 +14,12 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 3. For each phase 0–7, resolve: status, gate result, overrides, artifact presence.
 4. Identify the single blocking item: the failed condition of the current gate, or the next action if the gate has not been run.
 5. Surface every override ever recorded. Overrides do not expire.
+6. Show `covered` phases with the `PRODUCT.md` tags that covered them, and every `track_upgraded` event with its reason. A missing `track` reads as `product`.
 
 ## Output
 
 ```markdown
-## {Product} — cycle {C}, mode {full|lite}
+## {Product} — cycle {C}, mode {full|lite}, track {spike|feature|product}
 
 | # | Phase | Status | Gate | Artifact |
 |---|-------|--------|------|----------|

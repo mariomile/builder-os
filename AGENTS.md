@@ -35,6 +35,8 @@ Analysis hub (pm-toolkit) → specialist skills → standalone answers
 
 Pipeline state lives in `.builderos/state.json` and `PRODUCT.md` at the working-directory root. Read state before starting a phase; write it after finishing one.
 
+Entry point on every host: `skills/using-builder-os`. Hosts with a session-start hook inject it; elsewhere, read it first. It routes to one of the two surfaces.
+
 Two surfaces: the **lifecycle** (`builder-os` plus the phase skills) walks the pipeline, stateful and gated; the **analysis** surface (`pm-toolkit` plus its specialists) answers a standalone question about an existing product, stateless.
 
 ## Design Principles

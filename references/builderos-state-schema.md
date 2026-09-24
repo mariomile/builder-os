@@ -30,6 +30,7 @@ Phase artifacts are Markdown for humans. `state.json` is the machine surface: no
   "schema": 1,
   "product": "captoo",
   "mode": "full",
+  "track": "product",
   "current_phase": 2,
   "cycle": 1,
   "created_at": "2026-09-20T10:00:00Z",
@@ -73,21 +74,23 @@ Phase artifacts are Markdown for humans. `state.json` is the machine surface: no
 |-------|--------|---------|
 | `schema` | `1` | Schema version. Agents refuse to write a file whose schema they do not know |
 | `mode` | `full` \| `lite` | Gate strictness. See `gate-checks` |
+| `track` | `spike` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
 | `current_phase` | `0`–`7` | Where the pipeline stands |
 | `cycle` | `1`+ | Increments when phase 7 re-enters phase 1 or 2 |
-| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` | `killed` ends the pipeline: the problem did not survive |
+| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline: the problem did not survive. `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check. `answered` ends a `spike` at phase 1 |
 | `phases.N.verdict` | phase-specific | Only phases 1 and 7 carry a verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it) |
 
 ## Rules
 
 1. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
 2. **A phase writes its own artifact and its own state entry, nothing else.** No agent touches another phase's entry.
-3. **`current_phase` advances only through a gate.** Passed or overridden. There is no third path.
+3. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check is a gate too: it is how a phase becomes `covered`. There is no other path.
 4. **A `killed` phase stops the pipeline.** `/bos` reports the kill and offers to start a new cycle from phase 0 with the learning carried forward.
-5. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
-6. **Cycle increments preserve prior artifacts.** Phase artifacts from cycle 1 move to `.builderos/cycle-1/` when cycle 2 begins.
+5. **A track only goes up.** `spike` → `feature` or `product`, `feature` → `product`. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
+6. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
+7. **Cycle increments preserve prior artifacts.** Phase artifacts from cycle 1 move to `.builderos/cycle-1/` when cycle 2 begins.
 
 ## ADR Format
 

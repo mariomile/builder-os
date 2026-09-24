@@ -54,6 +54,8 @@ stateDiagram-v2
 
 A failed gate produces the failed condition, what was found, what would satisfy it, and the cheapest path there. Overrides exist, take a written reason, and stay visible in every status report afterwards. An undocumented bypass is worse than a documented one.
 
+Not every request needs all eight phases. Before the first one runs, the work is classified into a **track** and the classification is said out loud: a `spike` wants an answer and stops at the phase 1 verdict, a `feature` changes an existing product and starts at phase 2 once `PRODUCT.md` passes a coverage check, a `product` runs everything. A track only ever upgrades: a feature whose evidence turns out missing becomes a product and re-enters phase 0.
+
 ### 2. The evidence ledger
 
 Every factual claim in every artifact carries a source tag:
@@ -195,7 +197,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**24 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, and the rest split between the eight lifecycle phases and the analysis surface.
+**25 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, a session-start bootstrap (`using-builder-os`) that routes between them, and the rest split between the eight lifecycle phases and the analysis surface.
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
@@ -244,7 +246,7 @@ Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/
 
 Patterns borrowed, not dependencies. BuilderOS installs on its own.
 
-- [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims"
+- [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims", the short bootstrap skill with its red-flags table, and classifying work into paths before starting
 - [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, the interview primitive, durable shared context
 - [pbakaus/impeccable](https://github.com/pbakaus/impeccable) — durable product truth kept separate from surface decisions, deterministic detectors
 

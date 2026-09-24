@@ -1,0 +1,2 @@
+# expects: skill=builder-os command=/bos-init track=feature (announced with its reason, coverage check run against PRODUCT.md)
+Abbiamo già il prodotto in produzione con PRODUCT.md compilato. Vogliamo aggiungere l'export CSV dei report perché i clienti enterprise lo chiedono in ogni call. Partiamo.
