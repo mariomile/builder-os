@@ -132,13 +132,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Verify instrumentation end to end.** Every event in the tracking plan, triggered and confirmed arriving with its properties.
 
-8. **Write and gate.** Write `.builderos/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5, update `state.json`, advance to phase 6 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5, update `state.json`, advance to phase 6 on pass. Before reporting, update `TECH.md` with any convention the build had to follow and any trap it hit, and move the initiative to phase 6 in `ROADMAP.md`.
 
 Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the instrumentation evidence, the scope-creep result and the gate result.
 
 ## Output Contract
 
-`.builderos/05-build-plan.md`:
+`.builderos/initiatives/{initiative}/05-build-plan.md`:
 
 ```markdown
 # Build — {feature}

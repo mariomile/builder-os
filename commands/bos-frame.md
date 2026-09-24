@@ -18,7 +18,7 @@ Agent({
   subagent_type: "problem-framer",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 0, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 0, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content or 'none — new idea']
@@ -26,7 +26,7 @@ PRODUCT.md:
 User request:
 [the idea, complaint, or feature request, verbatim]
 
-Write .builderos/00-frame.md and run gate 0 before declaring completion."
+Write .builderos/initiatives/{initiative}/00-frame.md and run gate 0 before declaring completion."
 })
 ```
 
@@ -36,7 +36,7 @@ Write .builderos/00-frame.md and run gate 0 before declaring completion."
 ## Arguments
 
 - `[idea]` — The idea, problem or complaint. If absent, the agent asks.
-- `[--reframe]` — Start a new cycle from phase 0, preserving prior artifacts under `.builderos/cycle-N/`.
+- `[--reframe]` — Start a new cycle from phase 0, preserving prior artifacts under `.builderos/initiatives/{initiative}/cycle-N/`.
 
 ## Notes
 

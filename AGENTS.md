@@ -34,7 +34,7 @@ Analysis hub (pm-toolkit) → specialist skills → standalone answers
 | `agents/`, `commands/`, `.claude-plugin/` | Claude Code adapters | No |
 | `.codex-plugin/`, `.agents/plugins/` | Codex plugin manifest and marketplace. Metadata only, no procedure | No |
 
-Pipeline state lives in `.builderos/state.json` and `PRODUCT.md` at the working-directory root. Read state before starting a phase; write it after finishing one.
+Project memory lives in the user's working directory: `PRODUCT.md` and `TECH.md` at the root, and `.builderos/` with `state.json`, `ROADMAP.md`, `decisions/` and one folder per initiative. Layout and rules in `references/builderos-state-schema.md`. Read memory before starting a phase; write it after finishing one.
 
 Entry point on every host: `skills/using-builder-os`. Hosts with a session-start hook inject it; elsewhere, read it first. It routes to one of the two surfaces.
 

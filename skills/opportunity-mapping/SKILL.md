@@ -117,13 +117,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 4. **Check PMF coherence.** Score the PMF signals per `strategy-frameworks`, or read a recent assessment if one exists. If the leading opportunity is an acquisition or scale bet at a signal score of 4 or below, flag it before the user commits, not after: gate 2.5 will refuse it.
 5. **Select.** Apply evidence strength, strategic fit, PMF coherence and reversibility, in that order. Write the rejections, each with a reason and a revisit condition. Pressure-test the selection before committing: which opportunity would a competitor pick, and why are they wrong?
 6. **Define the success metric.** Metric, baseline, target, measurement. Pull the baseline with a real query where a data capability resolved, tagged with the provider and the window. Where none did, choose honestly between unknown-with-a-first-measurement-date (product exists, uninstrumented, and instrumentation becomes a phase 4 requirement) and explicit zero (product does not exist). Never estimate a baseline. Show the reasoning behind the target; "double it" is not reasoning.
-7. **Write and gate.** Write `.builderos/02-definition.md`, run gate 2, update `state.json`, advance to phase 3 on pass.
+7. **Write and gate.** Write `.builderos/initiatives/{initiative}/02-definition.md`, run gate 2, update `state.json`, advance to phase 3 on pass.
 
 Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, the metric with baseline and target, the PMF coherence verdict and the gate result.
 
 ## Output Contract
 
-`.builderos/02-definition.md`:
+`.builderos/initiatives/{initiative}/02-definition.md`:
 
 ```markdown
 # Definition — {product}

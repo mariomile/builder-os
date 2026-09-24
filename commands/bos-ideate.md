@@ -8,7 +8,7 @@ Dispatch the `solution-architect` agent to run BuilderOS phase 3.
 ## Steps
 
 1. **Check pipeline state.** Read `.builderos/state.json`. Phase 2 must have passed or been overridden. Without a selected opportunity and a success metric there is nothing to generate options against.
-2. **Read `.builderos/02-definition.md` and `00-frame.md`.** The chosen opportunity, the metric with its baseline and target, and the riskiest assumption.
+2. **Read `.builderos/initiatives/{initiative}/02-definition.md` and `00-frame.md`.** The chosen opportunity, the metric with its baseline and target, and the riskiest assumption.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -18,7 +18,7 @@ Agent({
   subagent_type: "solution-architect",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 3, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 3, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content]
@@ -32,7 +32,7 @@ PRODUCT.md:
 User request:
 [what the user asked]
 
-Write .builderos/03-solution-bet.md and run gate 3 before declaring completion."
+Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 before declaring completion."
 })
 ```
 

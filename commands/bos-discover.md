@@ -8,7 +8,7 @@ Dispatch the `research-planner` agent to run BuilderOS phase 1.
 ## Steps
 
 1. **Check pipeline state.** Read `.builderos/state.json`. Phase 0 must have passed or been overridden; if not, refuse with the failed condition per `gate-checks`.
-2. **Read `.builderos/00-frame.md`.** The riskiest assumption in it is the research target. Without it, stop and route to `/bos-frame`.
+2. **Read `.builderos/initiatives/{initiative}/00-frame.md`.** The riskiest assumption in it is the research target. Without it, stop and route to `/bos-frame`.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -18,7 +18,7 @@ Agent({
   subagent_type: "research-planner",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 1, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 1, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content]
@@ -32,7 +32,7 @@ User request:
 Transcripts/notes provided:
 [paths or content, or 'none — plan only']
 
-Write .builderos/01-discovery.md and run gate 1 before declaring completion.
+Write .builderos/initiatives/{initiative}/01-discovery.md and run gate 1 before declaring completion.
 If no transcripts exist yet, deliver the plan and say the gate runs later."
 })
 ```

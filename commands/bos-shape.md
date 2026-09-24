@@ -8,7 +8,7 @@ Dispatch `ux-architect` then `spec-writer` to run BuilderOS phase 4.
 ## Steps
 
 1. **Check pipeline state.** Read `.builderos/state.json`. Phase 3 must have passed or been overridden. Without a selected bet and its kill criteria there is nothing to specify.
-2. **Read `.builderos/03-solution-bet.md` and `02-definition.md`.** The primary user action, the kill criteria, and the success metric the tracking plan must compute.
+2. **Read `.builderos/initiatives/{initiative}/03-solution-bet.md` and `02-definition.md`.** The primary user action, the kill criteria, and the success metric the tracking plan must compute.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Detect a design-quality toolchain** in this session. If one is present, the UX architect delegates visual craft to it and keeps the structure. Absence is the expected case and costs nothing; never prompt an install.
 5. **Dispatch the UX architect first.** The spec consumes its flow list, so the order matters.
@@ -19,7 +19,7 @@ Agent({
   subagent_type: "ux-architect",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 4, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
 Design toolchain present: [yes, named | no]
 
 PRODUCT.md:
@@ -43,7 +43,7 @@ Agent({
   subagent_type: "spec-writer",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [as above]
-Pipeline state: phase 4, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content]
@@ -60,7 +60,7 @@ DESIGN.md:
 User request:
 [what the user asked]
 
-Write .builderos/04-spec.md and run gate 4 before declaring completion."
+Write .builderos/initiatives/{initiative}/04-spec.md and run gate 4 before declaring completion."
 })
 ```
 

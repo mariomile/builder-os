@@ -94,7 +94,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 1. **Read `03-solution-bet.md` and `02-definition.md`.** The selected bet with its primary user action, the kill criteria, and the success metric with its baseline. No `03-solution-bet.md` means stop: a spec without a chosen bet specifies a guess.
 
-2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. A spec that does not say what it is changing produces a diff nobody can review against it.
+2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. Read `TECH.md` first: its constraints and conventions bound what the spec may ask for, and a spec that contradicts one names it and says why. A spec that does not say what it is changing produces a diff nobody can review against it.
 
 3. **Bound the scope.** In scope, then out of scope in the three boundary forms. Write the boundary someone will argue with. Gate 4.2 fails an empty list.
 
@@ -106,13 +106,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Design the tracking plan.** Work backwards from the phase 2 metric to the events and properties that compute it. Check each against the existing catalogue via `tracking-standards`. Mark each event new or existing.
 
-8. **Write and gate.** Write `.builderos/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
 
 Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered acceptance criteria, the state coverage, the tracking plan and the gate result.
 
 ## Output Contract
 
-`.builderos/04-spec.md`:
+`.builderos/initiatives/{initiative}/04-spec.md`:
 
 ```markdown
 # Spec — {feature}

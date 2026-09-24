@@ -64,21 +64,23 @@ Host-agnostic. Every step below works whether or not this host can delegate to a
 
 Before starting any phase:
 
-1. **Read `.builderos/state.json`.** It says which phase is current and which gates passed. If it does not exist, offer initialization — do not guess a phase.
-2. **Read `PRODUCT.md`.** Durable truth carries into every phase. If absent, fall back to `PM-CONTEXT.md`, then to asking.
+1. **Read `.builderos/state.json` and `.builderos/ROADMAP.md`.** State says which initiative is active, which phase is current and which gates passed; the roadmap says what else is in flight. Everything below applies to the active initiative, in its folder `.builderos/initiatives/{initiative}/`. If state does not exist, offer initialization — do not guess a phase.
+2. **Read `PRODUCT.md`, and `TECH.md` from phase 4 on.** Durable truth carries into every phase; technical context carries into every phase that touches code. If `PRODUCT.md` is absent, fall back to `PM-CONTEXT.md`, then to asking.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Read the previous phase artifact.** Every phase consumes the one before it. Starting phase 3 without `02-definition.md` produces confident fiction.
 5. **Check the previous gate.** If it did not pass, was not overridden and is not `covered`, refuse and say which condition blocks.
 
 Then run the phase. Two paths, same procedure:
 
-**If `subagent.dispatch` resolved** — delegate to the phase's agent with a context package containing: operating mode and resolved capabilities, pipeline state (phase, cycle, mode), `PRODUCT.md`, the previous phase artifact, the user's request, and the instruction to write `.builderos/{NN-name}.md`, update `state.json`, and run the phase gate before reporting. Isolated context per phase, which is the better path where it exists.
+**If `subagent.dispatch` resolved** — delegate to the phase's agent with a context package containing: operating mode and resolved capabilities, pipeline state (phase, cycle, mode), `PRODUCT.md`, the previous phase artifact, the user's request, and the instruction to write `.builderos/initiatives/{initiative}/{NN-name}.md`, update `state.json`, and run the phase gate before reporting. Isolated context per phase, which is the better path where it exists.
 
 **If it did not** — load the phase's skill and run its procedure inline, in sequence, in this conversation. Identical steps, identical artifacts, identical gates. The procedure lives in the skill precisely so that this path loses nothing but context isolation.
 
 Never make the second path apologize for itself. It is the normal path on most hosts.
 
 On either path, the phase is not done when a completion marker appears. The marker is a claim. Re-read the artifact on disk and run the phase gate on it per `gate-checks`; only that result advances `state.json`. A delegated agent that reports success over a missing file or a failing condition has not finished the phase.
+
+After the gate, keep the project memory current in the same step: `ROADMAP.md` gets the initiative's new phase or its closing line, `TECH.md` gets any convention or trap phases 5 and 6 discovered, and a decision that passes the ADR test goes to `decisions/`. The next session knows only what these files say.
 
 ## Operating Modes
 
@@ -105,6 +107,14 @@ A phase advances only through its gate. `gate-checks` holds the conditions; this
 - **Killed** (phase 1 or 7) → pipeline stops. Report it as a win: an unbuilt wrong thing is the cheapest outcome available
 
 Never skip a phase to be helpful. A user who asks to jump from an idea straight to a spec gets one sentence naming what phases 1 and 2 would have caught, and then a choice: run them, or override and proceed with the risk logged. The one sanctioned way to start later is the `feature` track, and it is earned by `PRODUCT.md`, not by the user's confidence.
+
+## Initiatives
+
+A project runs several pieces of work over its life, sometimes at once: a new onboarding in discovery while an export feature ships. Each is an **initiative** with its own folder, its own track, its own phase and gates. `PRODUCT.md`, `TECH.md`, `ROADMAP.md` and `decisions/` are shared across all of them.
+
+One initiative is **active** at a time; every command acts on it. Starting a new one (initialization run again on an initialized project) pauses the current one, never closes it. Switching is explicit and named to the user. An initiative closes at phase 7, at a phase 1 kill, or at a spike's answer, and moves to Done and dropped in the roadmap with its learning.
+
+Two initiatives touching the same part of the product is a signal, not an error: say so when the second one reaches phase 4, because their specs will collide.
 
 ## Tracks
 

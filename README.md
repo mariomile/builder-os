@@ -203,22 +203,30 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 **30 commands.** Fourteen `/bos-*`, sixteen `/pm-*`.
 
-### Pipeline state
+### Project memory
 
 ```
-PRODUCT.md              durable truth: ICP, problem, non-goals, constraints, voice
+PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language
+TECH.md                   how it is built: stack, technical constraints, conventions, known traps
+AGENTS.md                 gets a BuilderOS block telling every new session to read the files below first
 .builderos/
-  state.json            current phase, gate status, override log, history
-  00-frame.md           problem, ICP, riskiest assumption
-  01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
-  02-definition.md      opportunity tree, selected bet, success metric
-  03-solution-bet.md    options scored, kill criteria
-  04-spec.md            scope, flows, acceptance criteria, tracking plan
-  05-build-plan.md      tracer tickets, test map, review record
-  06-release.md         rollout, instrumentation check, baseline
-  07-outcome.md         actual vs target, keep / iterate / kill
-  decisions/            ADRs
+  state.json              every initiative: phase, track, gates, overrides, history
+  ROADMAP.md              the master plan: direction, now / next / later, done and dropped
+  decisions/              ADRs, shared across initiatives
+  initiatives/{name}/     one folder per piece of work
+    00-frame.md           problem, ICP, riskiest assumption
+    01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
+    02-definition.md      opportunity tree, selected opportunity, success metric
+    03-solution-bet.md    options scored, kill criteria
+    DESIGN.md             flows, states, components, accessibility
+    04-spec.md            scope, not yet specified, acceptance criteria, tracking plan
+    05-build-plan.md      tracer tickets, test map, review record
+    06-release.md         rollout, rollback test, baseline
+    07-outcome.md         actual vs target, keep / iterate / kill
+    questionnaires/       async questions for people the user cannot interview
 ```
+
+Every session starts by reading `state.json`, `ROADMAP.md`, `PRODUCT.md` and, when code is involved, `TECH.md`, and briefs you in five lines on where things stand. On Claude Code the session-start hook does it; on any other host the block `/bos-init` writes into your project's `AGENTS.md` does. Several initiatives can be open at once; one is active, and every command acts on it.
 
 Each phase reads the one before it. Starting phase 3 without `02-definition.md` produces confident fiction, so the hub refuses.
 

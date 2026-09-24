@@ -103,13 +103,13 @@ Run these in order. Where the host can delegate, this is what the phase agent ru
    - **Why now.** A dated change: behavior shifted, cost collapsed, or constraint lifted. If none exists, write that the problem is durable and unsolved for structural reasons, and name your best guess at those reasons. Never accept "the technology is good enough now" without the capability and the line it crossed.
    - **Prior art.** The two closest existing solutions, classified into the three outcomes. Resolve `web.search` if available; otherwise ask. If the classification is "solved well, adopted", say so directly: "do not proceed" is a legitimate phase 0 output and delivering it costs a conversation instead of a quarter.
 4. **Extract the riskiest assumption.** List the beliefs the frame requires, score each on confidence against collapse, pick low-confidence and high-collapse. Write it as a falsifiable sentence plus the observation that would falsify it. Pressure-test it; if it turns out unfalsifiable, label it a preference and take the next candidate.
-5. **Write and gate.** Write `.builderos/00-frame.md` per the output contract. Run gate 0 per `gate-checks`. On pass, update `state.json` and advance to phase 1. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
+5. **Write and gate.** Write `.builderos/initiatives/{initiative}/00-frame.md` per the output contract. Run gate 0 per `gate-checks`. On pass, update `state.json` and advance to phase 1. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
 
 Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the riskiest assumption, the gate verdict, and the specific research target phase 1 inherits.
 
 ## Output Contract
 
-`.builderos/00-frame.md`:
+`.builderos/initiatives/{initiative}/00-frame.md`:
 
 ```markdown
 # Frame — {product}
