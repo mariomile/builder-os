@@ -7,7 +7,7 @@ Dispatch `ux-architect` then `spec-writer` to run BuilderOS phase 4.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 3 must have passed or been overridden. Without a selected bet and its kill criteria there is nothing to specify.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 3 must have passed or been overridden. Without a selected bet and its kill criteria there is nothing to specify.
 2. **Read `.builderos/initiatives/{initiative}/03-solution-bet.md` and `02-definition.md`.** The primary user action, the kill criteria, and the success metric the tracking plan must compute.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Detect a design-quality toolchain** in this session. If one is present, the UX architect delegates visual craft to it and keeps the structure. Absence is the expected case and costs nothing; never prompt an install.

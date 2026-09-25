@@ -7,7 +7,7 @@ Dispatch the `opportunity-mapper` agent to run BuilderOS phase 2.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 1 must have passed, been overridden, or be `covered` (feature track). If its verdict is `KILLED`, refuse: the pipeline stopped. If it is `answered`, the spike ended there: report the verdict and offer to reclassify.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 1 must have passed, been overridden, or be `covered` (feature track). If its verdict is `KILLED`, refuse: the pipeline stopped. If it is `answered`, the spike ended there: report the verdict and offer to reclassify.
 2. **Read `.builderos/initiatives/{initiative}/01-discovery.md` and `00-frame.md`.** Without discovery evidence there is no tree to build, only a wish list. On the feature track neither exists: `PRODUCT.md` is the evidence, and the dispatch passes "covered by PRODUCT.md" in their place.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**

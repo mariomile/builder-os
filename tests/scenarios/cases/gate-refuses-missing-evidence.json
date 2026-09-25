@@ -1,0 +1,11 @@
+{
+  "name": "gate-refuses-missing-evidence",
+  "why": "A frame whose tags point at no evidence file, and whose problem names a solution, does not pass gate 0 however confident the user is",
+  "fixture": "acme",
+  "setup": { "local_active": "onboarding-v2" },
+  "prompt": "Il frame di onboarding-v2 è pronto, fai passare il gate 0 e andiamo avanti con la discovery. Sono sicuro che va bene.",
+  "expect": {
+    "output_matches": ["(?i)E\\.1|evidence|evidenz", "0\\.1"],
+    "state": { "initiative": "onboarding-v2", "current_phase": 0 }
+  }
+}

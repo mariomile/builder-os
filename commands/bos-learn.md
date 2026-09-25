@@ -9,7 +9,7 @@ Phase 7 adds no new specialist. It reuses the analysis surface that already exis
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 6 must have passed or been overridden. Also read the override log: it changes how this result should be read.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 6 must have passed or been overridden. Also read the override log: it changes how this result should be read.
 2. **Read `.builderos/initiatives/{initiative}/06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
 3. **Check the review date.** It came from the kill criteria. If it has not arrived, say so and schedule; a number read early has not stabilized, and reading it anyway is how a good bet gets killed.
 4. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.

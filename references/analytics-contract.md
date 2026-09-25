@@ -30,7 +30,7 @@ Read this with `references/capability-map.md`, which defines `analytics.query`, 
 | **Inputs** | event, date range, granularity (day, week, month), unit of count (events or unique actors), optional filter, optional breakdown property |
 | **Result** | a series per breakdown value: period, count |
 | **Used by** | baselines everywhere, `north-star-metric` candidate sizing, anomaly detection |
-| **Floor** | ask the user for the number and its date, tag `[doc:user-provided]` |
+| **Floor** | ask the user for the number and its date, tag `[doc:user-{date}-{topic}]` |
 
 State the unit of count explicitly in the artifact. "12,400 signups" is ambiguous; "12,400 unique users firing `signup_completed`, Aug 1–31" is not.
 
@@ -105,9 +105,9 @@ Beyond that, treat the differences as unknown until the session resolves a provi
 Every number that comes out of this contract carries a tag naming the provider and the query, per `evidence-ledger`:
 
 ```
-[mcp:posthog:activation_funnel_2026-09]
-[mcp:amplitude:retention_w1_selfserve]
-[doc:user-provided:mrr_august]
+[data:posthog:activation_funnel_2026-09]
+[data:amplitude:retention_w1_selfserve]
+[doc:user-2026-09-02-mrr_august]
 ```
 
 The tag names the concrete source, never the abstraction. `[analytics.query]` is not a valid tag: it says nothing about where the number came from, and a reader six weeks later cannot go check it.

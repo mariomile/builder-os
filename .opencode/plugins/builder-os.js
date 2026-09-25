@@ -68,7 +68,7 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 
     return `You have BuilderOS installed — The Operating System for Product Builders.
 
-**The using-builder-os skill is included below and already loaded. It routes to builder-os (the lifecycle) or pm-toolkit (analysis); load those with the skill tool.**
+**The using-builder-os skill is included below and already loaded. It briefs from the project memory and routes to builder-os (the lifecycle) or a specialist skill (a standalone answer); load those with the skill tool.**
 
 ${content}
 

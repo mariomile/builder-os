@@ -7,7 +7,7 @@ Dispatch the `release-manager` agent to run BuilderOS phase 6.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 5 must have passed or been overridden. Shipping unverified work is what gate 5 exists to prevent.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 5 must have passed or been overridden. Shipping unverified work is what gate 5 exists to prevent.
 2. **Read `.builderos/initiatives/{initiative}/05-build-plan.md`, `04-spec.md`, `03-solution-bet.md` and `02-definition.md`.** The verified build, the tracking plan, the kill criteria and the success metric with its exact phase 2 definition.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**

@@ -22,7 +22,16 @@ escape_for_json() {
 }
 
 hub_escaped=$(escape_for_json "$hub_content")
-session_context="You have BuilderOS installed — The Operating System for Product Builders.\n\n**Below is the using-builder-os skill, already loaded. It routes to builder-os (the lifecycle) or pm-toolkit (analysis); load those and every other skill by name:**\n\n${hub_escaped}"
+
+# Project memory briefing, computed from the files when node is available and this directory has BuilderOS memory
+brief_block=""
+if [ -d ".builderos" ] && command -v node >/dev/null 2>&1; then
+  brief_out=$(node "${PLUGIN_ROOT}/scripts/bos.mjs" brief 2>/dev/null || true)
+  if [ -n "$brief_out" ]; then
+    brief_block="\n\n**Project memory briefing, computed from .builderos/ by scripts/bos.mjs. Relay it to the user before your first answer, then follow using-builder-os:**\n\n$(escape_for_json "$brief_out")"
+  fi
+fi
+session_context="You have BuilderOS installed — The Operating System for Product Builders.\n\n**Below is the using-builder-os skill, already loaded. It briefs from the project memory and routes to builder-os (the lifecycle) or a specialist skill (a standalone answer); load those and every other skill by name:**\n\n${hub_escaped}${brief_block}"
 
 # Output context injection — platform-aware
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then

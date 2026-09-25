@@ -76,6 +76,20 @@ Per the phase 2 metric, work backwards: which events, with which properties, wou
 
 A spec whose tracking plan cannot compute the phase 2 metric has failed to connect the build to the reason for building it, and phase 7 will have nothing to evaluate.
 
+## Model Output: Eval Set
+
+When any acceptance criterion depends on what a model generates (a summary, a classification, a reply, a voice agent's turn), a pass/fail assertion cannot hold: the same input yields different outputs, and "the summary is accurate" has no subject and no verb. Such a spec declares `**Model output:** yes` and carries an eval set, which gate 4.6 checks.
+
+| Part | Rule |
+|------|------|
+| **Cases** | At least 20 inputs (10 in lite mode), drawn from real inputs where any exist (`[doc:*]` or `[data:*]` tagged), else written to cover the edge-case categories above. At least a quarter are failure-prone: ambiguous, adversarial, out of domain |
+| **Expected** | Per case, what a correct output must contain or must not contain. Not a reference answer to match word for word |
+| **Judge** | How each case is scored: a deterministic check (contains, parses, classifies as), a rubric a person applies, or a grader model with its rubric written out. Name which, per case or for the set |
+| **Threshold** | The pass rate the build must reach, and any case that must pass on its own (a safety or compliance case never averages out) |
+| **Guardrail in production** | Which share of live outputs is sampled and scored after release, by whom, how often. Phase 6 measures it next to the success metric |
+
+The eval set lives in `evals/{name}.md` in the initiative folder, or in the repository's own eval format when it has one; the spec points at it. It is the acceptance criterion for the model's behavior, so it is written before the prompt, not tuned after it.
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
@@ -105,6 +119,8 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 6. **Enumerate states and edge cases.** The six states per flow, then the four edge-case categories. Every case gets an expected behavior, including the deliberate "undefined".
 
 7. **Design the tracking plan.** Work backwards from the phase 2 metric to the events and properties that compute it. Check each against the existing catalogue via `tracking-standards`. Mark each event new or existing.
+
+7b. **If a criterion depends on model output, write the eval set** per Model Output: Eval Set, before the build starts.
 
 8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
 
@@ -147,6 +163,11 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 ## Edge cases
 | Case | Category | Expected behavior |
 
+**Model output:** {yes | no}
+
+## Eval set
+{only when model output is yes: path to the eval file · number of cases · judge · threshold · must-pass cases · production sampling}
+
 ## Tracking plan
 | Event | Trigger | Properties | Measures | New or existing |
 
@@ -168,4 +189,5 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Tracking designed after the build | Cannot measure the launch it was meant to measure | Work backwards from the phase 2 metric, before building |
 | A tracking plan that cannot compute the success metric | Gate 4.4 fails; phase 7 has nothing to evaluate | State explicitly how the events produce the number |
 | Open questions with no owner | They resolve themselves badly, at implementation time | Who decides, by when |
+| "The summary is accurate" as a criterion for model output | Nothing to assert; the build is judged by whoever demos it | Declare model output, write the eval set with a threshold |
 | Specifying a flow the bet did not choose | Scope creep before a line is written | Every flow traces to the phase 3 primary action |

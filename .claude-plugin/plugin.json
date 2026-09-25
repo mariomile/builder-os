@@ -1,6 +1,6 @@
 {
   "name": "builder-os",
-  "description": "BuilderOS — The Operating System for Product Builders. Connects to live analytics via MCP to produce actionable PM artifacts.",
+  "description": "BuilderOS — the operating system for product builders. Eight gated phases from an idea to a product in production, with source-tagged evidence and zero prerequisites.",
   "version": "1.0.0",
   "author": {
     "name": "Mario Miletta",
@@ -12,13 +12,10 @@
   "keywords": [
     "product-management",
     "product-builder",
+    "discovery",
+    "specs",
+    "gates",
     "analytics",
-    "saas",
-    "metrics",
-    "growth",
-    "tracking",
-    "mixpanel",
-    "b2b",
     "builder-os"
   ]
 }

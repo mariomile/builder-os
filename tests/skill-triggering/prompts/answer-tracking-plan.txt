@@ -1,0 +1,2 @@
+# expects: skill=tracking-standards agent=tracking-architect
+We're building a new reporting feature. I need a tracking plan for it — what events to track, what properties to include, and what dashboards to create.

@@ -114,7 +114,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 9. **Write the ADR** where the decision passes the ADR test (hard to reverse, surprising without context, a real trade-off: all three), per the format and test in `references/builderos-state-schema.md`.
 
-10. **Write and gate.** Write `.builderos/initiatives/{initiative}/07-outcome.md`, run gate 7, update `state.json`. On KEEP the cycle closes; on ITERATE or KILL, increment `cycle` and set `current_phase` to the re-entry phase. Close the initiative in `ROADMAP.md`: move it to Done and dropped with the decision and the one-sentence learning. On ITERATE, it re-enters at the phase named in step 7 and stays under Now.
+10. **Write and gate.** Write `.builderos/initiatives/{initiative}/07-outcome.md`, run gate 7, update `state.json` and clear `review_due`. On KEEP the cycle closes and `status` becomes `closed`; on ITERATE or KILL, increment `cycle` and set `current_phase` to the re-entry phase. Close the initiative in `ROADMAP.md`: move it to Done and dropped with the decision and the one-sentence learning. On ITERATE, it re-enters at the phase named in step 7 and stays under Now.
 
 Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria verdict, the decision with its re-entry point, and the generalized learning.
 
