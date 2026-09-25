@@ -7,11 +7,13 @@ Checks whether the current phase artifact satisfies its gate. The only path that
 
 **REQUIRED BACKGROUND:** `gate-checks` for the conditions and the refusal protocol, `evidence-ledger` for tag counting.
 
+The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that exact path; do not search for the file.
+
 ## Steps
 
 1. Read the active initiative's `state.json` → `current_phase`, `mode`.
 2. Read the current phase artifact. If it does not exist, report that the phase has not produced output and stop.
-3. **Run the script** where commands can be executed: `node {plugin}/scripts/bos.mjs gate {N}` from the project root (`--json` for the machine form). It decides the script-decided conditions, E.1 included, applies lite mode, runs the evidence audit, and lists the rest as `judge`.
+3. **Run the script** where commands can be executed: the BuilderOS script with `gate {N}` from the project root (`--json` for the machine form). It decides the script-decided conditions, E.1 included, applies lite mode, runs the evidence audit, and lists the rest as `judge`.
 4. **Judge the `judge` lines** against the artifact, per `gate-checks`. Do not re-judge what the script decided.
 5. **Without command execution**, load the conditions from `gate-checks` and check every one against the artifact yourself, E.1 and the evidence audit per `evidence-ledger` included. Record them all under `checked_by.model`.
 6. **All pass** → advance `current_phase`, write `gate.checked_by`, append `gate_passed` to `history`, report the next command.

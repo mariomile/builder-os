@@ -214,6 +214,8 @@ A phase that passed through an overridden gate:
 
 ## Rules
 
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
 3. **A phase writes its own artifact and its own state entry, nothing else.** No agent touches another phase's entry.

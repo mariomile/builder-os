@@ -6,6 +6,7 @@
   "prompt": "Vale la pena fare un'integrazione con Slack? Voglio solo capire se ha senso, non costruirla. Inizializza un'iniziativa \"slack-spike\".",
   "expect": {
     "output_matches": ["(?i)spike"],
+    "history_events": ["track_set"],
     "state": { "initiative": "slack-spike", "track": "spike" },
     "files_absent": [".builderos/initiatives/slack-spike/02-definition.md", ".builderos/initiatives/slack-spike/04-spec.md"]
   }

@@ -6,6 +6,7 @@
   "prompt": "I manager perdono il lunedì mattina a ricostruire a mano la vista della pipeline del proprio team: vogliamo aggiungere al report settimanale un filtro per team, così la vista è già pronta. Inizializza l'iniziativa \"team-filter\" e dimmi da dove partiamo.",
   "expect": {
     "output_matches": ["(?i)feature"],
+    "history_events": ["track_set", "phase_covered"],
     "state": { "initiative": "team-filter", "track": "feature", "current_phase": 2, "phases.0.status": "covered", "phases.1.status": "covered" }
   }
 }

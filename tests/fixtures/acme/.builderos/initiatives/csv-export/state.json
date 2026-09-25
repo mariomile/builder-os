@@ -11,9 +11,44 @@
   "updated_at": "2026-09-03T10:00:00Z",
   "review_due": "2026-09-10",
   "phases": {
-    "0": { "status": "covered", "artifact": null, "gate": null },
-    "1": { "status": "covered", "artifact": null, "gate": null },
-    "2": { "status": "in_progress", "artifact": null, "gate": null }
+    "0": {
+      "status": "covered",
+      "artifact": null,
+      "gate": null
+    },
+    "1": {
+      "status": "covered",
+      "artifact": null,
+      "gate": null
+    },
+    "2": {
+      "status": "in_progress",
+      "artifact": null,
+      "gate": null
+    }
   },
-  "history": []
+  "history": [
+    {
+      "at": "2026-09-02T10:00:00Z",
+      "event": "track_set",
+      "track": "feature",
+      "reason": "fixture"
+    },
+    {
+      "at": "2026-09-02T10:00:00Z",
+      "event": "phase_covered",
+      "phase": 0,
+      "tags": [
+        "interview:P1,P4,P6"
+      ]
+    },
+    {
+      "at": "2026-09-02T10:00:00Z",
+      "event": "phase_covered",
+      "phase": 1,
+      "tags": [
+        "interview:P1,P4,P6"
+      ]
+    }
+  ]
 }

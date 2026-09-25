@@ -9,10 +9,10 @@ node tests/scenarios/run.mjs --host "<command with {prompt} and {plugin}>" [--on
 Claude Code, as run for the first time on 2026-09-25:
 
 ```bash
-node tests/scenarios/run.mjs --host "claude -p --setting-sources project,local --plugin-dir {plugin} --permission-mode acceptEdits {prompt}"
+node tests/scenarios/run.mjs --host "claude -p {prompt} --setting-sources project,local --plugin-dir {plugin} --add-dir {plugin} --permission-mode acceptEdits --allowedTools 'Bash(node:*)'"
 ```
 
-`--setting-sources project,local` keeps your own plugins and settings out of the run. If your environment gives Claude Code a memory store through environment variables, unset them in the host command (`env -u VAR claude ...`): a run that remembers you is not testing BuilderOS.
+`--setting-sources project,local` keeps your own plugins and settings out of the run. `--add-dir {plugin}` lets the host read `references/` and the script, and `--allowedTools 'Bash(node:*)'` lets it run the script: without them a headless run cannot ask for permission, and falls back to writing state by hand. The prompt comes right after `-p` because `--allowedTools` takes every argument that follows it. If your environment gives Claude Code a memory store through environment variables, unset them in the host command (`env -u VAR claude ...`): a run that remembers you is not testing BuilderOS.
 
 Codex: `codex exec {prompt}` with BuilderOS installed per `docs/hosts.md`. Not yet run; check your version's flags for non-interactive mode and file-write permission.
 

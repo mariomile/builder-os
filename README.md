@@ -202,7 +202,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 **15 commands**, all `/bos-*`. Not sure which one? `/bos-ask`.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: `brief`, `gate`, `roadmap`, `migrate`. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
+**One script.** `scripts/bos.mjs`, Node built-ins only: `brief`, `gate`, `new`, `cover`, `roadmap`, `migrate`. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
 ### Project memory
 
@@ -246,9 +246,10 @@ Version 1.0.0. Honest state:
 | Phases 0–7 — all eight, each with its own skills, procedure and enforceable gate | Shipped |
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
-| Runtime verification | **Not yet run end to end in a live session.** Structurally complete, behaviorally unverified |
+| Gate enforcement | 32 of 43 conditions decided by `scripts/bos.mjs`, 16 script tests green |
+| Runtime verification | First live runs on 2026-09-25: 5 behavioral scenarios on Claude Code, 4 pass (briefing, gate refusal on missing evidence, no invented numbers, spike stop). The feature-track run initializes correctly but writes `state.json` by hand instead of through the script; the briefing flags the result. Codex not yet run. No real initiative has gone from phase 0 to 7 |
 
-That last row is the one to read. Everything here is written to contract and checked mechanically; none of it has been executed against a real product yet.
+That last row is the one to read.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 

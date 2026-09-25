@@ -107,6 +107,8 @@ Two initiatives touching the same part of the product is a signal, not an error:
 
 ## Tracks
 
+**Writing the state.** Where commands can run, a new initiative is created with `scripts/bos.mjs new {slug} --title "..." --track {track} --reason "..."`, and the feature track's coverage check is recorded with `scripts/bos.mjs cover --c4 "..."` after you judge C.4. The script writes the state file, its history events and the roadmap exactly as the schema defines them. Write `state.json` by hand only where commands cannot run, and then copy the schema's example field for field.
+
 Not every request needs all eight phases. Before the first phase runs, classify the work into a track and **say the classification out loud**, with its reason, so the user can correct it: "this is a change to a product that already has evidence behind it, so I'm treating it as a feature and starting at phase 2".
 
 | Track | The request | Runs | Ends |

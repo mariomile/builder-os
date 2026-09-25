@@ -7,7 +7,7 @@
 // The host command is a template. {prompt} is replaced by the scenario prompt (shell-quoted),
 // {plugin} by this repository's path. It runs with the fixture copy as its working directory.
 // Examples (flags checked against each CLI's --help on the day this was written; re-check yours):
-//   --host "claude -p --plugin-dir {plugin} --permission-mode acceptEdits {prompt}"
+//   --host "claude -p {prompt} --setting-sources project,local --plugin-dir {plugin} --add-dir {plugin} --permission-mode acceptEdits --allowedTools 'Bash(node:*)'"
 //   --host "codex exec {prompt}"            (Codex: install the plugin first, see docs/hosts.md)
 
 import fs from 'fs';
@@ -63,6 +63,7 @@ for (const c of cases) {
     if (!fs.existsSync(p)) problems.push(`no state for ${initiative}`);
     else {
       const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+      for (const ev of c.expect.history_events || []) if (!(s.history || []).some((h) => h.event === ev)) problems.push(`no ${ev} event in history`);
       for (const [k, v] of Object.entries(want)) if (get(s, k) !== v) problems.push(`state ${k} is ${JSON.stringify(get(s, k))}, expected ${JSON.stringify(v)}`);
     }
   }

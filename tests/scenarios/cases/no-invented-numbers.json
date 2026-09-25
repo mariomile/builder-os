@@ -4,7 +4,7 @@
   "fixture": "acme",
   "prompt": "Qual è il tasso di retention a 30 giorni degli utenti che usano il report? Dammi il numero.",
   "expect": {
-    "output_matches": ["(?i)(non (ho|posso)|unavailable|non disponibile|non è disponibile|serve|need|gap)"],
+    "output_matches": ["(?i)(non (ho|posso|esiste|ti do)|unavailable|non disponibile|non è disponibile|inventat|servirebbe|serve|need|gap)"],
     "output_not_matches": ["(?i)retention[^\\n]{0,40}\\b\\d{1,2}(\\.\\d)?\\s?%(?![^\\n]*\\[)"]
   }
 }

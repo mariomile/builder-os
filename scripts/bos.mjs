@@ -4,6 +4,10 @@
 //
 //   node bos.mjs brief                     session briefing, with the attention line
 //   node bos.mjs gate <0-7|C> [--json]     script-decided gate conditions; the rest listed as judge
+//   node bos.mjs new <slug> --title "..." --track spike|feature|product [--mode full|lite] [--reason "..."]
+//                                          create an initiative with a valid state.json and make it active
+//   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and, if it passes,
+//                                          record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //
@@ -12,6 +16,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import { fileURLToPath } from 'url';
 
 const args = process.argv.slice(2);
 const opt = (name) => {
@@ -455,6 +460,7 @@ function lastGate(state) {
   const done = Object.keys(ph).map(Number).filter((k) => ph[k] && ph[k].gate).sort((x, y) => y - x);
   if (!done.length) return 'no gate run yet';
   const g = ph[done[0]].gate;
+  if (ph[done[0]].status === 'covered') return 'phases 0 and 1 covered by PRODUCT.md';
   return `gate ${done[0]} ${g.overridden ? 'overridden' : g.passed ? 'passed' : 'failed'}${g.failed_conditions && g.failed_conditions.length ? ` (${g.failed_conditions.join(', ')})` : ''}`;
 }
 
@@ -504,6 +510,7 @@ function brief() {
     if (s.review_due && Date.parse(s.review_due) < today && !((s.phases || {})[7] && ['passed'].includes(s.phases[7].status))) attention.push(`outcome review for ${s.title || i.slug} was due ${s.review_due}`);
     if ((s.status || 'open') === 'open' && s.updated_at && (today - Date.parse(s.updated_at)) / DAY > 30) attention.push(`${s.title || i.slug} unchanged since ${s.updated_at.slice(0, 10)}`);
   }
+  for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
   const rp = roadmapPhases();
@@ -560,6 +567,87 @@ function roadmap() {
   console.log(`ROADMAP.md: ${open.length} in Now, ${closed.length} in Done and dropped.`);
 }
 
+// ---------- new ----------
+
+function newInitiative(slug) {
+  if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
+  if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
+  const track = opt('--track') || 'product';
+  if (!['spike', 'feature', 'product'].includes(track)) die('track is spike, feature or product');
+  const dir = path.join(INIT_DIR, slug);
+  if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
+  fs.mkdirSync(path.join(dir, 'evidence'), { recursive: true });
+  const now = new Date().toISOString();
+  for (const i of loadInitiatives()) {
+    if ((i.state.status || 'open') === 'open') {
+      i.state.status = 'paused';
+      i.state.history = [...(i.state.history || []), { at: now, event: 'paused', reason: `${slug} became active` }];
+      writeJSON(path.join(i.dir, 'state.json'), i.state);
+    }
+  }
+  const phases = {};
+  for (let k = 0; k < 8; k++) phases[k] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
+  const state = {
+    schema: 2, slug, title: opt('--title') || slug, mode: opt('--mode') || (track === 'feature' ? 'lite' : 'full'), track,
+    status: 'open', current_phase: 0, cycle: 1, created_at: now, updated_at: now, review_due: null, phases,
+    history: [{ at: now, event: 'track_set', track, reason: opt('--reason') || 'not stated' }],
+  };
+  writeJSON(path.join(dir, 'state.json'), state);
+  writeJSON(path.join(BOS, 'local.json'), { active: slug });
+  roadmap();
+  console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused.`);
+}
+
+function cover() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature runs the coverage check`);
+  const c4 = opt('--c4');
+  if (!c4) die('C.4 is judged by the model: pass --c4 "how the request serves the evidenced problem"');
+  const r = spawnSyncSelf(['gate', 'C', '--json', '--initiative', init.slug]);
+  const j = JSON.parse(r);
+  const now = new Date().toISOString();
+  const s = init.state;
+  if (j.failed.length) {
+    s.track = 'product';
+    s.history.push({ at: now, event: 'track_upgraded', from: 'feature', to: 'product', reason: `coverage check failed: ${j.failed.join(', ')}` });
+    s.updated_at = now;
+    writeJSON(path.join(init.dir, 'state.json'), s);
+    roadmap();
+    console.log(`Coverage check failed (${j.failed.join(', ')}): ${init.slug} is now a product, starting at phase 0.`);
+    process.exit(1);
+  }
+  const product = read(path.join(ROOT, 'PRODUCT.md'));
+  const used = [...new Set(tags(section(product, 'The Problem') + '\n' + section(product, 'ICP')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
+  for (const k of ['0', '1']) {
+    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, checked_by: { script: j.checked_by.script, model: ['C.4'] }, failed_conditions: [], overridden: false } };
+    s.history.push({ at: now, event: 'phase_covered', phase: Number(k), tags: used, c4 });
+  }
+  s.phases['2'] = { status: 'in_progress', artifact: null, gate: null };
+  s.current_phase = 2;
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`Coverage check passed: phases 0 and 1 covered by ${used.join(', ')}. ${init.slug} starts at phase 2.`);
+}
+
+function spawnSyncSelf(a) {
+  try { return execFileSync(process.execPath, [fileURLToPath(import.meta.url), ...a, '--root', ROOT], { stdio: ['ignore', 'pipe', 'ignore'] }).toString(); }
+  catch (e) { return e.stdout.toString(); }
+}
+
+function schemaProblems(i) {
+  const s = i.state, p = [];
+  for (const k of ['schema', 'slug', 'title', 'track', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
+  if (s.schema !== undefined && s.schema !== 2) p.push(`schema ${s.schema}`);
+  for (const [k, v] of Object.entries(s.phases || {})) {
+    if (!['pending', 'in_progress', 'passed', 'killed', 'covered', 'answered'].includes(v && v.status)) p.push(`phase ${k} status ${JSON.stringify(v && v.status)}`);
+    if (v && v.status === 'covered' && !(s.history || []).some((h) => h.event === 'phase_covered' && String(h.phase) === k)) p.push(`phase ${k} covered with no phase_covered event`);
+  }
+  if (s.track && !(s.history || []).some((h) => h.event === 'track_set')) p.push('no track_set event');
+  return p;
+}
+
 // ---------- migrate ----------
 
 function migrate() {
@@ -596,8 +684,10 @@ const cmd = args[0];
 if (cmd === 'brief') brief();
 else if (cmd === 'gate') runGate(args[1]);
 else if (cmd === 'roadmap') roadmap();
+else if (cmd === 'new') newInitiative(args[1]);
+else if (cmd === 'cover') cover();
 else if (cmd === 'migrate') migrate();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | roadmap | migrate   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | roadmap | migrate   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

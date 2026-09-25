@@ -162,6 +162,40 @@ test('roadmap regenerates Now from the initiative states and keeps the bet', () 
   assert.doesNotMatch(run(root, 'brief').out, /ROADMAP\.md shows/);
 });
 
+test('new and cover create a feature initiative that starts at phase 2 with its events', () => {
+  const root = project();
+  run(root, 'new', 'team-filter', '--title', 'Team filter', '--track', 'feature', '--reason', 'live product');
+  assert.equal(run(root, 'cover').code, 2, 'C.4 must be judged first');
+  assert.equal(run(root, 'cover', '--c4', 'serves the Monday rebuild').code, 0);
+  const s = JSON.parse(fs.readFileSync(path.join(INIT(root, 'team-filter'), 'state.json'), 'utf8'));
+  assert.equal(s.current_phase, 2);
+  assert.deepEqual(s.history.map((h) => h.event), ['track_set', 'phase_covered', 'phase_covered']);
+  const other = JSON.parse(fs.readFileSync(path.join(INIT(root), 'state.json'), 'utf8'));
+  assert.equal(other.status, 'paused');
+  assert.doesNotMatch(run(root, 'brief').out, /does not follow the schema/);
+});
+
+test('a failed coverage check upgrades the track to product', () => {
+  const root = project();
+  const p = path.join(root, 'PRODUCT.md');
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace('Sales managers at 20-to-200-seat teams spend', 'Sales managers need a dashboard, they spend'));
+  run(root, 'new', 'team-filter', '--track', 'feature');
+  assert.equal(run(root, 'cover', '--c4', 'x').code, 1);
+  const s = JSON.parse(fs.readFileSync(path.join(INIT(root, 'team-filter'), 'state.json'), 'utf8'));
+  assert.equal(s.track, 'product');
+  assert.equal(s.history.at(-1).event, 'track_upgraded');
+});
+
+test('brief flags a state file written off-schema', () => {
+  const root = project();
+  const p = path.join(INIT(root), 'state.json');
+  const s = JSON.parse(fs.readFileSync(p, 'utf8'));
+  s.history = [];
+  s.phases['2'].status = 'started';
+  fs.writeFileSync(p, JSON.stringify(s));
+  assert.match(run(root, 'brief').out, /csv-export\/state\.json does not follow the schema \(phase 0 covered with no phase_covered event/);
+});
+
 test('migrate moves a schema 1 pipeline into an initiative folder', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bos-'));
   fs.mkdirSync(path.join(root, '.builderos'));

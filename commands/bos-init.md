@@ -7,6 +7,8 @@ Entry point for any idea, problem, or existing product entering the BuilderOS li
 
 **REQUIRED BACKGROUND:** `builder-os`, `evidence-ledger`. Template at `references/product-md-template.md`, schema at `references/builderos-state-schema.md`.
 
+The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that exact path; do not search for the file.
+
 ## Steps
 
 1. **Check for existing state.** If `.builderos/ROADMAP.md` exists, the project is already initialized: skip to step 6 and add a new initiative. If a `schema: 1` file sits at `.builderos/state.json`, migrate it first per the schema's Rules and say what moved.
@@ -40,10 +42,10 @@ Entry point for any idea, problem, or existing product entering the BuilderOS li
 
    Every tag written in step 3 gets its evidence file per the schema (Evidence Files). An answer the user gave in this interview is `[doc:user-{date}-{topic}]` with their words copied into the file.
 
-6. **Name the initiative.** Every piece of work is an initiative: a feature, a bet, a new product. Ask for a short name, derive the slug, create `.builderos/initiatives/{slug}/` with an `evidence/` folder and a `state.json` (schema 2, status `open`, all phases pending, cycle 1), and write the slug to `.builderos/local.json`. An existing active initiative stays as it is; set its status to `paused` and say it is paused, not closed.
+6. **Name the initiative.** Every piece of work is an initiative: a feature, a bet, a new product. Ask for a short name, derive the slug, create `.builderos/initiatives/{slug}/` with an `evidence/` folder and a `state.json` (schema 2, status `open`, all phases pending, cycle 1), and write the slug to `.builderos/local.json`. An existing active initiative stays as it is; set its status to `paused` and say it is paused, not closed. Where commands can be executed, the BuilderOS script with `new {slug} --title "..." --track {track} --reason "..."` does all of this with a state file that follows the schema; write the state by hand only where it cannot run.
 
 7. **Classify the track** per `builder-os`, section Tracks, and say it out loud with the reason before anything else runs. `spike` when the user wants an answer, not a product. `feature` when a product already exists and the request changes it. `product` otherwise, and whenever two tracks both fit.
-   - `feature`: run the coverage check in `gate-checks` against the `PRODUCT.md` just written. Pass: record phases 0 and 1 as `covered`, start at phase 2. Fail: say which condition failed, set the track to `product`, start at phase 0.
+   - `feature`: run the coverage check in `gate-checks` against the `PRODUCT.md` just written. Pass: record phases 0 and 1 as `covered`, start at phase 2. Fail: say which condition failed, set the track to `product`, start at phase 0. Where commands run, judge C.4 yourself and let the BuilderOS script with `cover --c4 "how the request serves the evidenced problem"` decide the rest and write the result, either way.
    - `spike` and `product`: start at phase 0.
 
    Write `track` to the initiative's `state.json` and a `track_set` event with the reason. For `feature`, default the mode question in step 4 to `lite`, and on a later initiative ask that question now.

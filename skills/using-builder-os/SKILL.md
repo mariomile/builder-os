@@ -75,6 +75,8 @@ Completion marker: `## ROUTE CHOSEN`, after the user confirms and before the fir
 | `files.read` | The memory, to answer routing questions without asking | Ask the three questions |
 | `shell.exec` | The scripted briefing | Read the files and brief by hand |
 
+`scripts/bos.mjs` sits at the root of the BuilderOS installation. Where a session-start hook ran, its `BuilderOS script:` line gives the full command; use it as given. Elsewhere, run it from wherever BuilderOS is installed.
+
 ## Red Flags
 
 | Thought | Reality |
