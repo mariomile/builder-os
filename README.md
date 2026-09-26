@@ -174,6 +174,7 @@ You never pick a skill by hand. `using-builder-os` loads at session start, reads
 
 ```bash
 /plugin marketplace add mariomile/builder-os
+/plugin install builder-os@builder-os
 ```
 
 Skills, agents and slash commands all load. The richest surface: each phase runs in an isolated subagent context.

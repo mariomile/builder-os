@@ -1,0 +1,16 @@
+{
+  "name": "builder-os",
+  "description": "BuilderOS by Mario Miletta: the Claude Code plugin that takes an idea to a product in production.",
+  "owner": {
+    "name": "Mario Miletta",
+    "email": "mario@marioverse.ai"
+  },
+  "plugins": [
+    {
+      "name": "builder-os",
+      "source": "./",
+      "description": "The Operating System for Product Builders: takes an idea to a product in production through eight phases, with gates based on evidence.",
+      "version": "1.0.0"
+    }
+  ]
+}
