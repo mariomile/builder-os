@@ -173,6 +173,7 @@ Analytics in particular is a category, not a product. BuilderOS asks five questi
 
 ```bash
 /plugin marketplace add mariomile/builder-os
+/plugin install builder-os@builder-os
 ```
 
 Skills, agents and slash commands all load. The richest surface: each phase runs in an isolated subagent context.
