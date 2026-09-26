@@ -1,6 +1,6 @@
 {
   "name": "builder-os",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "main": ".opencode/plugins/builder-os.js",
   "description": "BuilderOS — the operating system for product builders. Eight gated phases from an idea to a product in production, with source-tagged evidence and zero prerequisites.",
