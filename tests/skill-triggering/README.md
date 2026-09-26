@@ -27,4 +27,4 @@ Everything after that line is the user message.
 
 Output quality. The gate model covers that: `gate-checks` holds machine-checkable conditions per phase, and a phase agent that produces a weak artifact fails its own gate. Triggering tests answer "did the right thing load", gates answer "is the output good enough to build on".
 
-A real eval harness (scored outputs, variance across runs) deserves its own spec and is out of scope for v1.0.
+Behavior beyond triggering (state written, gate refused, a spike that stops) is covered by `tests/scenarios/`, which runs a real host and checks the files.

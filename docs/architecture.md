@@ -45,16 +45,13 @@ flowchart TB
     U([user]) --> ENTRY
     subgraph ENTRY["entry points"]
         direction LR
-        SLASH["/bos-* /pm-*<br/>Claude Code"]
+        SLASH["/bos-*<br/>Claude Code"]
         NAME["name the skill<br/>Codex, others"]
     end
-    ENTRY --> HUB
-    subgraph HUB["hubs"]
-        direction LR
-        BOS["builder-os<br/>stateful pipeline"]
-        PM["pm-toolkit<br/>stateless questions"]
-    end
-    HUB --> PHASE["phase skills<br/>problem-framing, research-methods,<br/>opportunity-mapping, …"]
+    ENTRY --> USE["using-builder-os<br/>brief, route"]
+    USE --> BOS["builder-os<br/>stateful pipeline"]
+    USE --> SPEC["specialist skills<br/>standalone answers"]
+    BOS --> PHASE["phase skills<br/>problem-framing, research-methods,<br/>opportunity-mapping, …"]
     PHASE --> CROSS
     subgraph CROSS["cross-cutting, model-invoked"]
         direction LR

@@ -17,7 +17,7 @@ Where a host can delegate to a separate agent, phases run in isolated contexts. 
 
 ## Iron Law
 
-**Never invent data.** Inherited from `pm-toolkit` and now enforced: every claim in every artifact carries a source tag, gates count them, and an artifact built on assumptions cannot pass a gate that requires evidence. See `evidence-ledger`.
+**Never invent data.** Stated once, in `evidence-ledger`: every claim carries a tag, every tag resolves to a file in `evidence/`, and gates count them.
 
 ## The Pipeline
 
@@ -44,7 +44,7 @@ Phases 0–4 are design thinking: empathize, define, ideate, prototype, test. Ph
 | **6 Ship** | Rollout, rollback, baseline capture, release notes | `release-ops`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
 | **7 Learn** | Did it move the number, keep/iterate/kill | `outcome-review`, `saas-metrics-reference`, `growth-frameworks`, `okr-frameworks` | `product-diagnostician`, `growth-architect`, `finance-analyst`, `okr-architect` | `/bos-learn` |
 
-Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`. When it is unclear which phase or skill a request belongs to, `orchestrator` finds out by asking.
+Cross-cutting, model-invoked from any phase: `gate-checks`, `evidence-ledger`, `pressure-testing`. When it is unclear which phase or skill a request belongs to, `using-builder-os` finds out by asking.
 
 Chains: `/bos-discovery-sprint` runs phases 0 → 1 → 2 in one session with gates enforced between steps. `/bos-adr` is callable from any phase, the moment a decision becomes expensive to unwind.
 
@@ -64,7 +64,7 @@ Host-agnostic. Every step below works whether or not this host can delegate to a
 
 Before starting any phase:
 
-1. **Read `.builderos/state.json` and `.builderos/ROADMAP.md`.** State says which initiative is active, which phase is current and which gates passed; the roadmap says what else is in flight. Everything below applies to the active initiative, in its folder `.builderos/initiatives/{initiative}/`. If state does not exist, offer initialization — do not guess a phase.
+1. **Read `.builderos/ROADMAP.md`, resolve the active initiative and read its `state.json`.** The roadmap says what is in flight; the active initiative's state says which phase is current and which gates passed. Everything below applies to that initiative, in its folder `.builderos/initiatives/{initiative}/`. If `.builderos/` does not exist, offer initialization — do not guess a phase.
 2. **Read `PRODUCT.md`, and `TECH.md` from phase 4 on.** Durable truth carries into every phase; technical context carries into every phase that touches code. If `PRODUCT.md` is absent, fall back to `PM-CONTEXT.md`, then to asking.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Read the previous phase artifact.** Every phase consumes the one before it. Starting phase 3 without `02-definition.md` produces confident fiction.
@@ -84,18 +84,7 @@ After the gate, keep the project memory current in the same step: `ROADMAP.md` g
 
 ## Operating Modes
 
-The mode is a summary of which capabilities resolved, not a list of installed products. Full definitions in `references/capability-map.md`.
-
-| Mode | Resolved | Lifecycle implication |
-|------|----------|----------------------|
-| **connected** | `analytics.query` or `db.query` | Baselines are real. Gates 2.4, 5.3 and 6.2 are satisfiable |
-| **vault-based** | `docs.search` over local notes, no live data | Phases 0–4 fully usable. Phase 7 needs numbers from the user |
-| **codebase-based** | `repo.read` and `files.*` only | Phases 4–6 strongest. Phase 1 needs primary research |
-| **conversational** | Nothing beyond `files.*` | Phases 0–3 fully usable |
-
-An idea with no product and no data is the normal starting point, not a degraded one. Phases 0–3 need no data capability at all. They need a human to talk to users.
-
-When a capability would sharpen the work, say what it would answer in capability terms ("a live analytics query would give this metric a real baseline instead of a stated zero"), never as an instruction to install a named product.
+The mode summarizes which capabilities resolved; definitions and their lifecycle implications live in `references/capability-map.md`. An idea with no product and no data is the normal starting point: phases 0 to 3 need no data capability, only a human who talks to users. When a capability would sharpen the work, say what it would answer, never which product to install.
 
 ## Gate Model
 
@@ -117,6 +106,8 @@ One initiative is **active** at a time; every command acts on it. Starting a new
 Two initiatives touching the same part of the product is a signal, not an error: say so when the second one reaches phase 4, because their specs will collide.
 
 ## Tracks
+
+**Writing the state.** Where commands can run, a new initiative is created with `scripts/bos.mjs new {slug} --title "..." --track {track} --reason "..."`, and the feature track's coverage check is recorded with `scripts/bos.mjs cover --c4 "..."` after you judge C.4. The script writes the state file, its history events and the roadmap exactly as the schema defines them. Write `state.json` by hand only where commands cannot run, and then copy the schema's example field for field.
 
 Not every request needs all eight phases. Before the first phase runs, classify the work into a track and **say the classification out loud**, with its reason, so the user can correct it: "this is a change to a product that already has evidence behind it, so I'm treating it as a feature and starting at phase 2".
 
@@ -149,14 +140,9 @@ BuilderOS is self-contained and requires no other plugin. When neighbors are ins
 
 Detection is a check for what is present in this session, never an install prompt. Absence is the expected case and costs nothing.
 
-## Relationship to the pm-* Surface
+## Answers Outside the Pipeline
 
-Two prefixes, two jobs:
-
-- **`bos-*` walks a pipeline.** Stateful, gated, sequential. For taking something from idea to production.
-- **`pm-*` answers a question.** Stateless, immediate. For an existing product with existing data.
-
-`/bos-learn` is the documented bridge: it orchestrates the `pm-*` agents against the phase 2 target and the phase 3 kill criteria. Every `pm-*` command remains usable standalone and unchanged. A user who only wants a health scorecard should use `/pm-health` and never touch the pipeline.
+A standalone question about a product that exists (health, growth, finance, competition, OKRs) is not a pipeline. `using-builder-os` routes it straight to the specialist skill, which answers and writes no state. Phase 7 is the bridge: `outcome-review` uses the same specialists against the phase 2 target and the phase 3 kill criteria.
 
 ## Completion Markers
 
@@ -171,21 +157,16 @@ Two prefixes, two jobs:
 | 6 | Release Manager | `## SHIPPED` |
 | 7 | `outcome-review`, over the analytics cluster | `## OUTCOME RECORDED` |
 
-Markers from the `pm-*` agents are listed in `pm-toolkit` and unchanged.
+The specialist skills define their own markers in their output contracts.
 
 ## Red Flags
 
 | Behavior | Problem | Fix |
 |----------|---------|-----|
 | Advancing a phase without reading the previous artifact | The output will be confident and unfounded | Read it, or refuse |
-| A number in an artifact with no source tag | The Iron Law is broken | Rewrite per `evidence-ledger` |
 | Skipping to phase 4 because "we know what to build" | Phases 1–3 exist to test exactly that belief | Name what is being skipped, offer the override |
-| Classifying as `feature` because the user sounds sure | Confidence is not evidence; the covered phases end up covered by nothing | Run the coverage check. It decides, not the tone |
-| Silently continuing a `spike` into a build | The build rests on an answer nobody chose to act on | Stop at the verdict, reclassify out loud |
 | Passing a gate because the user is frustrated | The gate is the only thing preventing expensive fiction | Offer the logged override instead |
 | Treating `KILLED` as a failure | Killing early is the highest-ROI outcome in the system | Report it as a successful pass, stop the pipeline |
 | Building a phase artifact without updating `state.json` | The pipeline loses its memory | Write both, always |
-| Asking the user to install another plugin | BuilderOS is self-contained | Use the native path |
 | Naming a concrete tool or connector in a procedure | Breaks on another host, another stack, another user's connector | Name the capability, resolve it at runtime |
-| Telling the user to connect a named product | Not portable, and usually not the blocker | Say what the missing capability would answer |
 | Skipping a phase because this host cannot delegate | The procedure is in the skill for exactly this reason | Run it inline |

@@ -11,6 +11,25 @@ Borrowed from deterministic design linting: the value is in being boring and non
 
 **REQUIRED BACKGROUND:** Load `evidence-ledger` for tag counting rules. Load `pressure-testing` when a gate fails on an unresolved branch.
 
+## Who Checks
+
+A gate checked by the model that wrote the artifact is a gate checked on trust. So the conditions are split, and `state.json` records the split in `gate.checked_by`:
+
+- **Script-decided** conditions are structure and arithmetic: a word list, a tag count, an enum, a date comparison, a table with no empty cell. Where commands can be executed, `node scripts/bos.mjs gate {N}` (in the plugin, Node built-ins only) decides them and prints one line per condition. The model relays the result; it does not re-judge a condition the script decided.
+- **Model-judged** conditions need meaning: whether an assumption is falsifiable, whether two options are mechanically distinct. The script lists them as `judge`, with whatever structural precheck it could run, and the model decides them.
+
+Where commands cannot be executed, the model checks every condition and all of them go under `model`. Same conditions, weaker provenance, and the record says so.
+
+Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.2, 6.3, 6.5, 7.1, 7.2, 7.3, C.1, C.2, C.3. Everything else is model-judged.
+
+## Every Gate: Evidence Resolves
+
+| # | Condition | Check |
+|---|-----------|-------|
+| E.1 | Every source tag points at something | Each `interview`, `doc` and `data` tag in the artifact has its file in `evidence/` per the schema, Evidence Files; each `code` tag names a file that exists |
+
+E.1 runs on every gate, including the coverage check (against `PRODUCT.md`). A tag without its file is an untagged claim wearing a tag.
+
 ## Refusal Protocol
 
 When a condition fails, the agent produces exactly this, and does not advance:
@@ -55,7 +74,7 @@ An override never silently disappears. It is not shame, it is provenance.
 
 | # | Condition | Check |
 |---|-----------|-------|
-| 1.1 | ≥5 evidence units from primary sources | `evidence-ledger` count of `mcp` + `interview` + `code` + primary `doc` units ≥ 5 |
+| 1.1 | ≥5 evidence units from primary sources | `evidence-ledger` count of `data` + `interview` + `code` + primary `doc` units ≥ 5 |
 | 1.2 | ≥5 distinct sources | Distinct identifiers across those units |
 | 1.3 | Explicit verdict | One of `VALIDATED` / `KILLED` / `RESHAPED`, with reasoning that cites tags |
 | 1.4 | JTBD statement present | Form: "When \_\_\_, I want to \_\_\_, so I can \_\_\_" |
@@ -70,7 +89,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 2.1 | ≥3 opportunities in the tree | Each traceable to a Phase 1 evidence tag |
 | 2.2 | Exactly one selected | With a stated rejection reason for each of the others |
 | 2.3 | Success metric named | With baseline and target, both source-tagged |
-| 2.4 | Baseline is real | Baseline tag is `mcp`, `code`, or `doc` — not `estimate` or `assumption`. If no product exists yet, baseline is explicitly `0` with the first-measurement date named |
+| 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. If no product exists yet, baseline is explicitly `0` with the first-measurement date named |
 | 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `strategy-frameworks`) rejects scale-oriented opportunities |
 
 ### Gate 3 — Ideate
@@ -91,6 +110,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 4.3 | Every flow has error and empty states | Per flow, both states enumerated |
 | 4.4 | Tracking plan measures the Phase 2 metric | Named events map to the success metric |
 | 4.5 | Accessibility floor stated | Keyboard path, contrast target, focus order |
+| 4.6 | Model output has an eval set | Only when the spec declares `Model output: yes`: an eval set with ≥20 cases (≥10 lite), a judge, a numeric threshold and the must-pass cases, per `spec-writing` |
 
 ### Gate 5 — Build
 
@@ -98,8 +118,9 @@ An override never silently disappears. It is not shame, it is provenance.
 |---|-----------|-------|
 | 5.1 | Every acceptance criterion maps to ≥1 test | Explicit mapping table in the artifact |
 | 5.2 | Those tests pass | Pasted runner output, not a claim that they pass |
-| 5.3 | Instrumentation verified firing | Evidence from a real environment, `mcp` or `code` tagged |
+| 5.3 | Instrumentation verified firing | Evidence from a real environment, `data` or `code` tagged |
 | 5.4 | No scope creep | Nothing from the Gate 4 out-of-scope list was built |
+| 5.5 | The eval set passes | Only when the spec declares model output: pasted eval output at or above the threshold, every must-pass case passing |
 
 ### Gate 6 — Ship
 
@@ -137,19 +158,21 @@ Fail: the work is a `product`. Use the refusal protocol with the failed C condit
 
 ## Spike Stop (spike track)
 
-A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `answered` instead of `passed` and `current_phase` does not advance. The verdict (`VALIDATED`, `KILLED` or `RESHAPED`) is the answer, reported as a recommendation. Continuing means reclassifying to `feature` or `product`, stated to the user and logged as `track_upgraded`.
+A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `answered` instead of `passed`, `current_phase` does not advance and the initiative `status` becomes `closed`. The verdict (`VALIDATED`, `KILLED` or `RESHAPED`) is the answer, reported as a recommendation. Continuing means reclassifying to `feature` or `product`, stated to the user and logged as `track_upgraded`.
 
 ## Lite Mode
 
 `state.json` may set `mode: "lite"` for small features. Lite mode keeps every hard condition (evidence thresholds, kill criteria, test mapping, rollback, baseline) and drops the elaboration conditions: 2.1 relaxes to ≥2 opportunities, 3.1 to ≥2 options, 4.5 and 6.4 become warnings rather than failures.
 
-Lite mode never relaxes: 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 6.1, 6.2, 7.3. Those are the conditions that prevent building on fiction.
+Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
 
 ## Common Mistakes
 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Passing a gate because the artifact "feels complete" | Gates are mechanical by design | Check each condition against the text |
+| Re-judging a condition the script decided | The script exists so the author does not grade its own work | Relay the script's verdict; judge only the `judge` lines |
+| Writing `[interview:P3]` with no `evidence/P3.md` | E.1 fails; the claim has no source anyone can open | Write the notes file, or rewrite the claim as an assumption |
 | Failing a gate without naming the condition | The user cannot act on it | Use the refusal format |
 | Treating `KILLED` as a failure | Killing early is the cheapest win available | Report it as a successful pass and stop |
 | Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an explicit zero |

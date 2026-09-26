@@ -7,7 +7,7 @@ Dispatch `delivery-planner`, run the loop, then dispatch `build-reviewer` to clo
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 4 must have passed or been overridden. Without numbered acceptance criteria there is nothing to map tests to.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 4 must have passed or been overridden. Without numbered acceptance criteria there is nothing to map tests to.
 2. **Read `.builderos/initiatives/{initiative}/04-spec.md` and `DESIGN.md`.** Criteria, the state matrix, the out-of-scope list and the tracking plan.
 3. **Resolve capabilities** per `references/capability-map.md`. `repo.read` is required for this phase; without it, say so and offer `--plan-only`.
 4. **Detect a delivery toolchain** in this session (plan → test-driven development → code review, or equivalent). If present, the implementation loop delegates to it and BuilderOS keeps spec conformance, the scope-creep check and instrumentation verification. Absence is the expected case; never prompt an install.

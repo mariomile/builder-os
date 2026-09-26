@@ -100,6 +100,7 @@ Every status claim in the build artifact or the review is backed by output produ
 | Tests pass | The suite's output with the pass and fail counts, from a run after the last change | An earlier run, "should pass" |
 | This test covers AC-3 | The test failing with the behavior removed, then passing with it restored | The test passing once |
 | Instrumentation works | The event observed arriving, with its properties | The tracking call present in the code |
+| The model behaves as specified | The eval set run against the final prompt and model, pass rate and every must-pass case shown | A few good examples in a demo, or a run before the last prompt change |
 | Nothing out of scope was built | The diff read against the spec's scope boundaries | The implementer saying so |
 | The slice is done | Every acceptance criterion it owns mapped to a test that ran | Tests green overall |
 
@@ -162,6 +163,9 @@ Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the in
 ## Instrumentation
 | Event | Triggered by | Arrived | Properties verified | Evidence |
 | {event} | {action} | yes | {list} | `[tag]` |
+
+## Eval results
+{only when the spec declares model output: the run's pasted output, the pass rate against the threshold, every must-pass case, and the prompt and model version it ran on}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |

@@ -128,7 +128,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 9. **Schedule the outcome review.** Owner and date, taken from the phase 3 kill criteria.
 
-10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6, update `state.json`, advance to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
+10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6, update `state.json` with `review_due` set to the outcome review date, advance to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
 
 Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the timestamped baseline, the measurement, the release notes and the scheduled review.
 
@@ -157,6 +157,7 @@ Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the 
 | Metric | Value | Window | Method | Tag |
 | {phase 2 success metric} | | | | |
 | {guardrail} | | | | |
+| {model output quality, when the spec declares model output: the production sample's pass rate on the eval rubric} | | | | |
 
 ## Measurement
 **Success metric measured by:** {named saved query or dashboard}

@@ -1,0 +1,11 @@
+{
+  "name": "briefing",
+  "why": "A new session in a project with memory briefs from the files before answering (using-builder-os, First Move)",
+  "fixture": "acme",
+  "prompt": "Ciao, dove eravamo rimasti?",
+  "expect": {
+    "output_matches": ["CSV export", "(?i)(fase|phase) 2", "(?i)(review|revisione)"],
+    "output_not_matches": ["(?i)what (is|are) you(r)? (product|project)"],
+    "files_unchanged": [".builderos/initiatives/csv-export/state.json"]
+  }
+}

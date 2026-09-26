@@ -30,7 +30,7 @@ Run the resolution protocol from `references/capability-map.md`, then look for r
 1. **Billing tables** via `db.query`. List the tables, find the subscription and invoice entities, read the column types before writing any aggregate. A `plan_amount` in cents summed as if it were currency is the classic first error.
 2. **Revenue events** via `analytics.query`, where subscription lifecycle is tracked as events. Weaker: events drift from billing reality, and the discrepancy is itself worth reporting.
 3. **Recorded figures** via `docs.search`. Date every one and tag it stale beyond 30 days.
-4. **The user.** Ask for current MRR, active accounts, monthly churn and ARPA. Tag every value `[doc:user-provided]`.
+4. **The user.** Ask for current MRR, active accounts, monthly churn and ARPA. Tag every value `[doc:user-{date}-{topic}]`.
 
 Whatever resolved, name it in the artifact. A waterfall built on events and a waterfall built on invoices are different instruments and will disagree.
 

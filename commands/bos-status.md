@@ -9,7 +9,7 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 
 ## Steps
 
-1. Read `.builderos/state.json`. If missing, say so and offer `/bos-init`.
+1. Read the active initiative's `state.json` (resolved per the schema, Active Initiative). If missing, say so and offer `/bos-init`.
 2. Read `PRODUCT.md` for the header line and `.builderos/ROADMAP.md` for the other initiatives. If the roadmap disagrees with state, say so: state wins, and the roadmap needs correcting.
 3. For the active initiative (or the one named with `--initiative`), for each phase 0–7, resolve: status, gate result, overrides, artifact presence.
 4. Identify the single blocking item: the failed condition of the current gate, or the next action if the gate has not been run.

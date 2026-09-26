@@ -114,7 +114,7 @@ Tag the returned answers by who wrote them. A member of the ICP describing their
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-provided]` |
+| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-{date}-{topic}]` |
 | `tickets.read` | Support tickets, bug reports in the user's words | Ask for a sample |
 | `docs.search` | Sales notes, prior research, earlier interviews | Search local notes, then ask |
 | `meetings.read` | Call transcripts | The user brings transcript files |
@@ -136,7 +136,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 5. **State the disconfirming test** before any interview happens. This is gate 1.5 and it must exist in advance, because a disconfirming test invented after the results is a rationalization.
 6. **Ingest and synthesize.** When transcripts exist, run thematic synthesis (delegate to a synthesis specialist where one is available, otherwise apply `discovery-methods` directly). Build the evidence ledger: group by theme, tag every claim, count primary units and distinct sources.
 7. **Decide the verdict.** `VALIDATED`, `KILLED` or `RESHAPED`, with reasoning that cites tags. Do not soften a kill. Do not upgrade a reshape because the user is invested. On reshape, state precisely what changed: the person, the cost, the trigger, or the scope.
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/01-discovery.md`, run gate 1, update `state.json`. On `KILLED`, set the phase status to killed and stop the pipeline, reporting it as a win and naming what it saved. On the `spike` track, a passing gate 1 sets phase 1 to `answered` instead of advancing: report the verdict as the answer and offer to reclassify, per `gate-checks`, section Spike Stop.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/01-discovery.md`, run gate 1, update `state.json`. On `KILLED`, set the phase status to killed and the initiative `status` to `closed`, and stop the pipeline, reporting it as a win and naming what it saved. On the `spike` track, a passing gate 1 sets phase 1 to `answered` instead of advancing: report the verdict as the answer and offer to reclassify, per `gate-checks`, section Spike Stop.
 
 **When no transcripts exist yet**, the phase ends after step 5 with the plan as the deliverable and the gate not yet runnable. Say that plainly. Phase 1 normally spans two sessions and the state file carries the gap.
 

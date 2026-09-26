@@ -19,7 +19,7 @@ Adapted from Teresa Torres's continuous discovery structure, with one addition t
                            │
         ┌──────────────────┼──────────────────┐
    Opportunity A      Opportunity B      Opportunity C
-   [interview:P1,P4]  [mcp:funnel_q3]    [doc:churn-aug]
+   [interview:P1,P4]  [data:funnel_q3]    [doc:churn-aug]
 ```
 
 **An opportunity is an unmet need, pain or desire.** Not a feature, not a solution. The test is the same as phase 0: if it contains a verb like "add", "build" or "integrate", it is a solution that jumped a phase.
@@ -44,7 +44,7 @@ Each opportunity gets three numbers before it can be compared.
 
 | Dimension | Question | Source requirement |
 |-----------|----------|-------------------|
-| **Reach** | How many of the ICP hit this, per period? | A count or a share of a real population. `[mcp:*]`, `[doc:*]` or a bottom-up `[estimate:*]` with the method named |
+| **Reach** | How many of the ICP hit this, per period? | A count or a share of a real population. `[data:*]`, `[doc:*]` or a bottom-up `[estimate:*]` with the method named |
 | **Severity** | What does it cost them when it happens? | From the evidence, in their words plus a magnitude |
 | **Frequency** | How often? | Per user, per period |
 
@@ -80,7 +80,7 @@ The output of phase 2 that everything downstream depends on. Four parts, all req
 | Part | Rule |
 |------|------|
 | **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation" |
-| **Baseline** | The current value, today, with a source tag. `[mcp:*]`, `[code:*]` or primary `[doc:*]` |
+| **Baseline** | The current value, today, with a source tag. `[data:*]`, `[code:*]` or primary `[doc:*]` |
 | **Target** | A number and a date. Reasoned from the baseline and a comparable, not from ambition |
 | **Measurement** | The query, event or dashboard that will produce the number in phase 6 |
 

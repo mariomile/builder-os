@@ -49,7 +49,7 @@ Organize into acquisition, activation, engagement, retention, business, under th
 
 ```
 Retention
-├── Week 1: 41% [mcp:posthog:retention_w1_2026-09] (unbounded)
+├── Week 1: 41% [data:posthog:retention_w1_2026-09] (unbounded)
 ├── Week 4: unavailable — cohorts younger than 4 weeks
 └── Curve shape: flattening from week 3 [derived]
 ```

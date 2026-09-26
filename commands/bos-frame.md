@@ -7,7 +7,7 @@ Dispatch the `problem-framer` agent to run BuilderOS phase 0.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. If missing, offer `/bos-init` and stop. If `current_phase` is past 0, say so and ask whether to re-frame (a re-frame starts a new cycle, it does not overwrite).
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). If missing, offer `/bos-init` and stop. If `current_phase` is past 0, say so and ask whether to re-frame (a re-frame starts a new cycle, it does not overwrite).
 2. **Read `PRODUCT.md`** (fallback `PM-CONTEXT.md`, then nothing — phase 0 works with nothing).
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**

@@ -31,7 +31,7 @@ A PMF assessment with two of four signals measured and two recorded unavailable 
 
 ### 2. Read the four signals
 
-Work the PMF Signal Framework below. Per signal, one of three outcomes: measured with its tag, stated by the user with a `[doc:user-provided]` tag, or **unavailable** with the question that would resolve it. Never a fourth.
+Work the PMF Signal Framework below. Per signal, one of three outcomes: measured with its tag, stated by the user with a `[doc:user-{date}-{topic}]` tag, or **unavailable** with the question that would resolve it. Never a fourth.
 
 - **Survey score.** Search documents for an existing "how disappointed" survey. If none exists, the signal is unavailable and running the survey is the recommendation.
 - **Retention curve shape.** The Retention shape, with its definition stated. Flattening by week 6 to 8 is the signal; a curve still falling is the absence of one.

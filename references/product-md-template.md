@@ -100,4 +100,4 @@ Every amendment appends to the log with its evidence. An amendment with no evide
 
 ## Relationship to PM-CONTEXT.md
 
-`references/pm-context-template.md` remains the context file for the `pm-*` analysis commands and stays supported. `PRODUCT.md` is its superset: when both exist, `PRODUCT.md` wins and `PM-CONTEXT.md` is treated as legacy. `/bos-init` offers to migrate an existing `PM-CONTEXT.md` rather than asking the same questions twice.
+`PM-CONTEXT.md` is the context file of BuilderOS before 1.1. `PRODUCT.md` replaces it for every skill, lifecycle and standalone answers alike. When only the old file exists, skills read it as a fallback, and `/bos-init` migrates it rather than asking the same questions twice.

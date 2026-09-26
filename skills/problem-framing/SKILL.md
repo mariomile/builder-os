@@ -85,7 +85,7 @@ Dispatch `competitive-analyst` when the mode allows it. Depth here is shallow by
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `web.search` | Prior art scan | Ask the user what they and the ICP use today, tag `[doc:user-provided]` |
+| `web.search` | Prior art scan | Ask the user what they and the ICP use today, tag `[doc:user-{date}-{topic}]` |
 | `docs.search` | Existing strategy notes, earlier attempts at this problem | Skip; note the gap |
 | `repo.read` | What was already tried, from README, changelog, issues | Skip |
 | `files.write` | The artifact and pipeline state | Required |

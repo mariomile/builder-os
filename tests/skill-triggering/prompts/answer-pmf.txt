@@ -1,0 +1,2 @@
+# expects: skill=strategy-frameworks agent=product-strategist
+I want to understand if my product has product-market fit. Can you assess where we are and what the biggest strategic gaps are?
