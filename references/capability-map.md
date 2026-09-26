@@ -23,6 +23,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `repo.read` | Read source code, configs, git history | any file and shell access |
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | Claude Code `Agent`; absent on most hosts |
+| `shell.exec` | Run a command in the project: the BuilderOS script for gates and briefings, a test suite | any shell access |
 
 `files.read` and `files.write` are the only capabilities BuilderOS assumes are always present. Everything in `.builderos/` depends on them. Every other capability is optional and every skill states what it does without one.
 
@@ -32,7 +33,7 @@ At the start of any phase that needs data:
 
 1. **Enumerate** the tools the host actually exposes in this session.
 2. **Match by shape, not by name.** A tool whose name contains `mixpanel`, `posthog`, `amplitude` and which accepts a query provides `analytics.query`. A tool containing `supabase`, `postgres`, `sql` provides `db.query`.
-3. **Record what resolved.** The phase artifact states which capability resolved to which concrete tool, so the numbers stay traceable: `[mcp:posthog:activation_funnel]` names the provider, not a BuilderOS abstraction.
+3. **Record what resolved.** The phase artifact states which capability resolved to which concrete tool, so the numbers stay traceable: `[data:posthog:activation_funnel]` names the provider, not a BuilderOS abstraction.
 4. **Degrade explicitly** when nothing resolves. Never fail, never invent, never tell the user to install a specific product.
 
 Never write a literal tool identifier into a skill, an agent or a command. Write the capability, and let resolution happen in the session that has the tools.
@@ -43,7 +44,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 
 | Capability | 1st | 2nd | 3rd | Floor |
 |-----------|-----|-----|-----|-------|
-| `analytics.query` | live query | numbers recorded in docs, dated | instrumentation read from code | ask the user, tag `[doc:user-provided]` |
+| `analytics.query` | live query | numbers recorded in docs, dated | instrumentation read from code | ask the user, tag `[doc:user-{date}-{topic}]` and save the words in `evidence/` |
 | `db.query` | live query | exports or reports in docs | schema read from migrations | ask the user |
 | `docs.search` | connected knowledge base | local vault or repo docs | — | ask the user |
 | `tickets.read` | connected tracker | exported tickets in repo | — | ask the user |
@@ -51,6 +52,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `research.search` | connected library | local notes | `web.search` | skip, note the gap |
 | `web.search` | live search | — | — | skip, note the gap |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
+| `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
 
 The floor is always the same: state what could not be retrieved, ask for it, and tag whatever the user provides. The floor is never a plausible-sounding number.
 

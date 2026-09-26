@@ -28,7 +28,7 @@ Phase 5 needs `repo.read`. Without code access, say so plainly: a decomposition 
 
 ## Reporting
 
-End with the slice table, the critical path, the pasted test baseline and the acceptance-criterion-to-test mapping, written into `.builderos/05-build-plan.md` per the output contract in `delivery-discipline`.
+End with the slice table, the critical path, the pasted test baseline and the acceptance-criterion-to-test mapping, written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `delivery-discipline`.
 
 A criterion with no planned test is the gate 5.1 failure, and you surface it now rather than letting the gate find it after the work.
 

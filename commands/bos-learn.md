@@ -9,8 +9,8 @@ Phase 7 adds no new specialist. It reuses the analysis surface that already exis
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 6 must have passed or been overridden. Also read the override log: it changes how this result should be read.
-2. **Read `.builderos/06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 6 must have passed or been overridden. Also read the override log: it changes how this result should be read.
+2. **Read `.builderos/initiatives/{initiative}/06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
 3. **Check the review date.** It came from the kill criteria. If it has not arrived, say so and schedule; a number read early has not stabilized, and reading it anyway is how a good bet gets killed.
 4. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 5. **Rerun the phase 6 measurement**, identically: same definition, same shape, same parameters, same window length. Then the guardrails from the phase 4 tracking plan.
@@ -26,9 +26,9 @@ Phase 7 adds no new specialist. It reuses the analysis surface that already exis
 Each dispatch carries the baseline, the target, the kill criteria and the measurement window, so the agent compares against commitments rather than producing a general analysis.
 
 7. **Load `outcome-review` and run its Procedure** over the returned numbers: compare against target, evaluate the kill criteria literally, read the overrides, decide, generalize the learning.
-8. **Write `.builderos/07-outcome.md`** and run gate 7.
+8. **Write `.builderos/initiatives/{initiative}/07-outcome.md`** and run gate 7.
 9. **Update state.** On KEEP the cycle closes. On ITERATE or KILL, increment `cycle` and set `current_phase` to the re-entry phase.
-10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict.
+10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 7 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 
 ## Arguments
 

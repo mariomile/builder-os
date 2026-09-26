@@ -37,6 +37,8 @@ A layer-first decomposition ("build the schema, then the API, then the UI") prod
 
 Write them as a list, not a diagram: `3 blocks on 1`. Then check the critical path: the longest chain of blocking edges is the minimum duration regardless of how many people work on it. Where that chain is most of the work, the decomposition is still layered in disguise.
 
+A slice whose acceptance criteria appear in the spec's **Not yet specified** table also blocks on that decision. Write it as an edge (`4 blocks on decision: retry limit`) and build the unblocked slices first; never resolve the open question in code.
+
 ## Test Baseline
 
 Before writing any code, record what the test suite does today: how many pass, how many fail, how long it takes. Pasted output, not a summary.
@@ -89,6 +91,19 @@ Three failures worth expecting: the event fires but a required property is null,
 
 Where no analytics capability resolved, verification falls to the code path plus a local emission log, tagged as such. That is weaker evidence and the artifact says so; it is still evidence, and it still catches the null property.
 
+## Claims and Their Evidence
+
+Every status claim in the build artifact or the review is backed by output produced in this phase, pasted, not described. The claim alone is not evidence, and neither is a delegated agent reporting it.
+
+| Claim | Requires | Not enough |
+|-------|----------|------------|
+| Tests pass | The suite's output with the pass and fail counts, from a run after the last change | An earlier run, "should pass" |
+| This test covers AC-3 | The test failing with the behavior removed, then passing with it restored | The test passing once |
+| Instrumentation works | The event observed arriving, with its properties | The tracking call present in the code |
+| The model behaves as specified | The eval set run against the final prompt and model, pass rate and every must-pass case shown | A few good examples in a demo, or a run before the last prompt change |
+| Nothing out of scope was built | The diff read against the spec's scope boundaries | The implementer saying so |
+| The slice is done | Every acceptance criterion it owns mapped to a test that ran | Tests green overall |
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
@@ -118,13 +133,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Verify instrumentation end to end.** Every event in the tracking plan, triggered and confirmed arriving with its properties.
 
-8. **Write and gate.** Write `.builderos/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5, update `state.json`, advance to phase 6 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5, update `state.json`, advance to phase 6 on pass. Before reporting, update `TECH.md` with any convention the build had to follow and any trap it hit, and move the initiative to phase 6 in `ROADMAP.md`.
 
 Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the instrumentation evidence, the scope-creep result and the gate result.
 
 ## Output Contract
 
-`.builderos/05-build-plan.md`:
+`.builderos/initiatives/{initiative}/05-build-plan.md`:
 
 ```markdown
 # Build — {feature}
@@ -148,6 +163,9 @@ Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the in
 ## Instrumentation
 | Event | Triggered by | Arrived | Properties verified | Evidence |
 | {event} | {action} | yes | {list} | `[tag]` |
+
+## Eval results
+{only when the spec declares model output: the run's pasted output, the pass rate against the threshold, every must-pass case, and the prompt and model version it ran on}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |

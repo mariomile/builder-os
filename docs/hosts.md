@@ -6,6 +6,7 @@
 |-------|----------|-------|
 | `skills/` | Yes | Method **and** procedure. Works on any agent that reads `SKILL.md` |
 | `references/` | Yes | Templates, schema, capability map |
+| `scripts/bos.mjs` | Yes, where commands run | Gates, briefing, roadmap, migration. Node built-ins only. Where it cannot run, the model applies the same rules |
 | `AGENTS.md` | Yes | The shared contract. Read directly by Codex, and by Claude Code through the import in `CLAUDE.md` |
 | `CLAUDE.md` | No | Claude Code additions only. First line imports `AGENTS.md` |
 | `agents/` | No | Claude Code subagent wrappers. Thin by design |
@@ -36,12 +37,16 @@ Install as a plugin. Skills, agents and slash commands all load: this is the ric
 
 ## Codex
 
-Two pieces, no plugin manifest involved.
+**As a plugin.** The repo ships `.codex-plugin/plugin.json` (it points Codex at `skills/`) and `.agents/plugins/marketplace.json` (a one-plugin marketplace rooted at the repo). Both follow the shape Superpowers publishes for Codex. The manifest format belongs to Codex and may change between versions; if yours does not load it, the manual setup below gives the same result.
+
+**Manually.** Two pieces.
 
 1. **`AGENTS.md`** is picked up from the repository root automatically, giving Codex the pipeline map and the non-negotiables.
 2. **The skills** need to be discoverable by the host. Copy or symlink this repo's `skills/` into the directory your Codex version scans for skills, then invoke a skill by name or let the description match your request.
 
 Check your installed version's documentation for the exact skills directory and invocation syntax — those are host details that change, and nothing in BuilderOS depends on them. What matters is that `skills/` is reachable.
+
+**The session briefing.** Codex has no session-start hook here, so the briefing comes from the block `/bos-init` writes into the project's `AGENTS.md`. Where Codex may run commands, `node {path-to-builder-os}/scripts/bos.mjs brief` prints it from the files, and `... gate N` checks a gate.
 
 No slash commands. Name the phase instead ("run the frame phase on this idea") or the skill (`builder-os`, `problem-framing`, …). Phases run inline, in sequence, in one conversation. Same procedure, same artifacts, same gates.
 
@@ -57,7 +62,8 @@ Make `skills/` reachable. Everything works except the slash commands and the iso
 | Context pressure | Lower; each phase starts clean | Higher on long pipelines |
 | Artifacts | Identical | Identical |
 | Gates | Identical | Identical |
-| Multi-agent chains (`/pm-audit`) | Parallel | Sequential |
+| Gate provenance | Script-decided where commands run, on any host | Model-judged where they do not, and recorded as such |
+| Multi-skill routes (a full product audit) | Parallel | Sequential |
 
 Lower context pressure is the only real advantage, and on a long pipeline it is worth having. It is not a capability difference: nothing is unavailable without it.
 

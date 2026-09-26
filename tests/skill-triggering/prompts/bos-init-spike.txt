@@ -1,0 +1,2 @@
+# expects: skill=builder-os command=/bos-init track=spike (announced, stops at the phase 1 verdict)
+Non voglio costruire niente per ora. Voglio solo capire se ai commercialisti interessa davvero un assistente per la riconciliazione bancaria, o se è un problema che mi sono inventato.

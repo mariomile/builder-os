@@ -21,7 +21,9 @@ Lifecycle hub (builder-os) → phase skills → artifacts in .builderos/
                           capabilities resolved    gates enforced
                           at runtime               between phases
 
-Analysis hub (pm-toolkit) → specialist skills → standalone answers
+Standalone question → specialist skill → an answer, no state
+
+Entry for both: using-builder-os (reads memory, briefs, routes)
 ```
 
 ### Components
@@ -30,16 +32,21 @@ Analysis hub (pm-toolkit) → specialist skills → standalone answers
 |-----------|----------|----------|
 | `skills/` | Method **and** procedure. The product | Yes |
 | `references/` | Templates, state schema, capability map | Yes |
+| `scripts/bos.mjs` | Gate checks, session briefing, roadmap regeneration, schema migration. Node built-ins only, optional: every rule it applies is also written in a skill | Yes |
+| `tests/` | Script tests, behavioral scenarios, triggering prompts, fixtures | Yes |
 | `docs/` | Specs, plans, host setup | Yes |
 | `agents/`, `commands/`, `.claude-plugin/` | Claude Code adapters | No |
+| `.codex-plugin/`, `.agents/plugins/` | Codex plugin manifest and marketplace. Metadata only, no procedure | No |
 
-Pipeline state lives in `.builderos/state.json` and `PRODUCT.md` at the working-directory root. Read state before starting a phase; write it after finishing one.
+Project memory lives in the user's working directory: `PRODUCT.md` and `TECH.md` at the root, and `.builderos/` with `ROADMAP.md`, `decisions/`, `evidence/` and one folder per initiative holding its own `state.json` and `evidence/`. Layout and rules in `references/builderos-state-schema.md`. Read memory before starting a phase; write it after finishing one.
 
-Two surfaces: the **lifecycle** (`builder-os` plus the phase skills) walks the pipeline, stateful and gated; the **analysis** surface (`pm-toolkit` plus its specialists) answers a standalone question about an existing product, stateless.
+Entry point on every host: `skills/using-builder-os`. Hosts with a session-start hook inject it; elsewhere, read it first. It briefs from the memory and routes.
+
+Two kinds of work: the **lifecycle** (`builder-os` plus the phase skills) walks the pipeline, stateful and gated; a **standalone answer** goes straight to one specialist skill (`saas-metrics-reference`, `growth-frameworks`, …) and writes no state.
 
 ## Design Principles
 
-1. **Zero dependencies** — only Node.js built-ins in the plugin loader
+1. **Zero dependencies** — only Node.js built-ins in the plugin loader and in `scripts/bos.mjs`
 2. **Data over guessing** — every number comes from a real source and carries a source tag
 3. **Structured output** — every phase has a completion marker and a handoff contract
 4. **Capabilities, not tools** — name a capability and resolve it at runtime; never a literal tool identifier
@@ -48,7 +55,7 @@ Two surfaces: the **lifecycle** (`builder-os` plus the phase skills) walks the p
 
 ## Non-Negotiables
 
-**Never invent data.** Every factual claim in every artifact carries a source tag per `skills/evidence-ledger`. Gates count them. If a number cannot be retrieved, say so and ask; a plausible-sounding guess is worse than a stated gap.
+**Never invent data.** Every factual claim in every artifact carries a source tag per `skills/evidence-ledger`, and every source tag points at a file in `evidence/`. Gates count them and check the files. If a number cannot be retrieved, say so and ask; a plausible-sounding guess is worse than a stated gap.
 
 **Never skip a gate.** `skills/gate-checks` holds eight gates as mechanically checkable conditions. Failing one means refusing to advance and naming the condition. Overrides exist, are logged in `state.json` with a reason, and stay visible afterwards.
 
@@ -74,8 +81,6 @@ Rules, enforced on every change:
 4. **Capitalized tool names belong to one host.** Skills say "search the repository", not `Grep`.
 5. **Vendor names in prose only as examples:** "a session-replay capability (PostHog, FullStory, …)".
 6. **Every phase states its capability requirements and its floor.** A phase with no floor is not portable, only lucky.
-
-Known debt: the 11 v0.1/v0.2 agents still carry ~74 hardcoded tool references, several of them one user's connector instances. Scheduled for retrofit before the 1.0.0 release; see `docs/plans/2026-09-20-lifecycle-os-v1.md`, Cluster 5.
 
 ## File Naming
 
@@ -106,13 +111,11 @@ Every skill that drives work (as opposed to pure reference) MUST:
 
 ## Testing
 
-Skills are tested via pressure scenarios, following the TDD-for-skills methodology popularized by Superpowers:
+Three layers, cheapest first:
 
-1. Run the prompt WITHOUT the skill loaded — document the failures
-2. Load the skill — verify compliance
-3. Find the rationalization loopholes — plug them
-
-Triggering tests live in `tests/skill-triggering/`; the protocol is in its README.
+1. **Script tests** (`npm test`, which runs `node --test tests/scripts/bos.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration. Run them on every change to `scripts/`, `gate-checks` or the state schema.
+2. **Behavioral scenarios** (`tests/scenarios/`). A real host runs a prompt on a copy of a fixture project, and the runner checks what it did to the files: state written, gate refused, nothing past phase 1 on a spike. This is the pressure-scenario method (run without the skill, load it, plug the rationalizations) made repeatable. Every failure found in a live run becomes a case.
+3. **Triggering prompts** (`tests/skill-triggering/`). Which skill a message loads; checked by hand, per its README.
 
 ## Contributing
 

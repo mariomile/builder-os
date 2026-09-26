@@ -15,7 +15,7 @@ Operational reference for writing and managing OKRs. Reference when the OKR Arch
 
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
-| `analytics.query` | The baseline behind every key result | Ask the user; tag `[doc:user-provided]`; a KR whose baseline is user-provided says so |
+| `analytics.query` | The baseline behind every key result | Ask the user; tag `[doc:user-{date}-{topic}]`; a KR whose baseline is user-provided says so |
 | `db.query` | Baselines that live in the application database: accounts, revenue, usage | Same floor |
 | `docs.search` | Strategy, prior OKRs, the company objectives these ladder up to | Ask for them; without the level above, alignment cannot be checked |
 | `docs.write` | Publishing the set where the team reads it | Write the file; the artifact is the deliverable, publishing is optional |
@@ -114,7 +114,7 @@ OKRs cascade: Company → Product → Team. BuilderOS focuses on the **Product-l
 For each KR, find a real baseline — never estimate:
 
 1. **Live data**: the Volume, Funnel or Retention shape via `analytics.query`, or `db.query` where the number lives in the application database
-2. **Vault-based**: Grep for metric name + product name in vault; check periodic notes
+2. **Vault-based**: Search the vault for metric name + product name; check periodic notes
 3. **User-provided**: Ask directly: "What's the current value of [metric]?"
 4. **Unknown**: Mark as `TBD — tracking ticket required` and add to Tracking Requirements section
 

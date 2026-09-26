@@ -19,33 +19,39 @@ Placed at the end of the sentence it substantiates, before the period or after i
 
 | Class | Meaning | Identifier format | Example |
 |-------|---------|-------------------|---------|
-| `mcp` | Live query against a connected data source | `tool:query-name` | `[mcp:mixpanel:activation_funnel_q3]` |
+| `data` | Live query against a connected data source | `tool:query-name` | `[data:mixpanel:activation_funnel_q3]` |
 | `interview` | Primary conversation with a real person | participant codes, comma-separated | `[interview:P3,P7]` |
 | `doc` | Existing written source: ticket, note, transcript, report | source slug or path | `[doc:support-tickets-aug]` |
 | `code` | Read from the codebase | `path:line` | `[code:src/billing.ts:142]` |
 | `estimate` | Derived number, method stated | method slug | `[estimate:bottom-up-tam]` |
 | `assumption` | Believed, not verified | `unvalidated` or a test id | `[assumption:unvalidated]` |
 
+## Every Tag Has a File
+
+A tag is a pointer, and a pointer to nothing is an invented source. Every `interview`, `doc` and `data` tag has a file in `evidence/` holding the raw material it cites: the interview notes, the pasted query output with its parameters, the excerpt. File names, format and lookup order are in `references/builderos-state-schema.md`, section Evidence Files. Gate condition E.1 checks it on every gate.
+
+Write the evidence file when the source is captured, not when the gate fails: notes written from memory a week later are a `doc` about an interview, not the interview. Something the user tells you in the conversation is `[doc:user-{YYYY-MM-DD}-{topic}]`, with their words copied verbatim into the file.
+
 ## Source Hierarchy
 
 When two sources disagree, the higher class wins and the conflict is recorded rather than smoothed:
 
 ```
-mcp  >  code  >  interview  >  doc  >  estimate  >  assumption
+data  >  code  >  interview  >  doc  >  estimate  >  assumption
 ```
 
 Live data beats what someone remembers. What someone said beats what a document claims about them. A stated method beats a feeling. An assumption never beats anything: it is a question wearing the clothes of an answer.
 
 Conflicts are written into the artifact explicitly:
 
-> Churn is 4.2% monthly `[mcp:supabase:churn_q3]`, though the board deck states 2.8% `[doc:board-deck-jul]`. Live data used; the deck is stale.
+> Churn is 4.2% monthly `[data:supabase:churn_q3]`, though the board deck states 2.8% `[doc:board-deck-jul]`. Live data used; the deck is stale.
 
 ## Counting Rules
 
 Gates ask questions like "≥5 evidence units from primary sources". The rules:
 
 1. **An evidence unit is one tag on one distinct claim.** The same tag repeated across five sentences is one unit, not five.
-2. **Primary sources** are `mcp`, `interview`, `code`. `doc` counts as primary only when the document is itself a record of primary contact (a transcript, a support ticket) and not a summary of one.
+2. **Primary sources** are `data`, `interview`, `code`. `doc` counts as primary only when the document is itself a record of primary contact (a transcript, a support ticket) and not a summary of one.
 3. **`estimate` and `assumption` never count toward an evidence threshold.** They are allowed in artifacts, and they are useful, but they are not evidence.
 4. **Distinct sources.** Five quotes from one interview are one source. Gate 1 requires five distinct sources, not five quotes.
 5. **Every number gets a tag.** Percentages, counts, currency, dates of events. Adjectives of scale ("most", "many", "rapidly") count as numbers and need a tag or a rewrite.

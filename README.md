@@ -36,7 +36,7 @@ Between every pair of phases sits a **gate**.
 
 ### 1. Gates you cannot argue with
 
-Each phase ends at a list of conditions decided by *reading* the artifact, not by judging it. Gate 1 does not ask "was the research good?" It asks for five evidence units from five distinct sources and an explicit verdict. Gate 3 wants three options with mechanically different user actions, and kill criteria with a metric, a threshold and a date.
+Each phase ends at a list of conditions decided by *reading* the artifact, not by judging it. Where commands can run, a script with no dependencies (`scripts/bos.mjs`) decides the structural ones, so the model that wrote the artifact does not grade it; the model judges only the few conditions that need meaning, and the state records which was which. Gate 1 does not ask "was the research good?" It asks for five evidence units from five distinct sources and an explicit verdict. Gate 3 wants three options with mechanically different user actions, and kill criteria with a metric, a threshold and a date.
 
 ```mermaid
 stateDiagram-v2
@@ -54,17 +54,19 @@ stateDiagram-v2
 
 A failed gate produces the failed condition, what was found, what would satisfy it, and the cheapest path there. Overrides exist, take a written reason, and stay visible in every status report afterwards. An undocumented bypass is worse than a documented one.
 
+Not every request needs all eight phases. Before the first one runs, the work is classified into a **track** and the classification is said out loud: a `spike` wants an answer and stops at the phase 1 verdict, a `feature` changes an existing product and starts at phase 2 once `PRODUCT.md` passes a coverage check, a `product` runs everything. A track only ever upgrades: a feature whose evidence turns out missing becomes a product and re-enters phase 0.
+
 ### 2. The evidence ledger
 
 Every factual claim in every artifact carries a source tag:
 
 ```markdown
-Activation drops 62% between signup and first call.  [mcp:mixpanel:funnel_q3]
+Activation drops 62% between signup and first call.  [data:mixpanel:funnel_q3]
 Users describe onboarding as "a second job".         [interview:P3,P7]
 Enterprise buyers need SSO before evaluating.        [assumption:unvalidated]
 ```
 
-Gates count the tags. An artifact resting on assumptions cannot pass a gate that requires evidence, and no agent has to exercise taste to decide that. This is what turns "never invent data" from a wish into a mechanism.
+Every `interview`, `doc` and `data` tag points at a file in `evidence/` holding the raw material: the interview notes, the pasted query output, the excerpt. A tag with no file fails the gate like an untagged claim. Gates count the tags, so an artifact resting on assumptions cannot pass a gate that requires evidence. The file does not make a source true; it makes it auditable, which is the most a text file can do.
 
 Phase 0 is *supposed* to be mostly assumptions. Phase 2 is not: gate 2.4 rejects an estimated baseline outright, because a target measured against a guess makes phase 7 decorative.
 
@@ -105,7 +107,7 @@ Same steps, same artifacts, same gates, whatever the host.
 
 ```mermaid
 flowchart TD
-    START([phase requested]) --> ST["read .builderos/state.json"]
+    START([phase requested]) --> ST["read the active initiative's state.json"]
     ST --> G{"previous gate<br/>passed?"}
     G -->|no| REF["refuse<br/>name the failed condition"]
     G -->|yes| CAP["resolve capabilities<br/>against this session's tools"]
@@ -131,12 +133,12 @@ No skill names a tool. It names a capability and resolves it at runtime.
 ```mermaid
 flowchart LR
     NEED["phase needs<br/>analytics.query"] --> R{"resolve against<br/>session tools"}
-    R -->|found| LIVE["live query<br/>tag: mcp:posthog:funnel_q3"]
+    R -->|found| LIVE["live query<br/>tag: data:posthog:funnel_q3"]
     R -->|not found| D1{"numbers recorded<br/>in docs?"}
     D1 -->|yes| DOC["dated figure<br/>tag: doc:board-deck-jul"]
     D1 -->|no| D2{"instrumentation<br/>readable in code?"}
     D2 -->|yes| CODE["tag: code:src/track.ts:42"]
-    D2 -->|no| FLOOR["state the gap<br/>ask the user<br/>tag: doc:user-provided"]
+    D2 -->|no| FLOOR["state the gap<br/>ask the user<br/>tag: doc:user-2026-09-25-mrr"]
 
     classDef ok fill:#e6f4ea,stroke:#34a853,color:#111
     classDef fl fill:#fef7e0,stroke:#f9ab00,color:#111
@@ -154,16 +156,15 @@ Analytics in particular is a category, not a product. BuilderOS asks five questi
 
 ---
 
-## Two surfaces
+## Two kinds of work
 
-| | Lifecycle | Analysis |
+| | Lifecycle | Standalone answer |
 |---|---|---|
-| **Hub** | `builder-os` | `pm-toolkit` |
-| **Commands** | `/bos-*` | `/pm-*` |
+| **Entry** | `using-builder-os`, then `builder-os` | `using-builder-os`, then one specialist skill |
 | **Shape** | Stateful, gated, sequential | Stateless, immediate |
-| **For** | Taking something from idea to production | Answering a question about an existing product |
+| **For** | Taking something from idea to production | A question about a product that exists: health, growth, finance, competition, OKRs |
 
-`/bos-learn` is the bridge: phase 7 orchestrates the analysis agents against the phase 2 target and the phase 3 kill criteria. Every `/pm-*` command stays usable on its own — if you only want a health scorecard, run `/pm-health` and never touch the pipeline.
+You never pick a skill by hand. `using-builder-os` loads at session start, reads the memory, and routes; `/bos-ask` asks it explicitly. `/bos-learn` is the bridge: phase 7 runs the specialists against the phase 2 target and the phase 3 kill criteria.
 
 ---
 
@@ -196,28 +197,41 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**24 skills.** Three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), two hubs, and the rest split between the eight lifecycle phases and the analysis surface.
+**24 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions.
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
-**30 commands.** Fourteen `/bos-*`, sixteen `/pm-*`.
+**15 commands**, all `/bos-*`. Not sure which one? `/bos-ask`.
 
-### Pipeline state
+**One script.** `scripts/bos.mjs`, Node built-ins only: `brief`, `gate`, `new`, `cover`, `roadmap`, `migrate`. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
+
+### Project memory
 
 ```
-PRODUCT.md              durable truth: ICP, problem, non-goals, constraints, voice
+PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language
+TECH.md                   how it is built: stack, technical constraints, conventions, known traps
+AGENTS.md                 gets a BuilderOS block telling every new session to read the files below first
 .builderos/
-  state.json            current phase, gate status, override log, history
-  00-frame.md           problem, ICP, riskiest assumption
-  01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
-  02-definition.md      opportunity tree, selected bet, success metric
-  03-solution-bet.md    options scored, kill criteria
-  04-spec.md            scope, flows, acceptance criteria, tracking plan
-  05-build-plan.md      tracer tickets, test map, review record
-  06-release.md         rollout, instrumentation check, baseline
-  07-outcome.md         actual vs target, keep / iterate / kill
-  decisions/            ADRs
+  ROADMAP.md              the master plan: direction, now / next / later, done and dropped
+  decisions/              ADRs, shared across initiatives
+  evidence/               the sources behind PRODUCT.md and TECH.md
+  local.json              which initiative is active on this checkout (gitignored)
+  initiatives/{name}/     one folder per piece of work
+    state.json            phase, track, gates, overrides, history
+    evidence/             one file per source a tag cites
+    00-frame.md           problem, ICP, riskiest assumption
+    01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
+    02-definition.md      opportunity tree, selected opportunity, success metric
+    03-solution-bet.md    options scored, kill criteria
+    DESIGN.md             flows, states, components, accessibility
+    04-spec.md            scope, not yet specified, acceptance criteria, tracking plan
+    05-build-plan.md      tracer tickets, test map, review record
+    06-release.md         rollout, rollback test, baseline
+    07-outcome.md         actual vs target, keep / iterate / kill
+    questionnaires/       async questions for people the user cannot interview
 ```
+
+Every session starts by reading the roadmap, each initiative's `state.json`, `PRODUCT.md` and, when code is involved, `TECH.md`, and briefs you in five lines on where things stand, plus one line when something is rotting: an outcome review past its date, a `TECH.md` not checked since the dependencies changed, an initiative untouched for a month. On Claude Code the session-start hook does it; on any other host the block `/bos-init` writes into your project's `AGENTS.md` does. Several initiatives can be open at once; one is active, and every command acts on it.
 
 Each phase reads the one before it. Starting phase 3 without `02-definition.md` produces confident fiction, so the hub refuses.
 
@@ -233,9 +247,10 @@ Version 1.0.0. Honest state:
 | Phases 0–7 — all eight, each with its own skills, procedure and enforceable gate | Shipped |
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
-| Runtime verification | **Not yet run end to end in a live session.** Structurally complete, behaviorally unverified |
+| Gate enforcement | 32 of 43 conditions decided by `scripts/bos.mjs`, 16 script tests green |
+| Runtime verification | First live runs on 2026-09-25: 5 behavioral scenarios on Claude Code, 4 pass (briefing, gate refusal on missing evidence, no invented numbers, spike stop). The feature-track run initializes correctly but writes `state.json` by hand instead of through the script; the briefing flags the result. Codex not yet run. No real initiative has gone from phase 0 to 7 |
 
-That last row is the one to read. Everything here is written to contract and checked mechanically; none of it has been executed against a real product yet.
+That last row is the one to read.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
@@ -245,8 +260,8 @@ Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/
 
 Patterns borrowed, not dependencies. BuilderOS installs on its own.
 
-- [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims"
-- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, the interview primitive, durable shared context
+- [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims", the short bootstrap skill with its red-flags table, and classifying work into paths before starting
+- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, interview rounds with a recommended answer per question, the async questionnaire, the ADR test, the glossary, and "not yet specified" kept apart from out of scope
 - [pbakaus/impeccable](https://github.com/pbakaus/impeccable) — durable product truth kept separate from surface decisions, deterministic detectors
 
 ---

@@ -112,7 +112,7 @@ Completion marker: `## DESIGN COMPLETE` with the flow list, the state matrix, th
 
 ## Output Contract
 
-`DESIGN.md` at the working-directory root:
+`DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`:
 
 ```markdown
 # Design — {feature}

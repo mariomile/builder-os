@@ -7,8 +7,8 @@ Dispatch the `research-planner` agent to run BuilderOS phase 1.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 0 must have passed or been overridden; if not, refuse with the failed condition per `gate-checks`.
-2. **Read `.builderos/00-frame.md`.** The riskiest assumption in it is the research target. Without it, stop and route to `/bos-frame`.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 0 must have passed or been overridden; if not, refuse with the failed condition per `gate-checks`.
+2. **Read `.builderos/initiatives/{initiative}/00-frame.md`.** The riskiest assumption in it is the research target. Without it, stop and route to `/bos-frame`.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -18,7 +18,7 @@ Agent({
   subagent_type: "research-planner",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 1, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 1, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content]
@@ -32,12 +32,12 @@ User request:
 Transcripts/notes provided:
 [paths or content, or 'none — plan only']
 
-Write .builderos/01-discovery.md and run gate 1 before declaring completion.
+Write .builderos/initiatives/{initiative}/01-discovery.md and run gate 1 before declaring completion.
 If no transcripts exist yet, deliver the plan and say the gate runs later."
 })
 ```
 
-5. **Verify completion:** `## DISCOVERY COMPLETE` with a verdict, or `## RESEARCH PLAN READY`.
+5. **Verify completion:** `## DISCOVERY COMPLETE` with a verdict, or `## RESEARCH PLAN READY`. The marker is the agent's claim, not the evidence: for `## DISCOVERY COMPLETE`, re-read `01-discovery.md` and run gate 1 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present.** On `KILLED`, report the pipeline stop as a successful outcome and name what it saved.
 
 ## Arguments

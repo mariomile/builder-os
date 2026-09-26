@@ -1,0 +1,12 @@
+{
+  "name": "feature-track",
+  "why": "A change to a live product whose PRODUCT.md is evidenced is classified as feature out loud and starts at phase 2 after the coverage check",
+  "fixture": "acme",
+  "setup": { "remove": [".builderos/initiatives/csv-export", ".builderos/initiatives/onboarding-v2", ".builderos/local.json"], "regenerate_roadmap": true },
+  "prompt": "I manager perdono il lunedì mattina a ricostruire a mano la vista della pipeline del proprio team: vogliamo aggiungere al report settimanale un filtro per team, così la vista è già pronta. Inizializza l'iniziativa \"team-filter\" e dimmi da dove partiamo.",
+  "expect": {
+    "output_matches": ["(?i)feature"],
+    "history_events": ["track_set", "phase_covered"],
+    "state": { "initiative": "team-filter", "track": "feature", "current_phase": 2, "phases.0.status": "covered", "phases.1.status": "covered" }
+  }
+}

@@ -7,8 +7,8 @@ Dispatch `delivery-planner`, run the loop, then dispatch `build-reviewer` to clo
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 4 must have passed or been overridden. Without numbered acceptance criteria there is nothing to map tests to.
-2. **Read `.builderos/04-spec.md` and `DESIGN.md`.** Criteria, the state matrix, the out-of-scope list and the tracking plan.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 4 must have passed or been overridden. Without numbered acceptance criteria there is nothing to map tests to.
+2. **Read `.builderos/initiatives/{initiative}/04-spec.md` and `DESIGN.md`.** Criteria, the state matrix, the out-of-scope list and the tracking plan.
 3. **Resolve capabilities** per `references/capability-map.md`. `repo.read` is required for this phase; without it, say so and offer `--plan-only`.
 4. **Detect a delivery toolchain** in this session (plan → test-driven development → code review, or equivalent). If present, the implementation loop delegates to it and BuilderOS keeps spec conformance, the scope-creep check and instrumentation verification. Absence is the expected case; never prompt an install.
 5. **Dispatch the planner:**
@@ -19,7 +19,7 @@ Agent({
   subagent_type: "delivery-planner",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md]
-Pipeline state: phase 5, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
 Delivery toolchain present: [yes, named | no]
 
 PRODUCT.md:
@@ -32,7 +32,7 @@ DESIGN.md:
 [content]
 
 Write the slice table, the critical path, the pasted test baseline and the
-criterion-to-test mapping into .builderos/05-build-plan.md."
+criterion-to-test mapping into .builderos/initiatives/{initiative}/05-build-plan.md."
 })
 ```
 
@@ -46,7 +46,7 @@ Agent({
   subagent_type: "build-reviewer",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [as above]
-Pipeline state: phase 5, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
 
 04-spec.md:
 [content, including the numbered criteria and the out-of-scope list]
@@ -60,11 +60,11 @@ DESIGN.md:
 Diff under review:
 [the changes]
 
-Complete .builderos/05-build-plan.md and run gate 5 before declaring completion."
+Complete .builderos/initiatives/{initiative}/05-build-plan.md and run gate 5 before declaring completion."
 })
 ```
 
-8. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict.
+8. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 5 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 9. **Present** the criterion-to-test mapping, the test output, the instrumentation evidence and the scope check.
 
 ## Arguments

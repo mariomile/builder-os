@@ -16,7 +16,7 @@ Operational frameworks for product strategy work. Reference when the Product Str
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
 | `analytics.query` | The retention curve behind the PMF read, and the retention correlation behind a north star candidate | Ask for the curve; without it the retention signal is recorded unavailable, not guessed |
-| `analytics.events` | Whether a candidate north star can be measured today at all | Grep the repo for the call sites |
+| `analytics.events` | Whether a candidate north star can be measured today at all | Search the repository for the call sites |
 | `db.query` | Organic pull and account-level signals that live in the application database | Ask |
 | `docs.search` | Survey results, interview notes, prior strategy and positioning work | Ask the user for them |
 | `files.read` / `files.write` | The artifact itself | Always present |
@@ -31,7 +31,7 @@ A PMF assessment with two of four signals measured and two recorded unavailable 
 
 ### 2. Read the four signals
 
-Work the PMF Signal Framework below. Per signal, one of three outcomes: measured with its tag, stated by the user with a `[doc:user-provided]` tag, or **unavailable** with the question that would resolve it. Never a fourth.
+Work the PMF Signal Framework below. Per signal, one of three outcomes: measured with its tag, stated by the user with a `[doc:user-{date}-{topic}]` tag, or **unavailable** with the question that would resolve it. Never a fourth.
 
 - **Survey score.** Search documents for an existing "how disappointed" survey. If none exists, the signal is unavailable and running the survey is the recommendation.
 - **Retention curve shape.** The Retention shape, with its definition stated. Flattening by week 6 to 8 is the signal; a curve still falling is the absence of one.

@@ -14,7 +14,7 @@ Statistical reference for product experimentation. Formulas, lookup tables, and 
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
 | `analytics.query` | The baseline the experiment is powered against, and the results readout | Ask the user for the baseline, tag it, and state that the power calculation inherits its uncertainty |
-| `analytics.events` | Whether the output and guardrail metrics are even emitted | Grep the repo for the call sites; an unemitted metric makes the experiment unreadable before it starts |
+| `analytics.events` | Whether the output and guardrail metrics are even emitted | Search the repository for the call sites; an unemitted metric makes the experiment unreadable before it starts |
 | `db.query` | Results where the outcome lives in the application database rather than events | Same floor: ask |
 | `repo.read` | Feature flag and assignment code, to verify randomization | Ask how assignment works |
 | `files.read` / `files.write` | The pre-registration and the readout | Always present |

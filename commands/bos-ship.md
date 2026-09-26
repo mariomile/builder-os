@@ -7,8 +7,8 @@ Dispatch the `release-manager` agent to run BuilderOS phase 6.
 
 ## Steps
 
-1. **Check pipeline state.** Read `.builderos/state.json`. Phase 5 must have passed or been overridden. Shipping unverified work is what gate 5 exists to prevent.
-2. **Read `.builderos/05-build-plan.md`, `04-spec.md`, `03-solution-bet.md` and `02-definition.md`.** The verified build, the tracking plan, the kill criteria and the success metric with its exact phase 2 definition.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 5 must have passed or been overridden. Shipping unverified work is what gate 5 exists to prevent.
+2. **Read `.builderos/initiatives/{initiative}/05-build-plan.md`, `04-spec.md`, `03-solution-bet.md` and `02-definition.md`.** The verified build, the tracking plan, the kill criteria and the success metric with its exact phase 2 definition.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -18,7 +18,7 @@ Agent({
   subagent_type: "release-manager",
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: phase 6, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 6, cycle [C], mode [full|lite]
 
 PRODUCT.md:
 [content]
@@ -38,12 +38,12 @@ PRODUCT.md:
 User request:
 [what the user asked]
 
-Write .builderos/06-release.md and run gate 6 before declaring completion.
+Write .builderos/initiatives/{initiative}/06-release.md and run gate 6 before declaring completion.
 Capture the baseline before any exposure; gate 6.2 checks the timestamp order."
 })
 ```
 
-5. **Verify completion:** `## SHIPPED` with a gate 6 verdict.
+5. **Verify completion:** `## SHIPPED` with a gate 6 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 6 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review.
 
 ## Arguments

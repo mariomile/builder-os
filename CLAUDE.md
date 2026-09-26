@@ -44,7 +44,7 @@ Commands are routing layers, not logic. Every command MUST:
 1. Check pipeline state before dispatching, and refuse on a failed upstream gate
 2. Resolve capabilities per `references/capability-map.md` and pass the derived mode
 3. Read and pass the previous phase artifact
-4. Verify the completion marker before presenting results
+4. Verify the completion marker, then re-run the phase gate on the written artifact before presenting results. The marker is a claim; the gate on the file is the evidence
 
 ## Dispatch Context Package
 

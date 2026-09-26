@@ -25,6 +25,8 @@ Three kinds of boundary, all worth writing:
 
 Write the boundary that someone will argue with. An out-of-scope list containing only things nobody wanted is not a boundary, it is padding.
 
+**Out of scope is not the same as not yet specified.** Out of scope lies beyond what this release is for: it never comes back unless the bet changes. Not yet specified lies inside the scope and is simply not decided yet: how a limit is enforced, which of two error behaviors applies. Filing an open question under out of scope quietly drops it; leaving it unfiled hands the decision to whoever implements it. Each open question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, so phase 5 can build the slices that do not.
+
 ## Acceptance Criteria
 
 Gate 4.1: **every criterion is a testable assertion.** The mechanical check is a subject plus a verifiable verb, with no adjective doing the work.
@@ -74,6 +76,20 @@ Per the phase 2 metric, work backwards: which events, with which properties, wou
 
 A spec whose tracking plan cannot compute the phase 2 metric has failed to connect the build to the reason for building it, and phase 7 will have nothing to evaluate.
 
+## Model Output: Eval Set
+
+When any acceptance criterion depends on what a model generates (a summary, a classification, a reply, a voice agent's turn), a pass/fail assertion cannot hold: the same input yields different outputs, and "the summary is accurate" has no subject and no verb. Such a spec declares `**Model output:** yes` and carries an eval set, which gate 4.6 checks.
+
+| Part | Rule |
+|------|------|
+| **Cases** | At least 20 inputs (10 in lite mode), drawn from real inputs where any exist (`[doc:*]` or `[data:*]` tagged), else written to cover the edge-case categories above. At least a quarter are failure-prone: ambiguous, adversarial, out of domain |
+| **Expected** | Per case, what a correct output must contain or must not contain. Not a reference answer to match word for word |
+| **Judge** | How each case is scored: a deterministic check (contains, parses, classifies as), a rubric a person applies, or a grader model with its rubric written out. Name which, per case or for the set |
+| **Threshold** | The pass rate the build must reach, and any case that must pass on its own (a safety or compliance case never averages out) |
+| **Guardrail in production** | Which share of live outputs is sampled and scored after release, by whom, how often. Phase 6 measures it next to the success metric |
+
+The eval set lives in `evals/{name}.md` in the initiative folder, or in the repository's own eval format when it has one; the spec points at it. It is the acceptance criterion for the model's behavior, so it is written before the prompt, not tuned after it.
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
@@ -92,7 +108,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 1. **Read `03-solution-bet.md` and `02-definition.md`.** The selected bet with its primary user action, the kill criteria, and the success metric with its baseline. No `03-solution-bet.md` means stop: a spec without a chosen bet specifies a guess.
 
-2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. A spec that does not say what it is changing produces a diff nobody can review against it.
+2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. Read `TECH.md` first: its constraints and conventions bound what the spec may ask for, and a spec that contradicts one names it and says why. A spec that does not say what it is changing produces a diff nobody can review against it.
 
 3. **Bound the scope.** In scope, then out of scope in the three boundary forms. Write the boundary someone will argue with. Gate 4.2 fails an empty list.
 
@@ -104,13 +120,15 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Design the tracking plan.** Work backwards from the phase 2 metric to the events and properties that compute it. Check each against the existing catalogue via `tracking-standards`. Mark each event new or existing.
 
-8. **Write and gate.** Write `.builderos/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
+7b. **If a criterion depends on model output, write the eval set** per Model Output: Eval Set, before the build starts.
+
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
 
 Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered acceptance criteria, the state coverage, the tracking plan and the gate result.
 
 ## Output Contract
 
-`.builderos/04-spec.md`:
+`.builderos/initiatives/{initiative}/04-spec.md`:
 
 ```markdown
 # Spec — {feature}
@@ -128,6 +146,10 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Item | Kind | Reason |
 | {item} | not now / not ever / not until X | {reason, or the trigger} |
 
+## Not yet specified
+| Open question | Decides | Blocks |
+| {in-scope question still open} | {person} | {AC numbers that wait on it, or "none"} |
+
 ## Flows
 {reference to DESIGN.md, with the flow list and where each is specified}
 
@@ -140,6 +162,11 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 
 ## Edge cases
 | Case | Category | Expected behavior |
+
+**Model output:** {yes | no}
+
+## Eval set
+{only when model output is yes: path to the eval file · number of cases · judge · threshold · must-pass cases · production sampling}
 
 ## Tracking plan
 | Event | Trigger | Properties | Measures | New or existing |
@@ -155,10 +182,12 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Empty out-of-scope list | Gate 4.2 fails; scope was described, not bounded | Write the boundary someone will argue with |
+| An open question filed under out of scope | The question disappears and the implementer answers it silently | Out of scope is beyond the bet; an undecided in-scope question goes under Not yet specified |
 | An adjective doing the work in a criterion | Nothing to test in phase 5 | Strike the adjectives; what remains must be verifiable |
 | Unnumbered acceptance criteria | Phase 5 maps tests by number | Number them |
 | Only happy-path states | The partial and permission states generate the support load | Six states per flow, every time |
 | Tracking designed after the build | Cannot measure the launch it was meant to measure | Work backwards from the phase 2 metric, before building |
 | A tracking plan that cannot compute the success metric | Gate 4.4 fails; phase 7 has nothing to evaluate | State explicitly how the events produce the number |
 | Open questions with no owner | They resolve themselves badly, at implementation time | Who decides, by when |
+| "The summary is accurate" as a criterion for model output | Nothing to assert; the build is judged by whoever demos it | Declare model output, write the eval set with a threshold |
 | Specifying a flow the bet did not choose | Scope creep before a line is written | Every flow traces to the phase 3 primary action |

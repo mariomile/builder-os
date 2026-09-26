@@ -100,11 +100,21 @@ Gate 1.5 requires that you looked for the thing that would kill the frame. State
 
 Then go find those reps. Research that only samples believers cannot return `KILLED`, and research that cannot return `KILLED` is not research.
 
+## Async Questionnaire
+
+When the knowledge sits with someone the user cannot get on a call (a customer's ops lead, the sales rep who hears the objection every week, a partner), write a questionnaire the user sends to that one person instead of dropping the question.
+
+1. **Ask the user only about the send**, in one round: who receives it, what they know that the user does not, and which decisions or facts the user needs back. The user can always answer these, even when they cannot answer the research question itself.
+2. **Write the document** to `.builderos/initiatives/{initiative}/questionnaires/{recipient-slug}.md`: purpose and the decision riding on it, one paragraph of context for someone who was not in the conversation, how to answer (deadline, effort, "I don't know" is a useful answer), then questions grouped by theme, most important first. One idea per question, with an empty answer stub beneath it, and a one-line "why this matters" only where the question could be misread.
+3. **The interview-guide rules still apply.** Ask for the last occurrence, not the future; ask for a story, not a yes. A questionnaire is a guide the respondent reads alone, so every leading question goes unchallenged.
+
+Tag the returned answers by who wrote them. A member of the ICP describing their own experience is primary: `[interview:Q{n}]`, with the respondent in the participant key. Someone reporting on other people (sales about customers, support about users) is secondary: `[doc:questionnaire-{recipient-slug}]`. Gate 1 counts the first kind, not the second.
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-provided]` |
+| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-{date}-{topic}]` |
 | `tickets.read` | Support tickets, bug reports in the user's words | Ask for a sample |
 | `docs.search` | Sales notes, prior research, earlier interviews | Search local notes, then ask |
 | `meetings.read` | Call transcripts | The user brings transcript files |
@@ -119,14 +129,14 @@ Gate 1 is fully satisfiable with five interviews and nothing else. Never tell a 
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
-1. **Read the frame.** `.builderos/00-frame.md`: the riskiest assumption and its falsifier become the research target; the ICP's reachability shapes recruiting; the prior-art classification shapes who to chase first ("solved, not adopted" means abandoners before anyone else). No frame on disk → stop and say phase 0 has not run. Never reconstruct it from conversation memory.
+1. **Read the frame.** `.builderos/initiatives/{initiative}/00-frame.md`: the riskiest assumption and its falsifier become the research target; the ICP's reachability shapes recruiting; the prior-art classification shapes who to chase first ("solved, not adopted" means abandoners before anyone else). No frame on disk → stop and say phase 0 has not run. Never reconstruct it from conversation memory.
 2. **Mine what already exists.** Resolve `db.query`, `tickets.read`, `docs.search`, `meetings.read`, `analytics.replay`, `analytics.query` and pull against the problem keywords. Ten cancellation reasons cost an hour and sharpen every interview that follows. Tag each extracted finding with its real provider. A ticket in the user's words is primary; your summary of forty tickets is not.
-3. **Design the sample.** How many, which classes, from where. Name explicitly how you will reach all four classes. If class 3 (abandoners) or class 4 (boundary) is unreachable, say so and state what the verdict therefore cannot conclude. Never drop a class silently. State the saturation stop condition, not just a count.
+3. **Design the sample.** How many, which classes, from where. Name explicitly how you will reach all four classes. If class 3 (abandoners) or class 4 (boundary) is unreachable, first ask who could reach them and offer an async questionnaire to that person; if that fails too, say so and state what the verdict therefore cannot conclude. Never drop a class silently. State the saturation stop condition, not just a count.
 4. **Write the guide**, five sections, then audit your own guide in the open: flag every question a polite person could answer "yes" to and rewrite it as a request for a story; flag every question about the future and rewrite it as the last occurrence; confirm the problem is not named before section 3. A guide presented without its audit has not been checked.
 5. **State the disconfirming test** before any interview happens. This is gate 1.5 and it must exist in advance, because a disconfirming test invented after the results is a rationalization.
 6. **Ingest and synthesize.** When transcripts exist, run thematic synthesis (delegate to a synthesis specialist where one is available, otherwise apply `discovery-methods` directly). Build the evidence ledger: group by theme, tag every claim, count primary units and distinct sources.
 7. **Decide the verdict.** `VALIDATED`, `KILLED` or `RESHAPED`, with reasoning that cites tags. Do not soften a kill. Do not upgrade a reshape because the user is invested. On reshape, state precisely what changed: the person, the cost, the trigger, or the scope.
-8. **Write and gate.** Write `.builderos/01-discovery.md`, run gate 1, update `state.json`. On `KILLED`, set the phase status to killed and stop the pipeline, reporting it as a win and naming what it saved.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/01-discovery.md`, run gate 1, update `state.json`. On `KILLED`, set the phase status to killed and the initiative `status` to `closed`, and stop the pipeline, reporting it as a win and naming what it saved. On the `spike` track, a passing gate 1 sets phase 1 to `answered` instead of advancing: report the verdict as the answer and offer to reclassify, per `gate-checks`, section Spike Stop.
 
 **When no transcripts exist yet**, the phase ends after step 5 with the plan as the deliverable and the gate not yet runnable. Say that plainly. Phase 1 normally spans two sessions and the state file carries the gap.
 
@@ -134,7 +144,7 @@ Completion marker: `## DISCOVERY COMPLETE` with the verdict, or `## RESEARCH PLA
 
 ## Output Contract
 
-`.builderos/01-discovery.md`:
+`.builderos/initiatives/{initiative}/01-discovery.md`:
 
 ```markdown
 # Discovery — {product}

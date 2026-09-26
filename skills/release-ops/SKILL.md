@@ -82,6 +82,17 @@ The date comes from the phase 3 kill criteria, which already named one. If phase
 
 A review with no owner does not happen. A review with no date happens when someone remembers, which is after the result has become obvious enough that there is nothing left to learn.
 
+## Claims and Their Evidence
+
+Release claims are the ones most often made from memory, under time pressure. Each needs its own evidence, captured in this phase.
+
+| Claim | Requires | Not enough |
+|-------|----------|------------|
+| Rollback works | The rollback executed once, with its result | A written procedure |
+| Baseline captured | The value, its source tag and a timestamp earlier than exposure | A dashboard link |
+| Events are flowing in production | Events observed from the production environment after deploy | Events seen in staging |
+| Outcome review scheduled | An owner and a date recorded in the artifact | "We'll check in a few weeks" |
+
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
@@ -117,13 +128,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 9. **Schedule the outcome review.** Owner and date, taken from the phase 3 kill criteria.
 
-10. **Write and gate.** Write `.builderos/06-release.md`, run gate 6, update `state.json`, advance to phase 7 on pass.
+10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6, update `state.json` with `review_due` set to the outcome review date, advance to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
 
 Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the timestamped baseline, the measurement, the release notes and the scheduled review.
 
 ## Output Contract
 
-`.builderos/06-release.md`:
+`.builderos/initiatives/{initiative}/06-release.md`:
 
 ```markdown
 # Release — {feature}
@@ -146,6 +157,7 @@ Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the 
 | Metric | Value | Window | Method | Tag |
 | {phase 2 success metric} | | | | |
 | {guardrail} | | | | |
+| {model output quality, when the spec declares model output: the production sample's pass rate on the eval rubric} | | | | |
 
 ## Measurement
 **Success metric measured by:** {named saved query or dashboard}

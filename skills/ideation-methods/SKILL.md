@@ -115,13 +115,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Design the cheapest test.** Name the riskiest assumption the bet rests on, pick the test shape from the catalogue, estimate its cost in days for this team, estimate the build cost in days, compute the ratio, and state what happens first. Where the ratio is under 20%, the test runs first or the override is logged.
 
-8. **Write and gate.** Write `.builderos/03-solution-bet.md`, run gate 3, update `state.json`, advance to phase 4 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/03-solution-bet.md`, run gate 3, update `state.json`, advance to phase 4 on pass.
 
 Completion marker: `## BET SELECTED` with the option set, the selection, the kill criteria, the test design and the gate result.
 
 ## Output Contract
 
-`.builderos/03-solution-bet.md`:
+`.builderos/initiatives/{initiative}/03-solution-bet.md`:
 
 ```markdown
 # Solution Bet — {product}
