@@ -28,7 +28,11 @@ function gate(root, n, ...extra) {
 }
 const INIT = (root, slug = 'csv-export') => path.join(root, '.builderos/initiatives', slug);
 const write = (root, file, body, slug) => fs.writeFileSync(path.join(INIT(root, slug), file), body);
-const evidence = (root, name, slug) => fs.writeFileSync(path.join(INIT(root, slug), 'evidence', name + '.md'), `# ${name}\n\n**Class:** interview\n**Captured:** 2026-09-01\n\nRaw notes from the conversation, long enough to count as material.\n`);
+function evidence(root, name, slug) {
+  const dir = path.join(INIT(root, slug), 'evidence');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, name + '.md'), `# ${name}\n\n**Class:** interview\n**Captured:** 2026-09-01\n\nRaw notes from the conversation, long enough to count as material.\n`);
+}
 
 test('brief names the active initiative and flags the overdue review and the stale roadmap', () => {
   const r = run(project(), 'brief');
