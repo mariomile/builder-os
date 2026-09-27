@@ -59,6 +59,18 @@ test('coverage check passes on an evidenced PRODUCT.md and fails on an assumed o
   assert.equal(g.by['C.4'], 'judge');
 });
 
+test('a term PRODUCT.md defines under Language is not solution language, and "ai" in Italian is not AI', () => {
+  const root = project();
+  const p = path.join(root, 'PRODUCT.md');
+  const base = fs.readFileSync(p, 'utf8');
+  fs.writeFileSync(p, base.replace('rebuilding the same pipeline view', 'rebuilding the pipeline view that AI answer engines ignore'));
+  assert.equal(gate(root, 'C').by['C.1'], 'fail');
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8') + '\n## Language\n\n| Term | Means | Not to be confused with |\n|---|---|---|\n| AI answer engine | A system that answers buyer questions | A search engine |\n');
+  assert.equal(gate(root, 'C').by['C.1'], 'pass');
+  fs.writeFileSync(p, base.replace('rebuilding the same pipeline view', 'dando ai manager la stessa vista'));
+  assert.equal(gate(root, 'C').by['C.1'], 'pass');
+});
+
 test('gate 0 fails on solution language and on tags with no evidence file', () => {
   const g = gate(project(), 0, '--initiative', 'onboarding-v2');
   assert.equal(g.by['E.1'], 'fail');

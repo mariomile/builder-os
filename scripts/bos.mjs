@@ -176,7 +176,28 @@ function audit(text) {
 
 // ---------- gates ----------
 
-const SOLUTION_WORDS = /\b(build|builds|add|adds|app|apps|platform|platforms|dashboard|dashboards|tool|tools|feature|features|automate|automates|automation)\b|\bAI\b/;
+// The list in gate-checks, condition 0.1. Terms PRODUCT.md defines under ## Language are the product's own
+// nouns ("AI answer engine" for a product that monitors them), so they are removed before the check.
+const SOLUTION_WORDS = /\b(build|builds|add|adds|create|creates|app|apps|platform|platforms|dashboard|dashboards|tool|tools|feature|features|integration|integrations|automate|automates|automation|redesign|migrate|rewrite)\b/i;
+const SOLUTION_AI = /\bAI\b/; // case-sensitive: "ai" is an Italian preposition
+
+function languageTerms(product) {
+  const terms = [];
+  for (const r of tableRows(section(product || '', 'Language'))) {
+    const t = (r[0] || '').replace(/[`*]/g, '').trim();
+    if (!t) continue;
+    const abbr = t.match(/\(([^)]+)\)/);
+    terms.push(t.replace(/\s*\([^)]*\)/, '').trim());
+    if (abbr) terms.push(abbr[1].trim());
+  }
+  return terms.filter(Boolean).sort((a, b) => b.length - a.length);
+}
+
+function solutionWord(statement, product) {
+  let s = statement || '';
+  for (const t of languageTerms(product)) s = s.replace(new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'gi'), ' ');
+  return s.match(SOLUTION_WORDS) || s.match(SOLUTION_AI);
+}
 
 function firstParagraph(text) {
   return (text || '').split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith('**')) || '';
@@ -194,7 +215,7 @@ function gate(n, ctx) {
   if (n === 'C') {
     const prob = section(a, 'The Problem');
     const statement = firstParagraph(prob);
-    const hit = statement.match(SOLUTION_WORDS);
+    const hit = solutionWord(statement, a);
     pass('C.1', prob && !hit, hit ? `solution word "${hit[0]}" in The Problem` : prob ? 'no solution language' : 'no "## The Problem" section');
     const icp = section(a, 'ICP');
     const rows = tableRows(icp);
@@ -210,7 +231,7 @@ function gate(n, ctx) {
 
   if (n === 0) {
     const prob = section(a, 'Problem');
-    const hit = firstParagraph(prob).match(SOLUTION_WORDS);
+    const hit = solutionWord(firstParagraph(prob), ctx.product);
     pass('0.1', prob && !hit, hit ? `solution word "${hit[0]}" in the problem` : prob ? 'no solution language' : 'no "## Problem" section');
     const who = section(a, 'Who') || '';
     const icps = who.split('\n').filter((l) => /primary icp/i.test(l));

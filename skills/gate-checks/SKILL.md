@@ -65,7 +65,7 @@ An override never silently disappears. It is not shame, it is provenance.
 
 | # | Condition | Check |
 |---|-----------|-------|
-| 0.1 | Problem statement contains no solution language | No occurrence of: build, add, app, platform, dashboard, tool, feature, AI, automate, in the problem sentence |
+| 0.1 | Problem statement contains no solution language | No occurrence of: build, add, create, app, platform, dashboard, tool, feature, integration, AI, automate, redesign, migrate, rewrite, in the problem sentence. A term defined in `PRODUCT.md` → Language is the product's own noun and is exempt ("AI answer engine" for a product that monitors them) |
 | 0.2 | Exactly one primary ICP named | A single named segment with a size estimate carrying a source tag |
 | 0.3 | Riskiest assumption is falsifiable | Stated as a sentence that could be shown false by an observation |
 | 0.4 | "Why now" cites a change in the world | A dated external change, not a preference or an availability of technology in general |
@@ -153,6 +153,8 @@ Runs once, at initialization, when the work is classified as `feature`. It stand
 | C.4 | The change serves that ICP | The request names which part of the evidenced problem it addresses. A change aimed at a different segment is a new problem |
 
 Pass: phases 0 and 1 are written `covered`, one `phase_covered` event each with the tags that satisfied C.1 to C.3, and the pipeline starts at phase 2. For gate 2.1 on this track, `PRODUCT.md` tags count as phase 1 evidence tags.
+
+Check before recording. `gate C` only reads; run it on the `PRODUCT.md` just written, before `cover` records anything. A failure in how the file was written (a solution word in a sentence that has a Language term for it, a tag left off a sentence whose evidence file exists) is fixed in `PRODUCT.md` first. A failure because the evidence is not there is the answer: never add a tag to pass C.3 without the file behind it. The first failure `cover` records is final.
 
 Fail: the work is a `product`. Use the refusal protocol with the failed C condition, then start at phase 0. Not a penalty: phase 0 and 1 are exactly what produces the evidence C.3 was looking for. The coverage check cannot be overridden, because an override would record phases as covered by evidence nobody has.
 

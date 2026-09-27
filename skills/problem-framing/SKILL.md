@@ -11,9 +11,7 @@ Almost nobody arrives with a problem. They arrive with a solution wearing a prob
 
 ## Solution Language
 
-The mechanical test for Gate 0.1. A problem statement containing any of these is a solution in disguise:
-
-> build, add, create, app, platform, dashboard, tool, feature, integration, AI, automate, redesign, migrate, rewrite
+The mechanical test for Gate 0.1, word list in `gate-checks`: a problem statement containing build, add, platform, dashboard, feature, AI and their kin is a solution in disguise. The product's own nouns are not: when the problem lives in a domain named by one of those words (a product that monitors AI answer engines), define the term in `PRODUCT.md` → Language and use it as defined, rather than bending the sentence to dodge the list.
 
 Extraction is a ladder. Each rung asks "why does that matter?" until the answer names a cost someone actually bears.
 
