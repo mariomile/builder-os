@@ -16,6 +16,8 @@ node tests/scenarios/run.mjs --host "claude -p {prompt} --setting-sources projec
 
 Codex: `codex exec --sandbox workspace-write --skip-git-repo-check {prompt}` (flags from `codex exec --help` on 0.157.1) with BuilderOS installed per `docs/hosts.md` and its session-start hook trusted once in the interactive client. Install and prompt assembly were checked on Codex CLI 0.157.1; the scenarios themselves have not run under a real Codex model yet.
 
+Fixtures: `acme` is a small reporting product; `captoo` is the stand-in used for the 2026-09-27 rehearsal of a whole initiative, with synthetic customer notes and numbers written for it (each evidence file says so). Neither is real customer data.
+
 A failing case keeps its directory, with the host's full output in `.scenario-output.txt`. Every failure found in a live run of a real initiative becomes a new case here.
 
 Cases are judged on effects, not prose, wherever possible. Where a check has to read the answer, the pattern is loose on purpose (Italian and English, either casing): the question is whether the behavior happened, not how it was phrased.
