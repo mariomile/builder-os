@@ -8,6 +8,9 @@
 //                                          create an initiative with a valid state.json and make it active
 //   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and, if it passes,
 //                                          record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
+//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--verdict v] [--override reason] [--review-due date] [--reenter N]
+//                                          write a gate result to state.json: the script's verdict plus the model's
+//                                          on the judge conditions; advances, closes, or keeps the phase open
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //
@@ -135,9 +138,10 @@ function checkEvidence(text, dirs) {
   const missing = [];
   for (const t of tags(text)) {
     if (t.cls === 'estimate' || t.cls === 'assumption') continue;
+    if (/^\.\.\.$|^…$/.test(t.id)) continue; // naming the class in prose, not citing a source
     if (/[*{}]/.test(t.id)) { missing.push(`${t.raw} (placeholder)`); continue; }
     if (t.cls === 'code') {
-      const p = t.id.replace(/:\d+(-\d+)?$/, '');
+      const p = t.id.replace(/:\d+([-,]\d+)*$/, '');
       if (!fs.existsSync(path.join(ROOT, p))) missing.push(`${t.raw} (no file ${p})`);
       continue;
     }
@@ -329,7 +333,8 @@ function gate(n, ctx) {
   if (n === 5) {
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
-    const mapped = new Set(map.filter((r) => nonEmpty(r[2])).map((r) => r[0]));
+    const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
+    const mapped = new Set(map.filter((r) => nonEmpty(r[2]) && !NO_TEST.test(r[2])).map((r) => r[0]));
     const unmapped = specAC.filter((x) => !mapped.has(x));
     pass('5.1', specAC.length > 0 && unmapped.length === 0, specAC.length === 0 ? 'no numbered criteria in 04-spec.md' : unmapped.length ? `unmapped: ${unmapped.join(', ')}` : `${specAC.length} criteria mapped`);
     const outSec = section(a, 'Test output');
@@ -653,6 +658,68 @@ function cover() {
   console.log(`Coverage check passed: phases 0 and 1 covered by ${used.join(', ')}. ${init.slug} starts at phase 2.`);
 }
 
+// Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
+// conditions, so the author never writes its own pass. Refuses when a judge condition has no verdict.
+function record(which) {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const n = Number(which);
+  const s = init.state;
+  if (!(n >= 0 && n <= 7)) die('record takes a phase number 0-7');
+  if (n !== s.current_phase) die(`${init.slug} is at phase ${s.current_phase}; record ${s.current_phase}, or pass --initiative`);
+  const j = JSON.parse(spawnSyncSelf(['gate', String(n), '--json', '--initiative', init.slug]) || '{}');
+  if (!j.results) die(`gate ${n} could not run: does ${ARTIFACTS[n]} exist?`);
+  const judged = Object.fromEntries((opt('--judged') || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => x.split('=').map((y) => y.trim())));
+  const missing = j.checked_by.model.filter((id) => !['pass', 'fail'].includes(judged[id]));
+  if (missing.length) die(`judge ${missing.join(', ')} first, then pass --judged "${missing.map((id) => `${id}=pass|fail`).join(',')}"`);
+  const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail')];
+  const override = opt('--override');
+  const now = new Date().toISOString();
+  const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
+  if (gateEntry.overridden) gateEntry.override_reason = override;
+  const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
+  s.history = s.history || [];
+  s.updated_at = now;
+  if (!gateEntry.passed) {
+    ph.status = 'in_progress';
+    s.history.push({ at: now, event: 'gate_failed', phase: n, failed_conditions: failed });
+    writeJSON(path.join(init.dir, 'state.json'), s);
+    console.log(`Gate ${n} failed on ${failed.join(', ')}: ${init.slug} stays at phase ${n}.`);
+    process.exit(1);
+  }
+  const verdict = opt('--verdict');
+  if (verdict) ph.verdict = verdict;
+  const reenter = opt('--reenter') !== undefined ? Number(opt('--reenter')) : null;
+  if (n === 7) {
+    if (!['keep', 'iterate', 'kill'].includes(verdict)) die('phase 7 records the decision: --verdict keep|iterate|kill');
+    if (reenter !== null && !(reenter >= 0 && reenter <= 6)) die('--reenter takes the phase the next cycle starts at');
+    s.review_due = null;
+  }
+  const stops = (n === 1 && ['killed', 'answered'].includes(verdict)) || (n === 7 && reenter === null);
+  ph.status = n === 1 && ['killed', 'answered'].includes(verdict) ? verdict : 'passed';
+  if (n === 6) {
+    const due = opt('--review-due');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(due || '')) die('phase 6 sets the outcome review date: pass --review-due YYYY-MM-DD (gate 6.5)');
+    s.review_due = due;
+  }
+  s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}) });
+  if (n === 7 && reenter !== null) {
+    s.cycle = (s.cycle || 1) + 1;
+    s.current_phase = reenter;
+    for (let k = reenter; k <= 7; k++) s.phases[String(k)] = { status: k === reenter ? 'in_progress' : 'pending', artifact: null, gate: null };
+    s.history.push({ at: now, event: 'cycle_started', cycle: s.cycle, phase: reenter });
+  } else if (stops) {
+    s.status = 'closed';
+    s.history.push({ at: now, event: 'closed', phase: n, ...(verdict ? { verdict } : {}) });
+  } else {
+    s.current_phase = n + 1;
+    s.phases[String(n + 1)] = { ...(s.phases[String(n + 1)] || { artifact: null, gate: null }), status: 'in_progress' };
+  }
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(n === 7 && reenter !== null ? `Gate 7 recorded (${verdict}): cycle ${s.cycle} of ${init.slug} starts at phase ${reenter} ${PHASES[reenter]}. Move the earlier artifacts to cycle-${s.cycle - 1}/.` : stops ? `Gate ${n} recorded (${ph.status}${verdict ? `, ${verdict}` : ''}): ${init.slug} is closed.` : `Gate ${n} recorded${gateEntry.overridden ? ` as overridden (${failed.join(', ')})` : ''}: ${init.slug} moves to phase ${n + 1} ${PHASES[n + 1]}.`);
+}
+
 function spawnSyncSelf(a) {
   try { return execFileSync(process.execPath, [fileURLToPath(import.meta.url), ...a, '--root', ROOT], { stdio: ['ignore', 'pipe', 'ignore'] }).toString(); }
   catch (e) { return e.stdout.toString(); }
@@ -708,8 +775,9 @@ else if (cmd === 'gate') runGate(args[1]);
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'new') newInitiative(args[1]);
 else if (cmd === 'cover') cover();
+else if (cmd === 'record') record(args[1]);
 else if (cmd === 'migrate') migrate();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | roadmap | migrate   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | roadmap | migrate   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

@@ -20,6 +20,8 @@ A gate checked by the model that wrote the artifact is a gate checked on trust. 
 
 Where commands cannot be executed, the model checks every condition and all of them go under `model`. Same conditions, weaker provenance, and the record says so.
 
+**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phase 1 passes its verdict with `--verdict` (`killed` and `answered` close the initiative), phase 6 its outcome review date with `--review-due`.
+
 Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.2, 6.3, 6.5, 7.1, 7.2, 7.3, C.1, C.2, C.3. Everything else is model-judged.
 
 ## Every Gate: Evidence Resolves
@@ -55,7 +57,7 @@ Overrides exist. Undocumented bypasses are worse than documented ones.
 /bos-gate --override "reason"
 ```
 
-Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
+Where commands run, `record {N} --judged ... --override "reason"`. Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
 
 An override never silently disappears. It is not shame, it is provenance.
 

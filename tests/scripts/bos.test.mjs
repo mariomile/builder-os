@@ -150,6 +150,10 @@ test('gate 5 maps every criterion, reads pasted output and the eval pass rate', 
   g = gate(root, 5);
   assert.equal(g.by['5.1'], 'fail');
   assert.equal(g.by['5.5'], 'fail');
+  write(root, '05-build-plan.md', build(90, '| 2 | rows | **No test in this repo.** Reasoned exception | pass |'));
+  assert.equal(gate(root, 5).by['5.1'], 'fail', 'an excuse is not a test');
+  write(root, '05-build-plan.md', build(90, '| 2 | rows | test/export.test.ts | pass `[code:test/export.test.ts:1,4]` |') + '\nWhere no analytics resolved, the weaker `[code:...]` class applies.\n');
+  assert.equal(gate(root, 5).by['E.1'], 'pass', 'line lists resolve, and naming a class is not citing');
 });
 
 test('gate 6 requires the baseline before the rollout', () => {
@@ -167,6 +171,18 @@ test('gate 7 needs one decision and the kill-criteria verdict', () => {
   const g = gate(root, 7);
   assert.deepEqual(g.failed, []);
   assert.equal(g.by['7.4'], 'judge');
+  const sp = path.join(INIT(root), 'state.json');
+  const st = JSON.parse(fs.readFileSync(sp, 'utf8'));
+  fs.writeFileSync(sp, JSON.stringify({ ...st, current_phase: 7, review_due: '2026-12-01' }));
+  const judged = g.checked_by.model.map((id) => `${id}=pass`).join(',');
+  assert.equal(run(root, 'record', '7', '--judged', judged).code, 2, 'phase 7 needs the decision');
+  assert.equal(run(root, 'record', '7', '--judged', judged, '--verdict', 'iterate', '--reenter', '3').code, 0);
+  const s = JSON.parse(fs.readFileSync(sp, 'utf8'));
+  assert.equal(s.cycle, 2);
+  assert.equal(s.current_phase, 3);
+  assert.equal(s.review_due, null);
+  assert.equal(s.status, 'open');
+  assert.equal(s.history.at(-1).event, 'cycle_started');
 });
 
 test('roadmap regenerates Now from the initiative states and keeps the bet', () => {
@@ -200,6 +216,29 @@ test('a failed coverage check upgrades the track to product', () => {
   const s = JSON.parse(fs.readFileSync(path.join(INIT(root, 'team-filter'), 'state.json'), 'utf8'));
   assert.equal(s.track, 'product');
   assert.equal(s.history.at(-1).event, 'track_upgraded');
+});
+
+test('record writes the gate from the script and the judged conditions, and refuses without them', () => {
+  const root = project();
+  const state = () => JSON.parse(fs.readFileSync(path.join(INIT(root), 'state.json'), 'utf8'));
+  assert.equal(run(root, 'record', '2').code, 2, 'judge conditions need a verdict');
+  assert.equal(run(root, 'record', '3', '--judged', 'x=pass').code, 2, 'only the current phase');
+  assert.equal(run(root, 'record', '2', '--judged', '2.5=pass,2.6=fail').code, 1);
+  let s = state();
+  assert.equal(s.current_phase, 2);
+  assert.equal(s.phases['2'].gate.passed, false);
+  assert.deepEqual(s.phases['2'].gate.failed_conditions, ['2.6']);
+  assert.equal(s.history.at(-1).event, 'gate_failed');
+  assert.equal(run(root, 'record', '2', '--judged', '2.5=pass,2.6=pass').code, 0);
+  s = state();
+  assert.equal(s.current_phase, 3);
+  assert.equal(s.phases['2'].status, 'passed');
+  assert.equal(s.phases['3'].status, 'in_progress');
+  assert.ok(s.phases['2'].gate.checked_by.model.includes('2.6'));
+  assert.ok(s.phases['2'].gate.checked_by.script.includes('E.1'));
+  assert.equal(s.history.at(-1).event, 'gate_passed');
+  assert.match(fs.readFileSync(path.join(root, '.builderos/ROADMAP.md'), 'utf8'), /\| CSV export \| feature \| 3 — Ideate/);
+  assert.doesNotMatch(run(root, 'brief').out, /does not follow the schema/);
 });
 
 test('brief flags a state file written off-schema', () => {

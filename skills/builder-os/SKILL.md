@@ -72,13 +72,13 @@ Before starting any phase:
 
 Then run the phase. Two paths, same procedure:
 
-**If `subagent.dispatch` resolved** — delegate to the phase's agent with a context package containing: operating mode and resolved capabilities, pipeline state (phase, cycle, mode), `PRODUCT.md`, the previous phase artifact, the user's request, and the instruction to write `.builderos/initiatives/{initiative}/{NN-name}.md`, update `state.json`, and run the phase gate before reporting. Isolated context per phase, which is the better path where it exists.
+**If `subagent.dispatch` resolved** — delegate to the phase's agent with a context package containing: operating mode and resolved capabilities, pipeline state (phase, cycle, mode), `PRODUCT.md`, the previous phase artifact, the user's request, and the instruction to write `.builderos/initiatives/{initiative}/{NN-name}.md` and run the phase gate before reporting. The hub records the gate itself, after re-running it on the file. Isolated context per phase, which is the better path where it exists.
 
 **If it did not** — load the phase's skill and run its procedure inline, in sequence, in this conversation. Identical steps, identical artifacts, identical gates. The procedure lives in the skill precisely so that this path loses nothing but context isolation.
 
 Never make the second path apologize for itself. It is the normal path on most hosts.
 
-On either path, the phase is not done when a completion marker appears. The marker is a claim. Re-read the artifact on disk and run the phase gate on it per `gate-checks`; only that result advances `state.json`. A delegated agent that reports success over a missing file or a failing condition has not finished the phase.
+On either path, the phase is not done when a completion marker appears. The marker is a claim. Re-read the artifact on disk and run the phase gate on it per `gate-checks`; only that result advances `state.json`, recorded with `scripts/bos.mjs record {N}` where commands run, never written by hand. A delegated agent that reports success over a missing file or a failing condition has not finished the phase.
 
 After the gate, keep the project memory current in the same step: `ROADMAP.md` gets the initiative's new phase or its closing line, `TECH.md` gets any convention or trap phases 5 and 6 discovered, and a decision that passes the ADR test goes to `decisions/`. The next session knows only what these files say.
 

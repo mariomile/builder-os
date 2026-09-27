@@ -210,11 +210,11 @@ A phase that passed through an overridden gate:
 | `phases.N.verdict` | phase-specific | Only phases 1 and 7 carry a verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it) |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason), `closed` (phase 7, or a phase 1 kill or answer) |
 
 ## Rules
 
-0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, a phase 6 review date, a close), and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
 
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
