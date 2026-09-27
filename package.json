@@ -21,7 +21,7 @@
     "builder-os"
   ],
   "scripts": {
-    "test": "node --test tests/scripts/bos.test.mjs",
+    "test": "node --test tests/scripts/*.test.mjs",
     "scenarios": "node tests/scenarios/run.mjs"
   }
 }

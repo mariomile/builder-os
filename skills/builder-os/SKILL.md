@@ -64,7 +64,7 @@ Host-agnostic. Every step below works whether or not this host can delegate to a
 
 Before starting any phase:
 
-1. **Read `.builderos/ROADMAP.md`, resolve the active initiative and read its `state.json`.** The roadmap says what is in flight; the active initiative's state says which phase is current and which gates passed. Everything below applies to that initiative, in its folder `.builderos/initiatives/{initiative}/`. If `.builderos/` does not exist, offer initialization — do not guess a phase.
+1. **Read `.builderos/ROADMAP.md`, resolve the active initiative and read its `state.json`.** The roadmap says what is in flight; the active initiative's state says which phase is current and which gates passed. Everything below applies to that initiative, in its folder `.builderos/initiatives/{initiative}/`. If `.builderos/` does not exist, offer Initialization below; do not guess a phase.
 2. **Read `PRODUCT.md`, and `TECH.md` from phase 4 on.** Durable truth carries into every phase; technical context carries into every phase that touches code. If `PRODUCT.md` is absent, fall back to `PM-CONTEXT.md`, then to asking.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Read the previous phase artifact.** Every phase consumes the one before it. Starting phase 3 without `02-definition.md` produces confident fiction.
@@ -81,6 +81,20 @@ Never make the second path apologize for itself. It is the normal path on most h
 On either path, the phase is not done when a completion marker appears. The marker is a claim. Re-read the artifact on disk and run the phase gate on it per `gate-checks`; only that result advances `state.json`. A delegated agent that reports success over a missing file or a failing condition has not finished the phase.
 
 After the gate, keep the project memory current in the same step: `ROADMAP.md` gets the initiative's new phase or its closing line, `TECH.md` gets any convention or trap phases 5 and 6 discovered, and a decision that passes the ADR test goes to `decisions/`. The next session knows only what these files say.
+
+## Initialization
+
+Runs when `.builderos/` does not exist yet, and again for every new initiative after the first. The first run creates the project memory: product truth, technical context, the roadmap, and the pointer that makes every future session read them. Later runs add an initiative. Template at `references/product-md-template.md`, schema at `references/builderos-state-schema.md`, tagging per `evidence-ledger`.
+
+1. **Check for existing state.** If `.builderos/ROADMAP.md` exists, the project is initialized: go to step 6. If a `schema: 1` file sits at `.builderos/state.json`, migrate it first per the schema's Rules and say what moved.
+2. **Migrate, do not re-ask.** If `PM-CONTEXT.md` exists, pre-fill every field it covers and ask only for what is missing.
+3. **Interview for `PRODUCT.md`** in rounds per `pressure-testing` (Rounds): independent fields together, numbered, each with a recommended answer drawn from what the session can already read (a README, docs, `PM-CONTEXT.md`); a field that depends on another waits for the next round. Fields: name and one-sentence purpose; the problem without solution language; primary ICP and how they solve it today; at least three non-goals; constraints (technical, regulatory, resource, distribution); voice, two or three adjectives each with a counter-example; existing data sources. Tag every answer. A new product's `PRODUCT.md` is mostly `[assumption:unvalidated]`, which is the correct starting state: say so rather than dressing guesses as facts.
+4. **Two setup questions.** Mode `full` or `lite` (lite relaxes elaboration conditions on gates 2, 3, 4 and 6, never evidence, kill criteria, test mapping, rollback or baseline). Commit `.builderos/` or gitignore it; default commit.
+5. **Scaffold** (first run only): `PRODUCT.md`; `TECH.md` from the repository when readable, otherwise from the user ("no code yet" is a valid answer); `.builderos/ROADMAP.md` with Direction from `PRODUCT.md`, empty tables and today's Verified date; `.builderos/decisions/`; `.builderos/evidence/` with one file per source behind every tag in `PRODUCT.md` and `TECH.md` (an interview answer is `[doc:user-{date}-{topic}]` with the user's words copied in). Add the BuilderOS block from the schema's Session Start section to the project's `AGENTS.md` (create it if absent), and to `CLAUDE.md` if one exists and does not import `AGENTS.md`; show the user the block. Add `.builderos/local.json` to `.gitignore`.
+6. **Name the initiative.** Ask for a short name and derive the slug. Where commands run, `scripts/bos.mjs new {slug} --title "..." --track {track} --reason "..."` creates `.builderos/initiatives/{slug}/` with `evidence/` and a schema-conformant `state.json`, pauses the previously active initiative, writes `local.json` and regenerates the roadmap. Elsewhere, write the same by hand, copying the schema's example field for field. A paused initiative is paused, not closed: say so.
+7. **Classify the track** per Tracks below and say it out loud with the reason before anything else runs. On `feature`, run the coverage check in `gate-checks` against `PRODUCT.md`: judge C.4 yourself, and where commands run let `scripts/bos.mjs cover --c4 "how the request serves the evidenced problem"` decide the rest and write the result either way. Pass: phases 0 and 1 `covered`, start at phase 2. Fail: name the condition, the track becomes `product`, start at phase 0. For `feature`, default the mode question to `lite`. `spike` and `product` start at phase 0.
+8. **Update the roadmap.** The initiative sits under Now with its track, starting phase, one-line bet and folder (the script's `roadmap` regenerates the table).
+9. **Report and route** on one screen: what was created, the initiative, the track and why, the starting phase, what that phase will do.
 
 ## Operating Modes
 

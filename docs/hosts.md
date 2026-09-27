@@ -37,16 +37,28 @@ Install as a plugin. Skills, agents and slash commands all load: this is the ric
 
 ## Codex
 
-**As a plugin.** The repo ships `.codex-plugin/plugin.json` (it points Codex at `skills/`) and `.agents/plugins/marketplace.json` (a one-plugin marketplace rooted at the repo). Both follow the shape Superpowers publishes for Codex. The manifest format belongs to Codex and may change between versions; if yours does not load it, the manual setup below gives the same result.
+**As a plugin.** Checked on 2026-09-27 against Codex CLI 0.157.1: installed from this repository, then a full `codex exec` run against a local stand-in model that recorded what Codex sent. Not yet checked: a real model following the skills under Codex, because no OpenAI credentials were available.
+
+```
+codex plugin marketplace add mariomile/builder-os     # or a local checkout's path
+codex plugin add builder-os@builder-os
+```
+
+What was verified:
+
+- `.agents/plugins/marketplace.json` is read and `.codex-plugin/plugin.json` installs as `builder-os@builder-os`. A local marketplace is cloned with git, so Codex installs the last commit, not uncommitted edits.
+- All 24 skills reach the model's skill list as `builder-os:{skill}`.
+- Codex imports `commands/*.md` as skills named `builder-os:source-command-{command}`, so `/bos-init` becomes a skill the model can pick by its description. It silently drops a command file over 3875 bytes: `npm test` keeps every command under 3800, and the procedure lives in the skills anyway.
+- The session-start hook in `hooks/hooks.json` is discovered as a `sessionStart` plugin hook, on one condition: the Codex manifest must not declare `"hooks": {}`, which replaces it with nothing. Codex marks a plugin hook untrusted until the user approves it once, in the interactive client; until then the session starts without the briefing and `using-builder-os` is picked by its description instead.
+
+Commands name Claude Code subagents (`Agent({...})`). On Codex the imported command reads as instructions to follow, and the phase runs inline per `builder-os`, Run Protocol.
 
 **Manually.** Two pieces.
 
 1. **`AGENTS.md`** is picked up from the repository root automatically, giving Codex the pipeline map and the non-negotiables.
 2. **The skills** need to be discoverable by the host. Copy or symlink this repo's `skills/` into the directory your Codex version scans for skills, then invoke a skill by name or let the description match your request.
 
-Check your installed version's documentation for the exact skills directory and invocation syntax — those are host details that change, and nothing in BuilderOS depends on them. What matters is that `skills/` is reachable.
-
-**The session briefing.** Codex has no session-start hook here, so the briefing comes from the block `/bos-init` writes into the project's `AGENTS.md`. Where Codex may run commands, `node {path-to-builder-os}/scripts/bos.mjs brief` prints it from the files, and `... gate N` checks a gate.
+**The session briefing.** Where the hook is not trusted or not present, the briefing comes from the block initialization writes into the project's `AGENTS.md`. Where Codex may run commands, `node {path-to-builder-os}/scripts/bos.mjs brief` prints it from the files, and `... gate N` checks a gate.
 
 No slash commands. Name the phase instead ("run the frame phase on this idea") or the skill (`builder-os`, `problem-framing`, …). Phases run inline, in sequence, in one conversation. Same procedure, same artifacts, same gates.
 
