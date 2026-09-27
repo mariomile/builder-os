@@ -60,7 +60,7 @@ Nothing else functions without this. Delivers a working `/bos-init` → `/bos-st
 - [x] **1.8 — Verify and commit**
   Frontmatter valid on all new skills (`name`, `description` = triggering conditions only) — checked. Every skill referenced by the hub and the new commands resolves to a real directory, or is marked unavailable in the hub's Availability section — checked. Test prompts added for the four spine skills.
 
-- [ ] **1.9 — Runtime verification**
+- [x] **1.9 — Runtime verification** — run 2026-09-27 on Claude Code, see `docs/runs/2026-09-27-captoo-rehearsal.md`: init on an empty directory writes `PRODUCT.md` and a schema-conformant state; a weak `00-frame.md` fails gate 0 on 0.1 to 0.4, named, and the phase stays at 0.
   Run `/bos-init` → `/bos-gate` → `/bos-status` in a clean session on an empty directory. Confirm `PRODUCT.md` and `state.json` are written to schema, and that a deliberately weak `00-frame.md` fails gate 0 with a named condition. Not yet executed: requires a live session with the plugin installed.
 
 ---
@@ -84,7 +84,7 @@ The part that makes the promise true: an idea can now enter the system.
 - [x] **2.5 — Structural verification and commit**
   All three agents carry `model: inherit`, Phase 0 mode detection, a Fallback section, a completion marker and a Common Mistakes table — checked. Skill frontmatter is `name` + triggering-condition `description` only — checked. Four test prompts added. Hub Availability section updated to mark phases 0–2 live.
 
-- [ ] **2.6 — Behavioral verification**
+- [x] **2.6 — Behavioral verification** — run 2026-09-27: `/bos-discovery-sprint` on an idea with no data passes gate 0 and stops phase 1 at a research plan, no verdict.
   Run `/bos-discovery-sprint` against a real idea in a clean session. Confirm each agent refuses to advance on a failed gate and names the condition. Confirm phase 1 pauses with a plan rather than fabricating a verdict when no transcripts exist. Not yet executed: requires a live session with the plugin installed.
 
 ---
@@ -108,7 +108,7 @@ Added 2026-09-21. BuilderOS must run on Claude Code and Codex, and degrade sanel
 - [x] **2b.5 — Portability rules in `CLAUDE.md`**
   Six enforced rules, a new Skill Contract, a rewritten Agent Contract, and design principles 4 and 6 replaced.
 
-- [ ] **2b.6 — Cross-host verification**
+- [ ] **2b.6 — Cross-host verification** — partly done 2026-09-27: on Codex CLI 0.157.1 the plugin installs, all skills and commands reach the model's prompt and the session-start hook is discovered (three adapter bugs fixed, see `docs/hosts.md`). Still open: phases 0–2 run by a Codex model, which needs OpenAI credentials.
   Run phases 0–2 on Codex with `skills/` reachable and no `agents/` or `commands/`, and confirm identical artifacts and gate behavior against a Claude Code run of the same idea. Not yet executed.
 
 ---
@@ -132,7 +132,7 @@ The 11 v0.1/v0.2 agents predated the portability contract. Spec: `docs/specs/202
 - [x] **5.5 — Added: `references/analytics-contract.md`**
   Five question shapes (catalogue, volume, funnel, retention, breakdown) with their result shapes, their floors, the provider vocabulary for Mixpanel, Amplitude and PostHog, and the two traps that make a number silently wrong: an unread conversion window and a retention definition compared across bounded and unbounded.
 
-- [ ] **5.6 — Behavioral equivalence**
+- [x] **5.6 — Behavioral equivalence** — dropped 2026-09-27, not executed: the pre-retrofit agents called one person's analytics connector by its identifier, so the before side of the comparison runs nowhere else. What the task protected (the retrofitted agents still produce their phase's artifact) is covered by the scenarios in `tests/scenarios/` and the full rehearsal in `docs/runs/2026-09-27-captoo-rehearsal.md`.
   Each retrofitted agent produces equivalent output on the same input as before the change, on a host where the same capabilities resolve. Not yet executed: requires a live session with the plugin installed.
 
 **Structural verification, run 2026-09-23:** `grep -r 'mcp__' skills/ agents/ commands/` returns nothing. No skill, agent or command names a product for the user to install. All 14 agents are 29 to 31 lines. Skill frontmatter is `name` plus a triggering-condition `description` throughout. The dangling `b2b-saas-analytics` reference is gone.
@@ -161,7 +161,7 @@ The 11 v0.1/v0.2 agents predated the portability contract. Spec: `docs/specs/202
 - [x] **4.2 — Phase 7: Learn**
   The plan called for commands only. Procedure in a command is invisible on a host with no `commands/` directory, so phase 7 gained `outcome-review` like every other phase: the identical-rerun rule, the two separate comparisons against target and against kill criteria, the three honest handlings of an ambiguous result, the override-reading table, and the test that separates a learning from a summary. No new agents: `/bos-learn` orchestrates the analysis cluster against the phase 2 target and the phase 3 kill criteria. `/bos-adr` writes decision records from any phase. Two test prompts.
 
-- [ ] **4.3 — Full-loop test**
+- [x] **4.3 — Full-loop test** — rehearsed 2026-09-27 on a captoo stand-in with synthetic evidence, `/bos-init` to phase 7 and into cycle 2; seven defects found and fixed. `docs/runs/2026-09-27-captoo-rehearsal.md`. A run on a real project with real users is still to come.
   One idea driven 0 → 7 in a single session against a real project. Every gate exercised, every artifact written, every claim audited for a source tag. Not yet executed: requires a live session with the plugin installed.
 
 - [x] **4.4 — Documentation and release**

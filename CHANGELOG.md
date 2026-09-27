@@ -2,6 +2,29 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [2.1.0] - 2026-09-27
+
+The first initiative taken from `/bos-init` to phase 7, rehearsed on a stand-in for a captoo feature, and the first install on Codex. Everything below was found by those two runs. Report: `docs/runs/2026-09-27-captoo-rehearsal.md`.
+
+### Added
+
+- **`bos.mjs record N`** writes a gate result to `state.json`: the script's verdict on its own conditions plus the model's verdict on the judge ones, passed as `--judged "id=pass|fail"` and refused when one is missing. It sets status, `checked_at`, `checked_by`, failed conditions and the history event (`gate_passed`, `gate_failed`, `gate_overridden`, `closed`, `cycle_started`), advances, holds or closes the phase, records the phase 1 verdict, the phase 6 review date and the phase 7 re-entry, and regenerates the roadmap. The rehearsal's model had written four passes by hand with invented timestamps, one of them over a failing gate.
+- **Gate 2.6**: the success metric measures an outcome, not the build. A metric the code hits by shipping ("alerts sent within 24 hours") makes phase 7 measure nothing.
+- **Scenarios** `feature-track-ai-domain` and `gate-recorded-by-script`, and the `captoo` fixture they run on. `tests/scripts/manifests.test.mjs` checks manifest versions and command sizes.
+
+### Changed
+
+- **Initialization procedure moved into `builder-os`** (section Initialization); `/bos-init` routes to it. Hosts without commands run the same steps.
+- Phase agents are dispatched in the foreground: a backgrounded reviewer let a headless session end before gate 5 was recorded.
+- The roadmap's bet column falls back to phase 3's selected option.
+
+### Fixed
+
+- **Codex**: the manifest's empty `hooks` object switched off the session-start hook; Codex 0.157.1 discovers `hooks/hooks.json` once it is gone. Codex silently dropped `/bos-init` and `/bos-build` when importing commands as skills (limit 3875 bytes); both are now well under it and a test keeps every command there. The Codex manifest still said 1.0.0.
+- Coverage check and gate 0: a term defined in `PRODUCT.md` → Language is not solution language ("AI answer engine" for a product that monitors them); the three copies of the word list are one; "ai" as an Italian preposition no longer matches. The procedure runs `gate C` before `cover`, so a drafting error is fixed before a verdict is recorded.
+- Gate 5.1 no longer counts "no test, reasoned exception" as a mapped criterion. E.1 resolves `code` tags with line lists and ignores `[code:...]` used in prose to name the class.
+- Gate 6.4 in lite mode printed "undefined"; it is judged in both modes and a lite fail is a warning.
+
 ## [2.0.0] - 2026-09-26
 
 ### Added

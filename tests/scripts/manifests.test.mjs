@@ -13,6 +13,7 @@ test('every manifest carries the package version', () => {
   const v = json('package.json').version;
   assert.equal(json('.claude-plugin/plugin.json').version, v);
   assert.equal(json('.codex-plugin/plugin.json').version, v);
+  assert.equal(json('.claude-plugin/marketplace.json').plugins[0].version, v);
 });
 
 test('the Codex manifest does not switch off the session-start hook', () => {
