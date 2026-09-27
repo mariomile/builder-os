@@ -91,6 +91,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 2.3 | Success metric named | With baseline and target, both source-tagged |
 | 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. If no product exists yet, baseline is explicitly `0` with the first-measurement date named |
 | 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `strategy-frameworks`) rejects scale-oriented opportunities |
+| 2.6 | The metric measures an outcome | Shipping the change cannot by itself satisfy the target. A count of what the system does (alerts sent, emails delivered, a feature released) is output: it goes to the tracking plan or a guardrail, and the metric names what the user does or gets differently |
 
 ### Gate 3 — Ideate
 
@@ -166,7 +167,7 @@ A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `an
 
 `state.json` may set `mode: "lite"` for small features. Lite mode keeps every hard condition (evidence thresholds, kill criteria, test mapping, rollback, baseline) and drops the elaboration conditions: 2.1 relaxes to ≥2 opportunities, 3.1 to ≥2 options, 4.5 and 6.4 become warnings rather than failures.
 
-Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
+Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
 
 ## Common Mistakes
 
@@ -177,6 +178,7 @@ Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 
 | Writing `[interview:P3]` with no `evidence/P3.md` | E.1 fails; the claim has no source anyone can open | Write the notes file, or rewrite the claim as an assumption |
 | Failing a gate without naming the condition | The user cannot act on it | Use the refusal format |
 | Treating `KILLED` as a failure | Killing early is the cheapest win available | Report it as a successful pass and stop |
+| Accepting a success metric the build satisfies by existing | "Alerts sent within 24 hours" hits its target the day the code ships, so phase 7 measures nothing | Name what the user does differently: acts on the drop, recovers, stays |
 | Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an explicit zero |
 | Overriding the coverage check | Phases recorded as covered by evidence that does not exist | Classify as `product` and start at phase 0 |
 | Silently proceeding after a failure | Destroys the value of the whole model | Refuse, or override and log |

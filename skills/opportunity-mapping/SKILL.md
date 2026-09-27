@@ -79,7 +79,7 @@ The output of phase 2 that everything downstream depends on. Four parts, all req
 
 | Part | Rule |
 |------|------|
-| **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation" |
+| **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation". An outcome, not an output: if shipping the change is enough to hit the target ("alerts delivered within 24 hours"), it measures the build, not the bet (gate 2.6) |
 | **Baseline** | The current value, today, with a source tag. `[data:*]`, `[code:*]` or primary `[doc:*]` |
 | **Target** | A number and a date. Reasoned from the baseline and a comparable, not from ambition |
 | **Measurement** | The query, event or dashboard that will produce the number in phase 6 |
@@ -166,5 +166,6 @@ Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, 
 | An acquisition bet at pre-PMF | Optimizes a leaking bucket | Gate 2.5 refuses it; deepen value first |
 | Estimated baseline | Makes the target unfalsifiable and phase 7 decorative | Real query, or explicit 0 with a measurement date |
 | Two success metrics | Downstream phases cannot optimize both | One. The second is a guardrail, label it so |
+| A metric the build satisfies by existing | Phase 7 confirms the code ran, not that anyone is better off | Measure the user's response to what was built; the system's own count goes to the tracking plan |
 | RICE-style precision on guessed inputs | Decimals imply knowledge that does not exist | Ranges with stated methods; ties broken by strategy |
 | Overlapping sibling opportunities | Double-counts impact | Make siblings mutually exclusive |

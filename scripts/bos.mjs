@@ -281,6 +281,7 @@ function gate(n, ctx) {
     pass('2.3', nonEmpty(field(sm, 'Metric')) && base && (hasTag(base) || zero) && target && /\d/.test(target) && DATE_RE.test(target), 'metric, tagged baseline, target with a value and a date');
     pass('2.4', base && (hasTag(base, ['data', 'code', 'doc']) || zero), base ? (zero ? 'explicit zero with a first-measurement date' : `baseline tag: ${tags(base).map((t) => t.cls).join(', ') || 'none'}`) : 'no baseline');
     judge('2.5', 'is the opportunity coherent with the PMF stage?');
+    judge('2.6', 'could shipping the change alone hit the target? then the metric is output, not outcome');
     return R;
   }
 
