@@ -366,7 +366,7 @@ function gate(n, ctx) {
     const brows = tableRows(section(a, 'Baseline')).filter((r) => nonEmpty(r[1]));
     pass('6.2', ts.length >= 2 && Date.parse(ts[0]) < Date.parse(ts[1]) && brows.length > 0, ts.length < 2 ? 'baseline heading lacks capture and rollout timestamps' : `captured ${ts[0]}, rollout ${ts[1]}`);
     pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
-    (lite ? warn : judge)('6.4', 'are the release notes written for users, not a commit list?');
+    judge('6.4', `are the release notes written for users, not a commit list?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && DATE_RE.test(orv), 'owner and date');
     return R;
@@ -672,7 +672,8 @@ function record(which) {
   const judged = Object.fromEntries((opt('--judged') || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => x.split('=').map((y) => y.trim())));
   const missing = j.checked_by.model.filter((id) => !['pass', 'fail'].includes(judged[id]));
   if (missing.length) die(`judge ${missing.join(', ')} first, then pass --judged "${missing.map((id) => `${id}=pass|fail`).join(',')}"`);
-  const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail')];
+  const soft = s.mode === 'lite' ? ['4.5', '6.4'] : []; // lite mode: warnings, see gate-checks
+  const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail' && !soft.includes(id))];
   const override = opt('--override');
   const now = new Date().toISOString();
   const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };

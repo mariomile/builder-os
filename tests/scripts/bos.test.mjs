@@ -163,6 +163,9 @@ test('gate 6 requires the baseline before the rollout', () => {
   assert.equal(gate(root, 6).by['6.2'], 'pass');
   write(root, '06-release.md', rel('2026-10-04T09:00Z', '2026-10-03T09:00Z'));
   assert.equal(gate(root, 6).by['6.2'], 'fail');
+  const r64 = gate(root, 6).results.find((r) => r.id === '6.4');
+  assert.equal(r64.status, 'judge');
+  assert.match(r64.detail, /lite: a fail is a warning/);
 });
 
 test('gate 7 needs one decision and the kill-criteria verdict', () => {
