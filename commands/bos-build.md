@@ -17,6 +17,7 @@ Dispatch `delivery-planner`, run the loop, then dispatch `build-reviewer` to clo
 Agent({
   description: "Delivery plan for [feature]",
   subagent_type: "delivery-planner",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
@@ -44,6 +45,7 @@ criterion-to-test mapping into .builderos/initiatives/{initiative}/05-build-plan
 Agent({
   description: "Build review for [feature]",
   subagent_type: "build-reviewer",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [as above]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]

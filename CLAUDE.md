@@ -45,6 +45,7 @@ Commands are routing layers, not logic. Every command MUST:
 2. Resolve capabilities per `references/capability-map.md` and pass the derived mode
 3. Read and pass the previous phase artifact
 4. Verify the completion marker, then re-run the phase gate on the written artifact before presenting results. The marker is a claim; the gate on the file is the evidence
+5. Dispatch in the foreground (`run_in_background: false`). The next step reads what the agent wrote; a backgrounded phase agent lets the session end, headless runs especially, before the artifact exists
 
 ## Dispatch Context Package
 

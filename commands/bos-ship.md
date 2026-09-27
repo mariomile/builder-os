@@ -16,6 +16,7 @@ Dispatch the `release-manager` agent to run BuilderOS phase 6.
 Agent({
   description: "Release plan for [feature]",
   subagent_type: "release-manager",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 6, cycle [C], mode [full|lite]

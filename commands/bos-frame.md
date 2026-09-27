@@ -16,6 +16,7 @@ Dispatch the `problem-framer` agent to run BuilderOS phase 0.
 Agent({
   description: "Problem framing for [product or idea]",
   subagent_type: "problem-framer",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 0, cycle [C], mode [full|lite]

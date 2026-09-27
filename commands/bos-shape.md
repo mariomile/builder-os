@@ -17,6 +17,7 @@ Dispatch `ux-architect` then `spec-writer` to run BuilderOS phase 4.
 Agent({
   description: "Structural design for [feature]",
   subagent_type: "ux-architect",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
@@ -41,6 +42,7 @@ Write DESIGN.md. End with ## DESIGN COMPLETE."
 Agent({
   description: "Spec for [feature]",
   subagent_type: "spec-writer",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [as above]
 Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
