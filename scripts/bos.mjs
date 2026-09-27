@@ -563,10 +563,17 @@ function roadmap() {
   };
   const bets = keep('Now', 4, 3);
   const learnings = keep('Done', 0, 2);
+  // The bet is written by hand; until it is, phase 3's selected option stands in for it.
+  const bet = (i) => {
+    const kept = bets.get(i.slug);
+    if (kept && kept !== '—') return kept;
+    const m = (read(path.join(i.dir, ARTIFACTS[3])) || '').match(/^##\s*Selected:\s*(.+)$/m);
+    return m ? m[1].replace(/^\S+\s+[—-]\s+/, '').replace(/\|/g, '/').trim() : '—';
+  };
   const open = all.filter((i) => (i.state.status || 'open') !== 'closed');
   const closed = all.filter((i) => i.state.status === 'closed');
   const now = ['| Initiative | Track | Phase | Bet in one line | Folder |', '|------------|-------|-------|-----------------|--------|',
-    ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bets.get(i.slug) || '—'} | \`initiatives/${i.slug}/\` |`; })];
+    ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bet(i)} | \`initiatives/${i.slug}/\` |`; })];
   const outcome = (s) => {
     const ph = s.phases || {};
     if (ph[1] && ph[1].status === 'killed') return 'killed at phase 1';

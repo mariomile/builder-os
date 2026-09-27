@@ -194,6 +194,9 @@ test('roadmap regenerates Now from the initiative states and keeps the bet', () 
   const rm = fs.readFileSync(path.join(root, '.builderos/ROADMAP.md'), 'utf8');
   assert.match(rm, /\| CSV export \| feature \| 2 — Define \| managers export the weekly view/);
   assert.match(rm, /Onboarding rework \(paused\)/);
+  write(root, '03-solution-bet.md', '# Bet\n\n## Selected: 2 — Guided first report\n**Why:** fastest to value\n', 'onboarding-v2');
+  run(root, 'roadmap');
+  assert.match(fs.readFileSync(path.join(root, '.builderos/ROADMAP.md'), 'utf8'), /\| Onboarding rework \(paused\) \| [^|]+ \| [^|]+ \| Guided first report \|/);
   assert.doesNotMatch(run(root, 'brief').out, /ROADMAP\.md shows/);
 });
 
