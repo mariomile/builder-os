@@ -113,7 +113,7 @@ Every skill that drives work (as opposed to pure reference) MUST:
 
 Three layers, cheapest first:
 
-1. **Script tests** (`npm test`, which runs `node --test tests/scripts/bos.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration. Run them on every change to `scripts/`, `gate-checks` or the state schema.
+1. **Script tests** (`npm test`, which runs every `tests/scripts/*.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration, and the host adapters (manifest versions agree, every command small enough for Codex to import). Run them on every change to `scripts/`, `gate-checks`, the state schema, `commands/` or a manifest.
 2. **Behavioral scenarios** (`tests/scenarios/`). A real host runs a prompt on a copy of a fixture project, and the runner checks what it did to the files: state written, gate refused, nothing past phase 1 on a spike. This is the pressure-scenario method (run without the skill, load it, plug the rationalizations) made repeatable. Every failure found in a live run becomes a case.
 3. **Triggering prompts** (`tests/skill-triggering/`). Which skill a message loads; checked by hand, per its README.
 

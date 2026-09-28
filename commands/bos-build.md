@@ -17,6 +17,7 @@ Dispatch `delivery-planner`, run the loop, then dispatch `build-reviewer` to clo
 Agent({
   description: "Delivery plan for [feature]",
   subagent_type: "delivery-planner",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
@@ -44,6 +45,7 @@ criterion-to-test mapping into .builderos/initiatives/{initiative}/05-build-plan
 Agent({
   description: "Build review for [feature]",
   subagent_type: "build-reviewer",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [as above]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
@@ -75,10 +77,4 @@ Complete .builderos/initiatives/{initiative}/05-build-plan.md and run gate 5 bef
 
 ## Notes
 
-Gate 5.2 is the only gate in BuilderOS that refuses a summary. Paste the runner output. "All tests pass" is the most frequently untrue sentence in software, and the gate exists because of that, not because anyone is being difficult.
-
-Gate 5.3 asks whether events arrived, not whether the calls were written. Trigger the action, confirm the properties. Where no analytics capability resolved, the emission log is acceptable evidence and is labelled as the weaker evidence it is.
-
-Gate 5.4 reads the phase 4 out-of-scope list against the diff, item by item. The thing that was easy to add while you were in there is exactly what it is looking for.
-
-In lite mode, nothing in gate 5 relaxes. These four conditions are what stop the pipeline from building on fiction.
+Gate 5 is the one gate that refuses a summary: pasted runner output (5.2), events that arrived rather than calls that were written (5.3), and the out-of-scope list read against the diff item by item (5.4). Nothing in it relaxes in lite mode. Conditions in `gate-checks`.

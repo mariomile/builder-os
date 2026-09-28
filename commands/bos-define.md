@@ -16,6 +16,7 @@ Dispatch the `opportunity-mapper` agent to run BuilderOS phase 2.
 Agent({
   description: "Opportunity mapping for [product]",
   subagent_type: "opportunity-mapper",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 2, cycle [C], mode [full|lite], track [spike|feature|product]

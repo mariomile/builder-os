@@ -128,7 +128,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 9. **Schedule the outcome review.** Owner and date, taken from the phase 3 kill criteria.
 
-10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6, update `state.json` with `review_due` set to the outcome review date, advance to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
+10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6 and record it with the outcome review date (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD` where commands run), which advances to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
 
 Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the timestamped baseline, the measurement, the release notes and the scheduled review.
 

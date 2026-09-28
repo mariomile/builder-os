@@ -16,6 +16,7 @@ Dispatch the `research-planner` agent to run BuilderOS phase 1.
 Agent({
   description: "Discovery research for [product]",
   subagent_type: "research-planner",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 1, cycle [C], mode [full|lite]

@@ -1,0 +1,12 @@
+{
+  "name": "feature-track-ai-domain",
+  "why": "A product whose domain is AI (it monitors AI answer engines) still earns the feature track: a term PRODUCT.md defines under Language is not solution language. Found in the captoo rehearsal, where C.1 failed on \"AI answer engines\" and cover locked the work onto the product track",
+  "fixture": "captoo",
+  "setup": { "regenerate_roadmap": true },
+  "prompt": "Vogliamo mettere in cima alla email settimanale di captoo i cali di share of voice oltre 10 punti su un motore AI, così chi la apre li vede subito invece di cercarli. Inizializza l'iniziativa \"drop-highlight\" e dimmi da dove partiamo.",
+  "expect": {
+    "output_matches": ["(?i)feature"],
+    "history_events": ["track_set", "phase_covered"],
+    "state": { "initiative": "drop-highlight", "track": "feature", "current_phase": 2, "phases.0.status": "covered", "phases.1.status": "covered" }
+  }
+}

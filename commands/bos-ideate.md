@@ -16,6 +16,7 @@ Dispatch the `solution-architect` agent to run BuilderOS phase 3.
 Agent({
   description: "Solution options and bet selection for [product]",
   subagent_type: "solution-architect",
+  run_in_background: false,
   prompt: "Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 3, cycle [C], mode [full|lite]

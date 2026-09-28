@@ -239,7 +239,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 2.0.0. Honest state:
+Version 2.1.0. Honest state:
 
 | Area | Status |
 |------|--------|
@@ -247,8 +247,8 @@ Version 2.0.0. Honest state:
 | Phases 0–7 — all eight, each with its own skills, procedure and enforceable gate | Shipped |
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
-| Gate enforcement | 32 of 43 conditions decided by `scripts/bos.mjs`, 16 script tests green |
-| Runtime verification | First live runs on 2026-09-25: 5 behavioral scenarios on Claude Code, 4 pass (briefing, gate refusal on missing evidence, no invented numbers, spike stop). The feature-track run initializes correctly but writes `state.json` by hand instead of through the script; the briefing flags the result. Codex not yet run. No real initiative has gone from phase 0 to 7 |
+| Gate enforcement | 32 of 44 conditions decided by `scripts/bos.mjs`, and every gate result written to `state.json` by `bos.mjs record`, never by hand. `npm test` green |
+| Runtime verification | 7 behavioral scenarios pass on Claude Code (2026-09-27). One initiative rehearsed from `/bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model. No initiative has yet run on a real project with real users |
 
 That last row is the one to read.
 

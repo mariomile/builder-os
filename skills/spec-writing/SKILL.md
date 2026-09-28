@@ -122,7 +122,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7b. **If a criterion depends on model output, write the eval set** per Model Output: Eval Set, before the build starts.
 
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4, update `state.json`, advance to phase 5 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4 and record it (`scripts/bos.mjs record 4` where commands run), which advances to phase 5 on pass.
 
 Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered acceptance criteria, the state coverage, the tracking plan and the gate result.
 

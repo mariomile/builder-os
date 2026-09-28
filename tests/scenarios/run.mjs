@@ -8,7 +8,7 @@
 // {plugin} by this repository's path. It runs with the fixture copy as its working directory.
 // Examples (flags checked against each CLI's --help on the day this was written; re-check yours):
 //   --host "claude -p {prompt} --setting-sources project,local --plugin-dir {plugin} --add-dir {plugin} --permission-mode acceptEdits --allowedTools 'Bash(node:*)'"
-//   --host "codex exec {prompt}"            (Codex: install the plugin first, see docs/hosts.md)
+//   --host "codex exec --sandbox workspace-write --skip-git-repo-check {prompt}"   (Codex 0.157.1: install the plugin first, see docs/hosts.md)
 
 import fs from 'fs';
 import os from 'os';

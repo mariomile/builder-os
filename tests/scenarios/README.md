@@ -12,9 +12,11 @@ Claude Code, as run for the first time on 2026-09-25:
 node tests/scenarios/run.mjs --host "claude -p {prompt} --setting-sources project,local --plugin-dir {plugin} --add-dir {plugin} --permission-mode acceptEdits --allowedTools 'Bash(node:*)'"
 ```
 
-`--setting-sources project,local` keeps your own plugins and settings out of the run. `--add-dir {plugin}` lets the host read `references/` and the script, and `--allowedTools 'Bash(node:*)'` lets it run the script: without them a headless run cannot ask for permission, and falls back to writing state by hand. The prompt comes right after `-p` because `--allowedTools` takes every argument that follows it. If your environment gives Claude Code a memory store through environment variables, unset them in the host command (`env -u VAR claude ...`): a run that remembers you is not testing BuilderOS.
+`--setting-sources project,local` keeps your own plugins and settings out of the run. `--add-dir {plugin}` lets the host read `references/` and the script, and `--allowedTools 'Bash(node:*)'` lets it run the script: without them a headless run cannot ask for permission, and falls back to writing state by hand. The prompt comes right after `-p` because `--allowedTools` takes every argument that follows it. A phase command may still dispatch its agent in the background; `claude -p` then stops waiting after 600 seconds and ends the run mid-phase. Prefix the host command with `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` for runs that go through a whole phase. If your environment gives Claude Code a memory store through environment variables, unset them in the host command (`env -u VAR claude ...`): a run that remembers you is not testing BuilderOS.
 
-Codex: `codex exec {prompt}` with BuilderOS installed per `docs/hosts.md`. Not yet run; check your version's flags for non-interactive mode and file-write permission.
+Codex: `codex exec --sandbox workspace-write --skip-git-repo-check {prompt}` (flags from `codex exec --help` on 0.157.1) with BuilderOS installed per `docs/hosts.md` and its session-start hook trusted once in the interactive client. Install and prompt assembly were checked on Codex CLI 0.157.1; the scenarios themselves have not run under a real Codex model yet.
+
+Fixtures: `acme` is a small reporting product; `captoo` is the stand-in used for the 2026-09-27 rehearsal of a whole initiative, with synthetic customer notes and numbers written for it (each evidence file says so). Neither is real customer data.
 
 A failing case keeps its directory, with the host's full output in `.scenario-output.txt`. Every failure found in a live run of a real initiative becomes a new case here.
 

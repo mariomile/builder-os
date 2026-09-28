@@ -8,6 +8,9 @@
 //                                          create an initiative with a valid state.json and make it active
 //   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and, if it passes,
 //                                          record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
+//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--verdict v] [--override reason] [--review-due date] [--reenter N]
+//                                          write a gate result to state.json: the script's verdict plus the model's
+//                                          on the judge conditions; advances, closes, or keeps the phase open
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //
@@ -135,9 +138,10 @@ function checkEvidence(text, dirs) {
   const missing = [];
   for (const t of tags(text)) {
     if (t.cls === 'estimate' || t.cls === 'assumption') continue;
+    if (/^\.\.\.$|^…$/.test(t.id)) continue; // naming the class in prose, not citing a source
     if (/[*{}]/.test(t.id)) { missing.push(`${t.raw} (placeholder)`); continue; }
     if (t.cls === 'code') {
-      const p = t.id.replace(/:\d+(-\d+)?$/, '');
+      const p = t.id.replace(/:\d+([-,]\d+)*$/, '');
       if (!fs.existsSync(path.join(ROOT, p))) missing.push(`${t.raw} (no file ${p})`);
       continue;
     }
@@ -176,7 +180,28 @@ function audit(text) {
 
 // ---------- gates ----------
 
-const SOLUTION_WORDS = /\b(build|builds|add|adds|app|apps|platform|platforms|dashboard|dashboards|tool|tools|feature|features|automate|automates|automation)\b|\bAI\b/;
+// The list in gate-checks, condition 0.1. Terms PRODUCT.md defines under ## Language are the product's own
+// nouns ("AI answer engine" for a product that monitors them), so they are removed before the check.
+const SOLUTION_WORDS = /\b(build|builds|add|adds|create|creates|app|apps|platform|platforms|dashboard|dashboards|tool|tools|feature|features|integration|integrations|automate|automates|automation|redesign|migrate|rewrite)\b/i;
+const SOLUTION_AI = /\bAI\b/; // case-sensitive: "ai" is an Italian preposition
+
+function languageTerms(product) {
+  const terms = [];
+  for (const r of tableRows(section(product || '', 'Language'))) {
+    const t = (r[0] || '').replace(/[`*]/g, '').trim();
+    if (!t) continue;
+    const abbr = t.match(/\(([^)]+)\)/);
+    terms.push(t.replace(/\s*\([^)]*\)/, '').trim());
+    if (abbr) terms.push(abbr[1].trim());
+  }
+  return terms.filter(Boolean).sort((a, b) => b.length - a.length);
+}
+
+function solutionWord(statement, product) {
+  let s = statement || '';
+  for (const t of languageTerms(product)) s = s.replace(new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'gi'), ' ');
+  return s.match(SOLUTION_WORDS) || s.match(SOLUTION_AI);
+}
 
 function firstParagraph(text) {
   return (text || '').split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith('**')) || '';
@@ -194,7 +219,7 @@ function gate(n, ctx) {
   if (n === 'C') {
     const prob = section(a, 'The Problem');
     const statement = firstParagraph(prob);
-    const hit = statement.match(SOLUTION_WORDS);
+    const hit = solutionWord(statement, a);
     pass('C.1', prob && !hit, hit ? `solution word "${hit[0]}" in The Problem` : prob ? 'no solution language' : 'no "## The Problem" section');
     const icp = section(a, 'ICP');
     const rows = tableRows(icp);
@@ -210,7 +235,7 @@ function gate(n, ctx) {
 
   if (n === 0) {
     const prob = section(a, 'Problem');
-    const hit = firstParagraph(prob).match(SOLUTION_WORDS);
+    const hit = solutionWord(firstParagraph(prob), ctx.product);
     pass('0.1', prob && !hit, hit ? `solution word "${hit[0]}" in the problem` : prob ? 'no solution language' : 'no "## Problem" section');
     const who = section(a, 'Who') || '';
     const icps = who.split('\n').filter((l) => /primary icp/i.test(l));
@@ -260,6 +285,7 @@ function gate(n, ctx) {
     pass('2.3', nonEmpty(field(sm, 'Metric')) && base && (hasTag(base) || zero) && target && /\d/.test(target) && DATE_RE.test(target), 'metric, tagged baseline, target with a value and a date');
     pass('2.4', base && (hasTag(base, ['data', 'code', 'doc']) || zero), base ? (zero ? 'explicit zero with a first-measurement date' : `baseline tag: ${tags(base).map((t) => t.cls).join(', ') || 'none'}`) : 'no baseline');
     judge('2.5', 'is the opportunity coherent with the PMF stage?');
+    judge('2.6', 'could shipping the change alone hit the target? then the metric is output, not outcome');
     return R;
   }
 
@@ -307,7 +333,8 @@ function gate(n, ctx) {
   if (n === 5) {
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
-    const mapped = new Set(map.filter((r) => nonEmpty(r[2])).map((r) => r[0]));
+    const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
+    const mapped = new Set(map.filter((r) => nonEmpty(r[2]) && !NO_TEST.test(r[2])).map((r) => r[0]));
     const unmapped = specAC.filter((x) => !mapped.has(x));
     pass('5.1', specAC.length > 0 && unmapped.length === 0, specAC.length === 0 ? 'no numbered criteria in 04-spec.md' : unmapped.length ? `unmapped: ${unmapped.join(', ')}` : `${specAC.length} criteria mapped`);
     const outSec = section(a, 'Test output');
@@ -339,7 +366,7 @@ function gate(n, ctx) {
     const brows = tableRows(section(a, 'Baseline')).filter((r) => nonEmpty(r[1]));
     pass('6.2', ts.length >= 2 && Date.parse(ts[0]) < Date.parse(ts[1]) && brows.length > 0, ts.length < 2 ? 'baseline heading lacks capture and rollout timestamps' : `captured ${ts[0]}, rollout ${ts[1]}`);
     pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
-    (lite ? warn : judge)('6.4', 'are the release notes written for users, not a commit list?');
+    judge('6.4', `are the release notes written for users, not a commit list?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && DATE_RE.test(orv), 'owner and date');
     return R;
@@ -536,10 +563,17 @@ function roadmap() {
   };
   const bets = keep('Now', 4, 3);
   const learnings = keep('Done', 0, 2);
+  // The bet is written by hand; until it is, phase 3's selected option stands in for it.
+  const bet = (i) => {
+    const kept = bets.get(i.slug);
+    if (kept && kept !== '—') return kept;
+    const m = (read(path.join(i.dir, ARTIFACTS[3])) || '').match(/^##\s*Selected:\s*(.+)$/m);
+    return m ? m[1].replace(/^\S+\s+[—-]\s+/, '').replace(/\|/g, '/').trim() : '—';
+  };
   const open = all.filter((i) => (i.state.status || 'open') !== 'closed');
   const closed = all.filter((i) => i.state.status === 'closed');
   const now = ['| Initiative | Track | Phase | Bet in one line | Folder |', '|------------|-------|-------|-----------------|--------|',
-    ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bets.get(i.slug) || '—'} | \`initiatives/${i.slug}/\` |`; })];
+    ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bet(i)} | \`initiatives/${i.slug}/\` |`; })];
   const outcome = (s) => {
     const ph = s.phases || {};
     if (ph[1] && ph[1].status === 'killed') return 'killed at phase 1';
@@ -631,6 +665,69 @@ function cover() {
   console.log(`Coverage check passed: phases 0 and 1 covered by ${used.join(', ')}. ${init.slug} starts at phase 2.`);
 }
 
+// Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
+// conditions, so the author never writes its own pass. Refuses when a judge condition has no verdict.
+function record(which) {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const n = Number(which);
+  const s = init.state;
+  if (!(n >= 0 && n <= 7)) die('record takes a phase number 0-7');
+  if (n !== s.current_phase) die(`${init.slug} is at phase ${s.current_phase}; record ${s.current_phase}, or pass --initiative`);
+  const j = JSON.parse(spawnSyncSelf(['gate', String(n), '--json', '--initiative', init.slug]) || '{}');
+  if (!j.results) die(`gate ${n} could not run: does ${ARTIFACTS[n]} exist?`);
+  const judged = Object.fromEntries((opt('--judged') || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => x.split('=').map((y) => y.trim())));
+  const missing = j.checked_by.model.filter((id) => !['pass', 'fail'].includes(judged[id]));
+  if (missing.length) die(`judge ${missing.join(', ')} first, then pass --judged "${missing.map((id) => `${id}=pass|fail`).join(',')}"`);
+  const soft = s.mode === 'lite' ? ['4.5', '6.4'] : []; // lite mode: warnings, see gate-checks
+  const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail' && !soft.includes(id))];
+  const override = opt('--override');
+  const now = new Date().toISOString();
+  const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
+  if (gateEntry.overridden) gateEntry.override_reason = override;
+  const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
+  s.history = s.history || [];
+  s.updated_at = now;
+  if (!gateEntry.passed) {
+    ph.status = 'in_progress';
+    s.history.push({ at: now, event: 'gate_failed', phase: n, failed_conditions: failed });
+    writeJSON(path.join(init.dir, 'state.json'), s);
+    console.log(`Gate ${n} failed on ${failed.join(', ')}: ${init.slug} stays at phase ${n}.`);
+    process.exit(1);
+  }
+  const verdict = opt('--verdict');
+  if (verdict) ph.verdict = verdict;
+  const reenter = opt('--reenter') !== undefined ? Number(opt('--reenter')) : null;
+  if (n === 7) {
+    if (!['keep', 'iterate', 'kill'].includes(verdict)) die('phase 7 records the decision: --verdict keep|iterate|kill');
+    if (reenter !== null && !(reenter >= 0 && reenter <= 6)) die('--reenter takes the phase the next cycle starts at');
+    s.review_due = null;
+  }
+  const stops = (n === 1 && ['killed', 'answered'].includes(verdict)) || (n === 7 && reenter === null);
+  ph.status = n === 1 && ['killed', 'answered'].includes(verdict) ? verdict : 'passed';
+  if (n === 6) {
+    const due = opt('--review-due');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(due || '')) die('phase 6 sets the outcome review date: pass --review-due YYYY-MM-DD (gate 6.5)');
+    s.review_due = due;
+  }
+  s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}) });
+  if (n === 7 && reenter !== null) {
+    s.cycle = (s.cycle || 1) + 1;
+    s.current_phase = reenter;
+    for (let k = reenter; k <= 7; k++) s.phases[String(k)] = { status: k === reenter ? 'in_progress' : 'pending', artifact: null, gate: null };
+    s.history.push({ at: now, event: 'cycle_started', cycle: s.cycle, phase: reenter });
+  } else if (stops) {
+    s.status = 'closed';
+    s.history.push({ at: now, event: 'closed', phase: n, ...(verdict ? { verdict } : {}) });
+  } else {
+    s.current_phase = n + 1;
+    s.phases[String(n + 1)] = { ...(s.phases[String(n + 1)] || { artifact: null, gate: null }), status: 'in_progress' };
+  }
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(n === 7 && reenter !== null ? `Gate 7 recorded (${verdict}): cycle ${s.cycle} of ${init.slug} starts at phase ${reenter} ${PHASES[reenter]}. Move the earlier artifacts to cycle-${s.cycle - 1}/.` : stops ? `Gate ${n} recorded (${ph.status}${verdict ? `, ${verdict}` : ''}): ${init.slug} is closed.` : `Gate ${n} recorded${gateEntry.overridden ? ` as overridden (${failed.join(', ')})` : ''}: ${init.slug} moves to phase ${n + 1} ${PHASES[n + 1]}.`);
+}
+
 function spawnSyncSelf(a) {
   try { return execFileSync(process.execPath, [fileURLToPath(import.meta.url), ...a, '--root', ROOT], { stdio: ['ignore', 'pipe', 'ignore'] }).toString(); }
   catch (e) { return e.stdout.toString(); }
@@ -686,8 +783,9 @@ else if (cmd === 'gate') runGate(args[1]);
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'new') newInitiative(args[1]);
 else if (cmd === 'cover') cover();
+else if (cmd === 'record') record(args[1]);
 else if (cmd === 'migrate') migrate();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | roadmap | migrate   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | roadmap | migrate   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

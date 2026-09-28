@@ -79,7 +79,7 @@ The output of phase 2 that everything downstream depends on. Four parts, all req
 
 | Part | Rule |
 |------|------|
-| **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation" |
+| **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation". An outcome, not an output: if shipping the change is enough to hit the target ("alerts delivered within 24 hours"), it measures the build, not the bet (gate 2.6) |
 | **Baseline** | The current value, today, with a source tag. `[data:*]`, `[code:*]` or primary `[doc:*]` |
 | **Target** | A number and a date. Reasoned from the baseline and a comparable, not from ambition |
 | **Measurement** | The query, event or dashboard that will produce the number in phase 6 |
@@ -117,7 +117,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 4. **Check PMF coherence.** Score the PMF signals per `strategy-frameworks`, or read a recent assessment if one exists. If the leading opportunity is an acquisition or scale bet at a signal score of 4 or below, flag it before the user commits, not after: gate 2.5 will refuse it.
 5. **Select.** Apply evidence strength, strategic fit, PMF coherence and reversibility, in that order. Write the rejections, each with a reason and a revisit condition. Pressure-test the selection before committing: which opportunity would a competitor pick, and why are they wrong?
 6. **Define the success metric.** Metric, baseline, target, measurement. Pull the baseline with a real query where a data capability resolved, tagged with the provider and the window. Where none did, choose honestly between unknown-with-a-first-measurement-date (product exists, uninstrumented, and instrumentation becomes a phase 4 requirement) and explicit zero (product does not exist). Never estimate a baseline. Show the reasoning behind the target; "double it" is not reasoning.
-7. **Write and gate.** Write `.builderos/initiatives/{initiative}/02-definition.md`, run gate 2, update `state.json`, advance to phase 3 on pass.
+7. **Write and gate.** Write `.builderos/initiatives/{initiative}/02-definition.md`, run gate 2 and record it (`scripts/bos.mjs record 2` where commands run), which advances to phase 3 on pass.
 
 Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, the metric with baseline and target, the PMF coherence verdict and the gate result.
 
@@ -166,5 +166,6 @@ Completion marker: `## DEFINITION COMPLETE` with the selection, the rejections, 
 | An acquisition bet at pre-PMF | Optimizes a leaking bucket | Gate 2.5 refuses it; deepen value first |
 | Estimated baseline | Makes the target unfalsifiable and phase 7 decorative | Real query, or explicit 0 with a measurement date |
 | Two success metrics | Downstream phases cannot optimize both | One. The second is a guardrail, label it so |
+| A metric the build satisfies by existing | Phase 7 confirms the code ran, not that anyone is better off | Measure the user's response to what was built; the system's own count goes to the tracking plan |
 | RICE-style precision on guessed inputs | Decimals imply knowledge that does not exist | Ranges with stated methods; ties broken by strategy |
 | Overlapping sibling opportunities | Double-counts impact | Make siblings mutually exclusive |

@@ -20,6 +20,8 @@ A gate checked by the model that wrote the artifact is a gate checked on trust. 
 
 Where commands cannot be executed, the model checks every condition and all of them go under `model`. Same conditions, weaker provenance, and the record says so.
 
+**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phase 1 passes its verdict with `--verdict` (`killed` and `answered` close the initiative), phase 6 its outcome review date with `--review-due`.
+
 Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.2, 6.3, 6.5, 7.1, 7.2, 7.3, C.1, C.2, C.3. Everything else is model-judged.
 
 ## Every Gate: Evidence Resolves
@@ -55,7 +57,7 @@ Overrides exist. Undocumented bypasses are worse than documented ones.
 /bos-gate --override "reason"
 ```
 
-Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
+Where commands run, `record {N} --judged ... --override "reason"`. Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
 
 An override never silently disappears. It is not shame, it is provenance.
 
@@ -65,7 +67,7 @@ An override never silently disappears. It is not shame, it is provenance.
 
 | # | Condition | Check |
 |---|-----------|-------|
-| 0.1 | Problem statement contains no solution language | No occurrence of: build, add, app, platform, dashboard, tool, feature, AI, automate, in the problem sentence |
+| 0.1 | Problem statement contains no solution language | No occurrence of: build, add, create, app, platform, dashboard, tool, feature, integration, AI, automate, redesign, migrate, rewrite, in the problem sentence. A term defined in `PRODUCT.md` → Language is the product's own noun and is exempt ("AI answer engine" for a product that monitors them) |
 | 0.2 | Exactly one primary ICP named | A single named segment with a size estimate carrying a source tag |
 | 0.3 | Riskiest assumption is falsifiable | Stated as a sentence that could be shown false by an observation |
 | 0.4 | "Why now" cites a change in the world | A dated external change, not a preference or an availability of technology in general |
@@ -91,6 +93,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 2.3 | Success metric named | With baseline and target, both source-tagged |
 | 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. If no product exists yet, baseline is explicitly `0` with the first-measurement date named |
 | 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `strategy-frameworks`) rejects scale-oriented opportunities |
+| 2.6 | The metric measures an outcome | Shipping the change cannot by itself satisfy the target. A count of what the system does (alerts sent, emails delivered, a feature released) is output: it goes to the tracking plan or a guardrail, and the metric names what the user does or gets differently |
 
 ### Gate 3 — Ideate
 
@@ -154,6 +157,8 @@ Runs once, at initialization, when the work is classified as `feature`. It stand
 
 Pass: phases 0 and 1 are written `covered`, one `phase_covered` event each with the tags that satisfied C.1 to C.3, and the pipeline starts at phase 2. For gate 2.1 on this track, `PRODUCT.md` tags count as phase 1 evidence tags.
 
+Check before recording. `gate C` only reads; run it on the `PRODUCT.md` just written, before `cover` records anything. A failure in how the file was written (a solution word in a sentence that has a Language term for it, a tag left off a sentence whose evidence file exists) is fixed in `PRODUCT.md` first. A failure because the evidence is not there is the answer: never add a tag to pass C.3 without the file behind it. The first failure `cover` records is final.
+
 Fail: the work is a `product`. Use the refusal protocol with the failed C condition, then start at phase 0. Not a penalty: phase 0 and 1 are exactly what produces the evidence C.3 was looking for. The coverage check cannot be overridden, because an override would record phases as covered by evidence nobody has.
 
 ## Spike Stop (spike track)
@@ -164,7 +169,7 @@ A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `an
 
 `state.json` may set `mode: "lite"` for small features. Lite mode keeps every hard condition (evidence thresholds, kill criteria, test mapping, rollback, baseline) and drops the elaboration conditions: 2.1 relaxes to ≥2 opportunities, 3.1 to ≥2 options, 4.5 and 6.4 become warnings rather than failures.
 
-Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
+Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
 
 ## Common Mistakes
 
@@ -175,6 +180,7 @@ Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 
 | Writing `[interview:P3]` with no `evidence/P3.md` | E.1 fails; the claim has no source anyone can open | Write the notes file, or rewrite the claim as an assumption |
 | Failing a gate without naming the condition | The user cannot act on it | Use the refusal format |
 | Treating `KILLED` as a failure | Killing early is the cheapest win available | Report it as a successful pass and stop |
+| Accepting a success metric the build satisfies by existing | "Alerts sent within 24 hours" hits its target the day the code ships, so phase 7 measures nothing | Name what the user does differently: acts on the drop, recovers, stays |
 | Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an explicit zero |
 | Overriding the coverage check | Phases recorded as covered by evidence that does not exist | Classify as `product` and start at phase 0 |
 | Silently proceeding after a failure | Destroys the value of the whole model | Refuse, or override and log |
