@@ -1,0 +1,13 @@
+{
+  "name": "standalone-inline-prd",
+  "why": "A supplied standalone PRD stays inline and does not initialize or advance the active lifecycle",
+  "fixture": "acme",
+  "prompt": "Scrivi un mini PRD in italiano, solo qui in chat, massimo 8 righe. Feature: scaricare in CSV i report filtrati. Requisiti: mantenere filtri correnti, intestazioni leggibili e messaggio quando non ci sono risultati. Non conosco la baseline. È una richiesta autonoma: usa spec-writing o pm-artifacts del bundle, non creare file e non cambiare iniziative.",
+  "expect": {
+    "output_matches": ["(?i)CSV", "(?i)(baseline|sconosciut|unknown|non.*disponibil)"],
+    "output_not_matches": ["(?i)GATE.*FAILED", "(?i)override"],
+    "files_unchanged": [".builderos/local.json", ".builderos/initiatives/csv-export/state.json", ".builderos/initiatives/csv-export/02-definition.md", ".builderos/ROADMAP.md"],
+    "files_absent": [".builderos/initiatives/csv-export/04-spec.md", "PRD.md", "docs/PRD.md"],
+    "state": {"initiative": "csv-export", "current_phase": 2}
+  }
+}

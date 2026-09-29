@@ -17,7 +17,9 @@ function project() {
   return dir;
 }
 function run(root, ...args) {
-  const r = spawnSync(process.execPath, [SCRIPT, ...args, '--root', root], { encoding: 'utf8' });
+  const separator = args.indexOf('--');
+  const cli = separator < 0 ? [...args, '--root', root] : [...args.slice(0, separator), '--root', root, ...args.slice(separator)];
+  const r = spawnSync(process.execPath, [SCRIPT, ...cli], { encoding: 'utf8' });
   return { code: r.status, out: r.stdout, err: r.stderr };
 }
 function gate(root, n, ...extra) {
@@ -135,33 +137,44 @@ test('gate 4 skips the eval conditions without model output and enforces them wi
   assert.equal(g.by['4.6'], 'pass', 'lite mode needs 10 cases');
 });
 
-test('gate 5 maps every criterion, reads pasted output and the eval pass rate', () => {
+test('gate 5 maps existing tests and checks recorded executions and eval case results', () => {
   const root = project();
   write(root, '04-spec.md', SPEC(true));
   fs.mkdirSync(path.join(INIT(root), 'evals'));
-  fs.writeFileSync(path.join(INIT(root), 'evals/summary.md'), '# Eval\nthreshold: 85%\n');
+  const evalRows = Array.from({ length: 12 }, (_, i) => `| ${i + 1} | input ${i + 1} | expected ${i + 1} | rubric | ${i === 2 || i === 6 ? 'yes' : 'no'} |`).join('\n');
+  fs.writeFileSync(path.join(INIT(root), 'evals/summary.md'), `# Eval\n| # | Input | Expected | Judge | Must pass |\n|---|---|---|---|---|\n${evalRows}\n`);
   fs.mkdirSync(path.join(root, 'test'), { recursive: true });
-  fs.writeFileSync(path.join(root, 'test/export.test.ts'), '// test');
-  const build = (rate, row2) => `# Build\n\n## Acceptance criteria to tests\n| # | Criterion | Test | Result |\n|---|---|---|---|\n| 1 | download | test/export.test.ts | pass |\n${row2}\n\n## Test output\n\`\`\`\n2 passed, 0 failed\n\`\`\`\n\n## Instrumentation\n| Event | Triggered by | Arrived | Properties verified | Evidence |\n|---|---|---|---|---|\n| export_completed | download | yes | rows | \`[code:src/export.ts:1]\` |\n\n## Eval results\n\`\`\`\n12 cases, pass rate ${rate}%, must-pass 3 and 7 passed\n\`\`\`\n\n## Scope check\n| Out-of-scope item (phase 4) | Built? | Note |\n|---|---|---|\n| XLSX | no | |\n`;
+  fs.writeFileSync(path.join(root, 'test/export.test.ts'), '// criterion mapping fixture');
+  fs.writeFileSync(path.join(root, 'test/runner.mjs'), "import { test } from 'node:test'; test('export', () => {}); test('rows', () => {});\n");
+  fs.writeFileSync(path.join(root, 'test/eval-runner.mjs'), "import fs from 'node:fs'; fs.writeFileSync(process.argv[2], JSON.stringify(Array.from({length:12}, (_, i) => ({id:String(i+1), pass: i < Number(process.argv[3])}))));\n");
+  const testRun = run(root, 'run-check', '--label', 'tests', '--', process.execPath, '--test', 'test/runner.mjs').out.trim();
+  const evalRun = (passing) => run(root, 'run-check', '--label', 'evals', '--results', '.builderos/initiatives/csv-export/evals/results.json', '--dataset', 'evals/summary.md', '--', process.execPath, 'test/eval-runner.mjs', '.builderos/initiatives/csv-export/evals/results.json', String(passing)).out.trim();
+  let recordedEval = evalRun(12);
+  const build = (rate, row2) => `# Build\n\n## Acceptance criteria to tests\n| # | Criterion | Test | Result |\n|---|---|---|---|\n| 1 | download | test/export.test.ts | pass |\n${row2}\n\n## Test output\n${testRun}\n\`\`\`\n2 passed, 0 failed\n\`\`\`\n\n## Instrumentation\n| Event | Triggered by | Arrived | Properties verified | Evidence |\n|---|---|---|---|---|\n| export_completed | download | yes | rows | \`[code:src/export.ts:1]\` |\n\n## Eval results\n${recordedEval}\n**Results:** evals/results.json\n\`\`\`\n12 cases, pass rate ${rate}%, must-pass 3 and 7 passed\n\`\`\`\n\n## Scope check\n| Out-of-scope item (phase 4) | Built? | Note |\n|---|---|---|\n| XLSX | no | |\n`;
   write(root, '05-build-plan.md', build(90, '| 2 | rows | test/export.test.ts | pass |'));
   let g = gate(root, 5);
   assert.deepEqual(g.failed, []);
+  assert.equal(g.by['5.2'], 'judge', 'coverage/provenance still needs judgment');
+  assert.equal(g.by['5.5'], 'judge', 'eval correspondence still needs judgment');
+  recordedEval = evalRun(8);
   write(root, '05-build-plan.md', build(70, ''));
   g = gate(root, 5);
   assert.equal(g.by['5.1'], 'fail');
   assert.equal(g.by['5.5'], 'fail');
+  recordedEval = evalRun(12);
   write(root, '05-build-plan.md', build(90, '| 2 | rows | **No test in this repo.** Reasoned exception | pass |'));
   assert.equal(gate(root, 5).by['5.1'], 'fail', 'an excuse is not a test');
   write(root, '05-build-plan.md', build(90, '| 2 | rows | test/export.test.ts | pass `[code:test/export.test.ts:1,4]` |') + '\nWhere no analytics resolved, the weaker `[code:...]` class applies.\n');
   assert.equal(gate(root, 5).by['E.1'], 'pass', 'line lists resolve, and naming a class is not citing');
 });
 
-test('gate 6 requires the baseline before the rollout', () => {
+test('gate 6 requires baseline before actual verified exposure', () => {
   const root = project();
-  const rel = (cap, roll) => `# Release\n\n## Rollback\n**Mechanism:** flag off\n**Owner:** Mario\n**Tested:** 2026-10-01, flag toggled on staging\n\n## Baseline (captured ${cap}, before rollout ${roll})\n| Metric | Value | Window | Method | Tag |\n|---|---|---|---|---|\n| exports | 0 | 7d | count | \`[code:src/export.ts:1]\` |\n\n## Measurement\n**Success metric measured by:** saved query weekly-exports\n\n## Outcome review\n**Owner:** Mario · **Date:** 2026-12-01\n`;
-  write(root, '06-release.md', rel('2026-10-02T09:00Z', '2026-10-03T09:00Z'));
+  evidence(root, 'release-observation');
+  const rel = (cap, roll) => `# Release\n\n## Rollback\n**Mechanism:** flag off\n**Owner:** Mario\n**Tested:** 2026-10-01, flag toggled on staging\n\n## Baseline (captured ${cap}, before rollout ${roll})\n| Metric | Value | Window | Method | Tag |\n|---|---|---|---|---|\n| exports | 0 | 7d | count | \`[code:src/export.ts:1]\` |\n\n## Measurement\n**Success metric measured by:** saved query weekly-exports\n\n## Outcome review\n**Owner:** Mario · **Date:** 2026-12-01\n\n## Exposure verification\n**Status:** verified\n**Exposed at:** ${roll}\n**Environment:** production\n**Version:** fixture-v1\n**Verification:** users completed a CSV export [doc:release-observation]\n`;
+  write(root, '06-release.md', rel('2026-01-02T09:00Z', '2026-01-03T09:00Z'));
   assert.equal(gate(root, 6).by['6.2'], 'pass');
-  write(root, '06-release.md', rel('2026-10-04T09:00Z', '2026-10-03T09:00Z'));
+  write(root, '06-release.md', rel('2026-01-04T09:00Z', '2026-01-03T09:00Z'));
   assert.equal(gate(root, 6).by['6.2'], 'fail');
   const r64 = gate(root, 6).results.find((r) => r.id === '6.4');
   assert.equal(r64.status, 'judge');
