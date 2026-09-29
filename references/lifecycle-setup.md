@@ -46,4 +46,3 @@ Choose the smallest track that answers the authorized request and satisfies its 
 - A `feature` upgrades to `product` when a phase 2 or later gate fails because the evidence the covered phases should have supplied is missing: an opportunity that traces to nothing, an ICP that the change does not serve, a problem the phase 2 work contradicts. Re-enter phase 0, keep every artifact written so far, log `track_upgraded` with the observation that forced it.
 
 Stop and say so the moment an upgrade is due. Finishing the current phase on a track already known to be wrong produces an artifact built on the wrong foundation.
-

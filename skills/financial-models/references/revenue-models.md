@@ -90,4 +90,3 @@ These are directional prompts, not sourced targets. Verify a relevant cohort, co
 | Quick Ratio | >1.5 | >2 | >4 |
 | Burn Multiple | <3x | <2x | <1.5x |
 | Rule of 40 | N/A | >20 | >40 |
-

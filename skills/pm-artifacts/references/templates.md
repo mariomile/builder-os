@@ -125,4 +125,3 @@ An update with no ask is a broadcast. If something is needed, it goes in Decisio
 ```
 
 Half a page. An executive summary that runs to two pages was not summarized.
-

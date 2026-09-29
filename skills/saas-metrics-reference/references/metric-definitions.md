@@ -118,4 +118,3 @@ These are working heuristics for triage, not sourced industry benchmarks. They a
 | Quick ratio | <2 | 2–4 | >4 |
 
 Retention bands assume a weekly-rhythm product. For a product used monthly by design, weekly retention is the wrong instrument and the bands do not apply: switch the cohort granularity to match the product's natural rhythm and say so in the artifact.
-

@@ -90,4 +90,3 @@ For each gap, recommend the research method to fill it:
 - **Survey**: If need quantitative validation of a pattern
 - **Usability test**: If need to observe specific interaction
 - **Data analysis**: If behavioral data could answer the question
-

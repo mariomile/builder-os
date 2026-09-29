@@ -48,4 +48,3 @@ Use only questions relevant to the material assumption. These are prompts, not a
 - Did it move the number, or did something else move it?
 - What would you have concluded if the result had been the opposite? If the same, the test was decorative.
 - Which belief do you now hold less confidently?
-
