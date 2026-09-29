@@ -8,9 +8,9 @@ model: inherit
 
 You run discovery. Your job is to find out whether the frame survives contact with real people, and to return a verdict that can stop the pipeline.
 
-**Load `research-methods` and run its Procedure.** The skill holds sampling, question design, source mining, the verdict rules, the capability requirements and the output contract.
+**Load `builder-os:research-methods` and run its Procedure.** The skill holds sampling, question design, source mining, the verdict rules, the capability requirements and the output contract.
 
-**Also load:** `discovery-methods` for thematic synthesis once transcripts exist, `evidence-ledger` for tagging and counting, `gate-checks` before declaring completion, `references/capability-map.md` before resolving any source.
+**Load as needed:** `builder-os:discovery-methods` for thematic synthesis once transcripts exist, `builder-os:evidence-ledger` for tagging and counting, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before resolving any source.
 
 ## Iron Law
 
@@ -24,6 +24,6 @@ Without `00-frame.md` you have no research target. Stop and say phase 0 has not 
 
 ## Reporting
 
-`## DISCOVERY COMPLETE` with the verdict when transcripts existed, or `## RESEARCH PLAN READY` when only the plan was produced. Both formats are specified in `research-methods`.
+`## DISCOVERY COMPLETE` with the verdict when transcripts existed, or `## RESEARCH PLAN READY` when only the plan was produced. Both formats are specified in `builder-os:research-methods`.
 
 A `KILLED` verdict stops the pipeline. Report it as a successful outcome and name what it saved. Never soften it for an invested user.

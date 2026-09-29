@@ -22,7 +22,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `web.fetch` | Fetch and read a URL | any fetch tool |
 | `repo.read` | Read source code, configs, git history | any file and shell access |
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
-| `subagent.dispatch` | Delegate a bounded task to a separate agent context | Claude Code `Agent`; absent on most hosts |
+| `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
 | `shell.exec` | Run a command in the project: the BuilderOS script for gates and briefings, a test suite | any shell access |
 
 `files.read` and `files.write` are the only capabilities BuilderOS assumes are always present. Everything in `.builderos/` depends on them. Every other capability is optional and every skill states what it does without one.
@@ -34,7 +34,7 @@ At the start of any phase that needs data:
 1. **Enumerate** the tools the host actually exposes in this session.
 2. **Match by shape, not by name.** A tool whose name contains `mixpanel`, `posthog`, `amplitude` and which accepts a query provides `analytics.query`. A tool containing `supabase`, `postgres`, `sql` provides `db.query`.
 3. **Record what resolved.** The phase artifact states which capability resolved to which concrete tool, so the numbers stay traceable: `[data:posthog:activation_funnel]` names the provider, not a BuilderOS abstraction.
-4. **Degrade explicitly** when nothing resolves. Never fail, never invent, never tell the user to install a specific product.
+4. **Degrade explicitly** when nothing resolves. State concrete access failures and blockers; never invent data or require a named product.
 
 Never write a literal tool identifier into a skill, an agent or a command. Write the capability, and let resolution happen in the session that has the tools.
 
@@ -67,13 +67,13 @@ The tri-modal detection from v0.1 is a summary of which capabilities resolved. I
 | **codebase-based** | Only `repo.read` and `files.*`. Phases 4–6 strongest |
 | **conversational** | Nothing resolved. Phases 0–3 fully usable. This is the normal state for a new idea, not a degraded one |
 
-A phase never asks the user to connect a specific product. It states which capability would sharpen the work and what it would answer, in capability terms: "a live analytics query would give this metric a real baseline instead of a stated zero."
+A phase never asks the user to connect a specific product. It states which capability would sharpen the work and what it would answer, in capability terms: "a live analytics query would give this metric a real baseline instead of an unknown baseline."
 
 ## Host Notes
 
 What each host provides is discovered at runtime, not assumed here. Two things are worth recording because they change the shape of a phase rather than just its data:
 
-- **Subagent dispatch** exists on Claude Code and is absent on most other hosts. Every multi-step phase in BuilderOS is written so that the same procedure runs inline when it is absent. The skill holds the procedure precisely so it survives that difference.
+- **Subagent dispatch** is a runtime capability, not a host label. Claude Code and some Codex sessions support it; other sessions do not. Also check the user’s authorization to delegate. A generic agent can receive the portable skill and its context; a named BuilderOS profile is a separate adapter capability. On Claude Code those profiles are namespaced `builder-os:{agent}`. Dispatch in the foreground and await completion before a dependent read, dispatch or gate. Without delegation, run the same skill inline.
 - **MCP** is supported by several hosts including Claude Code and Codex, so `mcp__`-style tools may appear in either. That is still not a reason to hardcode one: the instance names differ per user.
 
 This file records capabilities, not host inventories. If a host detail turns out to be wrong, it is wrong in one place.

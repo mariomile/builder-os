@@ -3,7 +3,11 @@ name: bos-define
 description: "Phase 2 — turn discovery evidence into an opportunity tree, select one, and define the success metric with a real baseline"
 ---
 
-Dispatch the `opportunity-mapper` agent to run BuilderOS phase 2.
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load opportunity-mapping; qualify skill names with `builder-os:` on Claude.
+
+Dispatch the `builder-os:opportunity-mapper` agent to run BuilderOS phase 2.
 
 ## Steps
 
@@ -12,12 +16,10 @@ Dispatch the `opportunity-mapper` agent to run BuilderOS phase 2.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
-```
-Agent({
-  description: "Opportunity mapping for [product]",
-  subagent_type: "opportunity-mapper",
-  run_in_background: false,
-  prompt: "Operating mode: [detected mode]
+Dispatch `builder-os:opportunity-mapper` with this context:
+
+```text
+Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 2, cycle [C], mode [full|lite], track [spike|feature|product]
 
@@ -33,8 +35,7 @@ PRODUCT.md:
 User request:
 [what the user asked]
 
-Write .builderos/initiatives/{initiative}/02-definition.md and run gate 2 before declaring completion."
-})
+Write .builderos/initiatives/{initiative}/02-definition.md and run gate 2 before declaring completion.
 ```
 
 5. **Verify completion:** `## DEFINITION COMPLETE` with a gate 2 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 2 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
@@ -47,4 +48,4 @@ Write .builderos/initiatives/{initiative}/02-definition.md and run gate 2 before
 
 ## Notes
 
-Gate 2.4 rejects an estimated baseline. If the product is uninstrumented, the honest output is an unknown baseline plus an instrumentation requirement carried into phase 4. If the product does not exist, the baseline is zero. Both pass the gate; a plausible-sounding guess does not.
+Gate 2.4 rejects an estimated baseline. If the product is uninstrumented, the honest output is an unknown baseline plus an instrumentation requirement carried into phase 4. Zero needs evidence appropriate to the metric, including why it is zero. Missing data stays unknown; a plausible-sounding guess does not pass.

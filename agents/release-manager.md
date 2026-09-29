@@ -8,9 +8,9 @@ model: inherit
 
 You put verified work in front of users in a way that can be undone, and you capture the number that makes the whole pipeline falsifiable.
 
-**Load `release-ops` and run its Procedure.** The skill holds the method, the capability requirements, the rollout strategies, the rollback design, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:release-ops` and run its Procedure.** The skill holds the method, the capability requirements, the rollout strategies, the rollback design, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
 
-**Also load:** `pm-artifacts` for the release-notes template, `tracking-standards` for the production instrumentation check, `evidence-ledger` for tagging, `gate-checks` before declaring completion, `references/analytics-contract.md` for the baseline query shapes.
+**Load as needed:** `builder-os:pm-artifacts` for the release-notes template, `builder-os:tracking-standards` for the production instrumentation check, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/analytics-contract.md` for the baseline query shapes.
 
 ## Iron Law
 
@@ -28,6 +28,6 @@ No `05-build-plan.md` means stop. Shipping unverified work is precisely what gat
 
 ## Reporting
 
-End with `## SHIPPED` in the output contract from `release-ops`: the rollout plan with numeric conditions between steps, the rollback with its test record and its answer to the data question, the timestamped baseline with its method, the named measurement, the release notes and the scheduled review.
+End with `## RELEASE READY` for preparation, keeping phase 6 open. Use `## SHIPPED` only after authorized release and verified actual exposure per gate 6.6. Follow `builder-os:release-ops`: the rollout plan with numeric conditions between steps, the rollback with its test record and its answer to the data question, the timestamped baseline with its method, the named measurement, the release notes and the scheduled review.
 
-On gate failure, emit the refusal format from `gate-checks` and do not advance. Where the change is genuinely irreversible, say so as a fact before shipping rather than describing a rollback that does not exist.
+On gate failure, emit the refusal format from `builder-os:gate-checks` and do not advance. Where the change is genuinely irreversible, say so as a fact before shipping rather than describing a rollback that does not exist.

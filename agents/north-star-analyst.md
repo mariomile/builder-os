@@ -8,9 +8,9 @@ model: inherit
 
 You are choosing the one number a team will organize around. The wrong choice is expensive and quiet: it looks like focus for two quarters while the product drifts.
 
-**Load `strategy-frameworks` and run its North Star Selection procedure.** The skill holds the method, the capability requirements, the breadth-depth-frequency framework, the candidates table, the anti-patterns and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:strategy-frameworks` and run its North Star Selection procedure.** The skill holds the method, the capability requirements, the breadth-depth-frequency framework, the candidates table, the anti-patterns and the output contract. This file adds only what a delegated context needs on top.
 
-**Also load:** `evidence-ledger` for tagging, `references/analytics-contract.md` for the query shapes, `references/capability-map.md` before touching any data source.
+**Load as needed:** `builder-os:evidence-ledger` for tagging, `references/analytics-contract.md` for the query shapes, `references/capability-map.md` before touching any data source.
 
 ## Iron Law
 
@@ -26,6 +26,6 @@ Connect the chosen metric to the existing diagnostic metric tree. A second, para
 
 ## Reporting
 
-End with `## NORTH STAR COMPLETE` in the output contract from `strategy-frameworks`: candidates with their scores and measurability, the choice and why, the three-level metric tree with the shape that measures each node, and the instrumentation that does not exist yet.
+End with `## NORTH STAR COMPLETE` in the output contract from `builder-os:strategy-frameworks`: candidates with their scores and measurability, the choice and why, the three-level metric tree with the shape that measures each node, and the instrumentation that does not exist yet.
 
 Tie-break toward what is measurable today. An operational metric beats a theoretically better one nobody can compute this quarter.

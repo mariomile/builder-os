@@ -1,51 +1,65 @@
 #!/usr/bin/env bash
-# SessionStart hook for BuilderOS plugin
-
+# SessionStart hook for BuilderOS plugin. Emits one host-specific JSON object.
 set -euo pipefail
 
-# Determine plugin root directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+hub_content=$(cat "${PLUGIN_ROOT}/skills/using-builder-os/SKILL.md")
 
-# Read the BuilderOS bootstrap skill: it routes between the lifecycle and the analysis surface
-hub_content=$(cat "${PLUGIN_ROOT}/skills/using-builder-os/SKILL.md" 2>&1 || echo "Error reading BuilderOS bootstrap skill")
-
-# Escape string for JSON embedding
-escape_for_json() {
-    local s="$1"
-    s="${s//\\/\\\\}"
-    s="${s//\"/\\\"}"
-    s="${s//$'\n'/\\n}"
-    s="${s//$'\r'/\\r}"
-    s="${s//$'\t'/\\t}"
-    printf '%s' "$s"
+# Quote one path for the Bash shell used by the hook, including apostrophes.
+shell_quote() {
+  printf '%q' "$1"
 }
 
-hub_escaped=$(escape_for_json "$hub_content")
+# Encode JSON without requiring Node. Escape every JSON control character.
+escape_for_json() {
+  local s="$1" char escaped i
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  for ((i=1; i<32; i++)); do
+    printf -v char '%b' "\\$(printf '%03o' "$i")"
+    printf -v escaped '\\u%04x' "$i"
+    s="${s//"$char"/$escaped}"
+  done
+  printf '%s' "$s"
+}
 
-# Where the BuilderOS script lives, so skills that say "scripts/bos.mjs" can run it
-script_block=""
+session_context="You have BuilderOS installed — The Operating System for Product Builders.
+
+**BuilderOS installation root:** ${PLUGIN_ROOT}
+Resolve support paths (skills/, references/, scripts/) from this installation root, never the user's project. Run commands from the user's project so artifacts and state stay there. On Claude Code plugin skills and agents use the builder-os: namespace.
+
+**The using-builder-os skill is already loaded below.** Apply it only within the user's requested scope and existing authorization; load other skills as needed:
+
+${hub_content}"
+
 if command -v node >/dev/null 2>&1; then
-  script_block="\n\n**BuilderOS script:** \`node $(escape_for_json "${PLUGIN_ROOT}")/scripts/bos.mjs\`. Wherever a skill or command mentions scripts/bos.mjs (gate, new, cover, brief, roadmap, migrate), run it at this path from the project root instead of checking or writing state by hand."
+  script_command="node $(shell_quote "${PLUGIN_ROOT}/scripts/bos.mjs")"
+  session_context+="
+
+**BuilderOS script:** \`${script_command}\`. Use this quoted path for scripts/bos.mjs (gate, record, run-check, defer-review, new, cover, brief, roadmap, migrate) from the user's project root."
 fi
 
-# Project memory briefing, computed from the files when node is available and this directory has BuilderOS memory
-brief_block=""
 if [ -d ".builderos" ] && command -v node >/dev/null 2>&1; then
-  brief_out=$(node "${PLUGIN_ROOT}/scripts/bos.mjs" brief 2>/dev/null || true)
-  if [ -n "$brief_out" ]; then
-    brief_block="\n\n**Project memory briefing, computed from .builderos/ by scripts/bos.mjs. Relay it to the user before your first answer, then follow using-builder-os:**\n\n$(escape_for_json "$brief_out")"
+  if brief_out=$(node "${PLUGIN_ROOT}/scripts/bos.mjs" brief 2>&1); then
+    session_context+="
+
+**Project memory briefing:**
+
+${brief_out}"
+  else
+    session_context+="
+
+**Project memory briefing unavailable:** ${brief_out}
+Inspect the project memory before lifecycle work; do not infer state from a failed briefing."
   fi
 fi
-session_context="You have BuilderOS installed — The Operating System for Product Builders.\n\n**Below is the using-builder-os skill, already loaded. It briefs from the project memory and routes to builder-os (the lifecycle) or a specialist skill (a standalone answer); load those and every other skill by name:**\n\n${hub_escaped}${script_block}${brief_block}"
 
-# Output context injection — platform-aware
+context_json=$(escape_for_json "$session_context")
 if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
-  printf '{\n  "additional_context": "%s"\n}\n' "$session_context"
+  printf '{"additional_context":"%s"}\n' "$context_json"
 elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
-  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$session_context"
+  printf '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"%s"}}\n' "$context_json"
 else
-  printf '{\n  "additionalContext": "%s"\n}\n' "$session_context"
+  printf '{"additionalContext":"%s"}\n' "$context_json"
 fi
-
-exit 0

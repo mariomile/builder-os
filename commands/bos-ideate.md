@@ -3,7 +3,11 @@ name: bos-ideate
 description: "Phase 3 — generate distinct solution options, select the bet, write kill criteria, and design the cheapest test"
 ---
 
-Dispatch the `solution-architect` agent to run BuilderOS phase 3.
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load ideation-methods; qualify skill names with `builder-os:` on Claude.
+
+Dispatch the `builder-os:solution-architect` agent to run BuilderOS phase 3.
 
 ## Steps
 
@@ -12,12 +16,10 @@ Dispatch the `solution-architect` agent to run BuilderOS phase 3.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
-```
-Agent({
-  description: "Solution options and bet selection for [product]",
-  subagent_type: "solution-architect",
-  run_in_background: false,
-  prompt: "Operating mode: [detected mode]
+Dispatch `builder-os:solution-architect` with this context:
+
+```text
+Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 3, cycle [C], mode [full|lite]
 
@@ -33,8 +35,7 @@ PRODUCT.md:
 User request:
 [what the user asked]
 
-Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 before declaring completion."
-})
+Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 before declaring completion.
 ```
 
 5. **Verify completion:** `## BET SELECTED` with a gate 3 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 3 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.

@@ -3,7 +3,11 @@ name: bos-ship
 description: "Phase 6 — rollout plan, tested rollback, production instrumentation check, baseline captured before exposure, release notes, scheduled review"
 ---
 
-Dispatch the `release-manager` agent to run BuilderOS phase 6.
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load release-ops; qualify skill names with `builder-os:` on Claude.
+
+Dispatch the `builder-os:release-manager` agent to run BuilderOS phase 6.
 
 ## Steps
 
@@ -12,12 +16,10 @@ Dispatch the `release-manager` agent to run BuilderOS phase 6.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
-```
-Agent({
-  description: "Release plan for [feature]",
-  subagent_type: "release-manager",
-  run_in_background: false,
-  prompt: "Operating mode: [detected mode]
+Dispatch `builder-os:release-manager` with this context:
+
+```text
+Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 6, cycle [C], mode [full|lite]
 
@@ -40,11 +42,10 @@ User request:
 [what the user asked]
 
 Write .builderos/initiatives/{initiative}/06-release.md and run gate 6 before declaring completion.
-Capture the baseline before any exposure; gate 6.2 checks the timestamp order."
-})
+Capture the baseline before exposure. Do not deploy without authorization. For SHIPPED, add `## Exposure verification`: Status verified, actual Exposed at, Environment, Version, and Verification with an observed result and resolvable data/doc source. Planning stays RELEASE READY.
 ```
 
-5. **Verify completion:** `## SHIPPED` with a gate 6 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 6 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
+5. **Verify completion:** `## RELEASE READY` means preparation only and keeps phase 6 open. `## SHIPPED` requires gate 6 plus actual verified exposure (6.6). Re-read the artifact and rerun gate 6 per `gate-checks`; report missing artifacts or failed conditions despite any marker.
 6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review.
 
 ## Arguments
@@ -58,6 +59,6 @@ Gate 6.2 compares two timestamps. A baseline captured after exposure fails, and 
 
 Gate 6.1 wants the rollback tested, not described. The related question that gets skipped is what happens to data written while the feature was live: answer it even when the answer is that nothing is written.
 
-Where no analytics capability resolved, the baseline floors to a user-provided number with a tag, or an explicit zero with a first-measurement date. Both pass. A remembered number presented as measured does not.
+Without analytics, retain an unknown baseline or use a dated user-provided source. Zero requires evidence appropriate to the metric; unavailable data does not imply zero.
 
 In lite mode, gate 6.4 becomes a warning. Gates 6.1 and 6.2 never relax.

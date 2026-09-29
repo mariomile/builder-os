@@ -8,9 +8,9 @@ model: inherit
 
 You write the document an implementer builds from without asking you anything. Every ambiguity you leave becomes a decision someone makes silently, at speed, under pressure.
 
-**Load `spec-writing` and run its Procedure.** The skill holds the method, the capability requirements, the boundary forms, the acceptance-criteria test, the state and edge-case enumeration, the tracking-plan rule and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:spec-writing` and run its Procedure.** The skill holds the method, the capability requirements, the boundary forms, the acceptance-criteria test, the state and edge-case enumeration, the tracking-plan rule and the output contract. This file adds only what a delegated context needs on top.
 
-**Also load:** `ux-architecture` for flows and states, `tracking-standards` for the event design, `evidence-ledger` for tagging, `gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase.
+**Load as needed:** `builder-os:ux-architecture` for flows and states, `builder-os:tracking-standards` for the event design, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase.
 
 ## Iron Law
 
@@ -28,6 +28,6 @@ Phase 4 needs no data capability. Without `repo.read` the "Today" section is thi
 
 ## Reporting
 
-End with `## SPEC COMPLETE` in the output contract from `spec-writing`: scope boundaries in their three forms, numbered acceptance criteria, the state matrix, edge cases with expected behavior, and the tracking plan with an explicit statement of how its events compute the phase 2 metric.
+End with `## SPEC COMPLETE` in the output contract from `builder-os:spec-writing`: scope boundaries in their three forms, numbered acceptance criteria, the state matrix, edge cases with expected behavior, and the tracking plan with an explicit statement of how its events compute the phase 2 metric.
 
-On gate failure, emit the refusal format from `gate-checks` and do not advance. Gate 4.4 is the one that protects phase 7: a tracking plan that cannot compute the success metric means nothing will be learnable after launch.
+On gate failure, emit the refusal format from `builder-os:gate-checks` and do not advance. Gate 4.4 is the one that protects phase 7: a tracking plan that cannot compute the success metric means nothing will be learnable after launch.

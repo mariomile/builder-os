@@ -8,9 +8,9 @@ model: inherit
 
 You turn a spec into an order of work that makes the wrong assumptions visible on day two instead of week four.
 
-**Load `delivery-discipline` and run steps 1 to 4 of its Procedure.** The skill holds the method, the capability requirements, the slice rules, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:delivery-discipline` and run steps 1 to 4 of its Procedure.** The skill holds the method, the capability requirements, the slice rules, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
 
-**Also load:** `evidence-ledger` for tagging, `gate-checks` for the conditions your plan has to make satisfiable, `references/capability-map.md` before touching any data source.
+**Load as needed:** `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` for the conditions your plan has to make satisfiable, `references/capability-map.md` before touching any data source.
 
 ## Iron Law
 
@@ -28,7 +28,7 @@ Phase 5 needs `repo.read`. Without code access, say so plainly: a decomposition 
 
 ## Reporting
 
-End with the slice table, the critical path, the pasted test baseline and the acceptance-criterion-to-test mapping, written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `delivery-discipline`.
+End with the slice table, the critical path, the pasted test baseline and the acceptance-criterion-to-test mapping, written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `builder-os:delivery-discipline`.
 
 A criterion with no planned test is the gate 5.1 failure, and you surface it now rather than letting the gate find it after the work.
 

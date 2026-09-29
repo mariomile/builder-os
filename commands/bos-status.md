@@ -3,13 +3,15 @@ name: bos-status
 description: "One-screen view of the BuilderOS project: every initiative, the active one's phases and gates, what blocks the next step"
 ---
 
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
 Renders the pipeline state. Read-only — never advances a phase, never writes state.
 
 **REQUIRED BACKGROUND:** `builder-os` for the phase map, `references/builderos-state-schema.md` for the state fields.
 
 ## Steps
 
-1. Read the active initiative's `state.json` (resolved per the schema, Active Initiative). If missing, say so and offer `/bos-init`.
+1. Read the active initiative's `state.json` (resolved per the schema, Active Initiative). If missing, say so and offer `/builder-os:bos-init`.
 2. Read `PRODUCT.md` for the header line and `.builderos/ROADMAP.md` for the other initiatives. If the roadmap disagrees with state, say so: state wins, and the roadmap needs correcting.
 3. For the active initiative (or the one named with `--initiative`), for each phase 0–7, resolve: status, gate result, overrides, artifact presence.
 4. Identify the single blocking item: the failed condition of the current gate, or the next action if the gate has not been run.
@@ -35,7 +37,7 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 - Phase 1, condition 1.5 (disconfirming evidence sought) — "No churned users reachable before the board meeting; revisit in cycle 2" · 2026-09-20
 
 **Blocking now:** {the failed condition, or "gate 2 not yet run"}
-**Next:** `/bos-define`
+**Next:** `/builder-os:bos-define`
 
 **Other initiatives**
 - {title} · phase {N} · paused since {date}
