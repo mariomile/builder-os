@@ -9,7 +9,9 @@ Phase 7 asks the only question the previous seven phases were built to make answ
 
 The phase exists because the honest answer is usually uncomfortable, and every structural incentive pushes toward declaring victory. Gate 7 removes the room to do that: the target was written in phase 2, the kill criteria in phase 3, the baseline captured in phase 6. Phase 7 reads them back.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `saas-metrics-reference` and `growth-frameworks` for the measurement itself. `pressure-testing` when a result is being explained rather than read. `references/analytics-contract.md` for the query shapes. `references/capability-map.md` before touching any data source.
+Load only the analysis skill needed for the outcome metric, `pressure-testing` for a material unsupported explanation, and `evidence-ledger` for lifecycle claims. Use [analytics shapes](../../references/analytics-contract.md) when rerunning a query and [capabilities](../../references/capability-map.md) when resolving sources.
+
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
 
 ## Read the Same Number
 
@@ -36,7 +38,7 @@ Evaluate the kill criteria literally. It said: on this date, if this metric is b
 
 Three ambiguities are common and each has an honest handling:
 
-- **Not enough data yet.** The window was too short or the volume too low for the number to mean anything. Say so, name the date when it will mean something, and extend rather than deciding. Extending is a decision and it gets recorded.
+- **Not enough data yet.** The window was too short or the volume too low for the number to mean anything. Say so, name the date when it will mean something, and defer rather than force KEEP/ITERATE/KILL. Record the reason and a new review date; phase 7 stays open and the cycle remains unchanged.
 - **The metric moved, the mechanism is unclear.** Something else changed at the same time: a campaign, a seasonal effect, another release. Name the confounder rather than claiming or denying credit.
 - **The baseline turned out to be wrong.** It happens. Say it explicitly; a comparison against a baseline you no longer believe is worse than no comparison, and the correction is a finding for the next cycle.
 
@@ -46,9 +48,9 @@ Gate 7.3: one of three, with the re-entry point.
 
 | Decision | Means | Re-enters at |
 |----------|-------|-------------|
-| **KEEP** | It worked. Remove the flag, clean up, move on | No re-entry; the cycle closes |
+| **KEEP** | Retain the change; identify any authorized cleanup separately | Normally none; explicit continued cycle may name phase N |
 | **ITERATE** | The direction holds, the execution or the scope was wrong | Phase 3 for a different mechanism, or phase 4 for a different execution |
-| **KILL** | The bet was wrong. Revert or leave it and stop investing | Phase 2 for a different opportunity, or phase 1 if the evidence itself is now in doubt |
+| **KILL** | The bet was wrong. Revert or leave it and stop investing | No re-entry; this bet closes. A different direction needs a separately authorized initiative |
 
 `KILL` is a successful outcome for the pipeline, exactly as it is at gate 1. The system's purpose is to make being wrong cheap and fast, and a kill at phase 7 with a tested rollback costs a release. The same wrong belief carried for four quarters costs a roadmap.
 
@@ -69,14 +71,14 @@ This is why overrides stay visible rather than disappearing once a phase passes.
 
 ## The Generalized Learning
 
-Gate 7.4: one sentence that is still true when the feature is gone, written into `.builderos/decisions/`.
+Gate 7.4: a reusable, evidence-bounded hypothesis or decision, written into `.builderos/decisions/`. State the population, observation, confidence, causal limitations and reopening condition; a single before/after result is not a universal law.
 
 The test: could this sentence change a decision about something unrelated? If it only describes what happened, it is a summary, not a learning.
 
 | Summary | Learning |
 |---------|----------|
-| "The import feature had 12% adoption" | "Users will not move existing data by hand, whatever the import tool looks like; the migration has to happen without them" |
-| "The onboarding change did not help retention" | "Retention in this product is decided before signup, by who arrives, not after it by what they see" |
+| "The import feature had 12% adoption" | "In the observed segment, manual migration may limit adoption; test an assisted migration before generalizing" |
+| "The onboarding change did not help retention" | "This onboarding change did not shift retention in the measured window; acquisition mix is a confounder to test" |
 | "We shipped it late" | "Any slice that touches billing needs the finance review scheduled at spec time, not at release" |
 
 The generalized learning goes in an ADR when the decision is irreversible or expensive to unwind, and in the outcome artifact always. Format in `references/builderos-state-schema.md`; "Revisit when" is mandatory, because a decision with no reopening condition becomes dogma.
@@ -92,13 +94,17 @@ The generalized learning goes in an ADR when the decision is irreversible or exp
 
 Phase 7 is the phase most helped by a data capability and it is still not blocked without one: a user-provided actual, tagged and compared against a tagged baseline, satisfies gate 7.1. What the gate refuses is a comparison with no source on either side.
 
-## Procedure
+## Standalone Procedure
+
+Compare the supplied baseline, target, actual and decision criteria. State missing windows or sources. Deliver the requested review without requiring phase files or writing lifecycle state. A recommendation does not authorize a rollback or flag change.
+
+## Lifecycle Procedure
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
 1. **Read `06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria, and the success metric with its target. Then read the override log from `state.json`.
 
-2. **Check the date.** The review date came from the kill criteria. Running early produces a number that has not stabilized; where the date has not arrived, say so and schedule rather than measuring.
+2. **Check the date.** The review date came from the kill criteria. Running early produces a number that has not stabilized; where the date has not arrived, defer with the reason and date; do not invent a final outcome.
 
 3. **Rerun the measurement.** Same definition, same shape, same parameters, same window length as phase 6. Then the guardrails. Where a delivery of this depends on specialist analysis, hand the numbers to the analysis surface: health, growth, cohorts and revenue each have their own skill, and phase 7 orchestrates rather than reimplements.
 
@@ -108,13 +114,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 6. **Read the overrides** against the outcome, per the table above. What the pipeline did differently is part of what happened.
 
-7. **Decide.** KEEP, ITERATE or KILL, with the re-entry phase and the reason. Where the result is ambiguous, use one of the three honest handlings rather than forcing a decision the data cannot support.
+7. **Decide or defer.** If the window or data is insufficient, write `## REVIEW DEFERRED`, the reason and new date, invoke `scripts/bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."` and stop with phase 7 open. Otherwise KEEP, ITERATE or KILL, with the re-entry phase and the reason. Where the result is ambiguous, use one of the three honest handlings rather than forcing a decision the data cannot support.
 
 8. **Generalize the learning.** One sentence that outlives the feature. Apply the test: could it change an unrelated decision?
 
-9. **Write the ADR** where the decision passes the ADR test (hard to reverse, surprising without context, a real trade-off: all three), per the format and test in `references/builderos-state-schema.md`.
+9. **Persist the scoped learning.** Use `.builderos/decisions/learning-{initiative}-cycle-{N}.md` for a reversible learning, with source, population, confidence, limitations and `Revisit when`. **Write the ADR** where the decision passes the ADR test (hard to reverse, surprising without context, a real trade-off: all three), per the format and test in `references/builderos-state-schema.md`.
 
-10. **Write and gate.** Write `.builderos/initiatives/{initiative}/07-outcome.md`, run gate 7 and record it with the decision (`scripts/bos.mjs record 7 --verdict keep|iterate|kill [--reenter N]` where commands run), which clears `review_due`. On KEEP the cycle closes and `status` becomes `closed`; on ITERATE or KILL with a re-entry phase, `cycle` increments and `current_phase` becomes the re-entry phase. Close the initiative in `ROADMAP.md`: move it to Done and dropped with the decision and the one-sentence learning. On ITERATE, it re-enters at the phase named in step 7 and stays under Now.
+10. **Write and gate.** Write `.builderos/initiatives/{initiative}/07-outcome.md`, run gate 7 and record it with the decision (`scripts/bos.mjs record 7 --verdict keep|iterate|kill [--reenter N]` where commands run), which clears `review_due`. KEEP with `Re-enters at: none` closes the cycle; an explicitly selected KEEP with a matching phase re-enters. ITERATE increments `cycle` and moves to the matching phase. KILL closes with `Re-enters at: none` and prohibits `--reenter`; another direction requires a separately authorized initiative. Close the initiative in `ROADMAP.md`: move it to Done and dropped with the decision and the one-sentence learning. On ITERATE, it re-enters at the phase named in step 7 and stays under Now.
 
 Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria verdict, the decision with its re-entry point, and the generalized learning.
 
@@ -146,13 +152,15 @@ Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria 
 
 ## Decision: {KEEP | ITERATE | KILL}
 **Why:** {reasoning against both comparisons}
-**Re-enters at:** {phase, or "cycle closed"}
+**Re-enters at:** {phase N for ITERATE; none for KILL or a closed KEEP}
 **Next:** {the specific thing that happens now}
 
 ## Learning
 {one sentence that is true when the feature is gone}
 
-**ADR:** {decisions/ADR-NNN-slug.md, or "not required: the decision is reversible"}
+**Learning record:** {decisions/learning-{initiative}-cycle-{N}.md or ADR path}
+**Scope / confidence:** {population, supporting evidence and uncertainty}
+**Revisit when:** {new evidence or changed conditions}
 ```
 
 ## Common Mistakes
@@ -162,7 +170,7 @@ Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria 
 | A different window or definition than phase 6 | The comparison becomes an argument | Rerun the recorded method, or state what changed |
 | Reinterpreting the kill criteria after seeing the result | Exactly what phase 3 wrote them down to prevent | Apply as written, then interpret separately |
 | Only comparing against the target | The kill criteria are a different test and often disagree | Both comparisons, always |
-| "We will keep an eye on it" | Not a decision; gate 7.3 fails | KEEP, ITERATE or KILL, with the re-entry phase |
+| Insufficient data forced into KEEP | Fabricates a final verdict | REVIEW DEFERRED, date and reason; phase 7 remains open |
 | Measuring before the review date | The number has not stabilized | Schedule, do not measure early |
 | Skipping the guardrails | Misses the release that won and broke something else | Rerun them too |
 | Ignoring the override log | A failure after three overrides has a different lesson | Read the overrides against the outcome |

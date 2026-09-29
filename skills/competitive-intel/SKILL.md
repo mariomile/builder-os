@@ -5,9 +5,16 @@ description: "Use when analyzing competitors, building feature matrices, mapping
 
 # Competitive Intelligence
 
-Reference for competitive analysis: methodology, source priority, and output templates.
+## Mode and resources
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/capability-map.md` before reaching for any source.
+Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** Analyze the requested competitors or positioning question using supplied material and current relevant sources. Return only the requested comparison, brief or recommendation. No phase files, initiative state, initialization or gate override are required. Preserve the requested format and destination.
+
+**Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
+
+Load `evidence-ledger` for lifecycle evidence storage, and `references/capability-map.md` when resolving a source. Standalone citations can point directly to the supplied material or source URLs. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+
+
+Method for competitive analysis, question-specific source evaluation and output templates.
 
 ## Capabilities
 
@@ -15,22 +22,23 @@ Reference for competitive analysis: methodology, source priority, and output tem
 |-----------|----------|-------------------|
 | `docs.search` | Competitive notes and market research the team already wrote | Skip, and start from the public web |
 | `research.search` | Saved reading on the category and its players | Skip; substitute `web.search` |
-| `web.search` | The live landscape: pricing, positioning, reviews, comparisons | Work from what the user knows, and mark the whole analysis as undated |
-| `web.fetch` | Competitor pricing and feature pages, read directly | Rely on search snippets, which are staler and sometimes wrong |
+| `web.search` | The live landscape: pricing, positioning, reviews, comparisons | Use supplied dated material; mark specific claims unverified/stale and limit conclusions where current sources are unavailable |
+| `web.fetch` | Competitor pricing and feature pages, read directly | Use snippets only as leads or explicitly unverified evidence; do not claim current terms were checked |
 | `repo.read` | Dependencies and docs that reveal who the incumbents are | Skip when there is no codebase |
 | `files.read` / `files.write` | The artifact itself | Always present |
 
-## Source Priority
+## Source Fitness
 
-Highest trust first. Use what resolves, skip what does not, and never let a lower source silently overwrite a higher one.
+Choose evidence by the question, directness, date, population and limitations; no source class always outranks another.
 
-1. **What the team already knows.** Notes, prior analyses, sales call patterns. Highest trust because it is first-hand and about this market.
-2. **Saved reading.** Curated articles on the category.
-3. **Live web search.** Comparisons, pricing pages, review sites, "alternatives to X" pages.
-4. **Competitor properties, read directly.** Pricing and feature pages fetched rather than summarized.
-5. **The codebase.** Dependencies and integrations name the incumbents a product already lives beside.
+| Question | Most pertinent evidence | Limitation to preserve |
+|----------|-------------------------|------------------------|
+| Current pricing or published feature terms | Current official page read directly, with region/plan/date | Marketing terms are claims about availability, not proof of practical quality |
+| Workflow quality or buyer friction | Relevant recent user observations, trials and sales/support records | Sampling, segment and recency may limit generalization |
+| Category positioning | Current competitor messaging and relevant buyer language | Separate what the vendor claims from independent buyer perception |
+| Integration context | Current code/dependency and integration documentation | Being installed does not prove customer preference |
 
-Vendor marketing describes the product the vendor wishes it sold. Review sites describe the product six months ago. Neither is wrong; both are dated, and the date belongs in the citation.
+Saved research and team notes are leads, not automatic authority. Keep conflicting claims visible, record source/access dates and explain which evidence fits the specific claim. A newer source may supersede an older price; a relevant direct user observation may be better for a behavior question.
 
 ## Procedure
 
@@ -38,7 +46,7 @@ Vendor marketing describes the product the vendor wishes it sold. Review sites d
 
 Name the category and the set of competitors before searching, and say why each is in the set: direct substitute, adjacent, or the status quo (a spreadsheet, an intern, doing nothing). The status quo is the most common competitor and the one most often left out of the matrix.
 
-### 2. Gather, in source priority order
+### 2. Gather evidence fitted to each claim
 
 Per competitor: positioning claim in their own words, pricing with its date, the features that matter to this comparison, and who they say they are for. Tag every fact with its source and the date it was read.
 
@@ -59,6 +67,8 @@ What this product does that the others structurally cannot, not what it does bet
 Emit the output contract. Every claim cited with its source and date. Where the landscape could not be read live, say so once at the top rather than hedging every line.
 
 ## Output Contract
+
+Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims. The paths below apply to lifecycle artifacts.
 
 ```markdown
 ## COMPETITIVE ANALYSIS COMPLETE
@@ -129,3 +139,12 @@ Their pricing starts at $49/mo for teams up to 10 [2].
 ```
 
 No source = speculation, not intelligence. Mark unverified claims as `[unverified]`.
+
+## Common Mistakes
+
+| Mistake | Why it fails | Correct |
+|---------|-------------|---------|
+| Old internal note overriding a current official price | Source class does not establish freshness | Compare plan/region/date and retain the change in provenance |
+| Treating a search snippet as verified current terms | It may be stale or omit conditions | Read the pertinent source or mark the claim unverified |
+| Requiring pipeline state for a scoped artifact | Expands the request | Use supplied inputs and the requested output destination |
+| Filling missing data with zero | Creates false certainty | Preserve unknown and state the measurement needed |

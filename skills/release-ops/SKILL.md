@@ -9,7 +9,9 @@ Phase 6 puts the work in front of users in a way that can be undone, and capture
 
 The two failures this phase prevents are both quiet. A release with no tested rollback turns a small regression into an incident. A release with no baseline captured beforehand makes the entire pipeline unfalsifiable: nobody can say afterwards whether it worked, so everybody says it did.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `pm-artifacts` for the release-notes template. `tracking-standards` for the pre-launch instrumentation check. `references/analytics-contract.md` for the baseline query shapes. `references/capability-map.md` before touching any data source.
+Load `pm-artifacts` for requested release-note formatting, `tracking-standards` for instrumentation checks, and `evidence-ledger` for lifecycle evidence. Read [analytics shapes](../../references/analytics-contract.md) only when measuring a baseline, and [capabilities](../../references/capability-map.md) when resolving a source.
+
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
 
 ## Rollout Strategies
 
@@ -54,7 +56,7 @@ Without it, phase 7 compares a post-launch number against a remembered one, and 
 | **Timestamp** | Recorded, and earlier than the rollout timestamp. The gate checks the order |
 | **Method** | The exact query shape and parameters, written down so phase 7 runs the identical one |
 
-Where no analytics capability resolved, the baseline is whatever the floor gives: a number the user provides, tagged, or an explicit zero with the date of first measurement. Both satisfy the gate. A remembered number presented as measured does not.
+A tagged user-provided observation may substitute for a query when its date, window and method are stated. Zero requires an observed zero or documented first-ever measurement for a genuinely new metric/population. An existing product with missing history has an unavailable baseline, which blocks the baseline gate until measured or explicitly overridden. No capability fallback invents zero.
 
 Capture the guardrail metrics too, from the phase 4 tracking plan. A release that moved the target and broke something else is the outcome that only guardrail baselines can detect.
 
@@ -78,7 +80,7 @@ A changelog is a legitimate artifact and a different one. Both can exist; only o
 
 Gate 6.5: an owner and a date, set now, while the intent is fresh.
 
-The date comes from the phase 3 kill criteria, which already named one. If phase 3 said "28 days after 50% rollout", the review date is computable the moment the rollout schedule exists. Where they disagree, the kill criteria win and the discrepancy is worth a line.
+The date comes from the phase 3 kill criteria, which already named one. If phase 3 said "28 days after 50% rollout", the review date is anchored to the actual verified exposure at that level; the plan may show a provisional date. Where they disagree, the kill criteria win and the discrepancy is worth a line.
 
 A review with no owner does not happen. A review with no date happens when someone remembers, which is after the result has become obvious enough that there is nothing left to learn.
 
@@ -97,16 +99,20 @@ Release claims are the ones most often made from memory, under time pressure. Ea
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `analytics.query` | The baseline for the success metric and the guardrails | Ask the user for the number and tag it, or record an explicit zero with a first-measurement date |
+| `analytics.query` | The baseline for the success metric and the guardrails | Use a sourced observation with window/method; otherwise mark unavailable and name the measurement gap |
 | `analytics.events` | Confirming production events arrive before exposure | Verify from the production emission path in code, tagged as weaker evidence |
 | `db.query` | Baselines that live in the application database | Same floor: ask |
 | `repo.read` | The flag system, the migration, the deploy configuration | Ask how the release mechanism works; a rollback you cannot describe is not documented |
-| `docs.write` | Publishing release notes where users read them | Write the file; publishing is the user's step |
+| `docs.write` | Publishing release notes where users read them | Deliver to the requested destination within existing authorization; report any unresolved access |
 | `files.read` / `files.write` | Previous artifacts, this artifact, state | Required |
 
-Gate 6.2 is satisfiable with no data capability. What it refuses is an *absent* or *remembered* baseline, not an honestly floored one.
+Gate 6.2 may use a sourced manual measurement. Unknown history is a blocking gap; source-code inspection cannot establish a measured baseline or actual user exposure.
 
-## Procedure
+## Standalone Procedure
+
+For a release plan, checklist, rollback design or notes, use supplied context and deliver that artifact. State missing readiness evidence. Do not require lifecycle filenames, initialize an initiative or deploy. Planning authorizes a plan; use existing explicit deployment authorization for execution.
+
+## Lifecycle Procedure
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
@@ -120,7 +126,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 5. **Verify production instrumentation.** Events arriving from the production path, with the production configuration, before the first user.
 
-6. **Capture the baseline.** The phase 2 metric by its phase 2 definition, plus the guardrails, with the window, the method and the timestamp. This happens before step 8, and the gate checks the order.
+6. **Capture the baseline.** The phase 2 metric by its phase 2 definition, plus the guardrails, with the window, the method and the timestamp. This happens before actual exposure in step 10, and the gate checks the order.
 
 7. **Confirm the measurement exists.** A saved query or dashboard for the success metric, named and findable.
 
@@ -128,9 +134,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 9. **Schedule the outcome review.** Owner and date, taken from the phase 3 kill criteria.
 
-10. **Write and gate.** Write `.builderos/initiatives/{initiative}/06-release.md`, run gate 6 and record it with the outcome review date (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD` where commands run), which advances to phase 7 on pass. Before reporting, add to `TECH.md` anything the release taught (a migration that needed care, a flag that must stay on) and update the initiative's line in `ROADMAP.md`.
+10. **Prepare and report readiness.** Write `.builderos/initiatives/{initiative}/06-release.md`. A completed plan is `## RELEASE READY` and remains at phase 6. Do not record a successful ship gate from a future rollout date.
 
-Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the timestamped baseline, the measurement, the release notes and the scheduled review.
+11. **Execute within authorization and verify exposure.** If deployment is authorized, perform the rollout, observe the exposed version in the intended environment and capture a resolving data or document source. Otherwise report the concrete readiness result and the remaining authorization/access. Record an actual, non-future timestamp, environment, version and verification. Installed-app behavior requires observing the installed app; publication alone proves publication.
+
+12. **Gate the verified release.** Run gate 6, including 6.6 exposure structure and 6.7 evidence-to-exposure judgment, then record with the outcome date (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
+
+Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for observed exposure backed by its evidence and passing gate. Report partial rollout accurately.
 
 ## Output Contract
 
@@ -165,6 +175,13 @@ Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the 
 ## Release notes
 {the notes, written for users}
 
+## Exposure verification
+**Status:** {planned | verified}
+**Exposed at:** {actual ISO timestamp; omit while planned}
+**Environment:** {observed target}
+**Version:** {observed version or revision}
+**Verification:** {observed result with resolving [data:*] or [doc:*] source}
+
 ## Outcome review
 **Owner:** {person} · **Date:** {date, from the phase 3 kill criteria}
 **Will evaluate:** {the kill criteria, restated}
@@ -175,7 +192,8 @@ Completion marker: `## SHIPPED` with the rollout plan, the tested rollback, the 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
 | Baseline captured after exposure | Phase 7 has nothing honest to compare against | Capture and timestamp before the first user |
-| A remembered baseline | Memory is generous, and always in one direction | Measure it, or floor it honestly and tag it |
+| Missing history filled as zero | The comparison becomes fabricated | Measure it or mark unavailable |
+| A rollout plan labeled SHIPPED | Nobody has verified user exposure | RELEASE READY until exposure is observed |
 | Untested rollback | Gate 6.1 fails; the first test happens during an incident | Exercise it once, before exposure |
 | No answer for data written while live | The rollback needs a second rollback | Write the answer, even when it is "nothing is written" |
 | Assuming a migration is reversible | Destructive changes are not | State reversibility as a fact before shipping |

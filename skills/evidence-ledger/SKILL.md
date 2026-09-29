@@ -7,7 +7,9 @@ description: "Use when writing any claim into a BuilderOS phase artifact, when a
 
 The mechanism behind the Iron Law. "Never invent data" is a prohibition; the ledger makes it checkable.
 
-Every factual claim in a BuilderOS artifact carries a source tag. Gates count tags. An artifact whose claims are mostly assumptions cannot pass a gate that requires evidence, and no agent has to exercise taste to decide that.
+Every factual claim in a lifecycle artifact carries a source tag. Gates check resolving pointers and source counts; the model still judges whether a source supports the claim. Standalone answers may use direct citations without creating lifecycle evidence files.
+
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
 
 ## Tag Grammar
 
@@ -28,19 +30,15 @@ Placed at the end of the sentence it substantiates, before the period or after i
 
 ## Every Tag Has a File
 
-A tag is a pointer, and a pointer to nothing is an invented source. Every `interview`, `doc` and `data` tag has a file in `evidence/` holding the raw material it cites: the interview notes, the pasted query output with its parameters, the excerpt. File names, format and lookup order are in `references/builderos-state-schema.md`, section Evidence Files. Gate condition E.1 checks it on every gate.
+A tag is a pointer, and a pointer to nothing is an invented source. Every `interview`, `doc` and `data` tag has a file in `evidence/` holding the raw material it cites: the interview notes, the pasted query output with its parameters, the excerpt. File names, format and lookup order are in [the state schema](../../references/builderos-state-schema.md), section Evidence Files. Gate condition E.1 checks it on every gate.
 
 Write the evidence file when the source is captured, not when the gate fails: notes written from memory a week later are a `doc` about an interview, not the interview. Something the user tells you in the conversation is `[doc:user-{YYYY-MM-DD}-{topic}]`, with their words copied verbatim into the file.
 
 ## Source Hierarchy
 
-When two sources disagree, the higher class wins and the conflict is recorded rather than smoothed:
+Choose the source that best answers this claim, using directness, relevant population, observation date, provenance and known limitations. Source class alone never decides a conflict. A current official pricing page can beat an older internal note; a faulty live query can lose to a reconciled historical report. Estimates and assumptions stay explicitly uncertain.
 
-```
-data  >  code  >  interview  >  doc  >  estimate  >  assumption
-```
-
-Live data beats what someone remembers. What someone said beats what a document claims about them. A stated method beats a feeling. An assumption never beats anything: it is a question wearing the clothes of an answer.
+Read all relevant conflicting sources. Record both and explain the choice or leave the conflict unresolved. Do not stop at the first source found.
 
 Conflicts are written into the artifact explicitly:
 
@@ -53,7 +51,7 @@ Gates ask questions like "≥5 evidence units from primary sources". The rules:
 1. **An evidence unit is one tag on one distinct claim.** The same tag repeated across five sentences is one unit, not five.
 2. **Primary sources** are `data`, `interview`, `code`. `doc` counts as primary only when the document is itself a record of primary contact (a transcript, a support ticket) and not a summary of one.
 3. **`estimate` and `assumption` never count toward an evidence threshold.** They are allowed in artifacts, and they are useful, but they are not evidence.
-4. **Distinct sources.** Five quotes from one interview are one source. Gate 1 requires five distinct sources, not five quotes.
+4. **Distinct sources.** Five quotes from one interview are one source. Gate 1 requires five distinct sources, not five quotes. Code paths resolve to the same underlying file regardless of line number or symlink alias. Multiple exports of one query or document are one source; evidence files may declare `**Source identity:** {stable upstream source}` to identify this equivalence. A new filename does not create independent evidence.
 5. **Every number gets a tag.** Percentages, counts, currency, dates of events. Adjectives of scale ("most", "many", "rapidly") count as numbers and need a tag or a rewrite.
 
 ## Rewrite Protocol
@@ -70,7 +68,7 @@ The rewrite does three things: it narrows the claim to what the source supports,
 
 ## Audit Mode
 
-`/bos-gate` and any agent asked to audit an artifact runs this pass:
+A gate check or an artifact audit runs this pass:
 
 1. Extract every sentence containing a number, a proportion word, or a causal claim.
 2. Flag each one without a tag.
