@@ -2,6 +2,27 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [2.1.1] - 2026-09-30
+
+Hardening from a skill audit (#7). No new phases or commands; the gates ask for stronger evidence and the host adapters load the whole bundle.
+
+### Changed
+
+- **Phase 5 counts only recorded test runs.** `bos.mjs run-check` runs the command and writes a `Run` record (argv, cwd, timestamps, exit code, log digest); gate 5.2 resolves it. Pasted test output no longer passes. Eval runs bind dataset and result digests the same way.
+- **Phase 6 separates ready from shipped.** A release plan ends at `## RELEASE READY`; `## SHIPPED` and the move to phase 7 need observed exposure: verified status, an actual timestamp, environment, version and a resolvable source (gates 6.6 and 6.7). Baseline capture is compared with the actual exposure time, never a planned date.
+- **Standalone requests stay standalone.** A PRD, research guide or plan asked for on its own keeps its scope and destination and creates no lifecycle state.
+- **Namespaced commands on Claude Code**: `/builder-os:bos-*`. Commands dispatch in the foreground and await delegated work.
+- **Codex installs as a plugin** (`codex plugin marketplace add mariomile/builder-os`, `codex plugin add builder-os@builder-os`). Manual setups keep a complete checkout; copying `skills/` alone is unsupported.
+
+### Fixed
+
+- Historical MRR, churn, cohort and account-ARPA calculations, A/B sample sizes, partial PMF scoring and unsupported growth inferences in the specialist skills.
+- Host adapters resolve the installation root, handle resume and fork safely, and use capabilities available in the current session.
+
+### Verification
+
+55 Node tests and 17 SQL contract checks pass. The model-based behavioral scenarios were not rerun for this release.
+
 ## [2.1.0] - 2026-09-27
 
 The first initiative taken from `/bos-init` to phase 7, rehearsed on a stand-in for a captoo feature, and the first install on Codex. Everything below was found by those two runs. Report: `docs/runs/2026-09-27-captoo-rehearsal.md`.
