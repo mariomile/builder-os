@@ -5,11 +5,18 @@ description: "Use when a chosen opportunity needs solution options, when a team 
 
 # Ideation Methods
 
+## Mode and resources
+
+Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** Generate alternatives from the supplied opportunity, problem or requirements. An options-only request ends with the alternatives; do not force a selection, kill criteria or execution of an experiment. No phase files, initiative state, initialization or gate override are required. Preserve the requested format and destination.
+
+**Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
+
+Load `pressure-testing` for an unresolved material bet decision, `experiment-methodology` when a test design is requested, and `evidence-ledger`/`gate-checks` for lifecycle traceability and completion. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+
+
 Phase 2 chose what to attack. Phase 3 chooses how, and commits in advance to what would prove the choice wrong.
 
 Most ideation produces one idea wearing three costumes. The whole discipline here is mechanical distinctness: options that differ in what the user actually does, not in how the screen looks.
-
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `pressure-testing` before committing to a bet. `experiment-methodology` for designing the test. `references/capability-map.md` before touching any data source.
 
 ## Mechanical Distinctness
 
@@ -89,37 +96,39 @@ Where the test costs more than 20%, say so and proceed to build: an experiment t
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `analytics.query` | Sizing an option's reachable population; the leading indicator behind a kill threshold | Use the phase 2 sizing; state the threshold against the explicit-zero baseline and date its first measurement |
+| `analytics.query` | Sizing an option's reachable population; the leading indicator behind a kill threshold | Use supplied sizing with uncertainty; a missing baseline stays unknown and needs measurement |
 | `repo.read` | What already exists, which changes the effort score materially | Ask the user what exists; score effort as a range |
 | `docs.search` | Prior attempts at this problem, and why they were dropped | Ask. A previously failed attempt is the highest-value input to this phase |
 | `web.search` | How others solved this shape of problem | Skip; the option set comes from the four prompts above |
-| `files.read` / `files.write` | Previous artifacts, this artifact, state | Required |
+| `files.read` / `files.write` | Supplied inputs and requested artifact; lifecycle state | No file write for inline alternatives; required for lifecycle writes |
 
-**Phase 3 needs no data capability.** Option generation, distinctness, scoring and kill criteria all run from the phase 2 artifact and a conversation. A missing analytics capability affects only the precision of the threshold, and an explicit zero with a first-measurement date satisfies gate 3.2.
+**Option generation needs no connected data.** Use supplied evidence and constraints. A missing baseline stays unknown; zero requires sourced evidence for the metric. In lifecycle mode an unknown upstream baseline blocks the relevant gate until measured or explicitly overridden. A provisional test threshold may be a design choice, labeled as such, rather than a claimed observed value.
 
 ## Procedure
 
-Run in order. Delegate where the host allows it, run inline where it does not.
+Apply only the steps needed for the requested artifact. Phase-file prerequisites and gate writes apply in lifecycle mode. Delegate when available and authorized; otherwise run inline.
 
-1. **Read `02-definition.md` and `00-frame.md`.** The selected opportunity, the success metric with its baseline and target, and the riskiest assumption. No `02-definition.md` on disk means stop: options generated without a chosen opportunity are a brainstorm, not a phase.
+1. **Read the requested inputs.** Standalone ideation uses the supplied problem/opportunity and constraints; absence of phase files does not block options. For lifecycle IDEATE, read `02-definition.md` and `00-frame.md`: The selected opportunity, the success metric with its baseline and target, and the riskiest assumption. No `02-definition.md` on disk means stop: options generated without a chosen opportunity are a brainstorm, not a phase.
 
 2. **Generate options.** Work the four prompts until at least three mechanically distinct options exist. Write the primary user action for each, as a sentence. Run the distinctness check and merge any pair producing the same sentence. If merging drops the set below three, keep generating: gate 3.1 counts distinct mechanisms, not entries.
 
 3. **Score.** Four axes, 1 to 5, per option. Confidence cites tags from `01-discovery.md`. Where an option's confidence rests only on assumption, say so in the score line.
 
-4. **Pressure-test the leader.** Load `pressure-testing` and run it against the highest scorer before committing: what would have to be true for this to be wrong, which evidence would change the decision, what is the cheapest way to find out. Stop when no unresolved branch remains, not when the option still looks good.
+4. **Pressure-test a proposed bet when selection is requested.** Compare the separate axes and strategic constraints; there is no composite highest scorer. Use `pressure-testing` for material unresolved decisions: what would have to be true for this to be wrong, which evidence would change the decision, what is the cheapest way to find out. Record unresolved uncertainty with the test that addresses it; do not force another approval for decisions already delegated.
 
-5. **Select the bet.** One. Write the rejections, each with a reason and a revisit condition, the same way phase 2 does. Reversibility breaks ties.
+5. **Select the bet if requested.** An options-only request stops after comparison. For selection, choose one within delegated authority or ask about a material unresolved preference. Write the rejections, each with a reason and a revisit condition, the same way phase 2 does. Reversibility breaks ties.
 
 6. **Write kill criteria.** Metric, threshold, date, and the action taken on failure, in the sentence form above. This is gate 3.2 and it is not negotiable.
 
 7. **Design the cheapest test.** Name the riskiest assumption the bet rests on, pick the test shape from the catalogue, estimate its cost in days for this team, estimate the build cost in days, compute the ratio, and state what happens first. Where the ratio is under 20%, the test runs first or the override is logged.
 
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/03-solution-bet.md`, run gate 3 and record it (`scripts/bos.mjs record 3` where commands run), which advances to phase 4 on pass.
+8. **Deliver.** Return standalone alternatives, a proposed bet or test design as requested without lifecycle gate claims. In lifecycle mode: Write `.builderos/initiatives/{initiative}/03-solution-bet.md`, run gate 3 and record it (`scripts/bos.mjs record 3` where commands run), which advances to phase 4 on pass.
 
 Completion marker: `## BET SELECTED` with the option set, the selection, the kill criteria, the test design and the gate result.
 
 ## Output Contract
+
+Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims. The paths below apply to lifecycle artifacts.
 
 `.builderos/initiatives/{initiative}/03-solution-bet.md`:
 
@@ -170,3 +179,5 @@ On {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differe
 | Skipping a test that costs under 20% of the build | Gate 3.4 fails | Run it, or override with a logged reason |
 | Testing the wrong assumption | The cheap test proves something nobody doubted | Test the assumption that collapses the bet, not the easiest one |
 | Choosing the irreversible option on a tie | Being wrong becomes expensive | Reversibility breaks ties |
+
+| Requiring initiative state for a standalone request | Expands the user’s scope | Use supplied context and the requested destination; do not initialize or override a gate |

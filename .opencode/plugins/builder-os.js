@@ -9,7 +9,6 @@
 
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,23 +33,9 @@ const extractAndStripFrontmatter = (content) => {
   return { frontmatter, content: body };
 };
 
-const normalizePath = (p, homeDir) => {
-  if (!p || typeof p !== 'string') return null;
-  let normalized = p.trim();
-  if (!normalized) return null;
-  if (normalized.startsWith('~/')) {
-    normalized = path.join(homeDir, normalized.slice(2));
-  } else if (normalized === '~') {
-    normalized = homeDir;
-  }
-  return path.resolve(normalized);
-};
-
-export const BuilderOSPlugin = async ({ client, directory }) => {
-  const homeDir = os.homedir();
-  const builderOSSkillsDir = path.resolve(__dirname, '../../skills');
-  const envConfigDir = normalizePath(process.env.OPENCODE_CONFIG_DIR, homeDir);
-  const configDir = envConfigDir || path.join(homeDir, '.config/opencode');
+export const BuilderOSPlugin = async () => {
+  const installationRoot = path.resolve(__dirname, '../..');
+  const builderOSSkillsDir = path.join(installationRoot, 'skills');
 
   const getBootstrapContent = () => {
     const skillPath = path.join(builderOSSkillsDir, 'using-builder-os', 'SKILL.md');
@@ -59,12 +44,10 @@ export const BuilderOSPlugin = async ({ client, directory }) => {
     const fullContent = fs.readFileSync(skillPath, 'utf8');
     const { content } = extractAndStripFrontmatter(fullContent);
 
-    const toolMapping = `**Tool Mapping for OpenCode:**
-When skills reference tools you don't have, substitute OpenCode equivalents:
-- \`TodoWrite\` → \`todowrite\`
-- \`Task\` tool with subagents → Use OpenCode's subagent system
-- \`Skill\` tool → OpenCode's native \`skill\` tool
-- \`Read\`, \`Write\`, \`Edit\`, \`Bash\` → Your native tools`;
+    const sourceContext = `**BuilderOS installation root:** ${installationRoot}
+Resolve skills/, references/ and scripts/ here; project files remain in the user's working directory.
+Run the script from the user's project root: node '${path.join(installationRoot, 'scripts/bos.mjs').replaceAll("'", "'\\''")}'.
+Resolve capabilities against the tools exposed by this session. Delegate and await completion if supported; otherwise run the same skill inline.`;
 
     return `You have BuilderOS installed — The Operating System for Product Builders.
 
@@ -72,7 +55,7 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 
 ${content}
 
-${toolMapping}`;
+${sourceContext}`;
   };
 
   return {

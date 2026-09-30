@@ -17,7 +17,8 @@ AGENTS.md                 the project's own agent instructions; /bos-init adds t
   initiatives/
     {initiative}/         one folder per initiative: a feature, a bet, a new product
       state.json          this initiative's pipeline state, the machine-read file
-      evidence/           one file per source a tag cites: interview notes, pasted query output, excerpts
+      evidence/           one file per source a tag cites: interview notes, query output, excerpts
+        runs/             explicitly captured checks: command/exit metadata JSON and raw output logs
       00-frame.md         problem statement, ICP, riskiest assumption
       01-discovery.md     evidence ledger, JTBD, verdict
       02-definition.md    opportunity tree, selected opportunity, success metric
@@ -57,15 +58,56 @@ Every tag of class `interview`, `doc` or `data` names a file in `evidence/`: the
 
 **Class:** interview | doc | data
 **Captured:** {YYYY-MM-DD} · **By:** {who recorded it} · **Where:** {call, ticket URL, query tool and parameters, file path}
+**Source identity:** {optional stable identity of the underlying source, shared across excerpts/query variants}
 
 {The raw material: notes or verbatim quotes, the pasted query output, the excerpt. Not a summary of it.}
 ```
 
 What the user says in the conversation is evidence too, and gets the same treatment: `[doc:user-{YYYY-MM-DD}-{topic}]`, with the user's words copied verbatim into the file. This replaces the old bare `[doc:user-{date}-{topic}]`, which pointed at nothing.
 
+Code citations to different lines in the same real file count as one source, including symlink/path aliases. Interview groups count each participant. Data/doc evidence declaring the same `Source identity` counts as one underlying source; without it, identity falls back to the tag identifier. Distinct file identities do not prove independent observations: the model must inspect population, provenance and repeated sources.
+
 A tag whose file does not exist fails the gate exactly like an untagged claim. The file makes a source auditable, not true: a person reviewing the initiative can open the notes behind P3, and an invented P3 now has to be invented twice, in a place someone will read.
 
 **Version control:** commit `.builderos/`, `PRODUCT.md` and `TECH.md`. Product decisions belong next to the code they caused, and a teammate cloning the repo inherits the reasoning. Teams that want it private add `.builderos/` to `.gitignore` at init time; `/bos-init` asks once and records the answer.
+
+## Captured Checks and Release Exposure
+
+`gate` and `record` inspect evidence; they never rerun project commands. `run-check --label <slug> [--cwd <dir>] [--dataset <file> --results <file>] -- <executable> [args...]` explicitly executes argv without an implicit shell. Options precede `--`; everything after it belongs to the executable. Use only commands already within the user's authorization.
+
+Each run writes a timestamped JSON and `.log` under the active initiative's `evidence/runs/`:
+
+```json
+{
+  "schema": 1,
+  "provenance": "bos-run-check",
+  "command": ["pnpm", "test"],
+  "cwd": ".",
+  "started_at": "2026-09-29T10:00:00.000Z",
+  "finished_at": "2026-09-29T10:00:02.000Z",
+  "exit_code": 0,
+  "signal": null,
+  "output_file": ".builderos/initiatives/csv-export/evidence/runs/tests-2026-09-29T10-00-00-000Z.log",
+  "output_sha256": "sha256 of the recorded log"
+}
+```
+
+This is a format example; the script generates the actual digest. Failed and interrupted executions remain recorded. Add the printed `**Run:** <project-relative-json>` under `## Test output`. The gate checks record structure, timestamps, exit status, log digest, known failure summaries and mapped file existence. Successful captured checks still require model judgment of current-code coverage and execution provenance. Editable metadata and hashes cannot authenticate adversarial forged records. External execution evidence remains unverified by this helper; preserve its raw source and disclose the gap rather than fabricating a local capture.
+
+For evals, `--dataset` binds the input dataset digest before execution and `--results` binds the produced JSON digest after execution. Metadata adds `dataset_file`, `dataset_sha256`, `results_file`, `results_sha256`. Under `## Eval results`, include both `**Run:** <record>` and `**Results:** <results.json>`. Results are an array of unique `{ "id": "case-id", "pass": true }` entries covering every case. The gate computes the pass rate and verifies all must-pass cases; the model verifies the real run used the specified rubric and current implementation. JSON/JSONL dataset cases require unique `id`, `input`, `expected`, optional named `judge`, and boolean `must_pass`. Markdown uses columns # / Input / Expected / Judge / Must pass. Prose counts, invalid files and unsupported formats fail.
+
+A release plan is readiness, leaving phase 6 open. Actual advancement requires this section in `06-release.md`:
+
+```markdown
+## Exposure verification
+**Status:** verified
+**Exposed at:** 2026-09-29T10:00:00Z
+**Environment:** production
+**Version:** {deployed release identifier}
+**Verification:** {observed intended behavior available to users} [doc:release-observation]
+```
+
+The source must resolve and be `data` or `doc`; code existence alone does not demonstrate exposure. `Exposed at` is a valid non-future ISO timestamp; the baseline capture precedes it. The model checks that evidence actually proves availability. Use the actual timestamp/version/observation; this format example is not a production claim. The CLI review date matches the artifact's Outcome review date. `RELEASE READY` denotes preparation; `SHIPPED` denotes verified exposure, with any gate overrides explicitly visible.
 
 ## Session Start
 
@@ -205,27 +247,29 @@ A phase that passed through an overridden gate:
 | `mode` | `full` \| `lite` | Gate strictness. See `gate-checks` |
 | `track` | `spike` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
 | `current_phase` | `0`–`7` | Where the pipeline stands |
-| `cycle` | `1`+ | Increments when phase 7 re-enters phase 1 or 2 |
+| `cycle` | `1`+ | Increments when phase 7 explicitly re-enters any integer phase 0–6 |
 | `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline: the problem did not survive. `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check. `answered` ends a `spike` at phase 1 |
-| `phases.N.verdict` | phase-specific | Only phases 1 and 7 carry a verdict |
+| `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason), `closed` (phase 7, or a phase 1 kill or answer) |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason), `closed` (phase 7, or a phase 1 kill or answer) |
 
 ## Rules
 
-0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, a phase 6 review date, a close), and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, a phase 6 review date, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
 
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
-3. **A phase writes its own artifact and its own state entry, nothing else.** No agent touches another phase's entry.
+3. **A phase owns its artifact and gate result.** Only the lifecycle recorder sets the next phase in progress, or resets phase entries when a new cycle starts. Agents never rewrite another phase's artifact.
 4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check is a gate too: it is how a phase becomes `covered`. There is no other path.
 5. **A `killed` phase stops the pipeline.** `/bos` reports the kill and offers to start a new cycle from phase 0 with the learning carried forward.
 6. **A track only goes up.** `spike` → `feature` or `product`, `feature` → `product`. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
 7. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
-8. **Cycle increments preserve prior artifacts.** An initiative's phase artifacts from cycle 1 move to its own `cycle-1/` folder when cycle 2 begins.
-9. **The roadmap follows state.** Creating an initiative, advancing a phase, killing or closing one updates `ROADMAP.md` in the same step. A phase that changed `state.json` and left the roadmap stale has not finished.
-10. **Migrating schema 1.** A `.builderos/state.json` with `schema: 1` describes a single pipeline. Pick a slug from the product name, move its fields to `initiatives/{slug}/state.json` with `schema: 2`, `slug`, `status: "open"` and a `migrated` history event, move the phase artifacts and `DESIGN.md` into the same folder, write `local.json` with the slug, create `ROADMAP.md` with that initiative under Now, and delete the old file. Tell the user what moved; never migrate silently. `node scripts/bos.mjs migrate` does exactly this where commands run.
+8. **Decision and re-entry agree.** Phase 7 `ITERATE` requires `Re-enters at: phase N` (N = 0–6) and matching `--reenter N`; `KILL` requires `none` and no re-entry; `KEEP` permits either form. A spike always closes after gate 1 with status `answered` and its actual verdict retained. A closed initiative cannot record another gate; coverage cannot reset a feature past phase 0.
+9. **Deferred reviews do not invent decisions.** At phase 7, use `defer-review --review-due YYYY-MM-DD --reason "observed evidence gap"` with a future date. It appends `review_deferred`, keeps phase 7 in progress, sets review_due, and records no KEEP/ITERATE/KILL verdict.
+10. **Cycle increments preserve prior artifacts.** An initiative's phase artifacts from cycle 1 move to its own `cycle-1/` folder when cycle 2 begins.
+11. **The roadmap follows state.** Creating an initiative, advancing a phase, killing or closing one updates `ROADMAP.md` in the same step. A phase that changed `state.json` and left the roadmap stale has not finished.
+12. **Migrating schema 1.** A `.builderos/state.json` with `schema: 1` describes a single pipeline. Pick a slug from the product name, move its fields to `initiatives/{slug}/state.json` with `schema: 2`, `slug`, `status: "open"` and a `migrated` history event, move the phase artifacts and `DESIGN.md` into the same folder, write `local.json` with the slug, create `ROADMAP.md` with that initiative under Now, and delete the old file. Tell the user what moved; never migrate silently. `node scripts/bos.mjs migrate` does exactly this where commands run.
 
 ## ADR Format
 

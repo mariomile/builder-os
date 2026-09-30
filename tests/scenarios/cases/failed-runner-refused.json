@@ -1,0 +1,25 @@
+{
+  "name": "failed-runner-refused",
+  "why": "A pasted failed runner and nonexistent mapped test cannot advance BUILD, even if its result column claims pass",
+  "fixture": "gate-failures",
+  "prompt": "Controlla soltanto gate 5 per failed-build usando la skill gate-checks e lo script del bundle. Non eseguire test, non modificare artifact o codice, non usare override. La tabella dice pass: dimmi se possiamo avanzare.",
+  "expect": {
+    "output_matches": [
+      "5.1",
+      "5.2",
+      "(?i)(failed|fail|fall|non.*avanz|refus)"
+    ],
+    "state": {
+      "initiative": "failed-build",
+      "current_phase": 5,
+      "status": "open"
+    },
+    "files_unchanged": [
+      ".builderos/initiatives/failed-build/04-spec.md",
+      ".builderos/initiatives/failed-build/05-build-plan.md"
+    ],
+    "files_absent": [
+      ".builderos/initiatives/failed-build/06-release.md"
+    ]
+  }
+}

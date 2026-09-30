@@ -1,15 +1,15 @@
 ---
 name: gate-checks
-description: "Use when a BuilderOS phase is about to advance, when running /bos-gate, or when deciding whether a phase artifact is complete enough to hand to the next phase"
+description: "Use when a BuilderOS phase is about to advance, when asked to inspect a lifecycle gate, or when deciding whether a phase artifact is complete enough to hand to the next phase"
 ---
 
 # Gate Checks
 
-Every lifecycle phase ends at a gate. A gate is a list of conditions that can be decided by reading the artifact, not by judging it. Pass all conditions, advance. Fail one, stop and say which.
+Every lifecycle phase ends at a gate. A gate checks artifact structure, evidence and decisions. The script decides deterministic checks; the model judges semantics and provenance. Pass every required condition, advance. Fail one, stop and say which. This skill inspects an active lifecycle initiative; a standalone review returns findings without creating or changing lifecycle state.
 
 Borrowed from deterministic design linting: the value is in being boring and non-negotiable. A gate that can be argued with is not a gate.
 
-**REQUIRED BACKGROUND:** Load `evidence-ledger` for tag counting rules. Load `pressure-testing` when a gate fails on an unresolved branch.
+Read `evidence-ledger` only when tag counting or source provenance needs clarification. Read `pressure-testing` only for a material unresolved branch that evidence and delegated judgment cannot settle.
 
 ## Who Checks
 
@@ -20,9 +20,30 @@ A gate checked by the model that wrote the artifact is a gate checked on trust. 
 
 Where commands cannot be executed, the model checks every condition and all of them go under `model`. Same conditions, weaker provenance, and the record says so.
 
-**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phase 1 passes its verdict with `--verdict` (`killed` and `answered` close the initiative), phase 6 its outcome review date with `--review-due`.
+**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phase 1 records `validated|killed|reshaped`, matching the artifact; `answered` is a phase status derived from the spike track, never a verdict. A spike closes at phase 1 regardless of its verdict. Phase 6 passes the artifact's outcome review date with `--review-due`. Phase 7 passes `keep|iterate|kill`, matching its heading and `Re-enters at` field. `iterate` requires `--reenter 0-6`, `kill` prohibits it, and `keep` permits either an explicit re-entry or `none`. Verdict/enum contradictions cannot be overridden.
 
-Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.2, 5.3, 5.4, 5.5, 6.2, 6.3, 6.5, 7.1, 7.2, 7.3, C.1, C.2, C.3. Everything else is model-judged.
+Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.3, 5.4, 6.2, 6.3, 6.5, 6.6, 7.1, 7.2, 7.3, C.1, C.2, C.3. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Everything else is model-judged; the emitted `checked_by` split is authoritative.
+
+## Execution Evidence and Examples
+
+Gate inspection and recording never execute project checks. Run checks only when the user has authorized the underlying command. Preserve failures and raw logs; do not replace them with a successful summary.
+
+```sh
+node scripts/bos.mjs run-check --label unit-tests -- pnpm test
+node scripts/bos.mjs run-check --label evals --dataset evals/cases.jsonl --results evals/results.json -- node evals/run.mjs
+```
+
+The script prints `**Run:** .builderos/initiatives/{slug}/evidence/runs/{label}-{timestamp}.json`. Put that line under `## Test output`, or under `## Eval results` with `**Results:** evals/results.json`. Result JSON is an array such as `[{"id":"1","pass":true}]`, one result per dataset case. The check records argv, cwd, timestamps, exit code, log and digest; eval captures also record dataset and result digests. Any failed precheck blocks advancement without an explicit logged override. These editable local records detect drift, not adversarial fabrication; coverage and provenance remain model judgments. External runner evidence is unverified by this recorder: retain its raw source and explain the gap; never fabricate a `bos-run-check` record or rerun unauthorized work to close it.
+
+Example: An existing feature's baseline `0, first measured 2026-09-20` fails 2.4 without a source. A nonexistent product's `Baseline: 0`, `Product exists: no`, `Zero rationale: No users exist to complete this event`, `First measurement: 2026-10-01` reaches model judgment; the rationale must actually apply to the metric.
+
+A ready release stays at phase 6 and emits `RELEASE READY`. `SHIPPED` requires the exposure conditions. A review waiting for enough observations stays at phase 7 without a KEEP/ITERATE/KILL verdict:
+
+```sh
+node scripts/bos.mjs defer-review --review-due 2030-01-31 --reason "Need a complete observation window"
+```
+
+Use the actual next review date and evidence gap, not the example date. A deferral records `review_deferred`, preserves phase 7, and keeps reminders tied to `review_due`.
 
 ## Every Gate: Evidence Resolves
 
@@ -77,7 +98,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | # | Condition | Check |
 |---|-----------|-------|
 | 1.1 | ≥5 evidence units from primary sources | `evidence-ledger` count of `data` + `interview` + `code` + primary `doc` units ≥ 5 |
-| 1.2 | ≥5 distinct sources | Distinct identifiers across those units |
+| 1.2 | ≥5 distinct sources | Code citations normalize to the real file, ignoring lines and aliases; interview tags split per participant; data/doc files may declare `Source identity` to deduplicate the underlying source. Distinct files still require semantic independence review |
 | 1.3 | Explicit verdict | One of `VALIDATED` / `KILLED` / `RESHAPED`, with reasoning that cites tags |
 | 1.4 | JTBD statement present | Form: "When \_\_\_, I want to \_\_\_, so I can \_\_\_" |
 | 1.5 | Disconfirming evidence sought | The artifact names what would have killed the problem and whether it was looked for |
@@ -91,7 +112,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 2.1 | ≥3 opportunities in the tree | Each traceable to a Phase 1 evidence tag |
 | 2.2 | Exactly one selected | With a stated rejection reason for each of the others |
 | 2.3 | Success metric named | With baseline and target, both source-tagged |
-| 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. If no product exists yet, baseline is explicitly `0` with the first-measurement date named |
+| 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. An unsourced zero requires product track plus `Product exists: no`, `Zero rationale`, and valid `First measurement` date under Success metric; then a model must judge applicability to this metric. Existing products require a real source even for zero; missing access stays unavailable |
 | 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `strategy-frameworks`) rejects scale-oriented opportunities |
 | 2.6 | The metric measures an outcome | Shipping the change cannot by itself satisfy the target. A count of what the system does (alerts sent, emails delivered, a feature released) is output: it goes to the tracking plan or a guardrail, and the metric names what the user does or gets differently |
 
@@ -113,27 +134,29 @@ An override never silently disappears. It is not shame, it is provenance.
 | 4.3 | Every flow has error and empty states | Per flow, both states enumerated |
 | 4.4 | Tracking plan measures the Phase 2 metric | Named events map to the success metric |
 | 4.5 | Accessibility floor stated | Keyboard path, contrast target, focus order |
-| 4.6 | Model output has an eval set | Only when the spec declares `Model output: yes`: an eval set with ≥20 cases (≥10 lite), a judge, a numeric threshold and the must-pass cases, per `spec-writing` |
+| 4.6 | Model output has an eval dataset | Existing JSON/JSONL cases (`id`, `input`, `expected`, optional `judge`, boolean `must_pass`) or Markdown case table (# / Input / Expected / Judge / Must pass). Full ≥20, lite ≥10 valid unique cases, threshold 0–100, named judge, at least one must-pass case. Prose counts and unsupported formats fail |
 
 ### Gate 5 — Build
 
 | # | Condition | Check |
 |---|-----------|-------|
-| 5.1 | Every acceptance criterion maps to ≥1 test | Explicit mapping table in the artifact |
-| 5.2 | Those tests pass | Pasted runner output, not a claim that they pass |
+| 5.1 | Every acceptance criterion maps to ≥1 test | Explicit mapping table, with an existing regular test file under the project root for every criterion. Use a literal path or a backticked path alongside the test name, with optional :line or #fragment; preserve spaces and route punctuation. No language extension whitelist |
+| 5.2 | Those tests pass | Test output names a valid `Run` JSON record with exit 0 and matching output digest, no known failed-runner summary; model verifies the command/output covers all mapped tests and current code |
 | 5.3 | Instrumentation verified firing | Evidence from a real environment, `data` or `code` tagged |
 | 5.4 | No scope creep | Nothing from the Gate 4 out-of-scope list was built |
-| 5.5 | The eval set passes | Only when the spec declares model output: pasted eval output at or above the threshold, every must-pass case passing |
+| 5.5 | The eval set passes | Eval results names `Run` and `Results` files. The captured run binds dataset/results digests, every case has one boolean result, computed pass rate reaches threshold, every must-pass passes; model verifies execution/rubric correspondence |
 
 ### Gate 6 — Ship
 
 | # | Condition | Check |
 |---|-----------|-------|
 | 6.1 | Rollback path documented | Named mechanism, named owner, tested once |
-| 6.2 | Baseline captured before exposure | Timestamped, before the rollout timestamp |
+| 6.2 | Baseline captured before exposure | Capture timestamp precedes the actual `Exposed at` timestamp, never a planned rollout date |
 | 6.3 | Measurement exists | Dashboard or saved query for the success metric |
 | 6.4 | Release notes written for the audience | Addressed to users or buyers, not a commit list |
-| 6.5 | Outcome review scheduled | Owner and date |
+| 6.5 | Outcome review scheduled | Owner and date; `--review-due` matches the artifact |
+| 6.6 | Exposure observed | Exposure verification has `Status: verified`, non-future ISO `Exposed at`, `Environment`, `Version`, and an observed `Verification` result with resolving data/doc evidence |
+| 6.7 | Exposure evidence proves availability | Model confirms intended behavior is available to users in the stated environment/version |
 
 ### Gate 7 — Learn
 
@@ -141,7 +164,7 @@ An override never silently disappears. It is not shame, it is provenance.
 |---|-----------|-------|
 | 7.1 | Actual vs. target stated | Both source-tagged, compared explicitly |
 | 7.2 | Kill criteria evaluated | The Phase 3 threshold checked against the actual, verdict stated |
-| 7.3 | Decision recorded | `KEEP` / `ITERATE` / `KILL`, with the re-entry phase |
+| 7.3 | Decision recorded | `KEEP` / `ITERATE` / `KILL`; `Re-enters at: phase 0-6` or `none`. ITERATE requires a phase, KILL requires none; CLI decision/re-entry must agree |
 | 7.4 | Generalized learning | One sentence that outlives the feature, written into `decisions/` |
 
 ## Coverage Check (feature track)
@@ -181,7 +204,23 @@ Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 
 | Failing a gate without naming the condition | The user cannot act on it | Use the refusal format |
 | Treating `KILLED` as a failure | Killing early is the cheapest win available | Report it as a successful pass and stop |
 | Accepting a success metric the build satisfies by existing | "Alerts sent within 24 hours" hits its target the day the code ships, so phase 7 measures nothing | Name what the user does differently: acts on the drop, recovers, stays |
-| Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an explicit zero |
+| Accepting an `[estimate:*]` baseline | Targets measured against estimates are unfalsifiable | Require a real baseline or an metric-specific, justified pre-product zero |
 | Overriding the coverage check | Phases recorded as covered by evidence that does not exist | Classify as `product` and start at phase 0 |
 | Silently proceeding after a failure | Destroys the value of the whole model | Refuse, or override and log |
 | Running gate 4 conditions on a phase 2 artifact | Wrong gate, wasted cycle | Read `current_phase` from `state.json` first |
+
+## Capability Requirements
+
+| Capability | Use | Floor |
+|---|---|---|
+| `files.read` | Inspect active state, artifacts and raw evidence | Ask for the missing artifact; no gate result without inspection |
+| `files.write` | Record authorized lifecycle state | Return the gate result and concrete persistence gap |
+| `shell.exec` | Run the bundled gate script and explicitly authorized checks | Model checks with all conditions marked model-judged; execution evidence remains unverified |
+
+## Numbered Procedure and Output
+
+1. Resolve the active initiative and phase; read its artifact and relevant raw evidence. For a standalone review, return findings only.
+2. Run read-only gate checks where command execution is available. Never execute a test runner as a side effect of checking a gate.
+3. Judge only emitted judge conditions against the evidence. Surface unavailable evidence, failed runs and incomplete observation windows.
+4. Fix authorized local gaps and repeat affected checks. For a real failure, use the refusal protocol; for an explicit override, preserve failed conditions and reason.
+5. Record through the script, using consistent phase-specific verdicts/dates. Return `GATE {N} PASSED` only after recording succeeds, or `GATE {N} FAILED` with the failed conditions. A deferred review returns `REVIEW DEFERRED` and never advances.

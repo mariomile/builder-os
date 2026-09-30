@@ -11,6 +11,10 @@
 //   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--verdict v] [--override reason] [--review-due date] [--reenter N]
 //                                          write a gate result to state.json: the script's verdict plus the model's
 //                                          on the judge conditions; advances, closes, or keeps the phase open
+//   node bos.mjs run-check --label slug [--cwd dir] [--dataset file --results file] -- executable args...
+//                                          explicitly execute an authorized check and record its command, exit and output
+//   node bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."
+//                                          defer phase 7 without inventing an outcome verdict
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //
@@ -18,13 +22,17 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 
-const args = process.argv.slice(2);
+const rawArgs = process.argv.slice(2);
+const separator = rawArgs.indexOf('--');
+const args = separator < 0 ? rawArgs : rawArgs.slice(0, separator);
+const commandArgs = separator < 0 ? [] : rawArgs.slice(separator + 1);
 const opt = (name) => {
   const i = args.indexOf(name);
-  return i >= 0 ? args[i + 1] : undefined;
+  return i >= 0 && args[i + 1] && !args[i + 1].startsWith('--') ? args[i + 1] : undefined;
 };
 const flag = (name) => args.includes(name);
 const ROOT = path.resolve(opt('--root') || process.cwd());
@@ -32,7 +40,7 @@ const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
-const COMMANDS = ['/bos-frame', '/bos-discover', '/bos-define', '/bos-ideate', '/bos-shape', '/bos-build', '/bos-ship', '/bos-learn'];
+const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
 const PRIMARY = new Set(['data', 'interview', 'code']);
 const DAY = 86400000;
@@ -142,7 +150,7 @@ function checkEvidence(text, dirs) {
     if (/[*{}]/.test(t.id)) { missing.push(`${t.raw} (placeholder)`); continue; }
     if (t.cls === 'code') {
       const p = t.id.replace(/:\d+([-,]\d+)*$/, '');
-      if (!fs.existsSync(path.join(ROOT, p))) missing.push(`${t.raw} (no file ${p})`);
+      if (!fs.existsSync(path.join(ROOT, p)) || !fs.statSync(path.join(ROOT, p)).isFile()) missing.push(`${t.raw} (no file ${p})`);
       continue;
     }
     const ids = t.cls === 'interview' ? t.id.split(',').map((s) => s.trim()).filter(Boolean) : [t.id];
@@ -252,7 +260,13 @@ function gate(n, ctx) {
     const list = [...units.values()];
     const strict = list.filter((t) => PRIMARY.has(t.cls));
     const withDoc = list.filter((t) => PRIMARY.has(t.cls) || t.cls === 'doc');
-    const sourcesOf = (ts) => new Set(ts.flatMap((t) => (t.cls === 'interview' ? t.id.split(',').map((s) => `interview:${s.trim()}`) : [`${t.cls}:${t.id}`])));
+    const sourcesOf = (ts) => new Set(ts.flatMap((t) => {
+      if (t.cls === 'code') { const name = path.resolve(ROOT, t.id.replace(/:\d+([-,]\d+)*$/, '')); return [`code:${fs.existsSync(name) ? fs.realpathSync(name) : name}`]; }
+      if (t.cls === 'interview') return t.id.split(',').map((id) => `interview:${id.trim()}`);
+      const file = evidenceFile([path.join(ctx.dir, 'evidence'), path.join(BOS, 'evidence')], t.id.replace(/[:/]/g, '-') + '.md');
+      const identity = field(file ? read(file) : '', 'Source identity');
+      return [identity ? `source:${identity}` : `${t.cls}:${t.id}`];
+    }));
     if (strict.length >= 5) pass('1.1', true, `${strict.length} primary units`);
     else if (withDoc.length >= 5) judge('1.1', `${strict.length} primary units, ${withDoc.length} counting doc; confirm those doc sources are records of primary contact`);
     else pass('1.1', false, `${withDoc.length} primary units, 5 needed`);
@@ -281,9 +295,10 @@ function gate(n, ctx) {
     pass('2.2', sel.length === 1 && rej.length >= opps.length - 1, sel.length !== 1 ? `${sel.length} selected` : `${rej.length} rejections with a reason for ${opps.length - 1} others`);
     const sm = section(a, 'Success metric') || '';
     const base = field(sm, 'Baseline'), target = field(sm, 'Target');
-    const zero = base && /^0\b/.test(base) && DATE_RE.test(base);
+    const zero = base && /^0\b/.test(base) && ctx.track === 'product' && /^no$/i.test(field(sm, 'Product exists') || '') && nonEmpty(field(sm, 'Zero rationale')) && validDate(field(sm, 'First measurement'));
     pass('2.3', nonEmpty(field(sm, 'Metric')) && base && (hasTag(base) || zero) && target && /\d/.test(target) && DATE_RE.test(target), 'metric, tagged baseline, target with a value and a date');
-    pass('2.4', base && (hasTag(base, ['data', 'code', 'doc']) || zero), base ? (zero ? 'explicit zero with a first-measurement date' : `baseline tag: ${tags(base).map((t) => t.cls).join(', ') || 'none'}`) : 'no baseline');
+    if (zero && !hasTag(base, ['data', 'code', 'doc'])) judge('2.4', 'declared non-existent product and zero rationale; confirm this metric is necessarily zero before existence');
+    else pass('2.4', base && hasTag(base, ['data', 'code', 'doc']), base ? `baseline tag: ${tags(base).map((t) => t.cls).join(', ') || 'none; unavailable is not zero'}` : 'no baseline');
     judge('2.5', 'is the opportunity coherent with the PMF stage?');
     judge('2.6', 'could shipping the change alone hit the target? then the metric is output, not outcome');
     return R;
@@ -325,7 +340,7 @@ function gate(n, ctx) {
     else {
       const ev = evalInfo(ctx);
       const need = lite ? 10 : 20;
-      pass('4.6', ev.cases >= need && ev.threshold !== null && ev.judge && ev.mustPass, `${ev.cases} cases (${need} needed), threshold ${ev.threshold ?? 'missing'}, judge ${ev.judge ? 'named' : 'missing'}, must-pass ${ev.mustPass ? 'named' : 'missing'}`);
+      pass('4.6', ev.valid && ev.cases >= need && ev.threshold !== null && ev.judge && ev.mustPass, `${ev.cases} valid cases (${need} needed), threshold ${ev.threshold ?? 'missing'}, judge ${ev.judge ? 'named' : 'missing'}, must-pass ${ev.mustPass ? 'named' : 'missing'}${ev.error ? '; ' + ev.error : ''}`);
     }
     return R;
   }
@@ -334,12 +349,15 @@ function gate(n, ctx) {
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
-    const mapped = new Set(map.filter((r) => nonEmpty(r[2]) && !NO_TEST.test(r[2])).map((r) => r[0]));
+    const validMappings = map.filter((r) => nonEmpty(r[2]) && !NO_TEST.test(r[2]) && mappedTestFile(r[2]));
+    const mapped = new Set(validMappings.map((r) => r[0]));
     const unmapped = specAC.filter((x) => !mapped.has(x));
-    pass('5.1', specAC.length > 0 && unmapped.length === 0, specAC.length === 0 ? 'no numbered criteria in 04-spec.md' : unmapped.length ? `unmapped: ${unmapped.join(', ')}` : `${specAC.length} criteria mapped`);
+    pass('5.1', specAC.length > 0 && unmapped.length === 0, specAC.length === 0 ? 'no numbered criteria in 04-spec.md' : unmapped.length ? `missing or nonexistent mapped tests: ${unmapped.join(', ')}` : `${specAC.length} criteria mapped to existing test files`);
     const outSec = section(a, 'Test output');
-    const failing = map.filter((r) => !/^pass/i.test(r[3] || ''));
-    pass('5.2', outSec && /```|\d+\s+(passed|passing|tests?)/i.test(outSec) && failing.length === 0, !outSec ? 'no test output pasted' : failing.length ? `not passing: ${failing.map((r) => r[0]).join(', ')}` : 'runner output pasted, all mapped tests pass');
+    const failing = map.filter((r) => !/^pass\b/i.test(r[3] || ''));
+    const run = runEvidence(outSec, ctx);
+    if (!run.valid || failing.length) pass('5.2', false, failing.length ? `not passing: ${failing.map((r) => r[0]).join(', ')}` : run.detail);
+    else judge('5.2', `${run.detail}; confirm the recorded command/output covers every mapped test and the current implementation`);
     const inst = tableRows(section(a, 'Instrumentation'));
     const unverified = inst.filter((r) => !/^yes/i.test(r[2] || '') || !hasTag(r[4] || '', ['data', 'code']));
     pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `unverified: ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
@@ -350,10 +368,10 @@ function gate(n, ctx) {
     const modelOut = /\*\*Model output:\*\*\s*yes/i.test(ctx.spec || '');
     if (!modelOut) skip('5.5', 'no model output declared');
     else {
-      const res = section(a, 'Eval results') || '';
-      const rate = (res.match(/(\d+(\.\d+)?)\s*%/) || [])[1];
-      const thr = evalInfo(ctx).threshold;
-      pass('5.5', rate !== undefined && thr !== null && Number(rate) >= thr && !/must-pass[^\n]*fail/i.test(res), rate === undefined ? 'no pass rate in Eval results' : `pass rate ${rate}% vs threshold ${thr ?? 'missing'}`);
+      const ev = evalInfo(ctx);
+      const results = evalResults(section(a, 'Eval results'), ctx, ev);
+      if (!results.valid) pass('5.5', false, results.detail);
+      else judge('5.5', `${results.detail}; confirm the recorded eval command used this dataset, rubric and current implementation`);
     }
     return R;
   }
@@ -362,13 +380,19 @@ function gate(n, ctx) {
     const rb = section(a, 'Rollback') || '';
     judge('6.1', ['Mechanism', 'Owner', 'Tested'].every((k) => nonEmpty(field(rb, k))) && DATE_RE.test(field(rb, 'Tested') || '') ? 'mechanism, owner and a dated test present; was it really tested?' : 'mechanism, owner or dated test missing');
     const bh = heading(a, 'Baseline')[0] || '';
-    const ts = bh.match(/\d{4}-\d{2}-\d{2}(T[\d:]+Z?)?/g) || [];
+    const ts = bh.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{3})?)?(?:Z|[+-]\d{2}:\d{2})/g) || [];
     const brows = tableRows(section(a, 'Baseline')).filter((r) => nonEmpty(r[1]));
-    pass('6.2', ts.length >= 2 && Date.parse(ts[0]) < Date.parse(ts[1]) && brows.length > 0, ts.length < 2 ? 'baseline heading lacks capture and rollout timestamps' : `captured ${ts[0]}, rollout ${ts[1]}`);
+    const exposure = section(a, 'Exposure verification');
+    const exposed = field(exposure, 'Exposed at');
+    pass('6.2', ts.length >= 1 && validTimestamp(ts[0]) && validTimestamp(exposed) && Date.parse(ts[0]) < Date.parse(exposed) && brows.length > 0, `baseline captured ${ts[0] || 'missing'}, actual exposure ${exposed || 'missing'}`);
+    const observed = field(exposure, 'Verification');
+    pass('6.6', /^verified$/i.test(field(exposure, 'Status') || '') && validTimestamp(exposed) && Date.parse(exposed) <= Date.now() && nonEmpty(field(exposure, 'Environment')) && nonEmpty(field(exposure, 'Version')) && observed && hasTag(observed, ['data', 'doc']) && observed.replace(TAG_RE, '').trim().length > 10, 'verified exposure requires actual non-future timestamp, environment, version and observed result with data/doc evidence');
+    judge('6.7', 'does the exposure evidence demonstrate the intended behavior available to users in the stated environment/version?');
     pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
     judge('6.4', `are the release notes written for users, not a commit list?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
-    pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && DATE_RE.test(orv), 'owner and date');
+    const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+    pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
     return R;
   }
 
@@ -380,41 +404,131 @@ function gate(n, ctx) {
     pass('7.2', /\b(cleared|triggered)\b/i.test(field(kc, 'Verdict') || ''), 'kill criteria verdict');
     const dh = heading(a, 'Decision')[0] || '';
     const d = ['KEEP', 'ITERATE', 'KILL'].filter((w) => new RegExp(`\\b${w}\\b`).test(dh));
-    pass('7.3', d.length === 1 && nonEmpty(field(section(a, 'Decision'), 'Re-enters at')), d.length === 1 ? d[0] : `${d.length} decisions in the heading`);
+    const reentry = field(section(a, 'Decision'), 'Re-enters at') || '';
+    const validReentry = d[0] === 'KILL' ? /^none$/i.test(reentry) : d[0] === 'ITERATE' ? /^phase [0-6]$/i.test(reentry) : /^(none|phase [0-6])$/i.test(reentry);
+    pass('7.3', d.length === 1 && validReentry, d.length === 1 ? `${d[0]}, re-entry ${reentry || 'missing'}` : `${d.length} decisions in the heading`);
     judge('7.4', nonEmpty(firstParagraph(section(a, 'Learning'))) ? 'does the learning outlive the feature, and is it in decisions/?' : 'no learning');
     return R;
   }
   die(`unknown gate ${n}`);
 }
 
+// Dataset paths are project- or initiative-relative and must resolve to a regular file.
+function resourceFile(name, ctx) {
+  if (typeof name !== 'string' || !name.trim() || path.isAbsolute(name)) return null;
+  for (const base of [ctx.dir, ROOT]) {
+    const p = path.resolve(base, name.replace(/`/g, '').trim());
+    if (p !== ROOT && !p.startsWith(ROOT + path.sep)) continue;
+    if (fs.existsSync(p) && fs.statSync(p).isFile()) { const real = fs.realpathSync(p); const root = fs.realpathSync(ROOT); if (real.startsWith(root + path.sep)) return p; }
+  }
+  return null;
+}
+const validTimestamp = (v) => typeof v === 'string' && validDate(v.slice(0, 10)) && Number(v.slice(11, 13)) < 24 && Number(v.slice(14, 16)) < 60 && (v[16] !== ':' || Number(v.slice(17, 19)) < 60) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(v) && Number.isFinite(Date.parse(v));
+const digest = (s) => createHash('sha256').update(s).digest('hex');
+function mappedTestFile(cell) {
+  // A mapping is a literal path, or contains a backticked path plus a test name.
+  // Route punctuation and spaces belong to the filename; language does not determine validity.
+  const candidates = [...cell.matchAll(/`([^`]+)`/g)].map(m => m[1]);
+  candidates.push(cell.trim());
+  for (const candidate of candidates) {
+    const literal = resourceFile(candidate, { dir: ROOT });
+    if (literal) return literal;
+    const name = candidate.replace(/:\d+(?:[-,]\d+)*$|#.*$/, '');
+    const file = resourceFile(name, { dir: ROOT });
+    if (file) return file;
+  }
+  return null;
+}
+function runEvidence(sec, ctx) {
+  const fail = (detail) => ({ valid: false, detail });
+  const p = resourceFile(field(sec, 'Run'), ctx);
+  if (!p) return fail('no existing **Run:** JSON record; pasted runner text is not execution evidence');
+  let r;
+  try { r = JSON.parse(read(p)); } catch { return fail('invalid run record JSON'); }
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return fail('run record is not an object');
+  const log = resourceFile(r.output_file, ctx);
+  if (r.schema !== 1 || r.provenance !== 'bos-run-check' || !Array.isArray(r.command) || !r.command.length || !r.command.every(x => typeof x === 'string') || typeof r.cwd !== 'string' || !nonEmpty(r.cwd) || !validTimestamp(r.started_at) || !validTimestamp(r.finished_at) || Date.parse(r.finished_at) > Date.now() || Date.parse(r.started_at) > Date.parse(r.finished_at) || !log || !Number.isInteger(r.exit_code)) return fail('incomplete execution record');
+  if (!fs.existsSync(path.resolve(ROOT, r.cwd)) || !fs.statSync(path.resolve(ROOT, r.cwd)).isDirectory()) return fail('recorded cwd is unavailable');
+  const output = read(log);
+  if (digest(output) !== r.output_sha256) return fail('run output digest mismatch');
+  if (r.exit_code !== 0) return fail(`recorded command exited ${r.exit_code}`);
+  // Catch common failed runner summaries even when wrappers incorrectly return zero. Never infer pass from prose.
+  if (/\b[1-9]\d*\s+(?:failed|failing)\b|^# fail [1-9]\d*|^not ok\b|^FAIL\b/im.test(output)) return fail('recorded runner output contains failures');
+  return { valid: true, detail: `recorded exit 0 at ${r.finished_at} (${r.command.join(' ')})`, record: r };
+}
 function evalInfo(ctx) {
   const sec = section(ctx.artifact && /Eval set/.test(ctx.artifact) ? ctx.artifact : ctx.spec, 'Eval set') || '';
   const m = sec.match(/[\w./-]+\.(md|jsonl|json|ya?ml|csv)/);
-  let file = '';
-  if (m) {
-    for (const base of [ctx.dir, ROOT]) {
-      const p = path.join(base, m[0]);
-      if (fs.existsSync(p)) { file = read(p); break; }
-    }
-  }
-  const text = sec + '\n' + file;
-  let cases = tableRows(file).length;
-  if (/\.jsonl$/.test(m ? m[0] : '')) cases = file.split('\n').filter((l) => l.trim()).length;
-  const cm = sec.match(/(\d+)\s+cases/i);
-  if (!cases && cm) cases = Number(cm[1]);
-  const thr = text.match(/threshold[^\d\n]*(\d+(\.\d+)?)\s*%?/i);
-  return {
-    cases,
-    threshold: thr ? Number(thr[1]) : null,
-    judge: /judge|rubric|grader|deterministic/i.test(text),
-    mustPass: /must[- ]pass/i.test(text),
-  };
+  const p = resourceFile(m && m[0], ctx);
+  const fail = (error) => ({ valid: false, cases: 0, threshold: null, judge: false, mustPass: false, error });
+  if (!p) return fail('dataset missing');
+  let rows;
+  try {
+    if (p.endsWith('.jsonl')) rows = read(p).split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    else if (p.endsWith('.json')) { const json = JSON.parse(read(p)); rows = Array.isArray(json) ? json : json.cases; }
+    else if (p.endsWith('.md')) rows = tableRows(read(p)).map(r => ({ id: r[0], input: r[1], expected: r[2], judge: r[3], must_pass: /^yes$/i.test(r[4] || '') }));
+    else return fail('unsupported dataset format; use JSON, JSONL or a Markdown case table');
+  } catch { return fail('dataset does not parse'); }
+  if (!Array.isArray(rows) || !rows.length || rows.some(r => !r || !nonEmpty(r.id) || !nonEmpty(r.input) || !nonEmpty(r.expected) || (r.must_pass !== undefined && typeof r.must_pass !== 'boolean'))) return fail('every case needs id, input and expected');
+  if (new Set(rows.map(r => String(r.id))).size !== rows.length) return fail('duplicate case ids');
+  const text = sec + '\n' + (p.endsWith('.md') ? read(p) : '');
+  const thr = text.match(/threshold[^\d\n-]*(-?\d+(\.\d+)?)\s*%?/i);
+  const threshold = thr ? Number(thr[1]) : null;
+  const mustPassIds = rows.filter(r => r.must_pass === true).map(r => String(r.id));
+  const namedJudge = field(text, 'Judge') || text.match(/(?:judge|rubric|grader|deterministic)\s*[:=]\s*([^\n·]+)/i)?.[1].replace(/\*/g, '').trim();
+  return { valid: true, cases: rows.length, rows, file: p, threshold: threshold !== null && threshold >= 0 && threshold <= 100 ? threshold : null,
+    judge: nonEmpty(namedJudge) || rows.every(r => nonEmpty(r.judge)), mustPass: mustPassIds.length > 0, mustPassIds };
+}
+function evalResults(sec, ctx, ev) {
+  const fail = (detail) => ({ valid: false, detail });
+  if (!ev.valid || ev.threshold === null || !ev.mustPass) return fail('eval dataset/configuration is invalid');
+  const run = runEvidence(sec, ctx);
+  if (!run.valid) return run;
+  const p = resourceFile(field(sec, 'Results'), ctx);
+  if (!p) return fail('no existing **Results:** JSON file');
+  const datasetPath = resourceFile(run.record.dataset_file, ctx);
+  if (!datasetPath || datasetPath !== ev.file || digest(read(datasetPath)) !== run.record.dataset_sha256 || resourceFile(run.record.results_file, ctx) !== p || digest(read(p)) !== run.record.results_sha256) return fail('eval dataset/results are not bound to the captured run, or their digests changed');
+  let rows;
+  try { rows = JSON.parse(read(p)); } catch { return fail('invalid eval results JSON'); }
+  if (!Array.isArray(rows) || rows.length !== ev.cases || rows.some(r => !r || !nonEmpty(r.id) || typeof r.pass !== 'boolean') || new Set(rows.map(r => String(r.id))).size !== rows.length) return fail('results need one unique id and boolean pass for every dataset case');
+  const byId = new Map(rows.map(r => [String(r.id), r.pass]));
+  if (ev.rows.some(r => !byId.has(String(r.id)))) return fail('eval results do not cover the dataset');
+  const rate = rows.filter(r => r.pass).length / rows.length * 100;
+  if (rate < ev.threshold || ev.mustPassIds.some(id => !byId.get(id))) return fail(`eval pass rate ${rate}% vs ${ev.threshold}%; all must-pass cases must pass`);
+  return { valid: true, detail: `${rate}% >= ${ev.threshold}%, every dataset case accounted for and must-pass passed; ${run.detail}` };
+}
+
+// Executes only an explicitly requested argv; gate/record never execute project commands.
+function runCheck() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const label = opt('--label');
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(label || '') || !commandArgs.length) die('run-check needs --label <slug> -- <executable> [args...]');
+  const cwd = path.resolve(ROOT, opt('--cwd') || '.');
+  if (!fs.existsSync(cwd) || !fs.statSync(cwd).isDirectory()) die('run-check cwd is not a directory');
+  const dataset = opt('--dataset') ? resourceFile(opt('--dataset'), { dir: init.dir }) : null;
+  if (opt('--dataset') && !dataset) die('run-check dataset is missing');
+  const dataset_sha256 = dataset ? digest(read(dataset)) : null;
+  const started_at = new Date().toISOString();
+  const result = spawnSync(commandArgs[0], commandArgs.slice(1), { cwd, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, shell: false });
+  const finished_at = new Date().toISOString();
+  const stamp = started_at.replace(/[:.]/g, '-');
+  const dir = path.join(init.dir, 'evidence', 'runs');
+  fs.mkdirSync(dir, { recursive: true });
+  const outputFile = path.join(dir, `${label}-${stamp}.log`);
+  const recordFile = path.join(dir, `${label}-${stamp}.json`);
+  const output = (result.stdout || '') + (result.stderr || '') + (result.error ? '\n' + result.error.message : '');
+  fs.writeFileSync(outputFile, output);
+  const resultsFile = opt('--results') ? resourceFile(opt('--results'), { dir: init.dir }) : null;
+  writeJSON(recordFile, { ...(dataset ? { dataset_file: rel(dataset), dataset_sha256 } : {}), ...(resultsFile ? { results_file: rel(resultsFile), results_sha256: digest(read(resultsFile)) } : {}), schema: 1, provenance: 'bos-run-check', command: commandArgs, cwd: path.relative(ROOT, cwd) || '.', started_at, finished_at, exit_code: result.status, signal: result.signal, output_file: rel(outputFile), output_sha256: digest(output) });
+  console.log(`**Run:** ${rel(recordFile)}`);
+  process.exit(result.status === 0 ? 0 : 1);
 }
 
 function runGate(which) {
   const all = loadInitiatives();
   const n = which === 'C' || which === 'c' ? 'C' : Number(which);
-  if (n !== 'C' && !(n >= 0 && n <= 7)) die('gate takes a phase number 0-7 or C');
+  if (n !== 'C' && !(Number.isInteger(n) && n >= 0 && n <= 7)) die('gate takes a phase number 0-7 or C');
   const init = resolveActive(all);
   if (!init && n !== 'C') die('no active initiative: pass --initiative <slug>');
   const dir = init ? init.dir : BOS;
@@ -526,7 +640,7 @@ function brief() {
     const dec = fs.existsSync(path.join(BOS, 'decisions')) ? fs.readdirSync(path.join(BOS, 'decisions')).filter((f) => /^ADR-\d+/.test(f)).sort() : [];
     if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].replace(/\.md$/, '')}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
-    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (${COMMANDS[p]})`}.`);
+    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
     if (others.length) lines.push(`Also open: ${others.map((i) => `${i.state.title || i.slug} (phase ${i.state.current_phase ?? 0}, ${i.state.status || 'open'})`).join('; ')}.`);
   }
@@ -608,6 +722,7 @@ function newInitiative(slug) {
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
   const track = opt('--track') || 'product';
   if (!['spike', 'feature', 'product'].includes(track)) die('track is spike, feature or product');
+  if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
   fs.mkdirSync(path.join(dir, 'evidence'), { recursive: true });
@@ -635,6 +750,7 @@ function newInitiative(slug) {
 function cover() {
   const init = resolveActive(loadInitiatives());
   if (!init) die('no active initiative');
+  if (init.state.status === 'closed' || init.state.current_phase !== 0) die('coverage can only be recorded at phase 0 of an open feature initiative');
   if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature runs the coverage check`);
   const c4 = opt('--c4');
   if (!c4) die('C.4 is judged by the model: pass --c4 "how the request serves the evidenced problem"');
@@ -672,16 +788,45 @@ function record(which) {
   if (!init) die('no active initiative');
   const n = Number(which);
   const s = init.state;
-  if (!(n >= 0 && n <= 7)) die('record takes a phase number 0-7');
+  if (!Number.isInteger(n) || !(n >= 0 && n <= 7)) die('record takes a phase number 0-7');
+  if (s.status === 'closed') die('a closed initiative cannot record another gate');
+  const problems = schemaProblems(init);
+  if (problems.length) die(`invalid state: ${problems.join(', ')}`);
   if (n !== s.current_phase) die(`${init.slug} is at phase ${s.current_phase}; record ${s.current_phase}, or pass --initiative`);
   const j = JSON.parse(spawnSyncSelf(['gate', String(n), '--json', '--initiative', init.slug]) || '{}');
   if (!j.results) die(`gate ${n} could not run: does ${ARTIFACTS[n]} exist?`);
   const judged = Object.fromEntries((opt('--judged') || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => x.split('=').map((y) => y.trim())));
+  const unexpected = Object.keys(judged).filter(id => !j.checked_by.model.includes(id));
+  if (unexpected.length) die(`unknown or script-decided judge ids: ${unexpected.join(', ')}`);
   const missing = j.checked_by.model.filter((id) => !['pass', 'fail'].includes(judged[id]));
   if (missing.length) die(`judge ${missing.join(', ')} first, then pass --judged "${missing.map((id) => `${id}=pass|fail`).join(',')}"`);
   const soft = s.mode === 'lite' ? ['4.5', '6.4'] : []; // lite mode: warnings, see gate-checks
   const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail' && !soft.includes(id))];
   const override = opt('--override');
+  if (flag('--override') && !nonEmpty(override)) die('--override needs a non-empty reason');
+  let verdict = opt('--verdict');
+  const rawReentry = opt('--reenter');
+  const reenter = rawReentry === undefined ? null : Number(rawReentry);
+  const artifact = read(path.join(init.dir, ARTIFACTS[n]));
+  if (n === 1) {
+    const choices = ['validated', 'killed', 'reshaped'].filter(v => new RegExp(`\\b${v.toUpperCase()}\\b`).test(section(artifact, 'Verdict') || ''));
+    if (choices.length !== 1) die('phase 1 artifact must have exactly one discovery verdict');
+    if (verdict && !choices.includes(verdict)) die('phase 1 --verdict must match artifact: validated|killed|reshaped');
+    verdict = choices[0];
+  } else if (n === 7) {
+    if (!['keep', 'iterate', 'kill'].includes(verdict)) die('phase 7 records the decision: --verdict keep|iterate|kill');
+    const choices = ['keep', 'iterate', 'kill'].filter(v => new RegExp(`\\b${v}\\b`, 'i').test(heading(artifact, 'Decision')[0] || ''));
+    if (choices.length !== 1 || choices[0] !== verdict) die('phase 7 --verdict must match the artifact decision');
+    const declared = field(section(artifact, 'Decision'), 'Re-enters at') || '';
+    if (reenter !== null && (!/^[0-6]$/.test(rawReentry) || !Number.isInteger(reenter))) die('--reenter takes an integer phase 0-6');
+    if (verdict === 'kill' && reenter !== null) die('KILL closes the initiative; no re-entry');
+    if (verdict === 'iterate' && reenter === null) die('ITERATE requires --reenter 0-6');
+    if (reenter === null ? !/^none$/i.test(declared) : declared.toLowerCase() !== `phase ${reenter}`) die('--reenter must match the artifact Re-enters at field');
+  } else if (verdict) die('--verdict is only valid for phase 1 or 7');
+  if (n !== 7 && rawReentry !== undefined) die('--reenter is only valid for phase 7');
+  const due = opt('--review-due');
+  if (n === 6 && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
+  if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();
   const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
   if (gateEntry.overridden) gateEntry.override_reason = override;
@@ -695,25 +840,17 @@ function record(which) {
     console.log(`Gate ${n} failed on ${failed.join(', ')}: ${init.slug} stays at phase ${n}.`);
     process.exit(1);
   }
-  const verdict = opt('--verdict');
   if (verdict) ph.verdict = verdict;
-  const reenter = opt('--reenter') !== undefined ? Number(opt('--reenter')) : null;
-  if (n === 7) {
-    if (!['keep', 'iterate', 'kill'].includes(verdict)) die('phase 7 records the decision: --verdict keep|iterate|kill');
-    if (reenter !== null && !(reenter >= 0 && reenter <= 6)) die('--reenter takes the phase the next cycle starts at');
-    s.review_due = null;
-  }
-  const stops = (n === 1 && ['killed', 'answered'].includes(verdict)) || (n === 7 && reenter === null);
-  ph.status = n === 1 && ['killed', 'answered'].includes(verdict) ? verdict : 'passed';
-  if (n === 6) {
-    const due = opt('--review-due');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(due || '')) die('phase 6 sets the outcome review date: pass --review-due YYYY-MM-DD (gate 6.5)');
-    s.review_due = due;
-  }
+  if (n === 7) s.review_due = null;
+  const spikeStop = n === 1 && s.track === 'spike';
+  const stops = (n === 1 && (verdict === 'killed' || spikeStop)) || (n === 7 && reenter === null);
+  ph.status = spikeStop ? 'answered' : n === 1 && verdict === 'killed' ? 'killed' : 'passed';
+  if (n === 6) s.review_due = due;
   s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}) });
   if (n === 7 && reenter !== null) {
     s.cycle = (s.cycle || 1) + 1;
     s.current_phase = reenter;
+    s.status = 'open';
     for (let k = reenter; k <= 7; k++) s.phases[String(k)] = { status: k === reenter ? 'in_progress' : 'pending', artifact: null, gate: null };
     s.history.push({ at: now, event: 'cycle_started', cycle: s.cycle, phase: reenter });
   } else if (stops) {
@@ -733,15 +870,44 @@ function spawnSyncSelf(a) {
   catch (e) { return e.stdout.toString(); }
 }
 
+const validDate = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v;
+function deferReview() {
+  const init = resolveActive(loadInitiatives());
+  if (!init || init.state.status === 'closed' || init.state.current_phase !== 7) die('defer-review requires an open initiative at phase 7');
+  const problems = schemaProblems(init);
+  if (problems.length) die(`invalid state: ${problems.join(', ')}`);
+  if (flag('--verdict')) die('deferred reviews do not carry a verdict');
+  const due = opt('--review-due'), reason = opt('--reason');
+  if (!validDate(due) || due <= new Date().toISOString().slice(0, 10) || !nonEmpty(reason)) die('defer-review requires a future --review-due YYYY-MM-DD and --reason');
+  const now = new Date().toISOString();
+  init.state.review_due = due;
+  init.state.updated_at = now;
+  init.state.phases['7'] = { ...(init.state.phases['7'] || {}), status: 'in_progress' };
+  init.state.history.push({ at: now, event: 'review_deferred', review_due: due, reason });
+  writeJSON(path.join(init.dir, 'state.json'), init.state);
+  roadmap();
+  console.log(`REVIEW DEFERRED: ${init.slug} remains at phase 7; review ${due}. ${reason}`);
+}
+
 function schemaProblems(i) {
   const s = i.state, p = [];
-  for (const k of ['schema', 'slug', 'title', 'track', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
+  for (const k of ['schema', 'slug', 'title', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
   if (s.schema !== undefined && s.schema !== 2) p.push(`schema ${s.schema}`);
+  if (!['full', 'lite'].includes(s.mode)) p.push(`mode ${s.mode}`);
+  if (s.track !== undefined && !['spike', 'feature', 'product'].includes(s.track)) p.push(`track ${s.track}`);
+  if (!['open', 'paused', 'closed'].includes(s.status)) p.push(`status ${s.status}`);
+  if (!Number.isInteger(s.current_phase) || s.current_phase < 0 || s.current_phase > 7) p.push(`phase ${s.current_phase}`);
+  if (!Number.isInteger(s.cycle) || s.cycle < 1) p.push(`cycle ${s.cycle}`);
+  if (!Array.isArray(s.history)) p.push('history is not an array');
+  if (!s.phases || typeof s.phases !== 'object' || Array.isArray(s.phases)) p.push('phases is not an object');
+  if (s.review_due !== null && s.review_due !== undefined && !validDate(s.review_due)) p.push('review_due is not a date');
   for (const [k, v] of Object.entries(s.phases || {})) {
     if (!['pending', 'in_progress', 'passed', 'killed', 'covered', 'answered'].includes(v && v.status)) p.push(`phase ${k} status ${JSON.stringify(v && v.status)}`);
-    if (v && v.status === 'covered' && !(s.history || []).some((h) => h.event === 'phase_covered' && String(h.phase) === k)) p.push(`phase ${k} covered with no phase_covered event`);
+    if (!/^[0-7]$/.test(k)) p.push(`invalid phase key ${k}`);
+    if (v && v.verdict && !(k === '1' ? ['validated', 'killed', 'reshaped'] : k === '7' ? ['keep', 'iterate', 'kill'] : []).includes(v.verdict)) p.push(`phase ${k} verdict ${v.verdict}`);
+    if (v && v.status === 'covered' && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'phase_covered' && String(h.phase) === k)) p.push(`phase ${k} covered with no phase_covered event`);
   }
-  if (s.track && !(s.history || []).some((h) => h.event === 'track_set')) p.push('no track_set event');
+  if (s.track && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'track_set')) p.push('no track_set event');
   return p;
 }
 
@@ -780,12 +946,14 @@ function migrate() {
 const cmd = args[0];
 if (cmd === 'brief') brief();
 else if (cmd === 'gate') runGate(args[1]);
+else if (cmd === 'run-check') runCheck();
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'new') newInitiative(args[1]);
 else if (cmd === 'cover') cover();
 else if (cmd === 'record') record(args[1]);
+else if (cmd === 'defer-review') deferReview();
 else if (cmd === 'migrate') migrate();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | roadmap | migrate   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

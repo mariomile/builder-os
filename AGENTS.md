@@ -1,6 +1,6 @@
 # AGENTS.md — BuilderOS
 
-The shared contract for any agent working in this repository, and the project instructions for any host that reads `AGENTS.md`. Host-specific additions live in `CLAUDE.md`, which imports this file.
+The shared contract for any agent working in this repository, and the project instructions for hosts that read `AGENTS.md` while working in this checkout. Host-specific additions live in `CLAUDE.md`, which explicitly imports this file. Installed plugins rely on their loaded components, not these root files.
 
 ## What This Is
 
@@ -42,7 +42,7 @@ Project memory lives in the user's working directory: `PRODUCT.md` and `TECH.md`
 
 Entry point on every host: `skills/using-builder-os`. Hosts with a session-start hook inject it; elsewhere, read it first. It briefs from the memory and routes.
 
-Two kinds of work: the **lifecycle** (`builder-os` plus the phase skills) walks the pipeline, stateful and gated; a **standalone answer** goes straight to one specialist skill (`saas-metrics-reference`, `growth-frameworks`, …) and writes no state.
+Two kinds of work: the **lifecycle** (`builder-os` plus the phase skills) walks the pipeline, stateful and gated; a **standalone task** uses the relevant method and supplied context, preserves the requested format and destination, and writes no lifecycle state. A PRD, research plan or delivery plan can be standalone. Read `references/operating-modes.md` when mode is unclear.
 
 ## Design Principles
 
@@ -55,13 +55,13 @@ Two kinds of work: the **lifecycle** (`builder-os` plus the phase skills) walks 
 
 ## Non-Negotiables
 
-**Never invent data.** Every factual claim in every artifact carries a source tag per `skills/evidence-ledger`, and every source tag points at a file in `evidence/`. Gates count them and check the files. If a number cannot be retrieved, say so and ask; a plausible-sounding guess is worse than a stated gap.
+**Never invent data.** Every factual claim in a lifecycle artifact carries a source tag per `skills/evidence-ledger`, and every lifecycle source tag points at a file in `evidence/`. Standalone answers may cite their direct sources without creating pipeline files. Gates count them and check the files. If a number cannot be retrieved, say so and ask; a plausible-sounding guess is worse than a stated gap.
 
-**Never skip a gate.** `skills/gate-checks` holds eight gates as mechanically checkable conditions. Failing one means refusing to advance and naming the condition. Overrides exist, are logged in `state.json` with a reason, and stay visible afterwards.
+**Never skip a gate.** `skills/gate-checks` holds structural checks and explicit model judgments for the eight phases. Failing one means refusing to advance and naming the condition. Overrides exist, are logged in `state.json` with a reason, and stay visible afterwards.
 
 **Never name a tool in a skill.** Skills name capabilities (`analytics.query`, `docs.search`, `subagent.dispatch`, …) and resolve them against whatever this session exposes. See `references/capability-map.md`. A hardcoded tool name breaks on another host, another analytics stack, and another user's connector.
 
-**Prerequisites are zero.** Every skill runs with nothing connected. `files.read` and `files.write` are the only hard dependency; every other capability has a floor, and no floor is a fabricated number. Never tell the user to install or connect a named product: state the capability gap and the question closing it would answer.
+**Prerequisites are zero.** Every method can report useful work with nothing connected. Missing capabilities do not waive evidence or execution required by a lifecycle gate; unknown values stay unavailable. Inline work needs no file writes. Never tell the user to install or connect a named product: state the capability gap and the question closing it would answer.
 
 **Analytics is a contract, not a vendor.** Five question shapes in `references/analytics-contract.md`. A skill asks for a shape; whichever provider resolved answers it.
 
@@ -71,7 +71,7 @@ Two kinds of work: the **lifecycle** (`builder-os` plus the phase skills) walks 
 
 BuilderOS must run on Claude Code and on Codex, and degrade sanely anywhere else. Contract in `docs/specs/2026-09-21-host-portability.md`, capability names in `references/capability-map.md`, host setup in `docs/hosts.md`.
 
-**The test:** delete `agents/`, `commands/` and `.claude-plugin/`, and the skills must still take someone from idea to production.
+**The test:** delete the host adapters while retaining the complete portable bundle (`skills/`, `references/`, `scripts/`); the same methods and gates must remain available. Manual discovery must preserve that bundle and resolve resources from the loaded skill’s real installation root; see `docs/hosts.md`.
 
 Rules, enforced on every change:
 
@@ -104,16 +104,16 @@ Description states triggering conditions ONLY. Not a workflow summary.
 Every skill that drives work (as opposed to pure reference) MUST:
 
 1. State when to use it, in triggering-condition form
-2. Hold the method **and the numbered procedure** for its phase
+2. Hold its method and procedure, with standalone and lifecycle requirements distinguished where relevant
 3. List its capability requirements and the floor for each
 4. Define its output contract and its completion marker
-5. Include a "Common Mistakes" table
+5. Include concrete common mistakes where useful; read supporting skills and references conditionally rather than loading every background resource
 
 ## Testing
 
 Three layers, cheapest first:
 
-1. **Script tests** (`npm test`, which runs every `tests/scripts/*.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration, and the host adapters (manifest versions agree, every command small enough for Codex to import). Run them on every change to `scripts/`, `gate-checks`, the state schema, `commands/` or a manifest.
+1. **Script tests** (`pnpm test`, which runs every `tests/scripts/*.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration, and the host adapters (manifest versions agree, every command small enough for Codex to import). Run them on every change to `scripts/`, `gate-checks`, the state schema, `commands/` or a manifest.
 2. **Behavioral scenarios** (`tests/scenarios/`). A real host runs a prompt on a copy of a fixture project, and the runner checks what it did to the files: state written, gate refused, nothing past phase 1 on a spike. This is the pressure-scenario method (run without the skill, load it, plug the rationalizations) made repeatable. Every failure found in a live run becomes a case.
 3. **Triggering prompts** (`tests/skill-triggering/`). Which skill a message loads; checked by hand, per its README.
 

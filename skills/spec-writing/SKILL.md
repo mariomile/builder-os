@@ -9,7 +9,9 @@ Phase 3 chose the bet. Phase 4 makes it buildable by someone who was not in the 
 
 A spec has one job: remove the decisions an implementer would otherwise make silently. Every ambiguity left in the document becomes a choice made at 4pm by whoever hit it first.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `ux-architecture` for flows, states and the accessibility floor. `tracking-standards` for the event design. `pm-artifacts` for the PRD template when the output is also a document for humans. `references/capability-map.md` before touching any data source.
+Load `ux-architecture` only for flows needing design work, `tracking-standards` only for event design, `pm-artifacts` only for a requested PRD template, and `evidence-ledger` only for lifecycle tags. Read [capability mapping](../../references/capability-map.md) only before resolving external context. Do not recursively load the same skill through UX.
+
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
 
 ## Scope Boundaries
 
@@ -78,7 +80,7 @@ A spec whose tracking plan cannot compute the phase 2 metric has failed to conne
 
 ## Model Output: Eval Set
 
-When any acceptance criterion depends on what a model generates (a summary, a classification, a reply, a voice agent's turn), a pass/fail assertion cannot hold: the same input yields different outputs, and "the summary is accurate" has no subject and no verb. Such a spec declares `**Model output:** yes` and carries an eval set, which gate 4.6 checks.
+When any acceptance criterion depends on what a model generates (a summary, a classification, a reply, a voice agent's turn), a single exact-output assertion may be insufficient. Deterministic properties and rubric-scored pass/fail cases still apply, with repeated trials when variability matters. Such a spec declares `**Model output:** yes` and carries an eval set, which gate 4.6 checks.
 
 | Part | Rule |
 |------|------|
@@ -88,7 +90,13 @@ When any acceptance criterion depends on what a model generates (a summary, a cl
 | **Threshold** | The pass rate the build must reach, and any case that must pass on its own (a safety or compliance case never averages out) |
 | **Guardrail in production** | Which share of live outputs is sampled and scored after release, by whom, how often. Phase 6 measures it next to the success metric |
 
-The eval set lives in `evals/{name}.md` in the initiative folder, or in the repository's own eval format when it has one; the spec points at it. It is the acceptance criterion for the model's behavior, so it is written before the prompt, not tuned after it.
+The eval set is an actual file, not a prose case count. The spec names `**Dataset:** {project-relative path}` and `**Threshold:** {percentage}`. Use JSON or JSONL with unique `id`, `input`, `expected`, optional `judge`, and boolean `must_pass`, or the Markdown table supported by gate 4.6. Synthetic cases are labeled; unavailable real inputs are never invented as observations. A compatible JSON case is:
+
+```json
+{"id":"ambiguous-01","input":"Cancel the old booking","expected":"Ask which booking; do not cancel yet","judge":"rubric: clarification before irreversible action","must_pass":true}
+```
+
+The dataset lives in the initiative's `evals/` directory or the repository's existing location; the spec points at it. It is the acceptance criterion for the model's behavior, so it is written before the prompt, not tuned after it.
 
 ## Capabilities
 
@@ -102,7 +110,11 @@ The eval set lives in `evals/{name}.md` in the initiative folder, or in the repo
 
 **Phase 4 needs no data capability.** A spec is a design artifact. Missing `repo.read` makes effort estimates softer and the "what exists today" section thinner; it does not block the phase.
 
-## Procedure
+## Standalone Procedure
+
+Use supplied requirements, current behavior and constraints. Write the requested scope, numbered assertions and relevant states. Mark unknown facts and owner decisions; do not require a solution-bet file or initialize an initiative. A request for a draft does not authorize implementation.
+
+## Lifecycle Procedure
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
@@ -122,7 +134,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7b. **If a criterion depends on model output, write the eval set** per Model Output: Eval Set, before the build starts.
 
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4 and record it (`scripts/bos.mjs record 4` where commands run), which advances to phase 5 on pass.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4 and record it (`scripts/bos.mjs record 4 --judged "{judge-id}=pass|fail,..."` where commands run), which advances to phase 5 on pass.
 
 Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered acceptance criteria, the state coverage, the tracking plan and the gate result.
 
@@ -166,7 +178,10 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 **Model output:** {yes | no}
 
 ## Eval set
-{only when model output is yes: path to the eval file · number of cases · judge · threshold · must-pass cases · production sampling}
+**Dataset:** {project-relative existing eval file}
+**Threshold:** {percentage}
+**Judge:** {case or dataset scoring rubric}
+{only when model output is yes; actual cases carry must_pass flags; production sampling when relevant}
 
 ## Tracking plan
 | Event | Trigger | Properties | Measures | New or existing |

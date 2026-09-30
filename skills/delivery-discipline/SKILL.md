@@ -5,9 +5,11 @@ description: "Use when a spec needs decomposing into buildable work, when implem
 
 # Delivery Discipline
 
-Phase 5 turns a spec into working, tested, instrumented software, and proves it did so. Gate 5 is the only gate that demands pasted output rather than a claim, because "the tests pass" is the most frequently untrue sentence in software.
+Phase 5 turns a spec into working, tested, instrumented software, and proves it did so. Gate 5 requires a captured execution record and output. The gate then judges whether that run covers the criteria and current change; an exit code alone cannot prove conformance.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `tracking-standards` for instrumentation verification. `gate-checks` before declaring completion. `references/capability-map.md` before touching any data source.
+Load `tracking-standards` for requested instrumentation verification, `evidence-ledger` for lifecycle claims, and `gate-checks` when completing a lifecycle build. Resolve [capabilities](../../references/capability-map.md) only for resources actually needed.
+
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
 
 ## Interop
 
@@ -93,16 +95,20 @@ Where no analytics capability resolved, verification falls to the code path plus
 
 ## Claims and Their Evidence
 
-Every status claim in the build artifact or the review is backed by output produced in this phase, pasted, not described. The claim alone is not evidence, and neither is a delegated agent reporting it.
+Every status claim in the build artifact or the review is backed by resolving execution evidence from the final change, with its captured output. The claim alone is not evidence, and neither is a delegated agent reporting it.
 
 | Claim | Requires | Not enough |
 |-------|----------|------------|
-| Tests pass | The suite's output with the pass and fail counts, from a run after the last change | An earlier run, "should pass" |
+| Tests pass | A verified run record, output and review of coverage, from a run after the last change | An earlier run, "should pass" |
 | This test covers AC-3 | The test failing with the behavior removed, then passing with it restored | The test passing once |
 | Instrumentation works | The event observed arriving, with its properties | The tracking call present in the code |
 | The model behaves as specified | The eval set run against the final prompt and model, pass rate and every must-pass case shown | A few good examples in a demo, or a run before the last prompt change |
 | Nothing out of scope was built | The diff read against the spec's scope boundaries | The implementer saying so |
 | The slice is done | Every acceptance criterion it owns mapped to a test that ran | Tests green overall |
+
+## Capture Runs
+
+Use the installation's `scripts/bos.mjs run-check --label {slug} [--cwd {relative-dir}] [--initiative {slug}] [--root {project-root}] -- {executable} {args}` for explicit execution. It records command, working directory, exit status, timestamp and output hash and prints the `**Run:**` pointer. For an eval, also pass `--results {relative-json} --dataset {relative-dataset}` to bind both files to the capture. Commands are executed as arguments, never interpolated shell strings. A failed run cannot satisfy gate 5.2. Gate reads do not execute anything; relevant verification must still judge coverage and correspondence to the final change.
 
 ## Capabilities
 
@@ -115,7 +121,11 @@ Every status claim in the build artifact or the review is backed by output produ
 
 Phase 5 is the one phase with a real prerequisite: something has to write code. A planning-only run is legitimate (`--plan-only`) and produces the decomposition without the loop, but it does not pass gate 5.
 
-## Procedure
+## Standalone Procedure
+
+For task decomposition, produce slices and dependencies from the supplied spec; do not implement or run a lifecycle gate. For an authorized implementation or review, use supplied requirements and existing project conventions without requiring phase filenames. Size tests to the changed behavior.
+
+## Lifecycle Procedure
 
 Run in order. Delegate where the host allows it, run inline where it does not.
 
@@ -133,7 +143,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7. **Verify instrumentation end to end.** Every event in the tracking plan, triggered and confirmed arriving with its properties.
 
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5 and record it (`scripts/bos.mjs record 5` where commands run), which advances to phase 6 on pass. Before reporting, update `TECH.md` with any convention the build had to follow and any trap it hit, and move the initiative to phase 6 in `ROADMAP.md`.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/05-build-plan.md` with the mapping table, the pasted test output and the instrumentation evidence. Run gate 5 and record it (`scripts/bos.mjs record 5 --judged "{judge-id}=pass|fail,..."` where commands run), which advances to phase 6 on pass. Before reporting, update `TECH.md` with any convention the build had to follow and any trap it hit, and move the initiative to phase 6 in `ROADMAP.md`.
 
 Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the instrumentation evidence, the scope-creep result and the gate result.
 
@@ -155,17 +165,20 @@ Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the in
 
 ## Acceptance criteria to tests
 | # | Criterion | Test | Result |
-| 1 | {from 04-spec.md} | {test name and file} | pass |
+| 1 | {from 04-spec.md} | {literal or backticked test file path, optionally followed by the test name} | pass |
 
 ## Test output
-{pasted runner output from after the build. Not a summary, not a claim}
+**Run:** {project-relative evidence/runs/*.json from the final run}
+{captured runner output; command, exit status and log are resolved from the record}
 
 ## Instrumentation
 | Event | Triggered by | Arrived | Properties verified | Evidence |
 | {event} | {action} | yes | {list} | `[tag]` |
 
 ## Eval results
-{only when the spec declares model output: the run's pasted output, the pass rate against the threshold, every must-pass case, and the prompt and model version it ran on}
+**Run:** {project-relative captured eval run JSON}
+**Results:** {project-relative JSON array of unique {id, pass: boolean} entries covering the dataset}
+{only for model-output specs: dataset/result hashes bound in the run, pass rate, must-pass results, prompt/model versions and rubric}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |
@@ -178,7 +191,7 @@ Completion marker: `## BUILD VERIFIED` with the mapping, the test output, the in
 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
-| "The tests pass" with no pasted output | Gate 5.2 requires evidence, not a claim | Paste the runner output |
+| Pasted green output with no captured run | Prose or an old run can hide failed execution | Capture the final run and have relevance/coverage judged |
 | Mapping a criterion to "no test, reasoned exception" | Gate 5.1 counts it as unmapped: an excuse is not a test | Test it where its surface lives, or send it back to phase 4 as out of scope or not yet specified |
 | Carrying a review finding that biases the phase 2 metric or a guardrail to phase 6 | Instrumentation that reads wrong is a gate 5.3 failure; phase 7 would judge the bet on it | Fix it in this phase, or fail the gate and say why |
 | No baseline before starting | Pre-existing failures become indistinguishable from new ones | Record and paste the baseline first |

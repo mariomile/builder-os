@@ -36,6 +36,8 @@ const cases = fs.readdirSync(path.join(HERE, 'cases')).filter((f) => f.endsWith(
   .map((f) => JSON.parse(fs.readFileSync(path.join(HERE, 'cases', f), 'utf8')))
   .filter((c) => !only || c.name === only);
 
+if (cases.length === 0) { console.error(`No scenarios match ${only || "selection"}`); process.exit(2); }
+
 let failed = 0;
 for (const c of cases) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `bos-${c.name}-`));
@@ -53,6 +55,7 @@ for (const c of cases) {
 
   const problems = [];
   if (r.error) problems.push(`host did not finish: ${r.error.message}`);
+  if (r.status !== 0) problems.push(`host exited unsuccessfully: ${r.signal || r.status}`);
   for (const p of c.expect.output_matches || []) if (!re(p).test(out)) problems.push(`output does not match ${p}`);
   for (const p of c.expect.output_not_matches || []) if (re(p).test(out)) problems.push(`output matches forbidden ${p}`);
   for (const [f, s] of Object.entries(before)) if (fs.readFileSync(path.join(dir, f), 'utf8') !== s) problems.push(`${f} changed`);

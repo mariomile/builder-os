@@ -3,6 +3,8 @@ name: bos-adr
 description: "Write an architecture decision record for a decision that is irreversible or expensive to unwind"
 ---
 
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
 Write an ADR into `.builderos/decisions/`.
 
 Usually called at phase 7, and callable at any phase the moment a decision becomes hard to unwind. A decision recorded while the reasoning is fresh is worth more than the same decision reconstructed a quarter later from memory and a pull request.

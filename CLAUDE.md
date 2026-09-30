@@ -4,7 +4,7 @@
 
 The shared contract is in `AGENTS.md`, imported above: architecture, design principles, non-negotiables, portability rules, skill contract, testing, contributing. Everything here is Claude Code specific and applies on top of it.
 
-The import exists because Claude Code reads `AGENTS.md` only when no `CLAUDE.md` is present in the working directory or above it. Without it, this file would silently shadow the shared contract and the two would drift. Single source, both hosts.
+The explicit import makes the shared repository contract available while working in this checkout. Installing BuilderOS as a plugin does not load this root file as project context; runtime rules must live in the components the plugin loads.
 
 ## Claude Code Adapters
 
@@ -30,7 +30,7 @@ model: inherit
 
 Agents are adapters over skills. Every agent MUST:
 
-1. Name the skill it loads and instruct running that skill's procedure
+1. Name its namespaced skill (`builder-os:{skill}`) and instruct running that skill's procedure in the requested operating mode
 2. State its role and its Iron Law
 3. Define the context contract its dispatch prompt carries
 4. End with a completion marker (`## TYPE COMPLETE`)
@@ -45,7 +45,7 @@ Commands are routing layers, not logic. Every command MUST:
 2. Resolve capabilities per `references/capability-map.md` and pass the derived mode
 3. Read and pass the previous phase artifact
 4. Verify the completion marker, then re-run the phase gate on the written artifact before presenting results. The marker is a claim; the gate on the file is the evidence
-5. Dispatch in the foreground (`run_in_background: false`). The next step reads what the agent wrote; a backgrounded phase agent lets the session end, headless runs especially, before the artifact exists
+5. Use the plugin namespace for component lookup (`builder-os:problem-framer`, `/builder-os:bos-frame`). Dispatch in the foreground (`run_in_background: false`) and await completion before dependent dispatches, artifact reads or gates. Keep this rule in the loaded command itself
 
 ## Dispatch Context Package
 

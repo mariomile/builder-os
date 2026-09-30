@@ -7,7 +7,9 @@ description: "Use when synthesizing user research, analyzing interview transcrip
 
 Reference for qualitative research synthesis: affinity mapping, opportunity scoring, and insight generation.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/capability-map.md` before reaching for any source.
+## Scope and resources
+
+Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`: Standalone synthesis uses supplied research and the requested output destination, without initiative state. Run only the steps relevant to the request; a theme summary does not require opportunity scoring or a solution recommendation. Load `evidence-ledger` when recording claims and `references/capability-map.md` only before reaching for a connected source.
 
 ## Capabilities
 
@@ -25,7 +27,7 @@ Reference for qualitative research synthesis: affinity mapping, opportunity scor
 
 ### 1. Resolve capabilities and ingest
 
-Run the resolution protocol from `references/capability-map.md`. Collect every available input: pasted text first, then whatever `docs.search`, `tickets.read` and `meetings.read` reach.
+Run the resolution protocol from `references/capability-map.md`. Start with the supplied inputs. Search connected sources only to close a relevant gap or when broader research was requested; availability alone does not widen the corpus.
 
 Per entry, extract: participant (role, company size, plan, anonymized as needed), context (what they were doing, what triggered the feedback), exact quotes marked as quotes, and researcher observations marked as observations. The distinction between a quote and an observation is load-bearing: one is evidence, the other is interpretation, and a synthesis that blurs them cannot be audited.
 
@@ -43,18 +45,18 @@ Per theme: participants affected, share of the sample, segments over-represented
 
 ### 5. Score opportunities
 
-Apply the ODT scoring below. Every opportunity cites the themes and therefore the participants behind it.
+When prioritization is requested and importance/satisfaction ratings exist, apply the explicitly adapted ODI score and paired-rating contract in `references/synthesis-methods.md`. Otherwise report unscored opportunities with the missing ratings. Every opportunity cites the themes and participants behind it; scoring does not select a solution or authorize building.
 
 ### 6. Write insight cards and report
 
-One card per insight that survived scoring. Then emit the output contract, including the gaps: the questions this research did not answer and the sample it would take to answer them.
+One card per relevant insight; do not discard qualitative findings merely because ratings are missing. Then emit the output contract, including the gaps: the questions this research did not answer and the sample it would take to answer them.
 
 ## Output Contract
 
 ```markdown
 ## DISCOVERY SYNTHESIS COMPLETE
 
-**Sample:** {n participants, how recruited, over what period}
+**Sample:** {n distinct participants, segments, recruitment and exclusions, period, source limitations}
 **Sources:** {each, with what it contributed}
 **Capabilities resolved:** {capability → concrete source, or "none: user-provided text only"}
 
@@ -62,105 +64,32 @@ One card per insight that survived scoring. Then emit the output contract, inclu
 {name, participants affected of n, segments, representative quote}
 
 ### Opportunity Map
-{scored, each citing its themes}
+{scored only with valid ratings; otherwise unscored, each citing its themes}
 
 ### Insight Cards
 {one per surviving insight}
 
 ### Confidence
-{per theme, with the reason}
+{per theme: evidence strength, sampling limits, contradictions; prevalence shown separately}
 
 ### Research Gaps
 {what this sample cannot answer, and what would}
 ```
 
-## Synthesis Process
+## Scoring and confidence invariants
 
-```
-Raw Data → Codes → Themes → Patterns → Opportunities → Insights → Recommendations
-```
+For requested prioritization with paired respondent importance/satisfaction ratings, use the explicitly adapted ODI method: `I + max(I - S, 0)` on 1–5 inputs, range 1–9. Calculate per respondent then summarize within segment; missing ratings are unavailable. Do not infer importance from mention prevalence or treat a high score as build authorization. It is a local adaptation, not the original ODI aggregate survey method.
 
-1. **Code**: Label each observation with a short descriptive tag
-2. **Group**: Cluster similar codes into themes
-3. **Count**: Quantify prevalence (% of participants) and intensity (mentions per participant)
-4. **Score**: Apply opportunity scoring framework
-5. **Generate**: Create structured insight cards
+Prevalence is a sample count; evidence strength considers recruitment, segment coverage, behavior, triangulation and contradictions. Convenience-interview percentages are not population confidence. Load [synthesis method details](references/synthesis-methods.md) only for the relevant coding, scoring, card, confidence or research-gap section; the file resolves relative to this `SKILL.md`.
 
-## Coding Guide
+## Common Mistakes
 
-| Raw Observation | Code |
-|----------------|------|
-| "I couldn't find the export button" | `[Feature Discovery: Export]` |
-| "Setup took us 3 days" | `[Setup Friction: Duration]` |
-| "The moment I saw the report I was sold" | `[Aha Moment: Report]` |
-| "I wish I could share this with my team" | `[Unmet Need: Collaboration]` |
-| "We ended up building a workaround in Sheets" | `[Workaround: Manual Process]` |
+| Mistake | Correction |
+|---------|------------|
+| Labeling interview prevalence “confidence” | Separate counts from evidence strength and sampling limits |
+| Counting several quotes from one person as several users | Deduplicate participants, preserving repeated-mention context |
+| ODT attributed an ODI formula with incompatible range | Name the adapted ODI method, paired ratings, 1–9 range and local heuristic |
+| Deriving importance from mention share | Require direct outcome ratings or report score unavailable |
+| Opportunity interpreted as feature commitment | State unmet outcome and separate solution testing |
 
-## Opportunity Scoring (ODT)
-
-Teresa Torres' Opportunity Solution Tree framework:
-
-```
-Opportunity Score = Importance + (Importance - Satisfaction)
-```
-
-| Score Range | Priority | Action |
-|------------|----------|--------|
-| 8-10 | Critical | Build now — high importance, low satisfaction |
-| 5-7 | High | Plan for next cycle |
-| 3-4 | Medium | Consider if low effort |
-| 1-2 | Low | Defer or ignore |
-
-**Importance scale (1-5):** Based on research prevalence
-- 5: >80% of participants, described as critical
-- 4: >60%, significant pain
-- 3: 30-60%, moderate pain
-- 2: <30%, minor convenience
-- 1: Edge case, rarely mentioned
-
-**Satisfaction scale (1-5):** How well current solution works
-- 5: Delighted, no complaints
-- 4: Mostly satisfied, minor friction
-- 3: Neutral, some workarounds
-- 2: Frustrated, significant workarounds
-- 1: Broken, active complaints
-
-## Insight Card Template
-
-```markdown
-### Insight: {Descriptive Title}
-
-**Pattern:** {What we observed, stated as a pattern not an anecdote}
-**Evidence:** {N} participants ({%}), {M} total mentions
-**Confidence:** {High (>60%) / Medium (30-60%) / Low (<30%)}
-
-**Key quotes:**
-> "{exact quote}" — P{n}, {role at company_size}
-> "{exact quote}" — P{n}, {role}
-
-**Implication:** {What this means for the product}
-**Opportunity:** {Specific thing to build or change}
-**Opportunity Score:** {value}
-```
-
-## Confidence Levels
-
-| Level | Prevalence | Intensity | Recommendation |
-|-------|-----------|-----------|----------------|
-| High | >60% | >1 mention/person | Act on this — strong signal |
-| Medium | 30-60% | ~1 mention/person | Validate further before committing |
-| Low | <30% | <1 mention/person | Note but don't prioritize |
-
-## Research Gap Identification
-
-After synthesis, check for:
-- **Segments not represented**: Which user types were not interviewed?
-- **Questions not asked**: What do we still not know?
-- **Contradictions**: Where do participants disagree? Why?
-- **Behavioral vs. stated**: Did observed behavior match stated preferences?
-
-For each gap, recommend the research method to fill it:
-- **Interview more**: If need qualitative depth on a specific theme
-- **Survey**: If need quantitative validation of a pattern
-- **Usability test**: If need to observe specific interaction
-- **Data analysis**: If behavioral data could answer the question
+**Narrow example:** “Summarize these five transcripts into three themes” produces three themes with participant counts, quotes and sampling limits in the requested format; no initiative, full scoring exercise or mandatory opportunity selection.

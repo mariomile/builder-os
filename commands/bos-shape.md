@@ -3,7 +3,11 @@ name: bos-shape
 description: "Phase 4 — turn the selected bet into a spec: bounded scope, testable acceptance criteria, flows with full state coverage, and the tracking plan"
 ---
 
-Dispatch `ux-architect` then `spec-writer` to run BuilderOS phase 4.
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load ux-architecture, then spec-writing; qualify skill names with `builder-os:` on Claude.
+
+Dispatch `builder-os:ux-architect` then `builder-os:spec-writer` to run BuilderOS phase 4.
 
 ## Steps
 
@@ -13,12 +17,10 @@ Dispatch `ux-architect` then `spec-writer` to run BuilderOS phase 4.
 4. **Detect a design-quality toolchain** in this session. If one is present, the UX architect delegates visual craft to it and keeps the structure. Absence is the expected case and costs nothing; never prompt an install.
 5. **Dispatch the UX architect first.** The spec consumes its flow list, so the order matters.
 
-```
-Agent({
-  description: "Structural design for [feature]",
-  subagent_type: "ux-architect",
-  run_in_background: false,
-  prompt: "Operating mode: [detected mode]
+Dispatch `builder-os:ux-architect` with this context:
+
+```text
+Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
 Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
 Design toolchain present: [yes, named | no]
@@ -32,18 +34,15 @@ PRODUCT.md:
 User request:
 [what the user asked]
 
-Write DESIGN.md. End with ## DESIGN COMPLETE."
-})
+Write DESIGN.md. End with ## DESIGN COMPLETE.
 ```
 
 6. **Dispatch the spec writer**, passing `DESIGN.md` through.
 
-```
-Agent({
-  description: "Spec for [feature]",
-  subagent_type: "spec-writer",
-  run_in_background: false,
-  prompt: "Operating mode: [detected mode]
+Dispatch `builder-os:spec-writer` with this context:
+
+```text
+Operating mode: [detected mode]
 Resolved capabilities: [as above]
 Pipeline state: initiative [slug], phase 4, cycle [C], mode [full|lite]
 
@@ -62,8 +61,7 @@ DESIGN.md:
 User request:
 [what the user asked]
 
-Write .builderos/initiatives/{initiative}/04-spec.md and run gate 4 before declaring completion."
-})
+Write .builderos/initiatives/{initiative}/04-spec.md and run gate 4 before declaring completion.
 ```
 
 7. **Verify completion:** `## DESIGN COMPLETE` then `## SPEC COMPLETE` with a gate 4 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 4 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
@@ -76,10 +74,4 @@ Write .builderos/initiatives/{initiative}/04-spec.md and run gate 4 before decla
 
 ## Notes
 
-On a host without subagent dispatch, load `ux-architecture` and then `spec-writing` and run their procedures inline, in that order. Same artifacts, same gate.
-
-Gate 4.2 fails an empty out-of-scope list. That is not pedantry: an unbounded scope is what phase 5's scope-creep check has nothing to check against.
-
-Gate 4.4 is the link between building and learning. If the named events cannot compute the phase 2 success metric, phase 7 will have nothing to evaluate and the kill criteria from phase 3 become unenforceable.
-
-In lite mode, gate 4.5 becomes a warning rather than a failure. Gates 4.1, 4.2 and 4.4 never relax.
+Without delegation, run `ux-architecture` then `spec-writing` inline. Apply the phase 4 criteria in `gate-checks`; neither design-only nor spec-only bypasses them.

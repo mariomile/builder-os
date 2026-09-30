@@ -1,86 +1,85 @@
 # Running BuilderOS on Different Hosts
 
-`skills/` is the product and is byte-identical everywhere. Everything else is an adapter.
+The portable bundle is `skills/`, `references/` and `scripts/`, kept together in the repository layout. Host components add discovery, hooks, commands or delegation; they do not own the method.
 
-| Layer | Portable | Notes |
-|-------|----------|-------|
-| `skills/` | Yes | Method **and** procedure. Works on any agent that reads `SKILL.md` |
-| `references/` | Yes | Templates, schema, capability map |
-| `scripts/bos.mjs` | Yes, where commands run | Gates, briefing, roadmap, migration. Node built-ins only. Where it cannot run, the model applies the same rules |
-| `AGENTS.md` | Yes | The shared contract. Read directly by Codex, and by Claude Code through the import in `CLAUDE.md` |
-| `CLAUDE.md` | No | Claude Code additions only. First line imports `AGENTS.md` |
-| `agents/` | No | Claude Code subagent wrappers. Thin by design |
-| `commands/` | No | Claude Code slash commands |
-| `.claude-plugin/` | No | Claude Code plugin manifest |
+## Source and project paths
 
-## One Contract, Two Files
+**Installation root** means the complete BuilderOS checkout or installed plugin directory. **Project root** means the user's working project, where `PRODUCT.md`, `TECH.md` and `.builderos/` live. They can be different directories.
 
-Claude Code reads `AGENTS.md` directly only when no `CLAUDE.md` exists in the working directory or above it. This repo has both, so `CLAUDE.md` starts with `@AGENTS.md`: the shared contract is imported, and `CLAUDE.md` carries only what is Claude-specific. Codex reads `AGENTS.md` on its own.
+Resolve support paths from the installation root. A loaded skill lives at `{installation}/skills/{name}/SKILL.md`: resolve its real path first if discovery uses a symlink, then go two directories above its containing directory. `references/`, `scripts/` and other `skills/` paths in the instructions are relative to that installation root. Commands and agents live one directory below the same root. Skill-local resources remain relative to their own skill folder. Never look for plugin resources in the user's project or write project state inside the installation.
 
-The rule for contributors: anything true on every host goes in `AGENTS.md`. Anything about subagents, slash commands or the plugin manifest goes in `CLAUDE.md`. Never duplicate a rule across both.
+The session hook and OpenCode adapter provide an explicit installation-root line. Without a hook, use the loaded component's path. If the host hides it, ask for the complete checkout path instead of guessing or creating substitute resources. Run the script with its full quoted path **from the project root**:
 
-Two caveats worth knowing. Reading `AGENTS.md` directly needs a recent Claude Code; the import path works regardless, which is why this repo uses it. And a `CLAUDE.md` anywhere *above* the working directory also suppresses direct `AGENTS.md` reading, so the import is what makes the contract reliable when BuilderOS sits inside a larger repo.
-
-Delete `agents/`, `commands/` and `.claude-plugin/` and BuilderOS still takes someone from idea to production. That is the portability test, and it is the reason procedure lives in skills.
-
-## Claude Code
-
-Install as a plugin. Skills, agents and slash commands all load: this is the richest surface, because `subagent.dispatch` resolves and each phase runs in an isolated context.
-
-```
-/bos-init          start a pipeline
-/bos               stateful hub, routes to the current phase
-/bos-status        pipeline state on one screen
-/bos-gate          run the current gate
-/bos-frame … /bos-learn
+```bash
+node '/path with spaces/builder-os/scripts/bos.mjs' brief
+node '/path with spaces/builder-os/scripts/bos.mjs' gate 0
 ```
 
-## Codex
+No automatic copying, installation or project configuration changes happen during resource resolution.
 
-**As a plugin.** Checked on 2026-09-27 against Codex CLI 0.157.1: installed from this repository, then a full `codex exec` run against a local stand-in model that recorded what Codex sent. Not yet checked: a real model following the skills under Codex, because no OpenAI credentials were available.
+## Claude Code plugin
 
+```text
+/plugin marketplace add mariomile/builder-os
+/plugin install builder-os@builder-os
 ```
-codex plugin marketplace add mariomile/builder-os     # or a local checkout's path
+
+Plugin components are namespaced. Use `/builder-os:bos-init`, `/builder-os:bos`, `/builder-os:bos-status`, `/builder-os:bos-gate` and `/builder-os:bos-frame` through `/builder-os:bos-learn`. Agent targets are also qualified, for example `builder-os:problem-framer`; skills use `builder-os:problem-framing`. See the [official component namespace contract](https://code.claude.com/docs/en/plugins-reference#name).
+
+The SessionStart matcher covers startup, resume, fork, clear and compact. Resume/fork refresh the briefing from the current project files; see the [official hook sources](https://code.claude.com/docs/en/hooks#sessionstart).
+
+Root `CLAUDE.md` and `AGENTS.md` describe contributing in this checkout. Installing the plugin does **not** load its root `CLAUDE.md` as project instructions. Operational rules therefore live in the loaded skills and commands. Commands dispatch in the foreground, await completion, and re-read the artifact before running its gate. A completion marker alone never advances state.
+
+When working on BuilderOS itself, `CLAUDE.md` imports `@AGENTS.md`. This explicit import shares the repository contract; it is not an assumption that Claude Code reads `AGENTS.md` automatically.
+
+## Codex plugin
+
+```bash
+codex plugin marketplace add mariomile/builder-os
 codex plugin add builder-os@builder-os
 ```
 
-What was verified:
+Keep the supported `.codex-plugin/plugin.json` manifest. Historical loader verification on Codex CLI 0.157.1 showed the complete plugin installed, all 24 skills discovered as `builder-os:{skill}`, commands imported as `builder-os:source-command-{command}`, and the SessionStart hook discovered. That was a stand-in model run, not evidence that a real model executes the lifecycle correctly. A local marketplace clones committed files; uncommitted fixes require a separate local loading check before publication.
 
-- `.agents/plugins/marketplace.json` is read and `.codex-plugin/plugin.json` installs as `builder-os@builder-os`. A local marketplace is cloned with git, so Codex installs the last commit, not uncommitted edits.
-- All 24 skills reach the model's skill list as `builder-os:{skill}`.
-- Codex imports `commands/*.md` as skills named `builder-os:source-command-{command}`, so `/bos-init` becomes a skill the model can pick by its description. It silently drops a command file over 3875 bytes: `npm test` keeps every command under 3800, and the procedure lives in the skills anyway.
-- The session-start hook in `hooks/hooks.json` is discovered as a `sessionStart` plugin hook, on one condition: the Codex manifest must not declare `"hooks": {}`, which replaces it with nothing. Codex marks a plugin hook untrusted until the user approves it once, in the interactive client; until then the session starts without the briefing and `using-builder-os` is picked by its description instead.
+For that tested CLI, command files above 3875 bytes were silently dropped. Deterministic tests keep them below 3800 bytes. Omitting `hooks` from the Codex manifest preserves automatic hook discovery; an empty object disabled it in that loader. Hook approval is a host setting: if the hook is unavailable or untrusted, invoke `using-builder-os` and resolve resources from the installed skill's real path.
 
-Commands name Claude Code subagents (`Agent({...})`). On Codex the imported command reads as instructions to follow, and the phase runs inline per `builder-os`, Run Protocol.
+Resolve delegation against the **current session**, including authorization. Some Codex sessions expose separate agents; others do not. A generic agent can receive the portable skill and context without a Claude profile. Claude's `builder-os:*` agent targets and dispatch syntax are not assumed to exist on Codex. If delegation is unavailable, run the identical skill inline.
 
-**Manually.** Two pieces.
+## Manual discovery on Codex or another skill-aware host
 
-1. **`AGENTS.md`** is picked up from the repository root automatically, giving Codex the pipeline map and the non-negotiables.
-2. **The skills** need to be discoverable by the host. Copy or symlink this repo's `skills/` into the directory your Codex version scans for skills, then invoke a skill by name or let the description match your request.
+Retain a **complete checkout**, not a copy of `skills/` alone:
 
-**The session briefing.** Where the hook is not trusted or not present, the briefing comes from the block initialization writes into the project's `AGENTS.md`. Where Codex may run commands, `node {path-to-builder-os}/scripts/bos.mjs brief` prints it from the files, and `... gate N` checks a gate.
+```bash
+git clone https://github.com/mariomile/builder-os '/chosen/location/builder-os'
+```
 
-No slash commands. Name the phase instead ("run the frame phase on this idea") or the skill (`builder-os`, `problem-framing`, …). Phases run inline, in sequence, in one conversation. Same procedure, same artifacts, same gates.
+Prefer the host's skill-path setting pointed at `/chosen/location/builder-os/skills`. If the host instead requires a scanned directory, explicitly symlink each skill folder there, leaving the complete checkout in place. For example, after choosing a dedicated empty discovery directory:
 
-## Any other SKILL.md-aware agent
+```bash
+mkdir -p '/chosen/discovery/skills'
+for skill in '/chosen/location/builder-os/skills/'*; do
+  ln -s "$skill" '/chosen/discovery/skills/'
+done
+```
 
-Make `skills/` reachable. Everything works except the slash commands and the isolated per-phase contexts.
+Use the discovery directory documented for the installed host version. Do not overwrite an existing skill. Resolve symlinks before support paths as described above. To undo this manual setup, remove only the links you created; the checkout and project artifacts remain intact. A host that copies skill files but discards their source paths needs the full bundle path provided in session context; a skill-only copied install is unsupported.
 
-## What Changes Between Hosts
+`AGENTS.md` in the BuilderOS checkout applies while working there, not automatically to an unrelated project. Invoke `using-builder-os` for routing or name a specialist for a standalone task. Lifecycle initialization writes the project briefing block only as part of an authorized initialization. A standalone request does not install a briefing or create `.builderos/`.
 
-| | With `subagent.dispatch` | Without |
-|---|---|---|
-| Phase execution | Isolated context per phase | Inline, sequential, one conversation |
-| Context pressure | Lower; each phase starts clean | Higher on long pipelines |
-| Artifacts | Identical | Identical |
-| Gates | Identical | Identical |
-| Gate provenance | Script-decided where commands run, on any host | Model-judged where they do not, and recorded as such |
-| Multi-skill routes (a full product audit) | Parallel | Sequential |
+## OpenCode and other hosts
 
-Lower context pressure is the only real advantage, and on a long pipeline it is worth having. It is not a capability difference: nothing is unavailable without it.
+The existing `.opencode/plugins/builder-os.js` adapter registers the sibling `skills/` path in the in-memory host configuration and injects the installation root. Keep the full checkout with the adapter; copying its JavaScript file alone loses the sibling resources. It does not write host config files. Other hosts can load the portable bundle with the manual discovery contract above.
 
-## Data Sources
+| Runtime capability | Execution |
+|---|---|
+| Delegation available and authorized | Dispatch the skill and context; await the result before dependent work |
+| Delegation unavailable | Same procedure inline, sequentially |
+| Shell execution available | Execute the quoted installation script from the project root |
+| Shell execution unavailable | Apply the skill's gate conditions; record model judgement explicitly |
+| Data unavailable | State the gap; retain an unknown value instead of inventing a baseline |
 
-BuilderOS never requires a specific analytics, database or documentation product. Phases resolve capabilities at runtime and degrade down a defined ladder to a floor that is always the same: state the gap, ask the user, tag what they provide. See `references/capability-map.md`.
+Artifacts and gate rules are identical across hosts. Capability availability and a skill's operating mode are separate decisions; see [`references/operating-modes.md`](../references/operating-modes.md).
 
-MCP is supported by several hosts, so MCP-provided tools may resolve on any of them. That is a runtime fact to discover, never an assumption to encode.
+## Verification limits
+
+`pnpm test` checks scripts, copied complete bundles, hook JSON, shell quoting, manifests and command constraints. These checks do not prove model compliance. Historical Claude scenarios and Codex prompt assembly are recorded separately in the repository; the unit remediation tests do not validate real users, production exposure, Windows execution, or installed global configuration. Bounded current model smoke checks are recorded in `tests/scenarios/README.md`; they do not certify the whole lifecycle.

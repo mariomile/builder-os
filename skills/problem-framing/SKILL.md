@@ -5,9 +5,16 @@ description: "Use when someone arrives with an idea, a feature request, or a vag
 
 # Problem Framing
 
-Almost nobody arrives with a problem. They arrive with a solution wearing a problem's clothes: "we need an AI assistant", "the onboarding should be shorter", "we should add SSO". Framing separates the two, because a solution accepted as a problem cannot be tested, only built.
+## Mode and resources
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `pressure-testing` when the framing will not hold up.
+Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** Frame the supplied idea or complaint using its known audience and constraints. Return the requested problem statement or framing artifact; unknown facts remain unknown. No phase files, initiative state, initialization or gate override are required. Preserve the requested format and destination.
+
+**Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
+
+Load `evidence-ledger` when lifecycle source tags need checking, `pressure-testing` for material unresolved decisions, and `gate-checks` only for a lifecycle completion. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+
+
+Almost nobody arrives with a problem. They arrive with a solution wearing a problem's clothes: "we need an AI assistant", "the onboarding should be shorter", "we should add SSO". Framing separates the two, because a solution accepted as a problem cannot be tested, only built.
 
 ## Solution Language
 
@@ -77,7 +84,7 @@ Before the frame is done, a fast scan: is this already solved? Three outcomes, a
 - **Solved badly, adopted anyway** → the strongest starting position. Switching cost is the thing to understand in phase 1.
 - **Solved, not adopted** → most interesting and most dangerous. Something about distribution, trust, or workflow blocked it. That blocker is the actual problem.
 
-Dispatch `competitive-analyst` when the mode allows it. Depth here is shallow by design: this is a check against wasting phase 1, not a market study.
+Use `competitive-intel` for a prior-art question when needed; delegate only when available and authorized. Depth here is shallow by design: this is a check against wasting phase 1, not a market study.
 
 ## Capabilities
 
@@ -86,26 +93,28 @@ Dispatch `competitive-analyst` when the mode allows it. Depth here is shallow by
 | `web.search` | Prior art scan | Ask the user what they and the ICP use today, tag `[doc:user-{date}-{topic}]` |
 | `docs.search` | Existing strategy notes, earlier attempts at this problem | Skip; note the gap |
 | `repo.read` | What was already tried, from README, changelog, issues | Skip |
-| `files.write` | The artifact and pipeline state | Required |
+| `files.write` | A requested file or lifecycle artifact/state | Not needed for an inline framing; required for lifecycle writes |
 
 Phase 0 needs no data capability. An idea with no product, no users and no analytics is the normal entry point. Never ask for analytics access here.
 
 ## Procedure
 
-Run these in order. Where the host can delegate, this is what the phase agent runs; where it cannot, run it inline. Same steps either way.
+Apply the framing method to the requested scope. Phase-file writes and gate checks apply only in lifecycle mode; delegate when available and authorized, otherwise run inline.
 
 1. **Capture the ask verbatim.** Record what the user actually said, word for word, before interpreting it. The original phrasing carries the assumption you are about to extract. Do not improve it.
 2. **Climb the ladder.** One "why does that matter" at a time, in conversation, never as a list of questions. Stop when the statement names a cost a specific person bears and the next why would produce a truism. Run the solution-language check on the result.
-3. **Run the context round.** ICP, why-now and prior art do not depend on each other, so they go to the user as one round per `pressure-testing` (Rounds): numbered, each with your recommended answer. Run the prior-art search first, if `web.search` resolved, so that question arrives answered and tagged rather than asked. Then work each answer until it holds:
-   - **ICP.** All five fields. Push hardest on size (a number with a source tag, bottom-up beats a borrowed market report) and reachability (five people the user could get on a call this week). If reachability fails, say plainly that phase 1 will stall and that finding reachable users is now the first task. More than one segment named → make them choose the primary.
-   - **Why now.** A dated change: behavior shifted, cost collapsed, or constraint lifted. If none exists, write that the problem is durable and unsolved for structural reasons, and name your best guess at those reasons. Never accept "the technology is good enough now" without the capability and the line it crossed.
+3. **Run the context round.** Retrieve known ICP, why-now and prior-art facts first. Ask only material unanswered questions; use open questions for facts and recommended options for decisions within the user’s authority. Run the prior-art search first, if `web.search` resolved, so that question arrives answered and tagged rather than asked. Then work each answer until it holds:
+   - **ICP.** All five fields. Push hardest on size (a number with a source tag, bottom-up beats a borrowed market report) and reachability (five people the user could get on a call this week). If reachability fails, say plainly that phase 1 will stall and that finding reachable users is now the first task. When selection is required, use supplied strategy or delegated judgement; ask only if a material segment choice remains unresolved.
+   - **Why now.** A dated change: behavior shifted, cost collapsed, or constraint lifted. If none exists, state that no dated change is evidenced; label candidate structural reasons as hypotheses. Never accept "the technology is good enough now" without the capability and the line it crossed.
    - **Prior art.** The two closest existing solutions, classified into the three outcomes. Resolve `web.search` if available; otherwise ask. If the classification is "solved well, adopted", say so directly: "do not proceed" is a legitimate phase 0 output and delivering it costs a conversation instead of a quarter.
 4. **Extract the riskiest assumption.** List the beliefs the frame requires, score each on confidence against collapse, pick low-confidence and high-collapse. Write it as a falsifiable sentence plus the observation that would falsify it. Pressure-test it; if it turns out unfalsifiable, label it a preference and take the next candidate.
-5. **Write and gate.** Write `.builderos/initiatives/{initiative}/00-frame.md` per the output contract. Run gate 0 per `gate-checks` and record it (`scripts/bos.mjs record 0` where commands run), which advances to phase 1 on pass. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
+5. **Deliver.** In standalone mode return the requested framing and its uncertainties, then stop. In lifecycle mode: Write `.builderos/initiatives/{initiative}/00-frame.md` per the output contract. Run gate 0 per `gate-checks` and record it (`scripts/bos.mjs record 0` where commands run), which advances to phase 1 on pass. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
 
 Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the riskiest assumption, the gate verdict, and the specific research target phase 1 inherits.
 
 ## Output Contract
+
+Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims. The paths below apply to lifecycle artifacts.
 
 `.builderos/initiatives/{initiative}/00-frame.md`:
 
@@ -148,3 +157,5 @@ Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the ri
 | Skipping reachability | Phase 1 stalls with nobody to talk to | Name five reachable people before leaving phase 0 |
 | A full competitive study at phase 0 | Expensive, premature, not the question | Three outcomes, shallow scan |
 | Quantifying cost with an invented number | Breaks the Iron Law immediately | `[assumption:unvalidated]` is a legitimate answer here |
+
+| Requiring initiative state for a standalone request | Expands the user’s scope | Use supplied context and the requested destination; do not initialize or override a gate |

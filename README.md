@@ -162,9 +162,9 @@ Analytics in particular is a category, not a product. BuilderOS asks five questi
 |---|---|---|
 | **Entry** | `using-builder-os`, then `builder-os` | `using-builder-os`, then one specialist skill |
 | **Shape** | Stateful, gated, sequential | Stateless, immediate |
-| **For** | Taking something from idea to production | A question about a product that exists: health, growth, finance, competition, OKRs |
+| **For** | Taking something from idea to production | A scoped answer or artifact: PRD, research plan, growth, finance, competition, OKRs |
 
-You never pick a skill by hand. `using-builder-os` loads at session start, reads the memory, and routes; `/bos-ask` asks it explicitly. `/bos-learn` is the bridge: phase 7 runs the specialists against the phase 2 target and the phase 3 kill criteria.
+Invoke a specialist directly when the task is clear. `using-builder-os` briefs and routes when loaded by a hook or invoked explicitly; `/builder-os:bos-ask` asks it explicitly. `/builder-os:bos-learn` is the bridge: phase 7 runs the specialists against the phase 2 target and the phase 3 kill criteria.
 
 ---
 
@@ -177,19 +177,28 @@ You never pick a skill by hand. `using-builder-os` loads at session start, reads
 /plugin install builder-os@builder-os
 ```
 
-Skills, agents and slash commands all load. The richest surface: each phase runs in an isolated subagent context.
+Skills, agents and commands load with the `builder-os:` namespace. Commands dispatch in the foreground and await completion before reading artifacts or running gates. The installed plugin does not load this repository’s root `CLAUDE.md` as project instructions.
 
 ```
-/bos-init        start a pipeline from an idea
-/bos             stateful hub — routes to the current phase
-/bos-status      pipeline state on one screen
-/bos-gate        run the current gate
-/bos-frame … /bos-learn
+/builder-os:bos-init        start a pipeline from an idea
+/builder-os:bos             stateful hub — routes to the current phase
+/builder-os:bos-status      pipeline state on one screen
+/builder-os:bos-gate        run the current gate
+/builder-os:bos-frame … /builder-os:bos-learn
 ```
 
 ### Codex and other agents
 
-`AGENTS.md` at the repo root is picked up automatically. Make `skills/` reachable by your host, then name the phase or the skill instead of a slash command. Phases run inline. Same procedure, same artifacts, same gates.
+Prefer the Codex plugin, which preserves the complete bundle:
+
+```bash
+codex plugin marketplace add mariomile/builder-os
+codex plugin add builder-os@builder-os
+```
+
+For manual discovery, retain a complete checkout with `skills/`, `references/` and `scripts/`; point the host at its skill path or symlink individual skill folders. Copying only `skills/` is unsupported. Resolve support files from the loaded skill’s real installation root and run the fully quoted script path from the user's project. `AGENTS.md` applies in the BuilderOS checkout, not automatically in unrelated projects.
+
+Resolve `subagent.dispatch` against the current session on every host, including Codex. Where delegation is available and authorized, pass the skill and context to an agent and await it; otherwise run inline. Claude-specific agent profiles are optional adapters.
 
 Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
@@ -201,9 +210,11 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
-**15 commands**, all `/bos-*`. Not sure which one? `/bos-ask`.
+**15 commands**, namespaced `/builder-os:bos-*` on Claude Code. Not sure which one? `/builder-os:bos-ask`.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: `brief`, `gate`, `new`, `cover`, `roadmap`, `migrate`. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
+A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEARN require actual exposure evidence: status verified, an actual timestamp, environment, version and an observed result with a resolvable data/document source. Preparation does not authorize deployment.
+
+**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording, initiative management, roadmap regeneration and migration. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
 ### Project memory
 
@@ -226,12 +237,12 @@ AGENTS.md                 gets a BuilderOS block telling every new session to re
     DESIGN.md             flows, states, components, accessibility
     04-spec.md            scope, not yet specified, acceptance criteria, tracking plan
     05-build-plan.md      tracer tickets, test map, review record
-    06-release.md         rollout, rollback test, baseline
+    06-release.md         rollout, rollback test, baseline, actual exposure verification
     07-outcome.md         actual vs target, keep / iterate / kill
     questionnaires/       async questions for people the user cannot interview
 ```
 
-Every session starts by reading the roadmap, each initiative's `state.json`, `PRODUCT.md` and, when code is involved, `TECH.md`, and briefs you in five lines on where things stand, plus one line when something is rotting: an outcome review past its date, a `TECH.md` not checked since the dependencies changed, an initiative untouched for a month. On Claude Code the session-start hook does it; on any other host the block `/bos-init` writes into your project's `AGENTS.md` does. Several initiatives can be open at once; one is active, and every command acts on it.
+The bootstrap reads relevant project memory and briefs on active work and stale commitments. SessionStart refreshes this context on startup, resume, fork, clear and compact where the host supports and trusts the hook. Without it, invoke `using-builder-os` or use the project briefing block written by authorized lifecycle initialization. Standalone requests do not create lifecycle state. Several initiatives can be open at once; one is active, and lifecycle commands act on it.
 
 Each phase reads the one before it. Starting phase 3 without `02-definition.md` produces confident fiction, so the hub refuses.
 
@@ -243,14 +254,14 @@ Version 2.1.0. Honest state:
 
 | Area | Status |
 |------|--------|
-| Spine — state, gates, evidence ledger, pressure testing, `/bos-init`, `/bos`, `/bos-status`, `/bos-gate` | Shipped |
+| Spine — state, gates, evidence ledger, pressure testing, `/builder-os:bos-init`, `/builder-os:bos`, `/builder-os:bos-status`, `/builder-os:bos-gate` | Shipped |
 | Phases 0–7 — all eight, each with its own skills, procedure and enforceable gate | Shipped |
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
-| Gate enforcement | 32 of 44 conditions decided by `scripts/bos.mjs`, and every gate result written to `state.json` by `bos.mjs record`, never by hand. `npm test` green |
-| Runtime verification | 7 behavioral scenarios pass on Claude Code (2026-09-27). One initiative rehearsed from `/bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model. No initiative has yet run on a real project with real users |
+| Gate enforcement | Script checks cover structural conditions and execution records; semantic conditions remain explicit model judgements. `bos.mjs record` writes gate results where shell execution is available. Regression checks run with `pnpm test`; they do not prove model compliance |
+| Runtime verification | Historical: 7 behavioral scenarios passed on Claude Code (2026-09-27). One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model. No initiative has yet run on a real project with real users |
 
-That last row is the one to read.
+The remediation adds deterministic regressions for previously failing gates and host contracts. It does not rerun model-based lifecycle scenarios, modify installed global configurations, or verify real production outcomes.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 

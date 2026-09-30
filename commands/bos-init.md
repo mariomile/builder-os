@@ -3,11 +3,13 @@ name: bos-init
 description: "Start a BuilderOS project or a new initiative in one: PRODUCT.md, TECH.md, the roadmap and the .builderos/ state directory"
 ---
 
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
 Entry point for any idea, problem, or existing product entering the BuilderOS lifecycle, and for every new initiative after the first.
 
-**REQUIRED BACKGROUND:** `builder-os` (section Initialization), `evidence-ledger`.
+**REQUIRED BACKGROUND:** `builder-os` and `references/lifecycle-setup.md`, `evidence-ledger`.
 
-The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that exact path; do not search for the file.
+The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that quoted path from the project root. Without the hook, resolve it from this command’s installation root.
 
 ## Steps
 
@@ -39,5 +41,5 @@ Created: {PRODUCT.md, TECH.md, ROADMAP.md, the AGENTS.md block, on the first run
 
 {One line on what phase N will do.}
 
-Next: `/bos-frame`, or `/bos-define` on the feature track
+Next: `/builder-os:bos-frame`, or `/builder-os:bos-define` on the feature track
 ```

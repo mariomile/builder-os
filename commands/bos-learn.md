@@ -3,31 +3,35 @@ name: bos-learn
 description: "Phase 7 — measure the shipped change against its target and its kill criteria, decide keep, iterate or kill, and record the learning"
 ---
 
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load outcome-review; qualify skill names with `builder-os:` on Claude.
+
 Run BuilderOS phase 7, orchestrating the analysis agents against the phase 2 target and the phase 3 kill criteria.
 
-Phase 7 adds no new specialist. It reuses the analysis surface that already exists and holds it to the commitments the pipeline made earlier.
+Use existing specialists against recorded commitments.
 
 ## Steps
 
-1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 6 must have passed or been overridden. Also read the override log: it changes how this result should be read.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 6 must have passed or been overridden. Actual exposure verification (6.6) must exist; a RELEASE READY plan cannot enter LEARN. Read the override log.
 2. **Read `.builderos/initiatives/{initiative}/06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
-3. **Check the review date.** It came from the kill criteria. If it has not arrived, say so and schedule; a number read early has not stabilized, and reading it anyway is how a good bet gets killed.
+3. **Check the review date.** It came from the kill criteria. If it has not arrived or measurement is unavailable, use `defer-review --review-due YYYY-MM-DD --reason ...`; hold phase 7 without inventing a verdict.
 4. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 5. **Rerun the phase 6 measurement**, identically: same definition, same shape, same parameters, same window length. Then the guardrails from the phase 4 tracking plan.
 6. **Dispatch the analysis agents that the question needs**, no more:
 
-| Question | Agent |
+| Question | Agent / portable skill |
 |----------|-------|
-| Did the metric move, and what does the tree look like now | `product-diagnostician` |
-| Did activation or retention change | `growth-architect` |
-| Did revenue or unit economics change | `finance-analyst` |
-| Did this move the key results it was tied to | `okr-architect` |
+| Did the metric move, and what does the tree look like now | `builder-os:product-diagnostician` / saas-metrics-reference |
+| Did activation or retention change | `builder-os:growth-architect` / growth-frameworks |
+| Did revenue or unit economics change | `builder-os:finance-analyst` / financial-models |
+| Did this move the key results it was tied to | `builder-os:okr-architect` / okr-frameworks |
 
-Each dispatch carries the baseline, the target, the kill criteria and the measurement window, so the agent compares against commitments rather than producing a general analysis.
+Pass baseline, target, kill criteria and measurement window; await all analyses before continuing.
 
 7. **Load `outcome-review` and run its Procedure** over the returned numbers: compare against target, evaluate the kill criteria literally, read the overrides, decide, generalize the learning.
 8. **Write `.builderos/initiatives/{initiative}/07-outcome.md`** and run gate 7.
-9. **Update state.** On KEEP the cycle closes. On ITERATE or KILL, increment `cycle` and set `current_phase` to the re-entry phase.
+9. **Update state.** Use the `outcome-review` decision and `gate-checks` recording protocol; KEEP closes, ITERATE re-enters, KILL closes with `Re-enters at: none`; a new direction needs a separately authorized initiative.
 10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 7 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
 
 ## Arguments
@@ -37,10 +41,4 @@ Each dispatch carries the baseline, the target, the kill criteria and the measur
 
 ## Notes
 
-On a host without subagent dispatch, load `outcome-review` and run its procedure inline, pulling the numbers directly. The specialists sharpen the analysis; they are not required to reach a decision.
-
-Gate 7.2 evaluates the kill criteria as written: metric, threshold, date, action. Reinterpreting them after seeing the result is the exact failure phase 3 wrote them down to prevent. Interpretation belongs in a separate paragraph, after the verdict.
-
-`KILL` is a successful pass. A wrong bet caught at phase 7 with a tested rollback costs one release; the same wrong belief carried for four quarters costs a roadmap.
-
-Where the decision is irreversible or expensive to unwind, write the ADR with `/bos-adr`.
+Without delegation, run `outcome-review` inline. Evaluate kill criteria as written before interpretation. A KILL can pass the gate and stop the initiative. Use `/builder-os:bos-adr` for a decision that merits an ADR.

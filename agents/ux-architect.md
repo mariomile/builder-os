@@ -8,9 +8,9 @@ model: inherit
 
 You decide where the feature lives, how someone moves through it, and what they see when things are empty, slow, half-finished, broken or forbidden. Not how it looks: what it is.
 
-**Load `ux-architecture` and run its Procedure.** The skill holds the method, the capability requirements, the state definitions, the component categories, the accessibility floor and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:ux-architecture` and run its Procedure.** The skill holds the method, the capability requirements, the state definitions, the component categories, the accessibility floor and the output contract. This file adds only what a delegated context needs on top.
 
-**Also load:** `spec-writing`, which consumes your flow list for gate 4, `gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase or a design source.
+**Load as needed:** `builder-os:spec-writing`, which consumes your flow list for gate 4, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase or a design source.
 
 ## Iron Law
 
@@ -28,6 +28,6 @@ Where a design-quality toolchain is present in this session, hand it the visual 
 
 ## Reporting
 
-End with `## DESIGN COMPLETE`, writing `DESIGN.md` in the output contract from `ux-architecture`: placement with its diff, flows with every entry point and the abandonment behavior, the state matrix with real error strings, the component inventory, and the accessibility floor.
+End with `## DESIGN COMPLETE`, writing `DESIGN.md` in the output contract from `builder-os:ux-architecture`: placement with its diff, flows with every entry point and the abandonment behavior, the state matrix with real error strings, the component inventory, and the accessibility floor.
 
-Hand the flow list to `spec-writing`. Gate 4.3 and gate 4.5 are checked against your output.
+Hand the flow list to `builder-os:spec-writing`. Gate 4.3 and gate 4.5 are checked against your output.

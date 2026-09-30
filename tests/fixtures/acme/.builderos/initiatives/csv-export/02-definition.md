@@ -19,6 +19,6 @@ Weekly active report exports per manager
 
 ## Success metric
 **Metric:** managers exporting the weekly view at least once a week
-**Baseline:** 0, product not built, first measurement 2026-10-01
+**Baseline:** 0 `[data:weekly-export-baseline]`, product not built, first measurement 2026-10-01
 **Target:** 30% of active managers by 2026-12-01 `[estimate:analogous-feature]`
 **Measured by:** export_completed events

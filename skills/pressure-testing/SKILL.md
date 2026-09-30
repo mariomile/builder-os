@@ -7,17 +7,13 @@ description: "Use when a decision, problem statement, opportunity, or bet needs 
 
 A reusable interview primitive. Any BuilderOS phase can call it. It exists because the failure mode of AI-assisted product work is not bad analysis — it is unchallenged premises that get elaborated into confident artifacts.
 
+Read [operating modes](../../references/operating-modes.md) first. For a standalone request, use supplied requirements and sources; keep the requested format and destination. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
+
 ## Stop Condition
 
-The interview ends when **no unresolved branch remains**: every fork in the reasoning has been either resolved with evidence or explicitly deferred with a named test.
+Stop when the material assumptions for the requested decision are resolved, explicitly accepted as risks, or deferred with a named test and owner. Match depth to the decision's reversibility, impact and the user's time budget. Record residual uncertainty and deliver the requested work. Agreement alone is insufficient evidence, but repetitive questions are a signal to summarize and move on.
 
-The interview does **not** end when:
-- The user agrees with you
-- The user seems satisfied
-- The answers become repetitive
-- You have asked a set number of questions
-
-Agreement is the most common false stop. A user who agrees quickly has usually not been asked the question that would change their mind.
+A quick sanity check usually needs one focused round; an irreversible bet may need more. Do not require closure of every hypothetical branch or turn an implementation request into an unbounded interview.
 
 ## Method
 
@@ -30,7 +26,7 @@ Agreement is the most common false stop. A user who agrees quickly has usually n
 
 ## Rounds
 
-Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the whole frontier at once, numbered, each with your **recommended answer** and the reason for it. The user corrects a proposal faster than they write from nothing, and a disagreement with your recommendation is itself evidence.
+Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered. Recommend an option only for a preference or decision with a reason. Ask missing factual questions neutrally: do not propose a baseline, budget, user quote or historical result. Never treat the recommendation as a submitted answer.
 
 ```markdown
 **Q1 — {short title}.** {The question, with the options when there are options.}
@@ -41,54 +37,11 @@ Questions come in **rounds**. A round holds every open question whose answer doe
 
 A question whose answer depends on another question in the same round belongs to the next round. The attack on the load-bearing assumption (Method, steps 2 to 5) is a chain: each answer decides the next question, so that chain runs one question per round. Independent branches (who the ICP is, what changed, who solved it before) go together.
 
-**Facts are yours, decisions are theirs.** Before a question reaches the user, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Decisions (what to bet on, what to cut, which risk to accept) always go to the user, and you never answer them on the user's behalf.
+**Facts are yours, decisions are theirs.** Before a question reaches the user, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Carry forward explicit decisions and authorization. Make routine reversible choices within delegated scope, stating important assumptions. Ask only when a material preference remains unresolved or the choice exceeds authorization.
 
 ## Question Banks
 
-**Phase 0 — Frame**
-- Who has this problem badly enough to pay, switch, or change behavior?
-- What are they doing about it today? Why is that not enough?
-- Why has nobody solved this? What changed that makes now different?
-- Is this a problem, or is it your solution wearing a problem's clothes?
-- If you solved it perfectly and told the ICP, what would they do in the next hour?
-
-**Phase 1 — Discover**
-- Which of these quotes is someone being polite?
-- Who did you not talk to because they were hard to reach, and how would they disagree?
-- Did anyone say anything that surprised you? If not, you asked leading questions.
-- What did the people who churned say? What did the people who never signed up say?
-- Which evidence would you have accepted as a kill signal? Did you look for it?
-
-**Phase 2 — Define**
-- Which opportunity did you reject that a competitor would pick? Why are they wrong?
-- Does this opportunity fit the PMF stage, or is it a scale move on an unvalidated product?
-- What is the baseline of your success metric, today, from a real query?
-- Who inside the company would object to this and what is their strongest argument?
-
-**Phase 3 — Ideate**
-- Are these three options, or one option in three costumes? Name the distinct user action in each.
-- What is the version that takes a week? Why is it not good enough?
-- What would make you kill this in six weeks? Write the number and the date.
-- Which part of this could you fake to learn the same thing?
-
-**Phase 4 — Shape**
-- What did you leave out of scope, and who will ask for it in week two?
-- What happens when it is empty, slow, offline, or the user is wrong?
-- How will you know it worked? Which event, which query, which threshold?
-
-**Phase 5 — Build**
-- Which acceptance criterion has no test? Why is that acceptable?
-- What did you build that was not in the spec?
-- Is the instrumentation firing, or is it merely written?
-
-**Phase 6 — Ship**
-- How do you turn it off? Who can, at 2am, without you?
-- Did you capture the baseline before exposure, or are you about to compare against a moving number?
-
-**Phase 7 — Learn**
-- Did it move the number, or did something else move it?
-- What would you have concluded if the result had been the opposite? If the same, the test was decorative.
-- Which belief do you now hold less confidently?
+Load [phase question banks](references/question-banks.md) only when a deeper review needs examples.
 
 ## Tone
 
@@ -108,7 +61,7 @@ Ends with a resolution table:
 | Integration is the blocker | Unresolved | No test designed | — |
 ```
 
-Unresolved branches at a gate are gate failures. Deferred branches with a named test are not.
+Only unresolved branches named by the applicable gate block that gate. A deferred risk does not waive a mandatory condition; standalone work reports the limitation without creating an override.
 
 ## Common Mistakes
 
@@ -116,7 +69,8 @@ Unresolved branches at a gate are gate failures. Deferred branches with a named 
 |---------|-------------|---------|
 | Stopping when the user agrees | Agreement is not resolution | Stop when branches are resolved or deferred with a test |
 | Asking dependent questions in the same round | The user answers questions whose premise the first answer changes | Ask only the frontier; dependent questions wait for the next round |
-| A question with no recommended answer | The user writes from nothing, and you learn nothing from their disagreement | Every question carries your recommendation and why |
+| Recommending an answer to a factual question | Anchors the answer and may invent evidence | Ask neutrally; recommend only decisions |
+| Reviewing every hypothetical risk in a quick check | Consumes the task without improving the decision | Test the material assumption and record residual uncertainty |
 | Asking the user for a fact the session could retrieve | Wastes their turn and signals you did not look | Resolve the capability first; ask only when the ladder is exhausted |
 | Attacking peripheral details | Feels rigorous, changes nothing | Attack the load-bearing assumption |
 | Accepting an unfalsifiable claim | It is a preference, not a claim | Label it a preference and move on |

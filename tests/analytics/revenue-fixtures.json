@@ -1,0 +1,704 @@
+[
+  {
+    "name": "churn belongs to observed August only",
+    "start": "2026-08-01",
+    "end": "2026-08-01",
+    "calendar": [
+      [
+        "2026-07-01",
+        true,
+        true
+      ],
+      [
+        "2026-08-01",
+        true,
+        true
+      ]
+    ],
+    "history": [
+      [
+        "a",
+        "2026-07-01"
+      ],
+      [
+        "b",
+        "2026-07-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2026-07-01",
+        "a",
+        "pro",
+        100
+      ],
+      [
+        "2026-07-01",
+        "b",
+        "pro",
+        100
+      ],
+      [
+        "2026-08-01",
+        "b",
+        "pro",
+        100
+      ]
+    ],
+    "checks": {
+      "MRR Waterfall": [
+        {
+          "period": "2026-08-01",
+          "starting_mrr": 200,
+          "new_mrr": 0,
+          "reactivation_mrr": 0,
+          "churn_mrr": 100,
+          "ending_mrr": 100
+        }
+      ],
+      "Monthly Churn Rate": [
+        {
+          "period": "2026-08-01",
+          "starting_accounts": 2,
+          "churned_accounts": 1,
+          "churn_rate_pct": 50
+        }
+      ]
+    }
+  },
+  {
+    "name": "all movements including historical reactivation",
+    "start": "2026-07-01",
+    "end": "2026-08-01",
+    "calendar": [
+      [
+        "2026-06-01",
+        true,
+        true
+      ],
+      [
+        "2026-07-01",
+        true,
+        true
+      ],
+      [
+        "2026-08-01",
+        true,
+        true
+      ],
+      [
+        "2026-09-01",
+        false,
+        false
+      ]
+    ],
+    "history": [
+      [
+        "e",
+        "2026-07-01"
+      ],
+      [
+        "c",
+        "2026-07-01"
+      ],
+      [
+        "h",
+        "2026-07-01"
+      ],
+      [
+        "d",
+        "2026-07-01"
+      ],
+      [
+        "r",
+        "2026-05-01"
+      ],
+      [
+        "n",
+        "2026-08-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2026-07-01",
+        "e",
+        "pro",
+        100
+      ],
+      [
+        "2026-07-01",
+        "c",
+        "pro",
+        80
+      ],
+      [
+        "2026-07-01",
+        "h",
+        "pro",
+        50
+      ],
+      [
+        "2026-07-01",
+        "d",
+        "pro",
+        100
+      ],
+      [
+        "2026-08-01",
+        "e",
+        "pro",
+        150
+      ],
+      [
+        "2026-08-01",
+        "c",
+        "pro",
+        40
+      ],
+      [
+        "2026-08-01",
+        "h",
+        "pro",
+        50
+      ],
+      [
+        "2026-08-01",
+        "r",
+        "pro",
+        75
+      ],
+      [
+        "2026-08-01",
+        "n",
+        "pro",
+        90
+      ]
+    ],
+    "checks": {
+      "MRR Waterfall": [
+        {
+          "period": "2026-07-01",
+          "starting_mrr": 0,
+          "new_mrr": 330,
+          "reactivation_mrr": 0,
+          "ending_mrr": 330
+        },
+        {
+          "period": "2026-08-01",
+          "starting_mrr": 330,
+          "new_mrr": 90,
+          "reactivation_mrr": 75,
+          "expansion_mrr": 50,
+          "contraction_mrr": 40,
+          "churn_mrr": 100,
+          "ending_mrr": 405
+        }
+      ],
+      "Monthly Churn Rate": [
+        {
+          "period": "2026-07-01",
+          "starting_accounts": 0,
+          "churn_rate_pct": null
+        },
+        {
+          "period": "2026-08-01",
+          "starting_accounts": 4,
+          "churned_accounts": 1,
+          "churn_rate_pct": 25
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiple subscriptions per account",
+    "start": "2026-09-01",
+    "end": "2026-09-01",
+    "calendar": [
+      [
+        "2026-08-01",
+        true,
+        true
+      ],
+      [
+        "2026-09-01",
+        true,
+        true
+      ]
+    ],
+    "history": [
+      [
+        "a",
+        "2026-09-01"
+      ],
+      [
+        "b",
+        "2026-09-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2026-09-01",
+        "a",
+        "pro",
+        100
+      ],
+      [
+        "2026-09-01",
+        "a",
+        "pro",
+        50
+      ],
+      [
+        "2026-09-01",
+        "b",
+        "pro",
+        200
+      ]
+    ],
+    "checks": {
+      "Period MRR and Account Count": [
+        {
+          "active_accounts": 2,
+          "total_mrr": 350,
+          "arpa": 175
+        }
+      ],
+      "MRR by Plan": [
+        {
+          "plan_name": "pro",
+          "accounts": 2,
+          "mrr": 350,
+          "arpa": 175
+        }
+      ]
+    }
+  },
+  {
+    "name": "closed empty periods keep zero rows",
+    "start": "2026-09-01",
+    "end": "2026-10-01",
+    "calendar": [
+      [
+        "2026-08-01",
+        true,
+        true
+      ],
+      [
+        "2026-09-01",
+        true,
+        true
+      ],
+      [
+        "2026-10-01",
+        true,
+        true
+      ]
+    ],
+    "history": [
+      [
+        "a",
+        "2026-08-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2026-08-01",
+        "a",
+        "pro",
+        100
+      ]
+    ],
+    "checks": {
+      "MRR Waterfall": [
+        {
+          "period": "2026-09-01",
+          "starting_mrr": 100,
+          "churn_mrr": 100,
+          "ending_mrr": 0
+        },
+        {
+          "period": "2026-10-01",
+          "starting_mrr": 0,
+          "churn_mrr": 0,
+          "ending_mrr": 0
+        }
+      ],
+      "Monthly Churn Rate": [
+        {
+          "period": "2026-09-01",
+          "starting_accounts": 1,
+          "churned_accounts": 1,
+          "churn_rate_pct": 100
+        },
+        {
+          "period": "2026-10-01",
+          "starting_accounts": 0,
+          "churn_rate_pct": null
+        }
+      ],
+      "Period MRR and Account Count": [
+        {
+          "active_accounts": 0,
+          "total_mrr": 0,
+          "arpa": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "no customer population still preserves observed calendar",
+    "start": "2026-08-01",
+    "end": "2026-08-01",
+    "calendar": [
+      [
+        "2026-07-01",
+        true,
+        true
+      ],
+      [
+        "2026-08-01",
+        true,
+        true
+      ]
+    ],
+    "history": [],
+    "snapshots": [],
+    "checks": {
+      "MRR Waterfall": [
+        {
+          "period": "2026-08-01",
+          "starting_mrr": 0,
+          "new_mrr": 0,
+          "reactivation_mrr": 0,
+          "ending_mrr": 0
+        }
+      ],
+      "Monthly Churn Rate": [
+        {
+          "period": "2026-08-01",
+          "starting_accounts": 0,
+          "churned_accounts": 0,
+          "churn_rate_pct": null
+        }
+      ]
+    }
+  },
+  {
+    "name": "cohort offsets span years and exclude month thirteen",
+    "start": "2025-01-01",
+    "end": "2026-02-01",
+    "calendar": [
+      [
+        "2025-01-01",
+        true,
+        true
+      ],
+      [
+        "2025-02-01",
+        true,
+        true
+      ],
+      [
+        "2025-03-01",
+        true,
+        true
+      ],
+      [
+        "2025-04-01",
+        true,
+        true
+      ],
+      [
+        "2025-05-01",
+        true,
+        true
+      ],
+      [
+        "2025-06-01",
+        true,
+        true
+      ],
+      [
+        "2025-07-01",
+        true,
+        true
+      ],
+      [
+        "2025-08-01",
+        true,
+        true
+      ],
+      [
+        "2025-09-01",
+        true,
+        true
+      ],
+      [
+        "2025-10-01",
+        true,
+        true
+      ],
+      [
+        "2025-11-01",
+        true,
+        true
+      ],
+      [
+        "2025-12-01",
+        true,
+        true
+      ],
+      [
+        "2026-01-01",
+        true,
+        true
+      ],
+      [
+        "2026-02-01",
+        true,
+        true
+      ]
+    ],
+    "history": [
+      [
+        "a",
+        "2025-01-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2025-01-01",
+        "a",
+        "pro",
+        100
+      ],
+      [
+        "2026-02-01",
+        "a",
+        "pro",
+        150
+      ]
+    ],
+    "checks": {
+      "Cohort Revenue Retention": [
+        {
+          "period": "2025-01-01",
+          "month_number": 0,
+          "cohort_accounts": 1,
+          "total_mrr": 100,
+          "active_accounts": 1,
+          "mrr_retention": 1
+        },
+        {
+          "period": "2025-02-01",
+          "month_number": 1,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-03-01",
+          "month_number": 2,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-04-01",
+          "month_number": 3,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-05-01",
+          "month_number": 4,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-06-01",
+          "month_number": 5,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-07-01",
+          "month_number": 6,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-08-01",
+          "month_number": 7,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-09-01",
+          "month_number": 8,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-10-01",
+          "month_number": 9,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-11-01",
+          "month_number": 10,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2025-12-01",
+          "month_number": 11,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        },
+        {
+          "period": "2026-01-01",
+          "month_number": 12,
+          "cohort_accounts": 1,
+          "total_mrr": 0,
+          "active_accounts": 0,
+          "mrr_retention": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "cropped cohort uses inception baseline",
+    "start": "2026-01-01",
+    "end": "2026-02-01",
+    "calendar": [
+      [
+        "2025-01-01",
+        true,
+        true
+      ],
+      [
+        "2025-02-01",
+        true,
+        true
+      ],
+      [
+        "2025-03-01",
+        true,
+        true
+      ],
+      [
+        "2025-04-01",
+        true,
+        true
+      ],
+      [
+        "2025-05-01",
+        true,
+        true
+      ],
+      [
+        "2025-06-01",
+        true,
+        true
+      ],
+      [
+        "2025-07-01",
+        true,
+        true
+      ],
+      [
+        "2025-08-01",
+        true,
+        true
+      ],
+      [
+        "2025-09-01",
+        true,
+        true
+      ],
+      [
+        "2025-10-01",
+        true,
+        true
+      ],
+      [
+        "2025-11-01",
+        true,
+        true
+      ],
+      [
+        "2025-12-01",
+        true,
+        true
+      ],
+      [
+        "2026-01-01",
+        true,
+        true
+      ],
+      [
+        "2026-02-01",
+        true,
+        true
+      ]
+    ],
+    "history": [
+      [
+        "a",
+        "2025-01-01"
+      ]
+    ],
+    "snapshots": [
+      [
+        "2025-01-01",
+        "a",
+        "pro",
+        100
+      ],
+      [
+        "2026-01-01",
+        "a",
+        "pro",
+        75
+      ],
+      [
+        "2026-02-01",
+        "a",
+        "pro",
+        150
+      ]
+    ],
+    "checks": {
+      "Cohort Revenue Retention": [
+        {
+          "period": "2026-01-01",
+          "month_number": 12,
+          "total_mrr": 75,
+          "mrr_retention": 0.75
+        }
+      ]
+    }
+  }
+]

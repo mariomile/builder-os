@@ -7,7 +7,11 @@ description: "Use when diagnosing product health, building a metric tree, or whe
 
 Definitions, formulas and benchmark bands for the metrics a product health diagnosis rests on, plus the procedure that turns them into a scorecard.
 
-**REQUIRED BACKGROUND:** `evidence-ledger` for tagging. `references/analytics-contract.md` for the five query shapes. `references/capability-map.md` before touching any data source.
+## Scope and resources
+
+Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`: Standalone definitions and calculations preserve supplied context/output destination and do not initialize an initiative. Answer a single metric directly with its unit, denominator, period and assumptions; do not require a health scorecard or every query shape.
+
+Load [metric definitions and heuristic bands](references/metric-definitions.md) only for the requested metric/category. Load `evidence-ledger` for sourced claims, the relevant section of `references/analytics-contract.md` for a query, and `references/capability-map.md` before accessing a connected source. Skill-local paths resolve relative to this `SKILL.md`; shared paths resolve from the supplied installation root.
 
 ## Capabilities
 
@@ -24,15 +28,17 @@ Nothing here is required. A diagnosis with every value marked unavailable and a 
 
 ## Procedure
 
+For a definition/calculation, select the relevant formula, validate the supplied inputs and compute only that metric; explain undefined/missing inputs. The numbered diagnosis steps below apply when product-health analysis is requested. Lifecycle work reads only the active context needed; standalone work preserves its supplied scope.
+
 ### 1. Resolve capabilities and context
 
 Run the resolution protocol from `references/capability-map.md`. Record what resolved.
 
-Then establish the product context: product name, stage (seed, series-a, growth: it selects the benchmark band), the activation event, the retention event, and the properties worth segmenting by. Take these from `PRODUCT.md` when it exists, from the dispatch prompt otherwise, and ask when neither carries them. Do not guess an activation event: the wrong one produces a confident and meaningless activation rate.
+Then establish the product context: product name, supplied/evidenced stage, applicable activation/retention events and segmentation properties. Stage is context, not inferred from ARR or a PMF score; heuristic bands are optional. Use the supplied context first. Read `PRODUCT.md` for lifecycle context or a requested product-wide diagnosis; ask only for material missing definitions. Do not guess an activation event: the wrong one produces a confident and meaningless activation rate.
 
 ### 2. Gather
 
-Work the shapes in `references/analytics-contract.md`, in this order, stopping at whatever resolves:
+For a full diagnosis, use only the query shapes that answer the business question. The following is a possible order, not a mandatory all-shapes collection:
 
 1. **Catalogue** — what is emitted, and at what volume. This tells you which of the following are even possible.
 2. **Volume** — the core action, unique actors, 30 days, daily. Then the signup event, 90 days, weekly, for the trend.
@@ -41,7 +47,7 @@ Work the shapes in `references/analytics-contract.md`, in this order, stopping a
 5. **Volume, top features** — unique actors per feature event over 30 days.
 6. **Breakdown** — repeat any of the above across the segment properties that matter.
 
-With no `analytics.query`, run the floors instead: search documents for recorded metrics and date every one you find, audit the instrumentation in the repo, then present what exists and ask for current values. A value older than 30 days is tagged stale, and a stale value is still evidence; a fabricated one is not.
+With no `analytics.query`, use applicable floors: supplied figures, relevant recorded metrics or a focused instrumentation check. Date sources and request only missing values needed for this diagnosis. A value older than 30 days is tagged stale, and a stale value is still evidence; a fabricated one is not.
 
 ### 3. Build the metric tree
 
@@ -62,7 +68,7 @@ Flag, with the number and its tag:
 
 - Week-over-week change above 20% in either direction
 - A metric at zero or null that should not be
-- A retention curve still falling at week 8, which is the absence of a PMF signal rather than a low number
+- A mature retention curve still falling at a relevant age; investigate segment/definition/context without declaring PMF absent
 - Activation below 20%
 - Any value older than 30 days
 
@@ -70,11 +76,11 @@ An anomaly is a question, not a finding. Each one gets the investigation that wo
 
 ### 5. Score against the stage band
 
-Use the benchmark table for the stated stage. Each metric gets red, yellow or green, and the band it was judged against appears next to it so the reader can disagree with the band rather than with the colour.
+If applicable, use the conditional heuristic table in `references/metric-definitions.md` for the supplied/evidenced context. Prefer actual targets, comparable cohorts and the product’s history; unknown stage does not justify guessing a band. Each metric gets red, yellow or green, and the band it was judged against appears next to it so the reader can disagree with the band rather than with the colour.
 
 ### 6. Report
 
-Emit the output contract below. Where a capability did not resolve, state which shape would close which specific gap and what it would answer. Never name a product for the user to go install.
+For a full diagnosis, emit the applicable sections of the output contract below; for a narrow question keep its requested format. Where a capability did not resolve, state which shape would close which specific gap and what it would answer. Never name a product for the user to go install.
 
 ## Output Contract
 
@@ -103,112 +109,6 @@ Emit the output contract below. Where a capability did not resolve, state which 
 {each with expected impact as metric plus direction, priority, effort}
 ```
 
-## Core Metrics
-
-The Shape column names the question shape from `references/analytics-contract.md`, never a tool.
-
-### Acquisition
-
-| Metric | Formula | Shape |
-|--------|---------|-------|
-| Signups per week | Count of the signup event per week | Volume, total, weekly |
-| Signup trend | Week-over-week change in signups | Derived from the above |
-| Signup to activation | Activated ÷ signed up within the window | Funnel |
-
-### Activation
-
-| Metric | Formula | Shape |
-|--------|---------|-------|
-| Activation rate | Actors reaching the activation event ÷ signups | Funnel |
-| Time to activate | Median time from signup to activation | Funnel, time to convert |
-| Setup completion | Actors completing onboarding ÷ signups | Funnel |
-
-### Engagement
-
-| Metric | Formula | Shape |
-|--------|---------|-------|
-| DAU | Unique actors on the core action in a day | Volume, unique, daily |
-| WAU | Unique actors over 7 days | Volume, unique |
-| MAU | Unique actors over 30 days | Volume, unique |
-| Stickiness | DAU ÷ MAU | Derived |
-| Feature adoption | Unique actors per feature event ÷ active actors | Volume, unique, per event |
-
-### Retention
-
-| Metric | Formula | Shape |
-|--------|---------|-------|
-| Week N retention | Cohort members active in week N ÷ cohort size | Retention |
-| Net dollar retention | (Starting MRR + expansion − contraction − churn) ÷ starting MRR | `db.query` over billing |
-| Logo churn | Churned accounts ÷ starting accounts | `db.query` over subscriptions |
-
-### Revenue
-
-| Metric | Formula | Shape |
-|--------|---------|-------|
-| MRR | Sum of active monthly recurring revenue | `db.query` |
-| ARR | MRR × 12 | Derived |
-| ARPA | MRR ÷ active accounts | Derived |
-| LTV | ARPA ÷ monthly churn rate | Derived |
-| CAC | Sales and marketing spend ÷ new customers | `db.query` or user-provided |
-| LTV:CAC | LTV ÷ CAC | Derived, healthy above 3× |
-| CAC payback | CAC ÷ (ARPA × gross margin) | Derived, healthy under 18 months |
-| Quick ratio | (New + expansion MRR) ÷ (contraction + churn MRR) | Derived from the waterfall |
-| Burn multiple | Net burn ÷ net new ARR | User-provided |
-
-## MRR Waterfall
-
-```
-Ending MRR = Starting MRR
-  + New MRR          (new customers)
-  + Expansion MRR    (upgrades, add-ons)
-  + Reactivation MRR (returning churned customers)
-  − Contraction MRR  (downgrades)
-  − Churn MRR        (cancellations)
-```
-
-The identity is the check: if the components do not reconcile to the ending figure, the segmentation is wrong, not the arithmetic. `financial-models` holds the query patterns for computing it against a billing schema.
-
-## Benchmark Bands
-
-These are working heuristics for triage, not sourced industry benchmarks. They are here so a number gets a reaction rather than a shrug. The moment a product has two quarters of its own history, its own trend is the better band, and any conclusion that hinges on the difference between a yellow and a green deserves the real comparison rather than this table.
-
-### Seed (pre-PMF, under $100K ARR)
-
-| Metric | Poor | Okay | Good |
-|--------|------|------|------|
-| Activation rate | <15% | 15–30% | >30% |
-| Week 1 retention | <20% | 20–40% | >40% |
-| Week 4 retention | <5% | 5–15% | >15% |
-| DAU/MAU | <5% | 5–15% | >15% |
-| MoM growth | <5% | 5–15% | >15% |
-
-### Series A ($100K–$1M ARR)
-
-| Metric | Poor | Okay | Good |
-|--------|------|------|------|
-| Activation rate | <25% | 25–40% | >40% |
-| Week 1 retention | <30% | 30–50% | >50% |
-| Week 4 retention | <10% | 10–25% | >25% |
-| DAU/MAU | <10% | 10–20% | >20% |
-| NDR | <90% | 90–110% | >110% |
-| MoM growth | <10% | 10–20% | >20% |
-| Quick ratio | <1 | 1–2 | >2 |
-
-### Growth ($1M–$10M ARR)
-
-| Metric | Poor | Okay | Good |
-|--------|------|------|------|
-| Activation rate | <35% | 35–50% | >50% |
-| Week 1 retention | <40% | 40–60% | >60% |
-| Week 4 retention | <15% | 15–30% | >30% |
-| DAU/MAU | <15% | 15–25% | >25% |
-| NDR | <100% | 100–120% | >120% |
-| LTV:CAC | <2× | 2–4× | >4× |
-| CAC payback | >24mo | 12–24mo | <12mo |
-| Quick ratio | <2 | 2–4 | >4 |
-
-Retention bands assume a weekly-rhythm product. For a product used monthly by design, weekly retention is the wrong instrument and the bands do not apply: switch the cohort granularity to match the product's natural rhythm and say so in the artifact.
-
 ## Common Mistakes
 
 | Mistake | Prevention |
@@ -220,3 +120,9 @@ Retention bands assume a weekly-rhythm product. For a product used monthly by de
 | Rounding an absence to zero | Unavailable is a value. Zero is a measurement |
 | Ending on "connect a product for deeper insight" | Name the shape and the question it would answer, not a vendor |
 | Judging a monthly product on weekly retention | Match cohort granularity to the product's rhythm |
+| Revenue churn substituted for logo churn in customer LTV | State customer-lifetime model, use monthly logo churn and gross margin |
+| ARPA averaged over subscriptions | Aggregate MRR per account, then divide by positive-MRR accounts |
+| Benchmark or ARR band proves PMF | Treat heuristics as triage; assess evidence and context separately |
+| Full diagnosis for a definition request | Return only the relevant definition/calculation and assumptions |
+
+**Worked calculation:** A has two subscriptions totaling 150 MRR, B has 200 → account ARPA = 350/2 = 175. With ARPA 120, gross margin 80% and measured monthly logo churn 5%, simple margin-adjusted LTV = 120 × 0.80 / 0.05 = 1,920. A 2% revenue churn input cannot be silently substituted for logo churn. If logo churn is unavailable, report LTV unavailable.

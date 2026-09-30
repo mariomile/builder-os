@@ -3,11 +3,13 @@ name: bos-gate
 description: "Run the current phase's gate check and report pass/fail per condition"
 ---
 
+**Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
+
 Checks whether the current phase artifact satisfies its gate. The only path that advances `current_phase`.
 
 **REQUIRED BACKGROUND:** `gate-checks` for the conditions and the refusal protocol, `evidence-ledger` for tag counting.
 
-The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that exact path; do not search for the file.
+The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `BuilderOS script:` line at session start. Use that quoted path from the project root. Without the hook, resolve it from this command’s installation root.
 
 ## Steps
 
@@ -24,10 +26,10 @@ The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `Bui
 ## Override
 
 ```
-/bos-gate --override "reason"
+/builder-os:bos-gate --override "reason"
 ```
 
-Advances despite failures, through `record {N} --judged ... --override "reason"` where commands run. Writes `overridden: true`, the reason, and the failed condition ids to `state.json`, and appends `gate_overridden` to `history`. The override shows in every `/bos-status` from then on and is read by phase 7 when judging the outcome.
+Advances despite failures, through `record {N} --judged ... --override "reason"` where commands run. Writes `overridden: true`, the reason, and the failed condition ids to `state.json`, and appends `gate_overridden` to `history`. The override shows in every `/builder-os:bos-status` from then on and is read by phase 7 when judging the outcome.
 
 Refuse an override with an empty or evasive reason ("later", "fine", "trust me"). The reason is the entire value of the mechanism.
 

@@ -4,7 +4,7 @@ BuilderOS asks product analytics five questions. Everything the pipeline needs f
 
 A skill asks for a **shape**. Whatever provider resolved for `analytics.query` answers it. The shape is the interface; Mixpanel, Amplitude, PostHog, a warehouse, a CSV and a screenshot are implementations.
 
-Read this with `references/capability-map.md`, which defines `analytics.query`, `analytics.events` and `analytics.replay` and their degradation ladders.
+Read this with [capability mapping](capability-map.md), which defines `analytics.query`, `analytics.events` and `analytics.replay` and their degradation ladders.
 
 ## The Five Shapes
 
@@ -116,6 +116,10 @@ When a number arrives through a floor rather than a live query, the tag says so 
 
 ## Zero-Prerequisite Guarantee
 
-None of the five shapes is required for any phase to complete. Each has a floor, and the floor is always one of: read it from the code, read it from a document, ask the user, or record the gap and the question that would close it.
+No named analytics vendor is required. Each shape has a fallback: use a resolving observation from a document or user, inspect code to describe instrumentation, or record the gap. A fallback does not waive a gate requiring a measured baseline or actual. Unknown remains unknown and blocks that condition until evidence or an explicit override; it never becomes zero.
 
 A phase never tells the user to go connect a named product. It states which shape would sharpen the work and what it would answer: "a retention curve here would replace a stated assumption about week-4 behavior with a measured one." Whether the user gets that from Mixpanel, Amplitude, PostHog or a spreadsheet is their business.
+
+## Historical Billing Extension
+
+Financial Volume and Retention use historical normalized MRR snapshots at account/plan/period grain, an authoritative calendar declaring closed and complete periods, and first-paid-period history. Provide explicit report start/end and an opening snapshot for the first transition. Absence means zero only inside a declared complete period; open or missing periods are unavailable. Current subscription status cannot reconstruct history. Cohort denominators use inception MRR, even when the report display starts later. See [the billing query contract](../skills/financial-models/references/revenue-sql.md) for executable schemas and queries.

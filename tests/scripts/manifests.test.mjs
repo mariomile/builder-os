@@ -1,5 +1,5 @@
 // Host-adapter checks that need no host: manifests agree, commands survive Codex's import.
-// Run: npm test
+// Run: pnpm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
@@ -29,5 +29,24 @@ test('every command is small enough for Codex to import it as a skill', () => {
   for (const f of fs.readdirSync(path.join(REPO, 'commands'))) {
     const bytes = fs.statSync(path.join(REPO, 'commands', f)).size;
     assert.ok(bytes <= 3800, `commands/${f} is ${bytes} bytes`);
+  }
+});
+
+
+test('Claude command targets are namespaced and mapped to installed profiles', () => {
+  const profiles = new Set(fs.readdirSync(path.join(REPO, 'agents')).map(f => f.replace(/\.md$/, '')));
+  for (const f of fs.readdirSync(path.join(REPO, 'commands'))) {
+    const content = fs.readFileSync(path.join(REPO, 'commands', f), 'utf8');
+    assert.ok(!/\/bos(?:-|[\s`])/.test(content), `${f}: unqualified plugin command`);
+    assert.ok(!/subagent_type:\s*"(?!builder-os:)/.test(content), `${f}: unqualified plugin agent`);
+    for (const match of content.matchAll(/`builder-os:([^`]+)`/g)) {
+      if (!match[1].startsWith('bos')) assert.ok(profiles.has(match[1]), `${f}: unknown profile ${match[1]}`);
+    }
+    assert.ok(!content.includes('scripts/builder-os:'), `${f}: namespace must not modify script paths`);
+    if (/Dispatch/i.test(content)) {
+      assert.ok(content.includes('run_in_background: false'), `${f}: no foreground contract`);
+      assert.ok(content.includes('await completion'), `${f}: no await contract`);
+      assert.ok(content.includes('subagent.dispatch') && content.includes('inline'), `${f}: no runtime fallback`);
+    }
   }
 });

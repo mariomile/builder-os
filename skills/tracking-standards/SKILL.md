@@ -5,9 +5,16 @@ description: "Use when designing event taxonomies, naming conventions, tracking 
 
 # Tracking Standards
 
-Event naming, property schemas, quality assurance, and the procedure for turning a feature into a tracking plan.
+## Mode and resources
 
-**REQUIRED BACKGROUND:** `references/analytics-contract.md` for the query shapes a plan must support. `references/capability-map.md` before reading any catalogue.
+Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** Design or review the requested taxonomy or metric using supplied flows and existing instrumentation. A tracking plan does not authorize implementation, analytics configuration or publishing. No phase files, initiative state, initialization or gate override are required. Preserve the requested format and destination.
+
+**Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
+
+Read only the requested query shape in `references/analytics-contract.md` for measurement design, and `references/capability-map.md` when resolving a provider. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+
+
+Event naming, property schemas, quality assurance, and the procedure for turning a feature into a tracking plan.
 
 ## Capabilities
 
@@ -31,14 +38,14 @@ Read the flow: entry points, states, success and failure paths, the decision poi
 Pull the catalogue. For each event already emitted in this area: its name, its properties, its volume. Three outcomes, and each changes the plan:
 
 - **The event exists and is used.** Extend it with a property rather than adding a sibling event. Two events for one action is how a taxonomy rots.
-- **The event exists and fires nothing.** It is dead. Say so, and propose removing it.
+- **The event has no observed volume.** Confirm collection health, environment, eligibility and measurement window before calling it unused. Missing access or an empty export is not proof of zero. Propose removal only with evidence and within the requested scope.
 - **Nothing exists.** Design from scratch against the convention.
 
-Without a catalogue, grep the instrumentation. Source is the more reliable record of what is emitted; the catalogue is the more reliable record of what is received. The difference between them, where both are available, is a finding.
+Without a catalogue, search the instrumentation. Source is the more reliable record of what is emitted; the catalogue is the more reliable record of what is received. The difference between them, where both are available, is a finding.
 
 ### 3. Design the taxonomy
 
-Apply the naming convention, the mandatory properties and the property standards below. Every event: name, trigger, properties with types, and the question it answers. An event nobody can name a question for does not get designed.
+Apply the existing naming and identity contract, then the relevant default examples below only for new schema choices. Every event: name, trigger, properties with types, and the question it answers. An event nobody can name a question for does not get designed.
 
 ### 4. Design the funnels
 
@@ -53,6 +60,8 @@ As a specification, in the artifact: which shapes from `references/analytics-con
 Per event: where in the code it fires, which properties are available at that call site, and how it will be verified. Then emit the output contract.
 
 ## Output Contract
+
+Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims. The paths below apply to lifecycle artifacts.
 
 ```markdown
 ## TRACKING PLAN COMPLETE
@@ -78,7 +87,9 @@ Per event: where in the code it fires, which properties are available at that ca
 
 ## Event Naming Convention
 
-**Pattern:** `[Object] [Action]` — always two words, PascalCase.
+**First preserve the existing taxonomy.** Use its names, casing, separators, identity keys and property schemas for new events. Do not rename live events or introduce a sibling convention without an explicit migration request.
+
+**Default for a new taxonomy only:** `[Object] [Action]`, title-cased object and past-tense action, separated by a space. The table is an example convention, not a rule that replaces an established schema.
 
 | Component | Rule | Good | Bad |
 |-----------|------|------|-----|
@@ -101,9 +112,9 @@ Per event: where in the code it fires, which properties are available at that ca
 | `Exported` | Entity downloaded or sent externally |
 | `Clicked` | UI element interacted with (avoid if possible — prefer semantic events) |
 
-## Mandatory Properties
+## Context Properties
 
-Every event MUST include these properties:
+Use the existing identity model, consent rules and properties available at the call site. The B2B authenticated examples below are conditional, not mandatory on every event. Anonymous flows may have only the SDK’s permitted anonymous/session identifier; never fabricate a `user_id`, `account_id`, plan or account age to fill a row. Omit unavailable identifiers or use documented null semantics, and describe how identified/anonymous events join when consent and the existing provider support it.
 
 | Property | Type | Source | Purpose |
 |----------|------|--------|---------|
@@ -114,6 +125,8 @@ Every event MUST include these properties:
 | `session_id` | string | SDK | Session grouping |
 
 ## Property Standards
+
+Preserve existing property naming and types. The examples below are defaults for a new schema only.
 
 | Rule | Good | Bad |
 |------|------|-----|
@@ -137,11 +150,20 @@ Every event MUST include these properties:
 
 Before shipping any tracking:
 
-- [ ] Event names follow `[Object] [Action]` convention
-- [ ] All mandatory properties present on every event
+- [ ] Event names follow the existing taxonomy, or the explicitly selected convention for a new taxonomy
+- [ ] Properties match the identity/consent contract; no fabricated IDs and no authenticated-only fields required on anonymous flows
 - [ ] Property types match specification (string/number/boolean)
 - [ ] No PII in event properties (no emails, names, IPs)
 - [ ] Enum values use lowercase, consistent format
 - [ ] Events tested in staging environment
 - [ ] Funnel definitions verified against the resolved analytics provider
-- [ ] Group analytics configured for B2B (account_id as group key)
+- [ ] B2B group attribution uses the existing permitted group key where available; anonymous events do not invent an account
+
+## Common Mistakes
+
+| Mistake | Why it fails | Correct |
+|---------|-------------|---------|
+| Renaming `report_exported` to `Report Exported` without a migration request | Splits existing funnels and dashboards | Preserve the shipped name and property schema |
+| Assigning an anonymous visitor a fake account_id | Corrupts group attribution | Use the permitted SDK anonymous identity or document unavailable attribution |
+| Requiring pipeline state for a scoped artifact | Expands the request | Use supplied inputs and the requested output destination |
+| Filling missing data with zero | Creates false certainty | Preserve unknown and state the measurement needed |
