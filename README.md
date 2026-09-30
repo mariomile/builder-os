@@ -250,7 +250,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 2.1.0. Honest state:
+Version 2.1.1. Honest state:
 
 | Area | Status |
 |------|--------|
