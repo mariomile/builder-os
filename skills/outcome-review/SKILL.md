@@ -71,6 +71,8 @@ Where a scheduler or monitoring capability resolves, the watch can run on it. Wh
 
 **A breach becomes a new initiative.** The anomaly is the input, framed per `problem-framing` (Three Ways In) with the metric, baseline, breach and window as tagged evidence; it starts at phase 0, or on the feature track when `PRODUCT.md` already evidences the problem. A breach never becomes a fix pushed outside the lifecycle. Breaches that turned out to be noise are recorded too: they are how the bands get tuned.
 
+**After each recheck**, record what it found: no breach rolls the date forward (`scripts/bos.mjs watch --initiative {slug} --recheck YYYY-MM-DD --note "..."`, appending `watch_checked`); a breach clears the watch once the new initiative exists (`watch --initiative {slug} --clear --breach {new-slug} --note "..."`, appending `watch_breached`). Without commands, write the same events by hand. Until one of the two happens, the briefing keeps raising the watch.
+
 ## Read the Overrides
 
 Before judging, read the override log from `state.json`. A bet that failed after three overridden gates learned something different from one that failed clean. Read the pace too (`scripts/bos.mjs pace` where commands run, the history events otherwise): time per phase, gates failed before passing, who accepted what, and how often the spec changed after the build plan existed. Repeated spec rework after the plan says phase 4 was too thin; that is a process learning, recorded next to the product one.

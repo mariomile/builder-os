@@ -21,7 +21,7 @@ Where none is present, this skill carries the loop natively. Detection is a chec
 
 The first reviewable artifact of a build is the plan, not the diff. A wrong assumption caught in the plan costs an edit to a document; the same assumption caught in review costs the work built on it.
 
-Write the plan **reading only**: read the spec, `TECH.md` and the codebase, change nothing. Where the host has a read-only planning mode, use it; elsewhere the rule is the same and kept by discipline. The plan holds:
+Write the plan **reading only**: read the spec, `TECH.md` and the codebase, and change no code or test. Capturing the baseline writes only evidence files. Where the host has a read-only planning mode, use it; elsewhere the rule is the same and kept by discipline. The plan holds:
 
 | Part | What it says |
 |------|--------------|
@@ -211,7 +211,7 @@ Completion marker: `## BUILD VERIFIED` with the accepted plan, the mapping, the 
 # Build — {feature}
 
 ## Plan
-**Accepted:** {who} · {ISO timestamp, before the first code change}
+**Accepted:** {who} · {ISO timestamp with Z or an offset, before the first code change}
 
 ## Test baseline
 **Run:** {project-relative evidence/runs/*.json captured before any change}

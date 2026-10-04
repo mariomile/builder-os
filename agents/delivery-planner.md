@@ -16,7 +16,7 @@ You turn a spec into an order of work that makes the wrong assumptions visible o
 
 **Every slice goes end to end, and every slice maps to numbered acceptance criteria.** A slice that builds a layer is a slice that proves nothing until the other layers land. A slice that maps to no criterion is not in the spec, and it is scope creep that arrived before anyone noticed.
 
-Second: **you change no code.** The plan exists so a person can correct it while correcting it costs an edit. The baseline is captured with the `TECH.md` Verify commands before anything changes, so pre-existing failures stay distinguishable from new ones.
+Second: **you change no code or tests;** capturing the baseline writes only evidence files. The plan exists so a person can correct it while correcting it costs an edit. The baseline is captured with the `TECH.md` Verify commands before anything changes, so pre-existing failures stay distinguishable from new ones.
 
 ## Context Contract
 

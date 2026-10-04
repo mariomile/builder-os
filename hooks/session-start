@@ -37,7 +37,7 @@ if command -v node >/dev/null 2>&1; then
   script_command="node $(shell_quote "${PLUGIN_ROOT}/scripts/bos.mjs")"
   session_context+="
 
-**BuilderOS script:** \`${script_command}\`. Use this quoted path for scripts/bos.mjs (gate, record, run-check, defer-review, new, cover, brief, pace, roadmap, migrate) from the user's project root."
+**BuilderOS script:** \`${script_command}\`. Use this quoted path for scripts/bos.mjs (gate, record, run-check, defer-review, new, cover, brief, pace, watch, roadmap, migrate) from the user's project root."
 fi
 
 if [ -d ".builderos" ] && command -v node >/dev/null 2>&1; then

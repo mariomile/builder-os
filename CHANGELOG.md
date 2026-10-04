@@ -12,7 +12,7 @@ Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbo
 - **Gate 4.7**: the spec states its constraint conflicts (`PRODUCT.md` against `TECH.md`) with who decides each, or that none were found.
 - **Gates 5.6 and 5.7**: the build plan (slices with files, risks, rejected alternatives, tests) is accepted before any code, and the final diff is judged against it.
 - **Gate 6.8**: exposure names who authorized it.
-- **Gate 7.5**: a closing KEEP sets a watch (metric, bands, owner, recheck date). `record` stores it in `state.json`; `brief` raises it when due; a breach starts a new initiative from the anomaly.
+- **Gate 7.5**: a closing KEEP sets a watch (metric, bands, owner, recheck date). `record` stores it in `state.json`; `brief` raises it when due; `bos.mjs watch` rolls the recheck date after a check without breach, or clears it when a breach started a new initiative.
 - **`bos.mjs pace`**: time per phase, gates failed before passing, who accepted, spec rework after the plan (from git), and phase 1 kills across initiatives. Phase 7 reads it into Pipeline notes.
 - **`TECH.md` → Verify**: one command each for build, test and lint with their healthy output, filled at init or by the first build. Phase 5 baselines and verifies with them.
 
@@ -27,7 +27,7 @@ Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbo
 
 ### Verification
 
-62 Node tests pass (55 existing, 7 new in `tests/scripts/acceptance-and-loop.test.mjs`). The model-based behavioral scenarios were not rerun.
+64 Node tests pass (55 existing, 9 new in `tests/scripts/acceptance-and-loop.test.mjs`). The model-based behavioral scenarios were not rerun.
 
 ## [2.1.1] - 2026-09-30
 

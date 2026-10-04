@@ -1,6 +1,6 @@
 ---
 name: bos-build
-description: "Phase 5 — plan the build and get it accepted, build test-first, review against spec and plan as well as standards, and verify instrumentation fires"
+description: "Phase 5: plan the build and get it accepted, build test-first, review against spec and plan as well as standards, and verify instrumentation fires"
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
@@ -47,7 +47,7 @@ Review both axes with severity, complete 05-build-plan.md, run gate 5.
 
 ## Arguments
 
-- `[--plan-only]` — Write the plan and get it accepted, stop before the loop. Does not pass gate 5.
+- `[--plan-only]`: write the plan and get it accepted, stop before the loop. Does not pass gate 5.
 - `[--review-only]` — Review an existing diff against the spec.
 - `[--slice N]` — Run the loop for one slice.
 

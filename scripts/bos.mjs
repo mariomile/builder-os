@@ -12,6 +12,9 @@
 //                                          write a gate result to state.json: the script's verdict plus the model's
 //                                          on the judge conditions; advances, closes, or keeps the phase open.
 //                                          Phases 0, 4 and 6 also need the person who accepted the artifact
+//   node bos.mjs watch --note "..." (--recheck YYYY-MM-DD | --clear --breach <slug>)
+//                                          roll a KEEP watch after a check without breach, or clear it when a breach
+//                                          started a new initiative
 //   node bos.mjs pace                      process metrics from state history and git: time per phase, failed
 //                                          gates, spec rework after the plan, and phase 1 kills across initiatives
 //   node bos.mjs run-check --label slug [--cwd dir] [--dataset file --results file] -- executable args...
@@ -349,8 +352,12 @@ function gate(n, ctx) {
       pass('4.6', ev.valid && ev.cases >= need && ev.threshold !== null && ev.judge && ev.mustPass, `${ev.cases} valid cases (${need} needed), threshold ${ev.threshold ?? 'missing'}, judge ${ev.judge ? 'named' : 'missing'}, must-pass ${ev.mustPass ? 'named' : 'missing'}${ev.error ? '; ' + ev.error : ''}`);
     }
     const conflicts = section(a, 'Conflicts');
-    const unowned = tableRows(conflicts).filter((r) => nonEmpty(r[0]) && !nonEmpty(r[3]));
-    pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${tableRows(conflicts).length} conflicts, each with who decides`);
+    // Raw rows: tableRows drops rows holding a {placeholder}, which would hide an unfilled Decides cell.
+    const conflictRows = (conflicts || '').split('\n').filter((l) => /^\s*\|/.test(l)).slice(1)
+      .map((l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim()))
+      .filter((r) => !r.every((c) => /^:?-{2,}:?$/.test(c) || c === '') && nonEmpty(r[0]));
+    const unowned = conflictRows.filter((r) => !nonEmpty(r[3]));
+    pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${conflictRows.length} conflicts, each with who decides`);
     return R;
   }
 
@@ -835,6 +842,7 @@ function record(which) {
   if (flag('--override') && !nonEmpty(override)) die('--override needs a non-empty reason');
   const acceptedBy = opt('--accepted-by');
   if (flag('--accepted-by') && !nonEmpty(acceptedBy)) die('--accepted-by needs the name of the person who accepted');
+  if (flag('--accepted-by') && !ACCEPTANCE_PHASES.includes(n)) die(`--accepted-by applies to phases ${ACCEPTANCE_PHASES.join(', ')}; the phase 5 plan is accepted in 05-build-plan.md`);
   const passing = failed.length === 0 || Boolean(override);
   if (passing && ACCEPTANCE_PHASES.includes(n) && !nonEmpty(acceptedBy)) die(`phase ${n} advances only when a person accepts ${ARTIFACTS[n]}: ask, then pass --accepted-by "who" (never on their behalf)`);
   let verdict = opt('--verdict');
@@ -957,7 +965,7 @@ function pace() {
   const all = loadInitiatives();
   const init = resolveActive(all);
   const out = [];
-  const days = (a, b) => Math.round(((Date.parse(b) - Date.parse(a)) / DAY) * 10) / 10;
+  const days = (a, b) => { const d = (Date.parse(b) - Date.parse(a)) / DAY; return Number.isFinite(d) ? Math.round(d * 10) / 10 : '?'; };
   if (init) {
     const h = init.state.history || [];
     const rows = [];
@@ -976,7 +984,7 @@ function pace() {
       const first = firstPlan ? firstPlan.split('\n')[0] : null;
       if (first) {
         const after = git('log', '--format=%H', `${first}..HEAD`, '--', path.join(relDir, ARTIFACTS[4]));
-        out.push('', `**Spec rework after the plan:** ${after ? after.split('\n').filter(Boolean).length : 0} commits touched ${ARTIFACTS[4]} after ${ARTIFACTS[5]} first appeared`);
+        out.push('', `**Spec rework after the plan:** ${after ? after.split('\n').filter(Boolean).length : 0} commits touched ${ARTIFACTS[4]} after ${ARTIFACTS[5]} first appeared (all cycles)`);
       } else out.push('', `**Spec rework after the plan:** not measurable yet, ${ARTIFACTS[5]} has no commit`);
     } else out.push('', '**Spec rework after the plan:** unavailable without git');
   }
@@ -984,6 +992,36 @@ function pace() {
   const killed = decided.filter((i) => i.state.phases[1].status === 'killed' || i.state.phases[1].verdict === 'killed');
   out.push(`**Phase 1 kills:** ${killed.length} of ${decided.length} initiatives that reached a discovery verdict`);
   console.log(out.join('\n'));
+}
+
+// ---------- watch ----------
+
+// A watch set by a closing KEEP: roll its recheck date after a check found no breach, or clear it when a
+// breach became a new initiative. Closed initiatives are addressed with --initiative.
+function watch() {
+  const all = loadInitiatives();
+  const named = opt('--initiative');
+  const watched = all.filter((i) => i.state.watch);
+  const init = named ? all.find((i) => i.slug === named) : watched.length === 1 ? watched[0] : null;
+  if (!init) die(named ? `no initiative "${named}"` : `${watched.length} initiatives have a watch: pass --initiative <slug>`);
+  if (!init.state.watch) die(`${init.slug} has no watch`);
+  const note = opt('--note');
+  if (!nonEmpty(note)) die('watch needs --note "what the check observed"');
+  const now = new Date().toISOString();
+  const s = init.state;
+  if (flag('--clear')) {
+    if (!nonEmpty(opt('--breach'))) die('--clear needs --breach <slug of the initiative the breach started>');
+    s.history.push({ at: now, event: 'watch_breached', metric: s.watch.metric, initiative: opt('--breach'), note });
+    s.watch = null;
+  } else {
+    const next = opt('--recheck');
+    if (!validDate(next) || next <= now.slice(0, 10)) die('watch needs a future --recheck YYYY-MM-DD, or --clear --breach <slug>');
+    s.history.push({ at: now, event: 'watch_checked', metric: s.watch.metric, previous: s.watch.recheck, recheck: next, note });
+    s.watch.recheck = next;
+  }
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  console.log(s.watch ? `Watch on ${init.slug}: next recheck ${s.watch.recheck}.` : `Watch on ${init.slug} cleared; the breach continues as ${opt('--breach')}.`);
 }
 
 // ---------- migrate ----------
@@ -1029,7 +1067,8 @@ else if (cmd === 'record') record(args[1]);
 else if (cmd === 'defer-review') deferReview();
 else if (cmd === 'migrate') migrate();
 else if (cmd === 'pace') pace();
+else if (cmd === 'watch') watch();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

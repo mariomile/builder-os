@@ -41,6 +41,8 @@ test('gate 4.7 needs a Conflicts section, and every conflict names who decides',
   assert.equal(gate(root, 4).by['4.7'], 'fail', 'no section');
   write(root, '04-spec.md', SPEC(CONFLICTS_HEAD + '| audit every export | no new tables without an ADR | the audit log needs a table |  | 1 |\n'));
   assert.equal(gate(root, 4).by['4.7'], 'fail', 'nobody decides');
+  write(root, '04-spec.md', SPEC(CONFLICTS_HEAD + '| audit every export | no new tables without an ADR | the audit log needs a table | {person} | 1 |\n'));
+  assert.equal(gate(root, 4).by['4.7'], 'fail', 'a template placeholder is not a decider');
   write(root, '04-spec.md', SPEC(CONFLICTS_HEAD + '| audit every export | no new tables without an ADR | the audit log needs a table | Mario | 1 |\n'));
   assert.equal(gate(root, 4).by['4.7'], 'pass');
   write(root, '04-spec.md', SPEC('\n## Conflicts\nNone found between PRODUCT.md and TECH.md constraints.\n'));
@@ -132,4 +134,29 @@ test('pace reports time per phase, failed gates, who accepted, and phase 1 kills
   assert.match(out, /\| 0 Frame \| covered \|/);
   assert.match(out, /Spec rework after the plan:\*\* unavailable without git/);
   assert.match(out, /Phase 1 kills:\*\* \d+ of \d+/);
+});
+
+test('--accepted-by belongs to phases 0, 4 and 6 only', () => {
+  const root = project();
+  assert.equal(run(root, 'record', '2', '--judged', '2.5=pass,2.6=pass', '--accepted-by', 'Mario').code, 2);
+  assert.equal(state(root).current_phase, 2);
+});
+
+test('watch rolls the recheck after a clean check and clears on a breach, with history events', () => {
+  const root = project();
+  write(root, '07-outcome.md', OUTCOME('KEEP', 'none', WATCH('2026-01-15')));
+  setState(root, { current_phase: 7, review_due: '2026-12-01' });
+  const judged = gate(root, 7).checked_by.model.map((id) => `${id}=pass`).join(',');
+  assert.equal(run(root, 'record', '7', '--judged', judged, '--verdict', 'keep').code, 0);
+  assert.equal(run(root, 'watch', '--initiative', 'csv-export', '--recheck', '2026-01-01', '--note', 'x').code, 2, 'the next recheck is in the future');
+  assert.equal(run(root, 'watch', '--initiative', 'csv-export', '--recheck', '2099-01-01').code, 2, 'a check records what it saw');
+  assert.equal(run(root, 'watch', '--initiative', 'csv-export', '--recheck', '2099-01-01', '--note', 'within 1σ').code, 0);
+  assert.equal(state(root).watch.recheck, '2099-01-01');
+  assert.equal(state(root).history.at(-1).event, 'watch_checked');
+  assert.doesNotMatch(run(root, 'brief').out, /watch on CSV export is due/);
+  assert.equal(run(root, 'watch', '--initiative', 'csv-export', '--clear', '--note', '3σ drop').code, 2, 'a breach names its initiative');
+  assert.equal(run(root, 'watch', '--initiative', 'csv-export', '--clear', '--breach', 'csv-export-drop', '--note', '3σ drop').code, 0);
+  assert.equal(state(root).watch, null);
+  assert.equal(state(root).history.at(-1).event, 'watch_breached');
+  assert.doesNotMatch(run(root, 'brief').out, /does not follow the schema/);
 });
