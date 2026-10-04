@@ -54,6 +54,8 @@ stateDiagram-v2
 
 A failed gate produces the failed condition, what was found, what would satisfy it, and the cheapest path there. Overrides exist, take a written reason, and stay visible in every status report afterwards. An undocumented bypass is worse than a documented one.
 
+A passed gate is not an acceptance. Where the work changes hands (the frame, the spec, the build plan, the release) a person accepts it, in their own words, and the state records who and when. The agent never approves its own work. The build starts from a plan accepted before any code changes, bug fixes start from a failing test the fix cannot edit, and a KEEP at phase 7 leaves a watch behind it: a breach of its bands starts the next initiative.
+
 Not every request needs all eight phases. Before the first one runs, the work is classified into a **track** and the classification is said out loud: a `spike` wants an answer and stops at the phase 1 verdict, a `feature` changes an existing product and starts at phase 2 once `PRODUCT.md` passes a coverage check, a `product` runs everything. A track only ever upgrades: a feature whose evidence turns out missing becomes a product and re-enters phase 0.
 
 ### 2. The evidence ledger
@@ -214,7 +216,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEARN require actual exposure evidence: status verified, an actual timestamp, environment, version and an observed result with a resolvable data/document source. Preparation does not authorize deployment.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording, initiative management, roadmap regeneration and migration. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
+**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, roadmap regeneration and migration. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
 ### Project memory
 
@@ -235,10 +237,10 @@ AGENTS.md                 gets a BuilderOS block telling every new session to re
     02-definition.md      opportunity tree, selected opportunity, success metric
     03-solution-bet.md    options scored, kill criteria
     DESIGN.md             flows, states, components, accessibility
-    04-spec.md            scope, not yet specified, acceptance criteria, tracking plan
-    05-build-plan.md      tracer tickets, test map, review record
+    04-spec.md            scope, not yet specified, conflicts, acceptance criteria, tracking plan
+    05-build-plan.md      accepted plan, test map, review record
     06-release.md         rollout, rollback test, baseline, actual exposure verification
-    07-outcome.md         actual vs target, keep / iterate / kill
+    07-outcome.md         actual vs target, keep / iterate / kill, watch
     questionnaires/       async questions for people the user cannot interview
 ```
 

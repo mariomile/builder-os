@@ -29,6 +29,18 @@ Write the boundary that someone will argue with. An out-of-scope list containing
 
 **Out of scope is not the same as not yet specified.** Out of scope lies beyond what this release is for: it never comes back unless the bet changes. Not yet specified lies inside the scope and is simply not decided yet: how a limit is enforced, which of two error behaviors applies. Filing an open question under out of scope quietly drops it; leaving it unfiled hands the decision to whoever implements it. Each open question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, so phase 5 can build the slices that do not.
 
+## Constraint Conflicts
+
+The constraints in `PRODUCT.md` (regulatory, distribution, resource) and in `TECH.md` (technical constraints, conventions) apply while the spec is written, not when someone notices them in review. Most of the time the spec can satisfy all of them. Sometimes two cannot hold at once: "every export of personal data is audited" against "no new table without an ADR", when the audit log needs a table.
+
+A conflict found here costs a conversation with whoever owns the constraint. The same conflict found in phase 5 is resolved silently, in code, by whoever hit it. So the spec names it:
+
+| Constraint A | Constraint B | Why both cannot hold | Decides | Blocks |
+|--------------|--------------|----------------------|---------|--------|
+| {source and rule} | {source and rule} | {the specific collision} | {the person who owns the call} | {AC numbers waiting, or "none"} |
+
+Gate 4.7 requires the `## Conflicts` section, and a name under Decides for every row. When none exist, the section says which constraints were checked and that none collide; an absent section means nobody looked. Close conflicts with their owner before asking for the spec's acceptance, or carry them as blocking edges into phase 5 exactly like the Not yet specified table.
+
 ## Acceptance Criteria
 
 Gate 4.1: **every criterion is a testable assertion.** The mechanical check is a subject plus a verifiable verb, with no adjective doing the work.
@@ -120,7 +132,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 1. **Read `03-solution-bet.md` and `02-definition.md`.** The selected bet with its primary user action, the kill criteria, and the success metric with its baseline. No `03-solution-bet.md` means stop: a spec without a chosen bet specifies a guess.
 
-2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. Read `TECH.md` first: its constraints and conventions bound what the spec may ask for, and a spec that contradicts one names it and says why. A spec that does not say what it is changing produces a diff nobody can review against it.
+2. **State what exists today.** The current behavior in the area the bet touches, read from the code where `repo.read` resolved, from the user where it did not. Read `TECH.md` and the constraints in `PRODUCT.md` first: they bound what the spec may ask for, and a spec that contradicts one names it and says why. A spec that does not say what it is changing produces a diff nobody can review against it.
 
 3. **Bound the scope.** In scope, then out of scope in the three boundary forms. Write the boundary someone will argue with. Gate 4.2 fails an empty list.
 
@@ -134,9 +146,11 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 7b. **If a criterion depends on model output, write the eval set** per Model Output: Eval Set, before the build starts.
 
-8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4 and record it (`scripts/bos.mjs record 4 --judged "{judge-id}=pass|fail,..."` where commands run), which advances to phase 5 on pass.
+7c. **List the constraint conflicts.** Check each requirement against the `PRODUCT.md` and `TECH.md` constraints; write every collision with who decides it, or state that none were found.
 
-Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered acceptance criteria, the state coverage, the tracking plan and the gate result.
+8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4. On a pass, present the spec and ask for acceptance (a technical reviewer joins for a high-risk change); record it with the person's answer (`scripts/bos.mjs record 4 --judged "{judge-id}=pass|fail,..." --accepted-by "who"` where commands run), which advances to phase 5. Never accept on their behalf.
+
+Completion marker: `## SPEC COMPLETE` with the scope boundaries, the conflicts, the numbered acceptance criteria, the state coverage, the tracking plan, the gate result and who accepted.
 
 ## Output Contract
 
@@ -161,6 +175,11 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 ## Not yet specified
 | Open question | Decides | Blocks |
 | {in-scope question still open} | {person} | {AC numbers that wait on it, or "none"} |
+
+## Conflicts
+| Constraint A | Constraint B | Why both cannot hold | Decides | Blocks |
+| {source and rule} | {source and rule} | {collision} | {person} | {AC numbers, or "none"} |
+{or: "Checked {constraints}; none collide."}
 
 ## Flows
 {reference to DESIGN.md, with the flow list and where each is specified}
@@ -206,3 +225,5 @@ Completion marker: `## SPEC COMPLETE` with the scope boundaries, the numbered ac
 | Open questions with no owner | They resolve themselves badly, at implementation time | Who decides, by when |
 | "The summary is accurate" as a criterion for model output | Nothing to assert; the build is judged by whoever demos it | Declare model output, write the eval set with a threshold |
 | Specifying a flow the bet did not choose | Scope creep before a line is written | Every flow traces to the phase 3 primary action |
+| Two constraints that cannot both hold, left for the build | The implementer picks one silently | Write the conflict with who decides; gate 4.7 |
+| Recording gate 4 because it passed | Nobody accepted the spec; the agent approved its own work | Ask, and record only with the person's answer |

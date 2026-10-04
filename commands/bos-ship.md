@@ -42,11 +42,11 @@ User request:
 [what the user asked]
 
 Write .builderos/initiatives/{initiative}/06-release.md and run gate 6 before declaring completion.
-Capture the baseline before exposure. Do not deploy without authorization. For SHIPPED, add `## Exposure verification`: Status verified, actual Exposed at, Environment, Version, and Verification with an observed result and resolvable data/doc source. Planning stays RELEASE READY.
+Capture the baseline before exposure. Do not deploy without authorization. For SHIPPED, add `## Exposure verification`: Authorized by (who, how), Status verified, actual Exposed at, Environment, Version, and Verification with an observed result and resolvable data/doc source. Planning stays RELEASE READY.
 ```
 
 5. **Verify completion:** `## RELEASE READY` means preparation only and keeps phase 6 open. `## SHIPPED` requires gate 6 plus actual verified exposure (6.6). Re-read the artifact and rerun gate 6 per `gate-checks`; report missing artifacts or failed conditions despite any marker.
-6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review.
+6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review. Record phase 6 with `--accepted-by` from the person who authorized exposure (6.8).
 
 ## Arguments
 
@@ -55,10 +55,10 @@ Capture the baseline before exposure. Do not deploy without authorization. For S
 
 ## Notes
 
-Gate 6.2 compares two timestamps. A baseline captured after exposure fails, and it fails for a reason worth stating: after exposure there is no way to distinguish the effect of the change from what was going to happen anyway.
+Gate 6.2 compares two timestamps. A baseline captured after exposure fails: after exposure the effect of the change cannot be told apart from what would have happened anyway.
 
 Gate 6.1 wants the rollback tested, not described. The related question that gets skipped is what happens to data written while the feature was live: answer it even when the answer is that nothing is written.
 
 Without analytics, retain an unknown baseline or use a dated user-provided source. Zero requires evidence appropriate to the metric; unavailable data does not imply zero.
 
-In lite mode, gate 6.4 becomes a warning. Gates 6.1 and 6.2 never relax.
+In lite mode, gate 6.4 becomes a warning. Gates 6.1, 6.2 and 6.8 never relax.

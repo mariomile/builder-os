@@ -16,6 +16,16 @@ Load `evidence-ledger` when lifecycle source tags need checking, `pressure-testi
 
 Almost nobody arrives with a problem. They arrive with a solution wearing a problem's clothes: "we need an AI assistant", "the onboarding should be shorter", "we should add SSO". Framing separates the two, because a solution accepted as a problem cannot be tested, only built.
 
+## Three Ways In
+
+| Arrives as | Starts from | First move |
+|------------|-------------|------------|
+| **An idea or a complaint** | A person's words | Capture them verbatim, then climb the ladder below |
+| **A ticket or a request** | A record someone else wrote | Read the record and its history, tag it `[doc:*]`, then climb from what it actually asks |
+| **An anomaly** | A watched metric outside its bands (`outcome-review`, Watch) or an incident | Start from the evidence: the metric, its baseline, the breach, the window, tagged `[data:*]` or `[doc:*]`. The ladder runs from the observed cost instead of from a proposed fix |
+
+An anomaly-born frame still names one ICP, a why-now (the breach is dated by construction) and a falsifiable riskiest assumption: usually about the cause, not the fix. Where `PRODUCT.md` already evidences the problem and ICP, the work may qualify for the feature track instead (`lifecycle-setup`).
+
 ## Solution Language
 
 The mechanical test for Gate 0.1, word list in `gate-checks`: a problem statement containing build, add, platform, dashboard, feature, AI and their kin is a solution in disguise. The product's own nouns are not: when the problem lives in a domain named by one of those words (a product that monitors AI answer engines), define the term in `PRODUCT.md` → Language and use it as defined, rather than bending the sentence to dodge the list.
@@ -108,9 +118,10 @@ Apply the framing method to the requested scope. Phase-file writes and gate chec
    - **Why now.** A dated change: behavior shifted, cost collapsed, or constraint lifted. If none exists, state that no dated change is evidenced; label candidate structural reasons as hypotheses. Never accept "the technology is good enough now" without the capability and the line it crossed.
    - **Prior art.** The two closest existing solutions, classified into the three outcomes. Resolve `web.search` if available; otherwise ask. If the classification is "solved well, adopted", say so directly: "do not proceed" is a legitimate phase 0 output and delivering it costs a conversation instead of a quarter.
 4. **Extract the riskiest assumption.** List the beliefs the frame requires, score each on confidence against collapse, pick low-confidence and high-collapse. Write it as a falsifiable sentence plus the observation that would falsify it. Pressure-test it; if it turns out unfalsifiable, label it a preference and take the next candidate.
-5. **Deliver.** In standalone mode return the requested framing and its uncertainties, then stop. In lifecycle mode: Write `.builderos/initiatives/{initiative}/00-frame.md` per the output contract. Run gate 0 per `gate-checks` and record it (`scripts/bos.mjs record 0` where commands run), which advances to phase 1 on pass. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
+5. **List the open questions.** What the frame could not settle (a population nobody has reached, an access rule, a constraint nobody owns) with who can answer each and which phase inherits it. Phase 1 research plans against them.
+6. **Deliver.** In standalone mode return the requested framing and its uncertainties, then stop. In lifecycle mode: Write `.builderos/initiatives/{initiative}/00-frame.md` per the output contract. Run gate 0 per `gate-checks`; on a pass, present the frame and ask whoever owns the problem to accept it, then record it with their answer (`scripts/bos.mjs record 0 --judged ... --accepted-by "who"` where commands run), which advances to phase 1. Never accept on their behalf. On failure, emit the refusal and do not advance. If `.builderos/` does not exist, say so and stop: initialization is a separate step, not something to scaffold silently.
 
-Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the riskiest assumption, the gate verdict, and the specific research target phase 1 inherits.
+Completion marker: `## FRAME COMPLETE`, followed by the problem, the ICP, the riskiest assumption, the open questions, the gate verdict, who accepted, and the specific research target phase 1 inherits.
 
 ## Output Contract
 
@@ -144,6 +155,10 @@ Standalone output follows the requested format and destination; adapt the templa
 ## Beliefs this frame requires
 | Belief | Confidence | Collapse if wrong |
 |--------|-----------|-------------------|
+
+## Open questions
+| Question | Who can answer | Inherited by |
+|----------|----------------|--------------|
 ```
 
 ## Common Mistakes
@@ -159,3 +174,5 @@ Standalone output follows the requested format and destination; adapt the templa
 | Quantifying cost with an invented number | Breaks the Iron Law immediately | `[assumption:unvalidated]` is a legitimate answer here |
 
 | Requiring initiative state for a standalone request | Expands the user’s scope | Use supplied context and the requested destination; do not initialize or override a gate |
+| Framing an anomaly from the proposed fix | The breach becomes a solution looking for a cause | Start from the observed metric and its window; the riskiest assumption is about the cause |
+| Unsettled questions left in prose | Phase 1 plans against the assumption and misses them | List them with who answers and which phase inherits them |

@@ -65,7 +65,7 @@ Write .builderos/initiatives/{initiative}/04-spec.md and run gate 4 before decla
 ```
 
 7. **Verify completion:** `## DESIGN COMPLETE` then `## SPEC COMPLETE` with a gate 4 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 4 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
-8. **Present** the scope boundaries, the acceptance criteria and how the tracking plan computes the phase 2 metric.
+8. **Present** the scope boundaries, the conflicts and who decides them, the acceptance criteria and how the tracking plan computes the phase 2 metric. Ask the person to accept the spec; phase 4 records only with `--accepted-by "who"` from their answer.
 
 ## Arguments
 
