@@ -12,6 +12,13 @@
 | Testing | `node --test test/*.test.mjs` | `package.json` `scripts.test`; no test framework dependency | inherited |
 | Hosting | None configured | No deploy config, no CI, no server entry point in the repo | inherited |
 
+## Verify
+| Check | Command | Healthy output |
+|-------|---------|----------------|
+| Build | none: plain ES modules, no build step | n/a |
+| Test | `node --test test/*.test.mjs` | `# fail 0` |
+| Lint | none configured | n/a |
+
 ## Technical constraints
 - No dependencies: any addition (e.g. a scheduler, an email provider SDK) is a deliberate departure from the current zero-dependency stance, not a given.
 - `track()` and `sendWeeklyReport()` both write to the local filesystem in development (`events.log`, `outbox/`); there is no live production channel wired up in this repo today `[code:src/track.mjs:5]` `[code:src/notify.mjs:5]`.

@@ -2,6 +2,33 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased] - 2026-10-04
+
+Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbook: the plan is reviewed before the code, a person accepts the work where it changes hands, the test loop cannot be weakened from inside, and production feeds the next cycle. No new phases, commands or capabilities; skills stay host-agnostic and every addition keeps a floor.
+
+### Added
+
+- **Acceptance, separate from the gate.** `bos.mjs record` refuses to pass phases 0, 4 and 6 without `--accepted-by "who"`, taken from the person's own words, and stores `accepted_by` and `accepted_at` with the gate and in history. A failed gate records no acceptance. `gate-checks` gains the Acceptance protocol; a standing instruction counts when it named the scope.
+- **Gate 4.7**: the spec states its constraint conflicts (`PRODUCT.md` against `TECH.md`) with who decides each, or that none were found.
+- **Gates 5.6 and 5.7**: the build plan (slices with files, risks, rejected alternatives, tests) is accepted before any code, and the final diff is judged against it.
+- **Gate 6.8**: exposure names who authorized it.
+- **Gate 7.5**: a closing KEEP sets a watch (metric, bands, owner, recheck date). `record` stores it in `state.json`; `brief` raises it when due; `bos.mjs watch` rolls the recheck date after a check without breach, or clears it when a breach started a new initiative.
+- **`bos.mjs pace`**: time per phase, gates failed before passing, who accepted, spec rework after the plan (from git), and phase 1 kills across initiatives. Phase 7 reads it into Pipeline notes.
+- **`TECH.md` → Verify**: one command each for build, test and lint with their healthy output, filled at init or by the first build. Phase 5 baselines and verifies with them.
+
+### Changed
+
+- **Phase 5 plans first.** `delivery-discipline` writes the plan reading only, gets it accepted, keeps it true on every deviation, and only then runs the loop. The planner agent changes no code.
+- **The test loop is protected.** A bug fix starts from a captured failing test the fix cannot edit; changing an assertion to pass is a named mistake and an Important review finding.
+- **Review has severity and a fresh context.** Important against Nit, five nits at most, the diff read against the plan, and recurring findings written into `TECH.md`.
+- **Eval sets keep growing.** Failed production outputs and model-caused incidents become dataset cases; the dataset reruns on every prompt or model change.
+- **`problem-framing`** accepts three ways in (idea, ticket, anomaly) and lists open questions for phase 1.
+- **Must-always-hold rules** are written in `TECH.md` with the deterministic check that enforces them, when one exists. Skills stay advisory.
+
+### Verification
+
+64 Node tests pass (55 existing, 9 new in `tests/scripts/acceptance-and-loop.test.mjs`). The model-based behavioral scenarios were not rerun.
+
 ## [2.1.1] - 2026-09-30
 
 Hardening from a skill audit (#7). No new phases or commands; the gates ask for stronger evidence and the host adapters load the whole bundle.

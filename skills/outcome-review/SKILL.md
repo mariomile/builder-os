@@ -56,9 +56,26 @@ Gate 7.3: one of three, with the re-entry point.
 
 State which phase the next cycle re-enters at, and why. "We will keep an eye on it" is not a decision and does not satisfy gate 7.3.
 
+## Keep Watching After KEEP
+
+KEEP closes the cycle; it does not close the question. A metric that held for 28 days can drift for three months before anyone opens the dashboard again. A closing KEEP therefore sets a watch, which gate 7.5 checks:
+
+| Field | Rule |
+|-------|------|
+| **Metric** | The phase 2 success metric by its phase 2 definition, the one just measured |
+| **Bands** | Thresholds against its baseline. Default: 1σ note it, 2σ diagnose read-only, 3σ start a new initiative. Rolling mean and deviation over the product's natural rhythm; slow drift counts as well as spikes |
+| **Owner** | The person who triages a breach |
+| **Recheck** | The next date someone compares the metric with its bands |
+
+Where a scheduler or monitoring capability resolves, the watch can run on it. Where none does, the recheck date is the mechanism: the session briefing raises it once it has passed. Measuring a watch reuses the detection method in `saas-metrics-reference` instead of inventing one.
+
+**A breach becomes a new initiative.** The anomaly is the input, framed per `problem-framing` (Three Ways In) with the metric, baseline, breach and window as tagged evidence; it starts at phase 0, or on the feature track when `PRODUCT.md` already evidences the problem. A breach never becomes a fix pushed outside the lifecycle. Breaches that turned out to be noise are recorded too: they are how the bands get tuned.
+
+**After each recheck**, record what it found: no breach rolls the date forward (`scripts/bos.mjs watch --initiative {slug} --recheck YYYY-MM-DD --note "..."`, appending `watch_checked`); a breach clears the watch once the new initiative exists (`watch --initiative {slug} --clear --breach {new-slug} --note "..."`, appending `watch_breached`). Without commands, write the same events by hand. Until one of the two happens, the briefing keeps raising the watch.
+
 ## Read the Overrides
 
-Before judging, read the override log from `state.json`. A bet that failed after three overridden gates learned something different from one that failed clean.
+Before judging, read the override log from `state.json`. A bet that failed after three overridden gates learned something different from one that failed clean. Read the pace too (`scripts/bos.mjs pace` where commands run, the history events otherwise): time per phase, gates failed before passing, who accepted what, and how often the spec changed after the build plan existed. Repeated spec rework after the plan says phase 4 was too thin; that is a process learning, recorded next to the product one.
 
 | Pattern | What it suggests |
 |---------|-----------------|
@@ -108,13 +125,15 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 3. **Rerun the measurement.** Same definition, same shape, same parameters, same window length as phase 6. Then the guardrails. Where a delivery of this depends on specialist analysis, hand the numbers to the analysis surface: health, growth, cohorts and revenue each have their own skill, and phase 7 orchestrates rather than reimplements.
 
+3b. **Feed the eval set.** Where the spec declared model output, every production output that failed the rubric in the window, and every incident caused by the model's behavior, becomes a case in the eval dataset: real input, what a correct output must contain, `must_pass` for safety or compliance. The dataset reruns on the next prompt or model change; an incident that never became a case can come back unseen.
+
 4. **Compare against the target.** Baseline, actual, target, delta, all tagged.
 
 5. **Evaluate the kill criteria literally.** As written: metric, threshold, date, and the action it specified. State the verdict plainly before interpreting it.
 
-6. **Read the overrides** against the outcome, per the table above. What the pipeline did differently is part of what happened.
+6. **Read the overrides and the pace** against the outcome, per the table above. What the pipeline did differently is part of what happened.
 
-7. **Decide or defer.** If the window or data is insufficient, write `## REVIEW DEFERRED`, the reason and new date, invoke `scripts/bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."` and stop with phase 7 open. Otherwise KEEP, ITERATE or KILL, with the re-entry phase and the reason. Where the result is ambiguous, use one of the three honest handlings rather than forcing a decision the data cannot support.
+7. **Decide or defer.** If the window or data is insufficient, write `## REVIEW DEFERRED`, the reason and new date, invoke `scripts/bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."` and stop with phase 7 open. Otherwise KEEP, ITERATE or KILL, with the re-entry phase and the reason. Where the result is ambiguous, use one of the three honest handlings rather than forcing a decision the data cannot support. A closing KEEP writes the watch.
 
 8. **Generalize the learning.** One sentence that outlives the feature. Apply the test: could it change an unrelated decision?
 
@@ -122,7 +141,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 10. **Write and gate.** Write `.builderos/initiatives/{initiative}/07-outcome.md`, run gate 7 and record it with the decision (`scripts/bos.mjs record 7 --verdict keep|iterate|kill [--reenter N]` where commands run), which clears `review_due`. KEEP with `Re-enters at: none` closes the cycle; an explicitly selected KEEP with a matching phase re-enters. ITERATE increments `cycle` and moves to the matching phase. KILL closes with `Re-enters at: none` and prohibits `--reenter`; another direction requires a separately authorized initiative. Close the initiative in `ROADMAP.md`: move it to Done and dropped with the decision and the one-sentence learning. On ITERATE, it re-enters at the phase named in step 7 and stays under Now.
 
-Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria verdict, the decision with its re-entry point, and the generalized learning.
+Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria verdict, the decision with its re-entry point, the watch for a closing KEEP, and the generalized learning.
 
 ## Output Contract
 
@@ -148,7 +167,9 @@ Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria 
 
 ## Pipeline notes
 **Overrides:** {which gates, and what that means for how to read this result}
+**Pace:** {time per phase, gates failed before passing, spec rework after the plan, from `bos.mjs pace` or the history}
 **Confounders:** {anything else that changed in the window}
+**Eval cases added:** {production failures turned into dataset cases, or "no model output"}
 
 ## Decision: {KEEP | ITERATE | KILL}
 **Why:** {reasoning against both comparisons}
@@ -161,6 +182,13 @@ Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria 
 **Learning record:** {decisions/learning-{initiative}-cycle-{N}.md or ADR path}
 **Scope / confidence:** {population, supporting evidence and uncertainty}
 **Revisit when:** {new evidence or changed conditions}
+
+## Watch
+{only for KEEP with Re-enters at: none}
+**Metric:** {the phase 2 success metric}
+**Bands:** {1σ note, 2σ diagnose read-only, 3σ new initiative, against the baseline}
+**Owner:** {person who triages a breach}
+**Recheck:** {YYYY-MM-DD}
 ```
 
 ## Common Mistakes
@@ -177,3 +205,6 @@ Completion marker: `## OUTCOME RECORDED` with the comparison, the kill-criteria 
 | A learning that only describes what happened | It is a summary; it changes nothing later | Could it change an unrelated decision? |
 | Treating KILL as a failure | It is the cheapest good outcome in the system | Record it as a successful pass and close the cycle |
 | Claiming credit without checking confounders | The campaign that ran the same week moved it | Name what else changed |
+| KEEP with nobody watching | The metric drifts for months before anyone looks | Set the watch: metric, bands, owner, recheck date |
+| Answering a breach with a quick fix | It skips the evidence and the gates that make a fix trustworthy | Frame it as a new initiative from the anomaly |
+| An incident that never became an eval case | The next prompt change brings it back | Add it to the dataset before closing the review |

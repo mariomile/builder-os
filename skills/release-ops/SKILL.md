@@ -60,6 +60,8 @@ A tagged user-provided observation may substitute for a query when its date, win
 
 Capture the guardrail metrics too, from the phase 4 tracking plan. A release that moved the target and broke something else is the outcome that only guardrail baselines can detect.
 
+Where the spec declares model output, the production sample is scored against the eval rubric, and every sampled output that fails becomes a case in the eval dataset, labeled as a production case, `must_pass` when it concerns safety or compliance. The dataset grows from production; it is never left as it was at phase 4.
+
 ## Pre-Launch Instrumentation Check
 
 Phase 5 verified the events fire. This is the narrower question: do they fire **in the environment users will hit**, with the production configuration?
@@ -67,6 +69,12 @@ Phase 5 verified the events fire. This is the narrower question: do they fire **
 The classic failure is an analytics key that exists in development and is empty in production, which produces a launch with no data and a phase 7 with nothing to read. Check the destination receives events from the production path before exposure, not after.
 
 Then confirm the measurement exists (gate 6.3): a saved query or a dashboard for the success metric, findable by someone who is not you. "We can query it" is not a measurement; a saved thing with a name is.
+
+## Authorization and Deterministic Gates
+
+Exposure to users is the one step in the lifecycle nobody can undo by the time they read about it. The agent prepares everything up to it; a person authorizes crossing it. Gate 6.8 requires `**Authorized by:**` in Exposure verification: who, and how (the message, the ticket, the approval). Phase 6 records with `--accepted-by` from that person. Planning a release authorizes a plan; it never authorizes the deploy.
+
+Autonomy can differ by environment: free in development, prepared but authorized in production, with staging in between. A release rule that must hold every time (no production deploy without approval) is written in `TECH.md` → Technical constraints with the deterministic check that enforces it, a hook in the host or a protected CI step, when one exists. The skill makes skipping it unlikely; only the check makes it impossible.
 
 ## Release Notes
 
@@ -138,7 +146,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 11. **Execute within authorization and verify exposure.** If deployment is authorized, perform the rollout, observe the exposed version in the intended environment and capture a resolving data or document source. Otherwise report the concrete readiness result and the remaining authorization/access. Record an actual, non-future timestamp, environment, version and verification. Installed-app behavior requires observing the installed app; publication alone proves publication.
 
-12. **Gate the verified release.** Run gate 6, including 6.6 exposure structure and 6.7 evidence-to-exposure judgment, then record with the outcome date (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
+12. **Gate the verified release.** Run gate 6, including 6.6 exposure structure, 6.7 evidence-to-exposure judgment and 6.8 authorization, then record with the outcome date and the person who authorized (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD --accepted-by "who"` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
 
 Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for observed exposure backed by its evidence and passing gate. Report partial rollout accurately.
 
@@ -176,6 +184,7 @@ Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for obs
 {the notes, written for users}
 
 ## Exposure verification
+**Authorized by:** {who authorized exposure, and how: the message, the ticket, the approval}
 **Status:** {planned | verified}
 **Exposed at:** {actual ISO timestamp; omit while planned}
 **Environment:** {observed target}
@@ -202,3 +211,5 @@ Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for obs
 | "We can query it" instead of a saved measurement | Nobody finds it in phase 7 | A named dashboard or saved query |
 | A review date with no owner | It does not happen | Owner and date, from the kill criteria |
 | A percentage rollout on a product with 40 users | The slice cannot move a metric readably | Full release with a working rollback, and say why |
+| Deploying because the plan was approved | A plan authorizes a plan | Ask for exposure authorization and record who gave it (6.8) |
+| Failed production outputs left out of the eval set | The next prompt change can reintroduce them unseen | Add each as a production case, must-pass when it is a safety case |

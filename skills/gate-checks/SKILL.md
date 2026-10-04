@@ -22,7 +22,20 @@ Where commands cannot be executed, the model checks every condition and all of t
 
 **Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phase 1 records `validated|killed|reshaped`, matching the artifact; `answered` is a phase status derived from the spike track, never a verdict. A spike closes at phase 1 regardless of its verdict. Phase 6 passes the artifact's outcome review date with `--review-due`. Phase 7 passes `keep|iterate|kill`, matching its heading and `Re-enters at` field. `iterate` requires `--reenter 0-6`, `kill` prohibits it, and `keep` permits either an explicit re-entry or `none`. Verdict/enum contradictions cannot be overridden.
 
-Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 5.1, 5.3, 5.4, 6.2, 6.3, 6.5, 6.6, 7.1, 7.2, 7.3, C.1, C.2, C.3. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Everything else is model-judged; the emitted `checked_by` split is authoritative.
+Script-decided: E.1, 0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 3.2, 3.3, 3.4, 4.2, 4.3, 4.5, 4.6, 4.7, 5.1, 5.3, 5.4, 5.6, 6.2, 6.3, 6.5, 6.6, 6.8, 7.1, 7.2, 7.3, 7.5, C.1, C.2, C.3. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Everything else is model-judged; the emitted `checked_by` split is authoritative.
+
+## Acceptance
+
+A gate says whether an artifact is complete. It does not say that a person has read it and agrees. The playbook this follows puts a person at the transitions where the work changes hands, and the agent never approves its own work. BuilderOS keeps both and records them separately.
+
+| Transition | Who accepts | Where it is recorded |
+|------------|-------------|----------------------|
+| Frame, phase 0 | Whoever owns the problem | `record 0 --accepted-by "who"` |
+| Spec, phase 4 | Whoever owns the product decision, with a technical reviewer for high-risk changes | `record 4 --accepted-by "who"` |
+| Build plan, inside phase 5 | Whoever will own the change | `**Accepted:** {who} · {ISO timestamp}` in `05-build-plan.md`, before any code (gate 5.6) |
+| Release, phase 6 | Whoever can authorize exposure | `**Authorized by:**` in Exposure verification (gate 6.8), and `record 6 --accepted-by "who"` |
+
+**Rules.** Acceptance comes from the person's own words in the conversation, never inferred and never written on their behalf; ask, then record. A standing instruction counts when it named the scope ("proceed through the build without stopping"): quote it with its date as the acceptance. A solo builder accepts their own artifacts; it costs a sentence and leaves a record of what was actually read. The script refuses to pass phases 0, 4 and 6 without `--accepted-by`; a failed gate records no acceptance. Acceptance never replaces a failed condition: an override still needs its reason.
 
 ## Execution Evidence and Examples
 
@@ -135,6 +148,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 4.4 | Tracking plan measures the Phase 2 metric | Named events map to the success metric |
 | 4.5 | Accessibility floor stated | Keyboard path, contrast target, focus order |
 | 4.6 | Model output has an eval dataset | Existing JSON/JSONL cases (`id`, `input`, `expected`, optional `judge`, boolean `must_pass`) or Markdown case table (# / Input / Expected / Judge / Must pass). Full ≥20, lite ≥10 valid unique cases, threshold 0–100, named judge, at least one must-pass case. Prose counts and unsupported formats fail |
+| 4.7 | Constraint conflicts stated, each with who decides | A `## Conflicts` section exists, stating either the conflicts between `PRODUCT.md` and `TECH.md` constraints or that none were found. Every conflict row names who decides |
 
 ### Gate 5 — Build
 
@@ -145,6 +159,8 @@ An override never silently disappears. It is not shame, it is provenance.
 | 5.3 | Instrumentation verified firing | Evidence from a real environment, `data` or `code` tagged |
 | 5.4 | No scope creep | Nothing from the Gate 4 out-of-scope list was built |
 | 5.5 | The eval set passes | Eval results names `Run` and `Results` files. The captured run binds dataset/results digests, every case has one boolean result, computed pass rate reaches threshold, every must-pass passes; model verifies execution/rubric correspondence |
+| 5.6 | The plan was accepted before the build | `## Plan` has `**Accepted:**` with who and an actual ISO timestamp; the Slices table has a Files column; `## Risks` has at least one row |
+| 5.7 | The build followed the plan | Model confirms acceptance preceded implementation, and the final diff matches the plan or the plan records each deviation with its reason |
 
 ### Gate 6 — Ship
 
@@ -157,6 +173,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 6.5 | Outcome review scheduled | Owner and date; `--review-due` matches the artifact |
 | 6.6 | Exposure observed | Exposure verification has `Status: verified`, non-future ISO `Exposed at`, `Environment`, `Version`, and an observed `Verification` result with resolving data/doc evidence |
 | 6.7 | Exposure evidence proves availability | Model confirms intended behavior is available to users in the stated environment/version |
+| 6.8 | Exposure was authorized by a person | Exposure verification names `**Authorized by:**` with who and how (the message, the ticket, the approval) |
 
 ### Gate 7 — Learn
 
@@ -166,6 +183,7 @@ An override never silently disappears. It is not shame, it is provenance.
 | 7.2 | Kill criteria evaluated | The Phase 3 threshold checked against the actual, verdict stated |
 | 7.3 | Decision recorded | `KEEP` / `ITERATE` / `KILL`; `Re-enters at: phase 0-6` or `none`. ITERATE requires a phase, KILL requires none; CLI decision/re-entry must agree |
 | 7.4 | Generalized learning | One sentence that outlives the feature, written into `decisions/` |
+| 7.5 | A closing KEEP sets a watch | When the decision is KEEP with `Re-enters at: none`, `## Watch` names the metric, the bands, the owner and a valid recheck date. Skipped for ITERATE, KILL and a KEEP that re-enters |
 
 ## Coverage Check (feature track)
 
@@ -192,7 +210,7 @@ A `spike` ends at gate 1. Gate 1 runs unchanged; on pass, phase 1 is written `an
 
 `state.json` may set `mode: "lite"` for small features. Lite mode keeps every hard condition (evidence thresholds, kill criteria, test mapping, rollback, baseline) and drops the elaboration conditions: 2.1 relaxes to ≥2 opportunities, 3.1 to ≥2 options, 4.5 and 6.4 become warnings rather than failures.
 
-Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 6.1, 6.2, 7.3. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
+Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 4.7, 5.1, 5.2, 5.3, 5.5, 5.6, 6.1, 6.2, 6.8, 7.3, 7.5, nor the acceptance at phases 0, 4 and 6. It lowers the 4.6 case count, never the threshold. Those are the conditions that prevent building on fiction.
 
 ## Common Mistakes
 
@@ -208,6 +226,8 @@ Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 
 | Overriding the coverage check | Phases recorded as covered by evidence that does not exist | Classify as `product` and start at phase 0 |
 | Silently proceeding after a failure | Destroys the value of the whole model | Refuse, or override and log |
 | Running gate 4 conditions on a phase 2 artifact | Wrong gate, wasted cycle | Read `current_phase` from `state.json` first |
+| Passing `--accepted-by` because the gate passed | The agent approved its own work under someone else's name | Ask, and record only what the person said |
+| Treating acceptance as a substitute for a failed condition | The artifact is still incomplete; now it is incomplete and signed | Fix it, or override with a reason |
 
 ## Capability Requirements
 
@@ -223,4 +243,4 @@ Lite mode never relaxes: E.1, 1.1, 1.3, 2.3, 2.4, 2.6, 3.2, 5.1, 5.2, 5.3, 5.5, 
 2. Run read-only gate checks where command execution is available. Never execute a test runner as a side effect of checking a gate.
 3. Judge only emitted judge conditions against the evidence. Surface unavailable evidence, failed runs and incomplete observation windows.
 4. Fix authorized local gaps and repeat affected checks. For a real failure, use the refusal protocol; for an explicit override, preserve failed conditions and reason.
-5. Record through the script, using consistent phase-specific verdicts/dates. Return `GATE {N} PASSED` only after recording succeeds, or `GATE {N} FAILED` with the failed conditions. A deferred review returns `REVIEW DEFERRED` and never advances.
+5. Record through the script, using consistent phase-specific verdicts/dates and, at phases 0, 4 and 6, the person who accepted. Return `GATE {N} PASSED` only after recording succeeds, or `GATE {N} FAILED` with the failed conditions. A deferred review returns `REVIEW DEFERRED` and never advances.
