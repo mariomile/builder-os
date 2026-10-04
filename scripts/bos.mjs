@@ -8,9 +8,12 @@
 //                                          create an initiative with a valid state.json and make it active
 //   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and, if it passes,
 //                                          record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
-//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--verdict v] [--override reason] [--review-due date] [--reenter N]
+//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason] [--review-due date] [--reenter N]
 //                                          write a gate result to state.json: the script's verdict plus the model's
-//                                          on the judge conditions; advances, closes, or keeps the phase open
+//                                          on the judge conditions; advances, closes, or keeps the phase open.
+//                                          Phases 0, 4 and 6 also need the person who accepted the artifact
+//   node bos.mjs pace                      process metrics from state history and git: time per phase, failed
+//                                          gates, spec rework after the plan, and phase 1 kills across initiatives
 //   node bos.mjs run-check --label slug [--cwd dir] [--dataset file --results file] -- executable args...
 //                                          explicitly execute an authorized check and record its command, exit and output
 //   node bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."
@@ -43,6 +46,9 @@ const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
 const PRIMARY = new Set(['data', 'interview', 'code']);
+// Transitions where a person, not the gate, decides the work goes on: the frame, the spec, the release.
+// The phase 5 plan is accepted inside its artifact (gate 5.6), before the build loop starts.
+const ACCEPTANCE_PHASES = [0, 4, 6];
 const DAY = 86400000;
 
 // ---------- files ----------
@@ -342,10 +348,25 @@ function gate(n, ctx) {
       const need = lite ? 10 : 20;
       pass('4.6', ev.valid && ev.cases >= need && ev.threshold !== null && ev.judge && ev.mustPass, `${ev.cases} valid cases (${need} needed), threshold ${ev.threshold ?? 'missing'}, judge ${ev.judge ? 'named' : 'missing'}, must-pass ${ev.mustPass ? 'named' : 'missing'}${ev.error ? '; ' + ev.error : ''}`);
     }
+    const conflicts = section(a, 'Conflicts');
+    const unowned = tableRows(conflicts).filter((r) => nonEmpty(r[0]) && !nonEmpty(r[3]));
+    pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${tableRows(conflicts).length} conflicts, each with who decides`);
     return R;
   }
 
   if (n === 5) {
+    const plan = section(a, 'Plan') || '';
+    const accepted = field(plan, 'Accepted') || '';
+    const acceptedAt = (accepted.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{3})?)?(?:Z|[+-]\d{2}:\d{2})/) || [])[0];
+    const sliceHeader = ((section(a, 'Slices') || '').split('\n').find((l) => /^\s*\|/.test(l)) || '');
+    const risks = tableRows(section(a, 'Risks')).filter((r) => nonEmpty(r[0]));
+    const planGaps = [
+      !(validTimestamp(acceptedAt) && Date.parse(acceptedAt) <= Date.now() && accepted.replace(acceptedAt, '').replace(/[·\s]/g, '').length > 1) && 'Accepted needs who and an actual ISO timestamp',
+      !/\|\s*files?\b/i.test(sliceHeader) && 'the Slices table has no Files column',
+      !risks.length && 'no Risks rows',
+    ].filter(Boolean);
+    pass('5.6', planGaps.length === 0, planGaps.length ? planGaps.join('; ') : `plan accepted ${acceptedAt}, slices name their files, ${risks.length} risks`);
+    judge('5.7', 'was the plan accepted before implementation started, and does the final diff match it (or was the plan updated with the deviation)?');
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
@@ -393,6 +414,7 @@ function gate(n, ctx) {
     const orv = section(a, 'Outcome review') || '';
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
     pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
+    pass('6.8', nonEmpty(field(exposure, 'Authorized by')), 'Exposure verification names who authorized exposure');
     return R;
   }
 
@@ -407,6 +429,12 @@ function gate(n, ctx) {
     const reentry = field(section(a, 'Decision'), 'Re-enters at') || '';
     const validReentry = d[0] === 'KILL' ? /^none$/i.test(reentry) : d[0] === 'ITERATE' ? /^phase [0-6]$/i.test(reentry) : /^(none|phase [0-6])$/i.test(reentry);
     pass('7.3', d.length === 1 && validReentry, d.length === 1 ? `${d[0]}, re-entry ${reentry || 'missing'}` : `${d.length} decisions in the heading`);
+    if (d[0] === 'KEEP' && /^none$/i.test(reentry)) {
+      const w = section(a, 'Watch') || '';
+      const gaps = ['Metric', 'Bands', 'Owner'].filter((k) => !nonEmpty(field(w, k)));
+      if (!validDate((field(w, 'Recheck') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0])) gaps.push('Recheck date');
+      pass('7.5', gaps.length === 0, gaps.length ? `a closing KEEP needs a watch; missing: ${gaps.join(', ')}` : 'watch with metric, bands, owner and recheck date');
+    } else skip('7.5', 'only a closing KEEP sets a watch');
     judge('7.4', nonEmpty(firstParagraph(section(a, 'Learning'))) ? 'does the learning outlive the feature, and is it in decisions/?' : 'no learning');
     return R;
   }
@@ -650,6 +678,7 @@ function brief() {
     const s = i.state;
     if (s.review_due && Date.parse(s.review_due) < today && !((s.phases || {})[7] && ['passed'].includes(s.phases[7].status))) attention.push(`outcome review for ${s.title || i.slug} was due ${s.review_due}`);
     if ((s.status || 'open') === 'open' && s.updated_at && (today - Date.parse(s.updated_at)) / DAY > 30) attention.push(`${s.title || i.slug} unchanged since ${s.updated_at.slice(0, 10)}`);
+    if (s.watch && validDate(s.watch.recheck) && Date.parse(s.watch.recheck) <= today) attention.push(`watch on ${s.title || i.slug} is due (${s.watch.metric}, recheck ${s.watch.recheck}): compare against its bands, and a breach starts a new initiative`);
   }
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
@@ -804,6 +833,10 @@ function record(which) {
   const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail' && !soft.includes(id))];
   const override = opt('--override');
   if (flag('--override') && !nonEmpty(override)) die('--override needs a non-empty reason');
+  const acceptedBy = opt('--accepted-by');
+  if (flag('--accepted-by') && !nonEmpty(acceptedBy)) die('--accepted-by needs the name of the person who accepted');
+  const passing = failed.length === 0 || Boolean(override);
+  if (passing && ACCEPTANCE_PHASES.includes(n) && !nonEmpty(acceptedBy)) die(`phase ${n} advances only when a person accepts ${ARTIFACTS[n]}: ask, then pass --accepted-by "who" (never on their behalf)`);
   let verdict = opt('--verdict');
   const rawReentry = opt('--reenter');
   const reenter = rawReentry === undefined ? null : Number(rawReentry);
@@ -830,6 +863,7 @@ function record(which) {
   const now = new Date().toISOString();
   const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
   if (gateEntry.overridden) gateEntry.override_reason = override;
+  if (gateEntry.passed && nonEmpty(acceptedBy)) { gateEntry.accepted_by = acceptedBy; gateEntry.accepted_at = now; }
   const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
   s.history = s.history || [];
   s.updated_at = now;
@@ -846,7 +880,11 @@ function record(which) {
   const stops = (n === 1 && (verdict === 'killed' || spikeStop)) || (n === 7 && reenter === null);
   ph.status = spikeStop ? 'answered' : n === 1 && verdict === 'killed' ? 'killed' : 'passed';
   if (n === 6) s.review_due = due;
-  s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}) });
+  s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}), ...(gateEntry.accepted_by ? { accepted_by: gateEntry.accepted_by } : {}) });
+  if (n === 7 && verdict === 'keep' && reenter === null) {
+    const w = section(artifact, 'Watch') || '';
+    s.watch = { metric: field(w, 'Metric'), bands: field(w, 'Bands'), owner: field(w, 'Owner'), recheck: (field(w, 'Recheck') || '').slice(0, 10) };
+  }
   if (n === 7 && reenter !== null) {
     s.cycle = (s.cycle || 1) + 1;
     s.current_phase = reenter;
@@ -901,6 +939,7 @@ function schemaProblems(i) {
   if (!Array.isArray(s.history)) p.push('history is not an array');
   if (!s.phases || typeof s.phases !== 'object' || Array.isArray(s.phases)) p.push('phases is not an object');
   if (s.review_due !== null && s.review_due !== undefined && !validDate(s.review_due)) p.push('review_due is not a date');
+  if (s.watch !== undefined && s.watch !== null && (typeof s.watch !== 'object' || !validDate(s.watch.recheck))) p.push('watch has no valid recheck date');
   for (const [k, v] of Object.entries(s.phases || {})) {
     if (!['pending', 'in_progress', 'passed', 'killed', 'covered', 'answered'].includes(v && v.status)) p.push(`phase ${k} status ${JSON.stringify(v && v.status)}`);
     if (!/^[0-7]$/.test(k)) p.push(`invalid phase key ${k}`);
@@ -909,6 +948,42 @@ function schemaProblems(i) {
   }
   if (s.track && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'track_set')) p.push('no track_set event');
   return p;
+}
+
+// ---------- pace ----------
+
+// Process metrics read from what already exists: state history and, where there is one, git.
+function pace() {
+  const all = loadInitiatives();
+  const init = resolveActive(all);
+  const out = [];
+  const days = (a, b) => Math.round(((Date.parse(b) - Date.parse(a)) / DAY) * 10) / 10;
+  if (init) {
+    const h = init.state.history || [];
+    const rows = [];
+    let since = init.state.created_at || (h[0] && h[0].at);
+    for (const e of h) {
+      if (e.event === 'cycle_started') { since = e.at; continue; }
+      if (!['gate_passed', 'gate_overridden', 'phase_covered'].includes(e.event)) continue;
+      const fails = h.filter((x) => x.event === 'gate_failed' && x.phase === e.phase && x.at <= e.at && (!since || x.at >= since)).length;
+      rows.push(`| ${e.phase} ${PHASES[e.phase]} | ${e.event === 'phase_covered' ? 'covered' : since ? days(since, e.at) : '?'} | ${fails} | ${e.event === 'gate_overridden' ? 'yes' : 'no'} | ${e.accepted_by || 'not recorded'} |`);
+      since = e.at;
+    }
+    out.push(`## Pace · ${init.state.title || init.slug}`, '', '| Phase | Days | Failed gates before pass | Overridden | Accepted by |', '|-------|------|--------------------------|------------|-------------|', ...(rows.length ? rows : ['| none passed yet | | | | |']));
+    if (git('rev-parse', '--is-inside-work-tree') === 'true') {
+      const relDir = path.relative(ROOT, init.dir);
+      const firstPlan = git('log', '--reverse', '--format=%H', '--', path.join(relDir, ARTIFACTS[5]));
+      const first = firstPlan ? firstPlan.split('\n')[0] : null;
+      if (first) {
+        const after = git('log', '--format=%H', `${first}..HEAD`, '--', path.join(relDir, ARTIFACTS[4]));
+        out.push('', `**Spec rework after the plan:** ${after ? after.split('\n').filter(Boolean).length : 0} commits touched ${ARTIFACTS[4]} after ${ARTIFACTS[5]} first appeared`);
+      } else out.push('', `**Spec rework after the plan:** not measurable yet, ${ARTIFACTS[5]} has no commit`);
+    } else out.push('', '**Spec rework after the plan:** unavailable without git');
+  }
+  const decided = all.filter((i) => ['passed', 'killed', 'answered'].includes(((i.state.phases || {})[1] || {}).status));
+  const killed = decided.filter((i) => i.state.phases[1].status === 'killed' || i.state.phases[1].verdict === 'killed');
+  out.push(`**Phase 1 kills:** ${killed.length} of ${decided.length} initiatives that reached a discovery verdict`);
+  console.log(out.join('\n'));
 }
 
 // ---------- migrate ----------
@@ -953,7 +1028,8 @@ else if (cmd === 'cover') cover();
 else if (cmd === 'record') record(args[1]);
 else if (cmd === 'defer-review') deferReview();
 else if (cmd === 'migrate') migrate();
+else if (cmd === 'pace') pace();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }
