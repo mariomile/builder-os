@@ -6,7 +6,7 @@ The project's memory. Created by `/bos-init`, read at the start of every session
 
 ```
 PRODUCT.md                what the product is: problem, ICP, non-goals, constraints, voice, language
-TECH.md                   how it is built: stack, technical constraints, conventions, known traps
+TECH.md                   how it is built: stack, verify commands, technical constraints, conventions, known traps
 AGENTS.md                 the project's own agent instructions; /bos-init adds the pointer below
 .builderos/
   local.json              this checkout's active initiative; gitignored, never shared
@@ -25,9 +25,9 @@ AGENTS.md                 the project's own agent instructions; /bos-init adds t
       03-solution-bet.md  options scored, selected bet, kill criteria
       DESIGN.md           information architecture, flows, states, components
       04-spec.md          scope, flows, acceptance criteria, tracking plan
-      05-build-plan.md    tracer tickets, test map, review record
+      05-build-plan.md    accepted plan, test map, review record
       06-release.md       rollout, instrumentation check, baseline
-      07-outcome.md       actual vs. target, decision
+      07-outcome.md       actual vs. target, decision, watch
       questionnaires/
         {recipient}.md    async questions for someone the user cannot interview, phase 1
       cycle-{N}/          artifacts of an earlier cycle of this initiative
@@ -176,17 +176,24 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 |-------|--------|-----|----------|
 | {frontend / backend / data / hosting / analytics} | {choice} | {one line} | {ADR link, or "inherited"} |
 
+## Verify
+| Check | Command | Healthy output |
+|-------|---------|----------------|
+| Build | {one command, exits non-zero on failure} | {what success prints} |
+| Test | {one command} | {e.g. "N passed, 0 failed"} |
+| Lint | {one command} | {e.g. "0 problems"} |
+
 ## Technical constraints
-{Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag.}
+{Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
 
 ## Conventions
-{How this codebase does things that a newcomer would get wrong: naming, error handling, where tests live, how features are flagged.}
+{How this codebase does things that a newcomer would get wrong: naming, error handling, where tests live, how features are flagged. Where a feature depends on model output: its eval dataset reruns, through `run-check`, on every prompt or model change.}
 
 ## Known traps
 {What has bitten before, with the initiative or commit where it happened.}
 ```
 
-Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. Phase 5 adds conventions and traps it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. Phase 5 fills Verify when it is empty and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
 
 ## state.json
 
@@ -230,9 +237,17 @@ A phase that passed through an overridden gate:
     "checked_by": { "script": ["0.1", "0.2"], "model": ["0.3", "0.4"] },
     "failed_conditions": ["0.4"],
     "overridden": true,
-    "override_reason": "No dated external change found; problem judged durable, revisit after interviews"
+    "override_reason": "No dated external change found; problem judged durable, revisit after interviews",
+    "accepted_by": "Mario",
+    "accepted_at": "2026-09-13T11:00:00Z"
   }
 }
+```
+
+A closed initiative that ended with KEEP carries its watch at the top level:
+
+```json
+"watch": { "metric": "share of managers with a weekly export", "bands": "1σ note, 2σ diagnose read-only, 3σ new initiative", "owner": "Mario", "recheck": "2027-01-15" }
 ```
 
 ### Fields
@@ -252,11 +267,13 @@ A phase that passed through an overridden gate:
 | `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason), `closed` (phase 7, or a phase 1 kill or answer) |
+| `gate.accepted_by`, `gate.accepted_at` | name, ISO timestamp | The person who accepted the artifact, from their own words, and when. Required to pass phases 0, 4 and 6; see `gate-checks`, Acceptance. Absent on a failed gate |
+| `watch` | `{ metric, bands, owner, recheck }` or absent | Set when phase 7 closes with KEEP (gate 7.5). The briefing raises it once `recheck` has passed; a breach starts a new initiative |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). `bos.mjs pace` reads these events for time per phase |
 
 ## Rules
 
-0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, a phase 6 review date, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, the acceptance at phases 0, 4 and 6, a phase 6 review date, a closing watch, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
 
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
