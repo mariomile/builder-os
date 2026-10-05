@@ -1,6 +1,6 @@
 # Strategy Method Details
 
-Read only the PMF, positioning or North Star section needed for the request. This file resolves relative to its owning `SKILL.md`.
+Read only the PMF, positioning, North Star, signal-reading, example or output-contract section needed for the request. This file resolves relative to its owning `SKILL.md`.
 
 ## PMF Signal Framework (4 Signals)
 
@@ -98,3 +98,61 @@ Stage here is supplied/evidenced company context, not an inferred label from inc
 | **Seed** | Reach 5+ (Emerging) | Value delivery for core segment | 6-week sprints |
 | **Series A** | 7+ (Strong) | Scalable breadth metric | 90-day quarters |
 | **Growth** | Maintain 7+, compound | Monetization + expansion metric | Annual + quarterly |
+
+## Signal Reading Notes
+
+- **Survey score.** Search documents for an existing "how disappointed" survey. If none exists, the signal is unavailable and running the survey is the recommendation.
+- **Retention curve shape.** The Retention shape, with its definition stated. Treat week 6–8 and retention-floor cutoffs as local heuristics, not universal PMF thresholds; verify mature cohorts, unit, return event and retention definition first.
+- **Organic pull.** Share of signups arriving without paid acquisition, or inbound mentions. Often lives in the application database rather than analytics.
+- **Desperate users.** Qualitative, from interviews and support: people who would be genuinely stuck without this. Search the research rather than inferring it from usage.
+
+## North Star Definitions
+
+The definition is the work. "Reports shared" means nothing until it says whether a report shared with a teammate counts, whether re-sharing counts, and whether the sender has to be active.
+
+## Examples
+
+**Incomplete PMF:** Survey score 2, retention score 1, organic pull and qualitative users unavailable → observed points 3, coverage 2/4, possible score 3–7 of 8. Report compatible Searching/Emerging/Strong bands and the missing evidence; do not call it 3/4 or conclude Pre-PMF.
+
+**Narrow positioning request:** Review the supplied positioning sentence against customer/alternative/proof; do not require retention queries or a full PMF assessment.
+
+## Output Contracts
+
+```markdown
+## STRATEGY AUDIT COMPLETE
+
+**Product:** {name} · **Stage:** {supplied/evidenced context, or unknown}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
+
+### PMF Signals
+| Signal | Reading | Score 0–2 or unknown | Source | Status |
+{measured / user-provided / unavailable, per signal}
+
+**PMF score (fixed 0–8):** {observed points}, possible interval {low–high}
+**Coverage:** {known}/4 signals · **Interpretation:** {compatible bands; unresolved when incomplete}
+
+### Positioning
+{category, for whom, against what, on what proof; unsupported claims flagged}
+
+### Gap Analysis
+{what must be true for the next stage, and what is missing}
+
+### Recommended Next Step
+```
+
+```markdown
+## NORTH STAR COMPLETE
+
+**Chosen:** {metric, with its precise definition}
+**Capabilities resolved:** {capability → concrete source}
+
+### Candidates Evaluated
+| Candidate | Breadth | Depth | Frequency | Measurable today | Retention relationship | Total |
+
+### Why this one
+### Metric Tree
+{3 levels, every node naming the shape that measures it}
+
+### Instrumentation Required
+{nodes that cannot be measured today}
+```

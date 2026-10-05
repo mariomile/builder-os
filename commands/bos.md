@@ -32,7 +32,7 @@ Stateful entry point. Reads where the project stands and routes to the next phas
 ## Arguments
 
 - `[intent]` — Optional. What the user wants. Matched against the phase routing table.
-- `[--phase N]` — Force a phase. Logs the jump in `history`.
+- `[--phase N]` — Force a phase. Logs a `phase_jump` event in `history`.
 - `[--initiative slug]` — Switch the active initiative, then route. The switch is logged and named to the user.
 
 ## Output

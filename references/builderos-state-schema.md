@@ -121,8 +121,12 @@ The files above only help if a new session reads them. Every session, on any hos
    - `TECH.md` is stale: its `Verified` commit is older than the latest commit touching a dependency manifest or lockfile, or, without git, its date is more than 60 days old;
    - an open initiative has not changed in 30 days: its `updated_at` says so;
    - the roadmap disagrees with an initiative's state.
+   - a decision in `decisions/` has a `Revisit when` date that has passed, or has no `Revisit when` section at all;
+   - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1.
 
-Where commands can be executed, `node scripts/bos.mjs brief` (in the plugin) computes all four from the files and prints the briefing; the model only relays it. Where they cannot, the model reads the same files and applies the same rules.
+The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
+
+Where commands can be executed, `node scripts/bos.mjs brief` (in the plugin) computes all of them from the files and prints the briefing; the model only relays it. Where they cannot, the model reads the same files and applies the same rules.
 
 Hosts with a session-start hook get this from `using-builder-os`. Every other host gets it from the pointer `/bos-init` writes into the project's own `AGENTS.md`:
 
@@ -269,7 +273,7 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
 | `gate.accepted_by`, `gate.accepted_at` | name, ISO timestamp | The person who accepted the artifact, from their own words, and when. Required to pass phases 0, 4 and 6; see `gate-checks`, Acceptance. Absent on a failed gate |
 | `watch` | `{ metric, bands, owner, recheck }` or absent | Set when phase 7 closes with KEEP (gate 7.5). The briefing raises it once `recheck` has passed. `bos.mjs watch` rolls `recheck` after a check without breach (`watch_checked`) or sets it to `null` when a breach became a new initiative (`watch_breached`) |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). `bos.mjs pace` reads these events for time per phase |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase |
 
 ## Rules
 
@@ -315,4 +319,4 @@ Write one only when all three hold: **hard to reverse** (changing your mind late
 {The observation that would reopen this.}
 ```
 
-ADRs are written at phase 7, and any time a decision is hard to reverse, surprising without context, and the result of a real trade-off. All three, or no ADR: `/bos-adr` runs the test. "Revisit when" is mandatory: a decision without a reopening condition becomes dogma.
+ADRs are written at phase 7, and any time a decision is hard to reverse, surprising without context, and the result of a real trade-off. All three, or no ADR: `/bos-adr` runs the test. "Revisit when" is mandatory: a decision without a reopening condition becomes dogma. Write a date in it when time alone should reopen the decision (`By 2027-01-15, or when …`); the briefing raises it once that date passes, and raises any decision file without the section.

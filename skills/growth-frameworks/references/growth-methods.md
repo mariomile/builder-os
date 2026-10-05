@@ -1,6 +1,6 @@
 # Growth Method Details
 
-Read only the loop, activation, retention or prioritization section needed for the request. This resource resolves relative to its owning `SKILL.md`. Patterns and thresholds below are hypotheses/heuristics, not causal proof or PMF classification.
+Read only the loop, activation, retention, prioritization, bottleneck-value, intervention-format or output-contract section needed for the request. This resource resolves relative to its owning `SKILL.md`. Patterns and thresholds below are hypotheses/heuristics, not causal proof or PMF classification.
 
 ## Growth Loop Patterns
 
@@ -47,6 +47,10 @@ Potential observed value moments include:
 3. Treat prediction as an association: engaged users self-select into actions, and account maturity/need can affect both action and retention.
 4. Propose a value-based activation definition and validate in future cohorts. A 2× ratio is a local heuristic, not causal proof or a universal threshold.
 5. Test whether an intervention that changes the early action improves durable value/retention, using a suitable randomized or carefully identified design when feasible. A return event in the early window cannot double as the later outcome.
+
+### Time-to-value
+
+Timing suggests a question, not a cause. Median activation above a day can reflect permissions, data availability or a natural usage cycle; under thirty minutes does not prove onboarding works or that acquisition is the constraint.
 
 ### Activation Hypotheses to Investigate
 
@@ -105,3 +109,56 @@ Define one primary outcome and applicable indicators/guardrails; exactly three t
 3. **Guardrail metric** — What must NOT break (e.g., support ticket volume, time to first response)
 
 If the guardrail degrades, the experiment fails regardless of output metric improvement.
+
+## Bottleneck Value
+
+Compare absolute losses and expected recoverable downstream value, not only relative drop rates:
+
+```
+drop_rate = 1 - actors_next / actors_current
+absolute_loss = actors_current - actors_next
+expected_incremental_value = absolute_loss × plausible_recoverable_share
+                             × downstream_value_conversion × value_per_outcome
+```
+
+**Loss example:** Step A loses 200/1,000 accounts (20%); step B loses 10/20 (50%). B has the larger percentage, A the larger absolute loss. If A can recover 20% of losses with 10% downstream conversion, it yields four additional outcomes; B at 50% recovery and 100% downstream conversion yields five. Estimates, cost and confidence decide the priority, not either percentage alone.
+
+## Intervention Format
+
+```markdown
+### Intervention: {name}
+
+**Bottleneck:** {step or retention week, with the number and its tag}
+**Hypothesis:** If we {change}, then {metric} improves by {explicit assumed effect, pp or relative %, source/rationale} because {testable reasoning}
+**Type:** {onboarding / re-engagement / feature discovery / value delivery}
+**Loop:** {viral / content / product / paid / sales-assisted}
+
+**Implementation:** {steps}
+
+**Metrics:** output {…} · input {…} · guardrail {…}
+**ICE:** impact {1-10} × confidence {1-10} × ease {1-10} ÷ 10 = {score}
+```
+
+## Output Contract
+
+```markdown
+## GROWTH ANALYSIS COMPLETE
+
+**Product:** {name} · **Period:** {range}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
+
+### Activation Funnel
+{step, actors, conversion from previous, tag; conversion window stated}
+
+### Retention
+{curve definition, mature age, sample sizes, shape, activation association and segment comparisons}
+
+### Bottlenecks
+{absolute losses and expected recoverable value; assumptions, risk and uncertainty explicit}
+
+### Interventions
+{top 3 by ICE}
+
+### Tracking Gaps
+{steps with no event, properties missing for the segments that matter}
+```

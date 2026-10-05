@@ -14,10 +14,22 @@ Route by the requested result. Preserve the user's scope, supplied inputs, outpu
 3. **Select the smallest useful route** below. If clear, state it briefly when useful and start. Ask only when a material ambiguity remains after reading inputs; an authorized task needs no repeated confirmation.
 4. **Run the selected skill.** Pass the request and relevant inputs verbatim. Load additional methods only when they answer part of that request. A recommendation to build does not start an initiative.
 
+## Watch While Working
+
+In a project with BuilderOS memory, check every product request against it before doing the work, and say what you find in at most two lines, then continue. On a real project these checks would have caught scope built against the phase 2 and 3 conditions, a pilot that never started while features kept shipping, and a `PRODUCT.md` that still described the idea stage:
+
+- **Contradiction.** The request goes against an accepted decision in `decisions/`, a `PRODUCT.md` non-goal, a condition a phase artifact set ("no further scope until the pilot passes", a kill criterion) or the active spec's or build plan's out-of-scope. Name the file and line, then ask one round question per `pressure-testing` (Rounds): keep the condition, supersede it on the record, or open a new initiative for the request. New scope after the build plan is accepted is never appended to the running spec silently.
+- **Stale truth.** What the user just decided makes `PRODUCT.md`, `ROADMAP.md`, the spec or an evidence file wrong (a stage, a non-goal, a "Next" item already built, a superseded preference). Update it in the same step, or name it if the update is outside the authorized scope.
+- **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
+- **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work on the same area. Say the measurement comes first, or why it can wait.
+
+The briefing's Attention line covers what the files decide mechanically; these three need judgment. Never block the request on them and never repeat one the user has already answered in this session.
+
 ## Routes
 
 | Requested result | Skill / mode |
 |------------------|--------------|
+| An idea or problem in one sentence ("I want to build X") | Lifecycle requested or project initialized: `builder-os`, starting with no setup questions per [lifecycle setup](../../references/lifecycle-setup.md). Otherwise `problem-framing`'s first round inline, then offer to keep it as an initiative |
 | Run or continue an initiative; explicitly request a spike | `builder-os`, lifecycle |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |

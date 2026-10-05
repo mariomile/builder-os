@@ -142,7 +142,7 @@ Concretely, what each phase inherits:
 
 ## 5. The eight gates
 
-Full conditions in `skills/gate-checks/SKILL.md`. The shape of each:
+Full conditions in `skills/gate-checks/references/`, one file per gate. The shape of each:
 
 | Gate | Refuses to pass when |
 |------|---------------------|

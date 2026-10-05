@@ -656,6 +656,20 @@ function roadmapPhases() {
   return m;
 }
 
+// Every decision file, oldest first by its Date (file name as tie-break), with its reopening condition.
+function decisions() {
+  const dir = path.join(BOS, 'decisions');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => {
+    const md = read(path.join(dir, f)) || '';
+    const date = (md.match(/^\**Date:?\**:?\s*(\d{4}-\d{2}-\d{2})/m) || f.match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+    const rv = section(md, 'Revisit when');
+    const revisit = rv === null || rv === undefined ? null : rv.trim();
+    const revisitBy = revisit ? ((revisit.match(/\b(\d{4}-\d{2}-\d{2})\b/) || [])[1] || null) : null;
+    return { name: f.replace(/\.md$/, ''), date, revisit: revisit || null, revisitBy };
+  }).sort((a, b) => (a.date + a.name).localeCompare(b.date + b.name));
+}
+
 function brief() {
   if (!fs.existsSync(BOS)) { console.log('No BuilderOS memory in this directory.'); return; }
   if (read(path.join(BOS, 'state.json'))) { console.log('Schema 1 state found at .builderos/state.json: run `bos.mjs migrate` before anything else.'); return; }
@@ -672,8 +686,8 @@ function brief() {
     lines.push(`${product} · ${s.title || active.slug} (${s.track || 'product'} track, cycle ${s.cycle || 1}): phase ${p} ${PHASES[p]}, ${lastGate(s)}.`);
     const ov = overrides(s);
     lines.push(ov.length ? `Overrides in force: phase ${ov.join('; phase ')}.` : 'No overrides.');
-    const dec = fs.existsSync(path.join(BOS, 'decisions')) ? fs.readdirSync(path.join(BOS, 'decisions')).filter((f) => /^ADR-\d+/.test(f)).sort() : [];
-    if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].replace(/\.md$/, '')}.`);
+    const dec = decisions();
+    if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
     lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
@@ -690,6 +704,13 @@ function brief() {
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
+  const todayIso = new Date().toISOString().slice(0, 10);
+  for (const d of decisions()) {
+    if (d.revisit === null) attention.push(`decision ${d.name} has no Revisit when condition`);
+    else if (d.revisitBy && d.revisitBy <= todayIso) attention.push(`decision ${d.name} asked to be revisited by ${d.revisitBy}`);
+  }
+  const unvalidated = ((read(path.join(ROOT, 'PRODUCT.md')) || '').match(/\[assumption:unvalidated\]/g) || []).length;
+  if (unvalidated && all.some((i) => (i.state.status || 'open') !== 'closed' && (i.state.current_phase ?? 0) >= 2)) attention.push(`PRODUCT.md still rests on ${unvalidated} unvalidated assumption${unvalidated > 1 ? 's' : ''} past phase 1`);
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
   console.log(lines.slice(0, 5).join('\n'));
@@ -756,8 +777,8 @@ function roadmap() {
 function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
-  const track = opt('--track') || 'product';
-  if (!['spike', 'feature', 'product'].includes(track)) die('track is spike, feature or product');
+  const track = opt('--track');
+  if (!['spike', 'feature', 'product'].includes(track)) die('new needs --track spike|feature|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product with an evidenced PRODUCT.md that is usually feature');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
@@ -935,6 +956,8 @@ function deferReview() {
   console.log(`REVIEW DEFERRED: ${init.slug} remains at phase 7; review ${due}. ${reason}`);
 }
 
+const HISTORY_EVENTS = ['track_set', 'phase_covered', 'track_upgraded', 'phase_jump', 'initiative_switched', 'paused', 'migrated', 'gate_passed', 'gate_failed', 'gate_overridden', 'review_deferred', 'cycle_started', 'closed', 'watch_checked', 'watch_breached'];
+
 function schemaProblems(i) {
   const s = i.state, p = [];
   for (const k of ['schema', 'slug', 'title', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
@@ -955,6 +978,8 @@ function schemaProblems(i) {
     if (v && v.status === 'covered' && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'phase_covered' && String(h.phase) === k)) p.push(`phase ${k} covered with no phase_covered event`);
   }
   if (s.track && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'track_set')) p.push('no track_set event');
+  const unknown = [...new Set((Array.isArray(s.history) ? s.history : []).map((h) => h && h.event).filter((e) => !HISTORY_EVENTS.includes(e)))];
+  if (unknown.length) p.push(`unknown history event ${unknown.slice(0, 3).join(', ')}`);
   return p;
 }
 
