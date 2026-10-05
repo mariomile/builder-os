@@ -1,6 +1,6 @@
 # Qualitative Synthesis Method Details
 
-Load only the relevant coding, scoring, card, confidence or research-gap section. Resolve this resource relative to its owning `SKILL.md`.
+Load only the relevant coding, scoring, card, confidence, research-gap or common-mistakes section. Resolve this resource relative to its owning `SKILL.md`.
 
 ## Synthesis Process
 
@@ -90,3 +90,15 @@ For each gap, recommend the research method to fill it:
 - **Survey**: If need quantitative validation of a pattern
 - **Usability test**: If need to observe specific interaction
 - **Data analysis**: If behavioral data could answer the question
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| Labeling interview prevalence “confidence” | Separate counts from evidence strength and sampling limits |
+| Counting several quotes from one person as several users | Deduplicate participants, preserving repeated-mention context |
+| ODT attributed an ODI formula with incompatible range | Name the adapted ODI method, paired ratings, 1–9 range and local heuristic |
+| Deriving importance from mention share | Require direct outcome ratings or report score unavailable |
+| Opportunity interpreted as feature commitment | State unmet outcome and separate solution testing |
+
+**Narrow example:** “Summarize these five transcripts into three themes” produces three themes with participant counts, quotes and sampling limits in the requested format; no initiative, full scoring exercise or mandatory opportunity selection.
