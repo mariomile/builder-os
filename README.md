@@ -170,6 +170,28 @@ Invoke a specialist directly when the task is clear. `using-builder-os` briefs a
 
 ---
 
+## How it works with you
+
+**One sentence is enough to start.** `/builder-os:bos-init "a tool that warns account managers before a client churns"` drafts `PRODUCT.md` from the sentence, announces the name, track and mode it picked as defaults you can override, and opens the first round of questions in the same turn. No setup interview.
+
+**Questions come in rounds, with options and a recommendation.** At most four per round. Each lists two to four options with what each one leads to, and recommends one with the reason:
+
+```
+1. Who feels this first?
+   A. Account managers: they lose the renewal, they see the signals first
+   B. Customer success leads: they own the number, not the daily signals
+   C. The founder: only at your size today
+   → Recommended: A, because the phase 1 evidence has to come from whoever sees the signals
+```
+
+You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decision, recorded as yours. A factual question never offers guessed values: its options are ways to close the gap (you know it, it can be queried, or proceed with it recorded as an unvalidated assumption).
+
+**It watches while you work.** Before acting on a request mid-initiative, it checks it against recorded decisions, non-goals, the conditions earlier phases set, and the spec's out-of-scope list. It also notices when your decision has made `PRODUCT.md` or the roadmap wrong, when the request builds on an unvalidated assumption, and when more work is asked for on something whose result nobody has read or whose pilot never started. Each finding takes two lines and never blocks: you choose. The session briefing flags what the files show mechanically (see Project memory below).
+
+**Every phase report opens with a plain recap.** Five lines at most, for someone who did not follow the work: what was decided, what changed, what is still unknown. Condition ids and file names come after.
+
+---
+
 ## Install
 
 ### Claude Code
@@ -182,7 +204,7 @@ Invoke a specialist directly when the task is clear. `using-builder-os` briefs a
 Skills, agents and commands load with the `builder-os:` namespace. Commands dispatch in the foreground and await completion before reading artifacts or running gates. The installed plugin does not load this repository’s root `CLAUDE.md` as project instructions.
 
 ```
-/builder-os:bos-init        start a pipeline from an idea
+/builder-os:bos-init        start from one sentence
 /builder-os:bos             stateful hub — routes to the current phase
 /builder-os:bos-status      pipeline state on one screen
 /builder-os:bos-gate        run the current gate
@@ -208,7 +230,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**24 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions.
+**24 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
@@ -244,7 +266,7 @@ AGENTS.md                 gets a BuilderOS block telling every new session to re
     questionnaires/       async questions for people the user cannot interview
 ```
 
-The bootstrap reads relevant project memory and briefs on active work and stale commitments. SessionStart refreshes this context on startup, resume, fork, clear and compact where the host supports and trusts the hook. Without it, invoke `using-builder-os` or use the project briefing block written by authorized lifecycle initialization. Standalone requests do not create lifecycle state. Several initiatives can be open at once; one is active, and lifecycle commands act on it.
+The bootstrap reads relevant project memory and briefs on active work and stale commitments: due watches, decisions past their revisit date or without one, unvalidated assumptions still in `PRODUCT.md` after discovery, and history events the schema does not know (a sign that state was written by hand). SessionStart refreshes this context on startup, resume, fork, clear and compact where the host supports and trusts the hook. Without it, invoke `using-builder-os` or use the project briefing block written by authorized lifecycle initialization. Standalone requests do not create lifecycle state. Several initiatives can be open at once; one is active, and lifecycle commands act on it.
 
 Each phase reads the one before it. Starting phase 3 without `02-definition.md` produces confident fiction, so the hub refuses.
 
@@ -252,7 +274,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 2.1.1. Honest state:
+Version 2.1.1 published; `main` carries the changes listed under Unreleased in [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|
@@ -261,9 +283,10 @@ Version 2.1.1. Honest state:
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
 | Gate enforcement | Script checks cover structural conditions and execution records; semantic conditions remain explicit model judgements. `bos.mjs record` writes gate results where shell execution is available. Regression checks run with `pnpm test`; they do not prove model compliance |
-| Runtime verification | Historical: 7 behavioral scenarios passed on Claude Code (2026-09-27). One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model. No initiative has yet run on a real project with real users |
+| Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05, after a fix the feature-track case found. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
+| Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-The remediation adds deterministic regressions for previously failing gates and host contracts. It does not rerun model-based lifecycle scenarios, modify installed global configurations, or verify real production outcomes.
+67 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
@@ -274,7 +297,7 @@ Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/
 Patterns borrowed, not dependencies. BuilderOS installs on its own.
 
 - [obra/superpowers](https://github.com/obra/superpowers) — phase discipline with hard refusal to skip ahead, "evidence over claims", the short bootstrap skill with its red-flags table, and classifying work into paths before starting
-- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, interview rounds with a recommended answer per question, the async questionnaire, the ADR test, the glossary, and "not yet specified" kept apart from out of scope
+- [mattpocock/skills](https://github.com/mattpocock/skills) — small composable skills, interview rounds (here extended to options with consequences and a recommendation with its reason, per question), the async questionnaire, the ADR test, the glossary, and "not yet specified" kept apart from out of scope
 - [pbakaus/impeccable](https://github.com/pbakaus/impeccable) — durable product truth kept separate from surface decisions, deterministic detectors
 
 ---
