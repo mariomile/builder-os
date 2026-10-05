@@ -307,3 +307,11 @@ test('brief flags history events the schema does not define', () => {
   fs.writeFileSync(f, JSON.stringify(s, null, 2));
   assert.match(run(root, 'brief').out, /csv-export\/state\.json does not follow the schema \(unknown history event build_shipped/);
 });
+
+test('new refuses to create an initiative without a classified track', () => {
+  const root = project();
+  const r = run(root, 'new', 'team-filter', '--title', 'Team filter');
+  assert.notEqual(r.code, 0);
+  assert.match(r.err + r.out, /needs --track/);
+  assert.ok(!fs.existsSync(INIT(root, 'team-filter')));
+});

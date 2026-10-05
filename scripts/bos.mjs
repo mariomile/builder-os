@@ -777,8 +777,8 @@ function roadmap() {
 function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
-  const track = opt('--track') || 'product';
-  if (!['spike', 'feature', 'product'].includes(track)) die('track is spike, feature or product');
+  const track = opt('--track');
+  if (!['spike', 'feature', 'product'].includes(track)) die('new needs --track spike|feature|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product with an evidenced PRODUCT.md that is usually feature');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
