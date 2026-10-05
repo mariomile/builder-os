@@ -26,13 +26,28 @@ A quick sanity check usually needs one focused round; an irreversible bet may ne
 
 ## Rounds
 
-Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered. Recommend an option only for a preference or decision with a reason. Ask missing factual questions neutrally: do not propose a baseline, budget, user quote or historical result. Never treat the recommendation as a submitted answer.
+Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered.
+
+**Every question carries options, a recommendation and its reason.** Never send a bare question. List every option the user could credibly pick, usually two to five, including the ones you would argue against (doing nothing, the cheaper version, the reversal). Each option gets one line on what happens if it is chosen. Then recommend one and say why: the reason names the deciding factor and, when it rests on a fact, its source tag. When no option clearly wins, say which fact would decide it and recommend the cheapest way to get that fact. Never treat the recommendation as a submitted answer.
 
 ```markdown
-**Q1 — {short title}.** {The question, with the options when there are options.}
-→ Recommended: {your answer}, because {reason, with a source tag if it rests on a fact}.
+**Q1 — {short title}.** {The question.}
+- **A. {option}:** {what happens if chosen}
+- **B. {option}:** {what happens if chosen}
+- **C. {option}:** {what happens if chosen}
+→ Recommended: **B**, because {deciding factor, with a source tag if it rests on a fact}.
 
 **Q2 — {short title}.** …
+```
+
+**Factual questions get options too, but never candidate values.** When the session cannot retrieve a fact (a baseline, a budget, what a user said, a past result), do not list guessed numbers or quotes as options: that anchors the answer and invents evidence. The options are the ways to close the gap, and the recommendation picks one:
+
+```markdown
+**Q3 — Weekly report open rate.** No analytics capability resolved in this session, so I need this from you.
+- **A. You know it:** give the number and where it comes from; it enters as a tagged fact.
+- **B. Query it:** name the dashboard or table and I write the query; the round waits for the result.
+- **C. Proceed without it:** recorded as an unverified assumption with the test that would check it.
+→ Recommended: **B**, because the success metric depends on this baseline and a guess here moves the target.
 ```
 
 A question whose answer depends on another question in the same round belongs to the next round. The attack on the load-bearing assumption (Method, steps 2 to 5) is a chain: each answer decides the next question, so that chain runs one question per round. Independent branches (who the ICP is, what changed, who solved it before) go together.
@@ -69,7 +84,9 @@ Only unresolved branches named by the applicable gate block that gate. A deferre
 |---------|-------------|---------|
 | Stopping when the user agrees | Agreement is not resolution | Stop when branches are resolved or deferred with a test |
 | Asking dependent questions in the same round | The user answers questions whose premise the first answer changes | Ask only the frontier; dependent questions wait for the next round |
-| Recommending an answer to a factual question | Anchors the answer and may invent evidence | Ask neutrally; recommend only decisions |
+| A bare question with no options | The user has to invent the alternatives and gets no view to push against | List the credible options, each with its consequence, and recommend one with the reason |
+| Only the options you like | The user cannot reject what was never shown | Include doing nothing, the cheaper version and the reversal when they are credible |
+| Guessed values as options for a factual question | Anchors the answer and invents evidence | Offer ways to close the gap (you know it, query it, proceed as an assumption) and recommend one |
 | Reviewing every hypothetical risk in a quick check | Consumes the task without improving the decision | Test the material assumption and record residual uncertainty |
 | Asking the user for a fact the session could retrieve | Wastes their turn and signals you did not look | Resolve the capability first; ask only when the ladder is exhausted |
 | Attacking peripheral details | Feels rigorous, changes nothing | Attack the load-bearing assumption |

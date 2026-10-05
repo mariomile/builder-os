@@ -11,7 +11,7 @@ Follow [operating modes and resource paths](../../references/operating-modes.md)
 
 **Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
 
-Read only the requested query shape in `references/analytics-contract.md` for measurement design, and `references/capability-map.md` when resolving a provider. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+Read only the requested query shape in `references/analytics-contract.md` for measurement design, and `references/capability-map.md` when resolving a provider. Retrieve facts before asking; ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
 
 
 Event naming, property schemas, quality assurance, and the procedure for turning a feature into a tracking plan.

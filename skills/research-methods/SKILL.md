@@ -11,7 +11,7 @@ Follow [operating modes and resource paths](../../references/operating-modes.md)
 
 **Lifecycle:** Apply the named phase prerequisites, artifact paths and gate recording below only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
 
-Load `evidence-ledger` for lifecycle tagging/counting and `discovery-methods` only when synthesizing real transcripts. Load `gate-checks` only for the lifecycle verdict. Retrieve facts before asking; suggest recommended options for decisions, not answers to factual observations.
+Load `evidence-ledger` for lifecycle tagging/counting and `discovery-methods` only when synthesizing real transcripts. Load `gate-checks` only for the lifecycle verdict. Retrieve facts before asking; ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
 
 
 Phase 1 exists to find out whether the frame survives contact with reality. Its output is a verdict, not a summary.
