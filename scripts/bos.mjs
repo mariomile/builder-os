@@ -956,6 +956,8 @@ function deferReview() {
   console.log(`REVIEW DEFERRED: ${init.slug} remains at phase 7; review ${due}. ${reason}`);
 }
 
+const HISTORY_EVENTS = ['track_set', 'phase_covered', 'track_upgraded', 'phase_jump', 'initiative_switched', 'paused', 'migrated', 'gate_passed', 'gate_failed', 'gate_overridden', 'review_deferred', 'cycle_started', 'closed', 'watch_checked', 'watch_breached'];
+
 function schemaProblems(i) {
   const s = i.state, p = [];
   for (const k of ['schema', 'slug', 'title', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
@@ -976,6 +978,8 @@ function schemaProblems(i) {
     if (v && v.status === 'covered' && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'phase_covered' && String(h.phase) === k)) p.push(`phase ${k} covered with no phase_covered event`);
   }
   if (s.track && !(Array.isArray(s.history) ? s.history : []).some((h) => h.event === 'track_set')) p.push('no track_set event');
+  const unknown = [...new Set((Array.isArray(s.history) ? s.history : []).map((h) => h && h.event).filter((e) => !HISTORY_EVENTS.includes(e)))];
+  if (unknown.length) p.push(`unknown history event ${unknown.slice(0, 3).join(', ')}`);
   return p;
 }
 

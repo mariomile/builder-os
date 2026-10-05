@@ -42,7 +42,7 @@ Keep the initiative's roadmap in sync with state. Archive earlier cycle artifact
 
 ## Output Contract
 
-Report the active initiative, phase, artifact, gate outcome and the next in-scope action. Name a blocking condition and what would satisfy it. Use the selected phase skill's actual completion marker and never treat a marker as proof. RELEASE READY and REVIEW DEFERRED explicitly do not advance the lifecycle. Phase 1 accepts validated, killed or reshaped verdicts; a spike derives answered status from its matching recorded verdict.
+Report the active initiative, phase, artifact, gate outcome and the next in-scope action. Open every phase report with a recap in plain words, at most five lines, for someone who did not follow the work: what was decided, what changed, what is still unknown. Jargon, condition ids and file names come after it. Name a blocking condition and what would satisfy it. Use the selected phase skill's actual completion marker and never treat a marker as proof. RELEASE READY and REVIEW DEFERRED explicitly do not advance the lifecycle. Phase 1 accepts validated, killed or reshaped verdicts; a spike derives answered status from its matching recorded verdict.
 
 ## Common Mistakes
 

@@ -298,3 +298,12 @@ test('brief flags a decision past its revisit date, one with no reopening condit
   assert.match(out, /PRODUCT\.md still rests on 1 unvalidated assumption past phase 1/);
   assert.ok(out.trim().split('\n').length <= 6);
 });
+
+test('brief flags history events the schema does not define', () => {
+  const root = project();
+  const f = path.join(INIT(root), 'state.json');
+  const s = JSON.parse(fs.readFileSync(f, 'utf8'));
+  s.history.push({ at: '2026-09-20T10:00:00Z', event: 'build_shipped', slice: 24 });
+  fs.writeFileSync(f, JSON.stringify(s, null, 2));
+  assert.match(run(root, 'brief').out, /csv-export\/state\.json does not follow the schema \(unknown history event build_shipped/);
+});
