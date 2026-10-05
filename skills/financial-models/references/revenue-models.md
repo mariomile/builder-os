@@ -1,6 +1,17 @@
 # Financial Formulas and Models
 
-Read only the relevant metric, projection or heuristic section. This resource resolves relative to its owning `SKILL.md`; sibling SQL is in `revenue-sql.md`.
+Read only the relevant metric, projection, heuristic or output-contract section. This resource resolves relative to its owning `SKILL.md`; sibling SQL is in `revenue-sql.md`.
+
+## Output Contract
+
+For a full report. Narrow requests keep their requested format and only applicable sections.
+
+```markdown
+## FINANCIAL ANALYSIS COMPLETE
+
+**Product:** {name} · **Period:** {range}
+**Revenue source:** {billing tables / revenue events / recorded / user-provided}
+**Capabilities resolved:** {capability → concrete source, or "none: files only"}
 
 ## MRR Waterfall
 {starting, new, expansion, reactivation, contraction, churn, ending, reconciled}
