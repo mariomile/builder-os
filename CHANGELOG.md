@@ -2,6 +2,32 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased] - 2026-10-05
+
+BuilderOS as a copilot, shaped by the first real use (an internal team tool taken to phase 6): the questions offer choices instead of blanks, the start needs one sentence, the agent flags drift while you work, and the skills are half as long. No new phases, commands or capabilities.
+
+### Added
+
+- **Option rounds.** Every `pressure-testing` question lists two to four options, each with its consequence, and recommends one with the reason. At most four questions per round, answered by code (`1B, 2A`). "Go with the recommendations" decides only when the user says it, records each decision as theirs and never fills a factual gap. Factual questions offer ways to close the gap, never guessed values. An answer that maps to no option and lifts a gate or scope limit is confirmed before it counts.
+- **Watch While Working** in `using-builder-os`: before doing a product request, check it against decisions, `PRODUCT.md` non-goals, conditions set by earlier phases and the spec's out-of-scope (contradiction), update files the decision made wrong (stale truth), name unvalidated ground (shaky ground), and put measurement before more work on an unread result or an unstarted pilot. Two lines, never a block.
+- **Briefing attention**: decisions past their `Revisit when` date or without one, `[assumption:unvalidated]` left in `PRODUCT.md` after phase 1, and history events outside the schema's list.
+- **Plain recap**: every phase report opens with at most five lines for someone who did not follow the work.
+
+### Changed
+
+- **One-sentence start.** `/bos-init [idea]` drafts `PRODUCT.md` from the sentence, announces name, track and mode as defaults the user can override, and opens the first round of the starting phase in the same turn. Procedure in `references/lifecycle-setup.md`.
+- **`bos.mjs new` requires `--track`.** Without it the script created a `product` initiative, which a later classification could not undo.
+- **`/bos --phase`** logs a `phase_jump` event.
+- **Editorial pass.** `SKILL.md` files keep the procedure (42k → 21.6k words in total); methods, templates and examples moved unchanged into each skill's `references/`, read on demand. `gate-checks` is split into one file per gate, so a gate loads only its own conditions. The rule on retrieving facts before asking lives once, in `references/operating-modes.md`.
+
+### Fixed
+
+- The `financial-models` output template was split across two files; a `release-ops` step pointed at the wrong step.
+
+### Verification
+
+67 Node tests pass (3 new). All 9 behavioral scenarios pass on Claude Code; `feature-track` failed on the first run (the track defaulted to `product`) and passed 3 of 3 after the `--track` fix.
+
 ## [Unreleased] - 2026-10-04
 
 Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbook: the plan is reviewed before the code, a person accepts the work where it changes hands, the test loop cannot be weakened from inside, and production feeds the next cycle. No new phases, commands or capabilities; skills stay host-agnostic and every addition keeps a floor.

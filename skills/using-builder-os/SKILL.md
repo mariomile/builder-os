@@ -23,7 +23,7 @@ In a project with BuilderOS memory, check every product request against it befor
 - **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
 - **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work on the same area. Say the measurement comes first, or why it can wait.
 
-The briefing's Attention line covers what the files decide mechanically; these three need judgment. Never block the request on them and never repeat one the user has already answered in this session.
+The briefing's Attention line covers what the files decide mechanically; these four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
 
 ## Routes
 
