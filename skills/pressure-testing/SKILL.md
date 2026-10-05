@@ -26,9 +26,11 @@ A quick sanity check usually needs one focused round; an irreversible bet may ne
 
 ## Rounds
 
-Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered.
+Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered, at most four questions per round; the rest wait for the next round, most load-bearing first.
 
-**Every question carries options, a recommendation and its reason.** Never send a bare question. List every option the user could credibly pick, usually two to five, including the ones you would argue against (doing nothing, the cheaper version, the reversal). Each option gets one line on what happens if it is chosen. Then recommend one and say why: the reason names the deciding factor and, when it rests on a fact, its source tag. When no option clearly wins, say which fact would decide it and recommend the cheapest way to get that fact. Never treat the recommendation as a submitted answer.
+**Every question carries options, a recommendation and its reason.** Never send a bare question. List the options the user could credibly pick, two to four, including the ones you would argue against (doing nothing, the cheaper version, the reversal). Each option gets one line on what happens if it is chosen. Then recommend one and say why: the reason names the deciding factor and, when it rests on a fact, its source tag. When no option clearly wins, say which fact would decide it and recommend the cheapest way to get that fact. Never treat the recommendation as a submitted answer.
+
+**Answering costs one line.** Close every round with how to answer: question number plus option letter (`1B, 2A, 3 other: …`), free text always accepted. "Go with the recommendations" is a valid answer only when the user says it: it accepts every recommended decision in the round, each recorded as the user's decision, and it never fills a factual gap (a fact still needs its source or becomes a recorded assumption). An accepted decision that is hard to reverse, surprising without context and the result of a real trade-off is written as an ADR in `decisions/` in lifecycle mode; the rest live in the resolution table.
 
 ```markdown
 **Q1 — {short title}.** {The question.}
@@ -38,6 +40,8 @@ Questions come in **rounds**. A round holds every open question whose answer doe
 → Recommended: **B**, because {deciding factor, with a source tag if it rests on a fact}.
 
 **Q2 — {short title}.** …
+
+Answer like `1B, 2A`, or "go with the recommendations".
 ```
 
 **Factual questions get options too, but never candidate values.** When the session cannot retrieve a fact (a baseline, a budget, what a user said, a past result), do not list guessed numbers or quotes as options: that anchors the answer and invents evidence. The options are the ways to close the gap, and the recommendation picks one:
@@ -85,6 +89,8 @@ Only unresolved branches named by the applicable gate block that gate. A deferre
 | Stopping when the user agrees | Agreement is not resolution | Stop when branches are resolved or deferred with a test |
 | Asking dependent questions in the same round | The user answers questions whose premise the first answer changes | Ask only the frontier; dependent questions wait for the next round |
 | A bare question with no options | The user has to invent the alternatives and gets no view to push against | List the credible options, each with its consequence, and recommend one with the reason |
+| A round of eight questions with five options each | The user skims, picks the first option or answers none | At most four questions, two to four options, answer by code |
+| Applying recommendations the user never accepted | A suggestion becomes a decision nobody made | Only an explicit answer or "go with the recommendations" decides |
 | Only the options you like | The user cannot reject what was never shown | Include doing nothing, the cheaper version and the reversal when they are credible |
 | Guessed values as options for a factual question | Anchors the answer and invents evidence | Offer ways to close the gap (you know it, query it, proceed as an assumption) and recommend one |
 | Reviewing every hypothetical risk in a quick check | Consumes the task without improving the decision | Test the material assumption and record residual uncertainty |
