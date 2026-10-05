@@ -282,3 +282,19 @@ test('migrate moves a schema 1 pipeline into an initiative folder', () => {
   assert.equal(s.history.at(-1).event, 'migrated');
   assert.ok(fs.existsSync(path.join(root, '.builderos/initiatives/old/00-frame.md')));
 });
+
+test('brief flags a decision past its revisit date, one with no reopening condition, and unvalidated PRODUCT.md assumptions', () => {
+  const root = project();
+  const dir = path.join(root, '.builderos/decisions');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'ADR-001-cursor-pagination.md'), '# ADR-001: Cursor pagination\n\n**Date:** 2026-08-01\n\n## Decision\nCursors.\n\n## Revisit when\nBy 2026-09-01, or when a page exceeds 2s.\n');
+  fs.writeFileSync(path.join(dir, '2026-08-15-realtime.md'), '# Realtime reconciliation\n\nDate: 2026-08-15.\n\n## Problem and decision\nCounters per cache scope.\n');
+  fs.writeFileSync(path.join(dir, 'ADR-003-future.md'), '# ADR-003: Future\n\n**Date:** 2026-07-01\n\n## Revisit when\nBy 2999-01-01.\n');
+  const out = run(root, 'brief').out;
+  assert.match(out, /Latest decision: 2026-08-15-realtime\./);
+  assert.match(out, /decision ADR-001-cursor-pagination asked to be revisited by 2026-09-01/);
+  assert.match(out, /decision 2026-08-15-realtime has no Revisit when condition/);
+  assert.doesNotMatch(out, /ADR-003-future/);
+  assert.match(out, /PRODUCT\.md still rests on 1 unvalidated assumption past phase 1/);
+  assert.ok(out.trim().split('\n').length <= 6);
+});

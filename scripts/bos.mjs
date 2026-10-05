@@ -656,6 +656,20 @@ function roadmapPhases() {
   return m;
 }
 
+// Every decision file, oldest first by its Date (file name as tie-break), with its reopening condition.
+function decisions() {
+  const dir = path.join(BOS, 'decisions');
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => {
+    const md = read(path.join(dir, f)) || '';
+    const date = (md.match(/^\**Date:?\**:?\s*(\d{4}-\d{2}-\d{2})/m) || f.match(/^(\d{4}-\d{2}-\d{2})/) || [])[1] || '';
+    const rv = section(md, 'Revisit when');
+    const revisit = rv === null || rv === undefined ? null : rv.trim();
+    const revisitBy = revisit ? ((revisit.match(/\b(\d{4}-\d{2}-\d{2})\b/) || [])[1] || null) : null;
+    return { name: f.replace(/\.md$/, ''), date, revisit: revisit || null, revisitBy };
+  }).sort((a, b) => (a.date + a.name).localeCompare(b.date + b.name));
+}
+
 function brief() {
   if (!fs.existsSync(BOS)) { console.log('No BuilderOS memory in this directory.'); return; }
   if (read(path.join(BOS, 'state.json'))) { console.log('Schema 1 state found at .builderos/state.json: run `bos.mjs migrate` before anything else.'); return; }
@@ -672,8 +686,8 @@ function brief() {
     lines.push(`${product} · ${s.title || active.slug} (${s.track || 'product'} track, cycle ${s.cycle || 1}): phase ${p} ${PHASES[p]}, ${lastGate(s)}.`);
     const ov = overrides(s);
     lines.push(ov.length ? `Overrides in force: phase ${ov.join('; phase ')}.` : 'No overrides.');
-    const dec = fs.existsSync(path.join(BOS, 'decisions')) ? fs.readdirSync(path.join(BOS, 'decisions')).filter((f) => /^ADR-\d+/.test(f)).sort() : [];
-    if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].replace(/\.md$/, '')}.`);
+    const dec = decisions();
+    if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
     lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
@@ -690,6 +704,13 @@ function brief() {
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
+  const todayIso = new Date().toISOString().slice(0, 10);
+  for (const d of decisions()) {
+    if (d.revisit === null) attention.push(`decision ${d.name} has no Revisit when condition`);
+    else if (d.revisitBy && d.revisitBy <= todayIso) attention.push(`decision ${d.name} asked to be revisited by ${d.revisitBy}`);
+  }
+  const unvalidated = ((read(path.join(ROOT, 'PRODUCT.md')) || '').match(/\[assumption:unvalidated\]/g) || []).length;
+  if (unvalidated && all.some((i) => (i.state.status || 'open') !== 'closed' && (i.state.current_phase ?? 0) >= 2)) attention.push(`PRODUCT.md still rests on ${unvalidated} unvalidated assumption${unvalidated > 1 ? 's' : ''} past phase 1`);
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
   console.log(lines.slice(0, 5).join('\n'));
