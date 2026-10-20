@@ -52,6 +52,8 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **11. Execute within authorization and verify exposure.** The agent prepares; a person authorizes crossing into user exposure, and planning a release never authorizes the deploy. Record `**Authorized by:**` in Exposure verification with who and how (the message, the ticket, the approval) (gate 6.8). If deployment is authorized, perform the rollout, observe the exposed version in the intended environment and capture a resolving data or document source. Otherwise report the concrete readiness result and the remaining authorization or access. Record an actual, non-future timestamp, environment, version and verification. Installed-app behavior requires observing the installed app; publication alone proves publication. A release rule that must hold every time (no production deploy without approval) goes in `TECH.md` → Technical constraints with its deterministic check (host hook or protected CI step) when one exists.
 
+A problem found during rollout or after exposure runs `bug-diagnosis` before any fix, and the rollback in step 3 is the first answer when users are affected.
+
 **12. Gate the verified release.** Run gate 6, including 6.6 exposure structure, 6.7 evidence-to-exposure judgment and 6.8 authorization, then record with the outcome date and the person who authorized (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD --accepted-by "who"` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
 
 Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for observed exposure backed by its evidence and passing gate. Report partial rollout accurately.

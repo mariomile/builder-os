@@ -188,6 +188,8 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 | Test | {one command} | {e.g. "N passed, 0 failed"} |
 | Lint | {one command} | {e.g. "0 problems"} |
 
+**Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one}
+
 ## Technical constraints
 {Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
 
@@ -198,7 +200,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 {What has bitten before, with the initiative or commit where it happened.}
 ```
 
-Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail when there is none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
 
 ## state.json
 

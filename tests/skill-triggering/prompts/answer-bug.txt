@@ -1,0 +1,2 @@
+# expects: skill=bug-diagnosis (standalone)
+Da ieri l export dei report a volte va in timeout e a volte no. Non capisco perché, mi aiuti a trovare la causa?

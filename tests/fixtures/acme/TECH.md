@@ -6,3 +6,5 @@
 | Layer | Choice | Why | Decision |
 |-------|--------|-----|----------|
 | backend | Node | team knows it | inherited |
+
+**Guardrail:** pre-commit hook `.husky/pre-commit` runs the test command

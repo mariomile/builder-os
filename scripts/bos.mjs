@@ -493,6 +493,8 @@ function gate(n, ctx) {
     ].filter(Boolean);
     pass('5.6', planGaps.length === 0, planGaps.length ? planGaps.join('; ') : `plan accepted ${acceptedAt}, slices name their files, ${risks.length} risks`);
     judge('5.7', 'was the plan accepted before implementation started, and does the final diff match it (or was the plan updated with the deviation)?');
+    const guard = field(read(path.join(ROOT, 'TECH.md')) || '', 'Guardrail');
+    pass('5.8', nonEmpty(guard) && !/^(none|no|n\/?a|—|-)\b/i.test(guard), guard ? `guardrail: ${guard}` : 'TECH.md names no "**Guardrail:**" running Verify on every change');
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;

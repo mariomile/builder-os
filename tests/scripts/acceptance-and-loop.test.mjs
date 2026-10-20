@@ -97,6 +97,19 @@ test('gate 5.6 needs an accepted plan explained in plain words, with seams, slic
   }
 });
 
+test('gate 5.8 needs a guardrail that runs Verify on every change', () => {
+  const root = project();
+  write(root, '04-spec.md', SPEC(''));
+  write(root, '05-build-plan.md', BUILD());
+  assert.equal(gate(root, 5).by['5.8'], 'pass', 'the fixture names a pre-commit hook');
+  const tech = path.join(root, 'TECH.md');
+  const body = fs.readFileSync(tech, 'utf8');
+  fs.writeFileSync(tech, body.replace(/\*\*Guardrail:\*\*.*$/m, '**Guardrail:** none'));
+  assert.equal(gate(root, 5).by['5.8'], 'fail', 'none is not a guardrail');
+  fs.writeFileSync(tech, body.replace(/\*\*Guardrail:\*\*.*$/m, ''));
+  assert.match(gate(root, 5).results.find((r) => r.id === '5.8').detail, /names no/);
+});
+
 const RELEASE = (authorized) => `# Release\n\n## Exposure verification\n**Status:** planned\n${authorized ? '**Authorized by:** Mario, "go to production" in chat 2026-01-03\n' : ''}`;
 
 test('gate 6.8 needs the person who authorized exposure', () => {
