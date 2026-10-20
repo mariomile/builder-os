@@ -35,6 +35,10 @@ The briefing's Attention line covers what the files decide mechanically; these f
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
 | Synthesize supplied research | `discovery-methods` |
 | Compare opportunities or solution alternatives | `opportunity-mapping` or `ideation-methods`, standalone |
+| Which stack, backend, database or hosting to use, and why | `stack-decisions`, standalone |
+| See design versions, choose a look or a design kit | `design-direction`, standalone |
+| Business rules, states and transitions, data model, what a term means | `domain-model`, standalone |
+| Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |
 | Draft or revise a specification from requirements | `spec-writing`, standalone; UX/tracking as needed |
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |

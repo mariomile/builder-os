@@ -66,6 +66,13 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 ## Opportunity
 {from 02-definition.md, with its evidence tags}
 
+## Divergence
+| # | Raw idea | Prompt | From |
+|---|----------|--------|------|
+| 1 | {one line} | who acts / when / remove / no constraint / other domain / user | agent / {person} |
+
+{At least eight rows, five in lite mode. Unscored. Clusters become the options below.}
+
 ## Options
 | # | Option | Primary user action | Impact | Confidence | Effort | Reversibility |
 |---|--------|--------------------|--------|-----------|--------|---------------|
@@ -74,6 +81,7 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 {Confidence scores cite tags. An option resting on assumption says so.}
 
 ## Selected: {n}
+**Chosen by:** {person, with their answer or the dated standing instruction}
 **Why:** {impact and confidence, with the reversibility tie-break where it applied}
 
 ## Rejected

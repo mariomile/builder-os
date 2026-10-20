@@ -12,15 +12,38 @@ The first reviewable artifact of a build is the plan, not the diff. A wrong assu
 
 | Part | What it says |
 |------|--------------|
+| **Seams** | The modules this work creates or changes, their interfaces and where tests sit; see Seams below |
 | **Slices** | The tracer bullets below, each with the files it creates or changes, the acceptance criteria it owns and what it blocks on |
 | **Critical path** | The longest chain of blocking edges |
 | **Risks** | What can break, which step is riskiest, and what limits apply (a rate limit, a migration, a shared table) with the mitigation |
 | **Rejected alternatives** | The approaches considered and why each lost, so the reviewer does not re-propose them |
 | **Criteria to tests** | Every numbered acceptance criterion mapped to at least one planned test |
 
-Gate 5.6 checks the `**Accepted:**` record, the Files column and the Risks; gate 5.7 judges that acceptance came before the code and that the final diff matches the plan.
+Gate 5.6 checks the `**In plain words:**` summary, the `**Accepted:**` record, the Seams with their plain-words line, the Files column and the Risks; gate 5.7 judges that acceptance came before the code and that the final diff matches the plan.
 
 A plan corrected only in a "Deviations" paragraph at the end is a plan nobody could review against.
+
+## Seams
+
+A **module** is anything with an interface and an implementation: a function, a class, a package, a slice through tiers. Its **interface** is everything a caller must know: the signature, but also the ordering, the errors and the promises. A **seam** is where that interface lives, and it is where tests go.
+
+- **Deep over shallow.** A good module hides a lot behind a small interface. Deletion test: delete it in your head; if the complexity reappears in every caller, it earned its place; if it just vanishes, it was a pass-through.
+- **The interface is the test surface.** Tests cross the same seam callers do. Needing to test past it means the module is the wrong shape.
+- **One adapter is a hypothetical seam, two is a real one.** Do not add an interface for a variation nothing needs yet.
+- **The domain rules get one home.** The transitions and invariants from `DESIGN.md` → Domain model live behind one module; screens and endpoints ask it, they do not re-implement it.
+- **Design it twice** for the central module: two or three interfaces built under different constraints (smallest, most flexible, common case trivial), compared on what each hides and where change lands. The first idea is rarely the best one.
+
+The owner reads one plain line per seam; the rest is for the reviewer and the next agent.
+
+## Guardrails
+
+A guardrail runs Verify (build, test, lint) on every change without anyone asking: a CI job on every push, a pre-commit hook, or both. A repository with neither is itself a finding: every rule then depends on an agent remembering it.
+
+- **Slice zero adds one when there is none.** The cheapest that fits the repository: a CI workflow where the code is hosted on a service that runs one, a pre-commit hook otherwise. It runs the exact Verify commands from `TECH.md` and fails on a non-zero exit. Record it in `TECH.md` → Guardrail with the file that defines it. Adding it is a code change like any other: it is in the plan the owner accepts.
+- **Mechanical rules become checks.** A finding that is a fixed pattern (a banned call, an import that must not happen, a file that must not be edited, a missing await) gets a deterministic check in the guardrail: a lint rule, a type, a hook, a CI step. Default to building the check over writing the rule.
+- **Judgment stays in words.** Cross-file consistency, naming that fits the domain, "matches the surrounding code": these go in `TECH.md` → Conventions, which the reviewer reads with the diff. The implementing context is already the most loaded one; standards are the reviewer's job.
+
+Gate 5.8 checks that `TECH.md` names a guardrail. An override is legitimate where none can exist (no hosting, no hooks), logged with that reason.
 
 ## Tracer Bullets
 
@@ -75,7 +98,7 @@ A review that only runs the first axis will approve a beautifully implemented mi
 
 | Severity | Means | Handling |
 |----------|-------|----------|
-| **Important** | Breaks an acceptance criterion or an enumerated state, exposes data, violates a `TECH.md` constraint, or weakens a test | Fixed in this phase, or the gate fails |
+| **Important** | Breaks an acceptance criterion or an enumerated state, exposes data, violates a `TECH.md` constraint, weakens a test, adds a structural layer (framework, database, hosted service, paid API, runtime) nobody decided, or departs from the tokens and kit in `DESIGN.md` | Fixed in this phase, or the gate fails |
 | **Nit** | Style, naming, a cleaner shape | At most five listed; the rest summarized as a count |
 
 Skip what the toolchain already checks (formatting, lint rules) and generated files. Tag each finding with its axis (standards or spec).

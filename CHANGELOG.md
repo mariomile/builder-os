@@ -2,37 +2,78 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased] - 2026-10-05
+## [2.2.0] - 2026-10-20
+
+Everything merged since 2.1.1, in three blocks: the SDLC alignment (#9), BuilderOS as a copilot (#10, #11), and the design, stack and guardrail rework (#12, #13). Four new skills (`stack-decisions`, `design-direction`, `domain-model`, `bug-diagnosis`), two new capabilities (`ui.render`, `logs.query`), new gates 3.5, 3.6, 4.7 to 4.10, 5.6 to 5.8, 6.8 and 7.5. No new phases or commands.
+
+**Upgrading.** Specs and build plans written with 2.1.1 fail gates 4.7 to 4.10 and 5.6 to 5.8 until the new sections are added. `bos.mjs new` now refuses to run without `--track`.
+
+**Verification.** 74 Node tests pass. All 9 behavioral scenarios passed on Claude Code on 2026-10-05, before #12 and #13; they were not rerun after them.
+
+### Design, stack and guardrails (2026-10-20)
+
+The design and stack choices stop happening by accident. Before this, no phase decided the stack (`TECH.md` stayed "no code yet" until the first build slice picked one), the visual layer was declared out of scope when no design tool was connected, and phase 3 stopped at the three options the gate counted and could pick the bet itself. Now each of these is a choice the user makes, in rounds, knowing what is chosen, why, what it costs and what the alternatives were.
+
+#### Added
+
+- **`stack-decisions` skill.** Layers the work touches are inherited, decided or not needed; every open layer becomes a decision card (plain-language gloss, cost tagged or flagged unverified, lock-in, what would make us switch, the boring default always among the options) asked in rounds, with drivers traced to `PRODUCT.md` and an ADR for hard-to-reverse choices. Feature track inherits the stack and asks only what the feature adds or strains.
+- **`design-direction` skill.** At least three visual directions on a new product, two layout versions inside an existing design system (or in lite mode), differing in structure (layout, hierarchy, primary affordance, density), never only in colour. On a running product they mount inside the real page behind a `?variant=` switch on a throwaway branch; otherwise each is a self-contained HTML file under the initiative's `design/` folder. Revisions are new numbered files; after three rounds without a choice it proposes fixing the strongest. The design kit is chosen after the interface layer; tokens and composition rules are extracted into `DESIGN.md`, and the HTML stays a reference, never code.
+- **`domain-model` skill.** The entities the work touches, their states and transitions (who, under which condition, with which effect), invariants, awkward scenarios, and the business rules put to the user as round questions ("can a closed ticket be reopened?"). A clickable logic prototype (one HTML file, pure module, guided scenarios) when the rules are non-trivial, and a data sketch the stack decision reads. New terms go into `PRODUCT.md` → Language.
+- **Seams in the build plan.** The modules the work creates or changes, their interfaces, what they hide and where tests sit, each with one plain line; the central module is designed two or three ways and the losers go under rejected alternatives. The plan opens with `**In plain words:**`, presented before acceptance. Tests are written at the seams the plan names.
+- **`ui.render` capability**, with HTML files as its floor.
+- **Gates 3.5 and 3.6**: at least eight raw ideas before convergence (five in lite), and `**Chosen by:**` naming the person who chose the bet.
+- **Gate 4.10**: `DESIGN.md` → `## Domain model` with entities, transitions naming who, invariants, data and the person who decided the rules, or "not applicable" with a reason.
+- **Gate 5.6 extended**: the plain-words summary and the Seams table (interface, tests at, plain line per module).
+- **Gates 4.8 and 4.9**: the spec's `## Stack` lists every layer with its status, a person on every decided layer and existing ADRs, plus `## What we chose`, a plain-language summary shown before acceptance; `DESIGN.md` → `## Visual direction` with the versions, their files, who chose, the kit and the tokens, or "not applicable" with a reason.
+- **Briefing line** when an open initiative is past phase 4 while `TECH.md` still has open or empty stack layers. Gates already passed are not re-checked.
+
+- **`bug-diagnosis` skill.** A loop that goes red on this bug, captured before any change; the case made minimal; at most three hypotheses, each killed or confirmed by instrumentation one at a time; the cause fixed rather than the symptom; a regression test at the seam and a check for the whole class when it is mechanical; four plain lines for the owner. Phase 5 uses it for bugs, phase 6 for problems after exposure.
+- **Guardrails and gate 5.8.** `TECH.md` gains `**Guardrail:**`: the CI job or pre-commit hook that runs Verify on every change. Slice zero adds one when there is none; gate 5.8 fails on "none". Mechanical review findings become checks in it; judgment calls go to Conventions for the reviewer.
+- **Environment retro in phase 7.** What slowed or misled the agent this cycle, turned into a pointer, a check or a convention, recorded under Pipeline notes.
+- **`logs.query` capability**, with the user's error text as its floor.
+
+#### Changed
+
+- **Phase 3 diverges, then converges, and the person chooses.** `ideation-methods` adds the `## Divergence` list (with the user's own ideas) and makes selection a round; the solution-architect agent returns the round instead of picking.
+- **Phase 4 runs flows, rules, look, stack, kit, then the spec.** `/bos-shape` runs `domain-model`, `design-direction` and `stack-decisions` in the main conversation, where the user can answer.
+- **Phase 5 builds on what was decided.** A structural addition (framework, database, hosted service, paid API, runtime) stops the slice and returns to `stack-decisions`; utility libraries are listed in the review. An undecided layer or a departure from the tokens and kit is an Important review finding.
+- **Init no longer guesses a stack.** Undecided layers are written `open` in `TECH.md`.
+
+#### Verification
+
+74 Node tests pass (67 existing, 6 new in `tests/scripts/design-and-stack.test.mjs`, 1 new for gate 5.8). The model-based behavioral scenarios were not rerun.
+
+### Copilot (2026-10-05)
 
 BuilderOS as a copilot, shaped by the first real use (an internal team tool taken to phase 6): the questions offer choices instead of blanks, the start needs one sentence, the agent flags drift while you work, and the skills are half as long. No new phases, commands or capabilities.
 
-### Added
+#### Added
 
 - **Option rounds.** Every `pressure-testing` question lists two to four options, each with its consequence, and recommends one with the reason. At most four questions per round, answered by code (`1B, 2A`). "Go with the recommendations" decides only when the user says it, records each decision as theirs and never fills a factual gap. Factual questions offer ways to close the gap, never guessed values. An answer that maps to no option and lifts a gate or scope limit is confirmed before it counts.
 - **Watch While Working** in `using-builder-os`: before doing a product request, check it against decisions, `PRODUCT.md` non-goals, conditions set by earlier phases and the spec's out-of-scope (contradiction), update files the decision made wrong (stale truth), name unvalidated ground (shaky ground), and put measurement before more work on an unread result or an unstarted pilot. Two lines, never a block.
 - **Briefing attention**: decisions past their `Revisit when` date or without one, `[assumption:unvalidated]` left in `PRODUCT.md` after phase 1, and history events outside the schema's list.
 - **Plain recap**: every phase report opens with at most five lines for someone who did not follow the work.
 
-### Changed
+#### Changed
 
 - **One-sentence start.** `/bos-init [idea]` drafts `PRODUCT.md` from the sentence, announces name, track and mode as defaults the user can override, and opens the first round of the starting phase in the same turn. Procedure in `references/lifecycle-setup.md`.
 - **`bos.mjs new` requires `--track`.** Without it the script created a `product` initiative, which a later classification could not undo.
 - **`/bos --phase`** logs a `phase_jump` event.
 - **Editorial pass.** `SKILL.md` files keep the procedure (42k → 21.6k words in total); methods, templates and examples moved unchanged into each skill's `references/`, read on demand. `gate-checks` is split into one file per gate, so a gate loads only its own conditions. The rule on retrieving facts before asking lives once, in `references/operating-modes.md`.
 
-### Fixed
+#### Fixed
 
 - The `financial-models` output template was split across two files; a `release-ops` step pointed at the wrong step.
 
-### Verification
+#### Verification
 
 67 Node tests pass (3 new). All 9 behavioral scenarios pass on Claude Code; `feature-track` failed on the first run (the track defaulted to `product`) and passed 3 of 3 after the `--track` fix.
 
-## [Unreleased] - 2026-10-04
+### SDLC alignment (2026-10-04)
 
 Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbook: the plan is reviewed before the code, a person accepts the work where it changes hands, the test loop cannot be weakened from inside, and production feeds the next cycle. No new phases, commands or capabilities; skills stay host-agnostic and every addition keeps a floor.
 
-### Added
+#### Added
 
 - **Acceptance, separate from the gate.** `bos.mjs record` refuses to pass phases 0, 4 and 6 without `--accepted-by "who"`, taken from the person's own words, and stores `accepted_by` and `accepted_at` with the gate and in history. A failed gate records no acceptance. `gate-checks` gains the Acceptance protocol; a standing instruction counts when it named the scope.
 - **Gate 4.7**: the spec states its constraint conflicts (`PRODUCT.md` against `TECH.md`) with who decides each, or that none were found.
@@ -42,7 +83,7 @@ Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbo
 - **`bos.mjs pace`**: time per phase, gates failed before passing, who accepted, spec rework after the plan (from git), and phase 1 kills across initiatives. Phase 7 reads it into Pipeline notes.
 - **`TECH.md` → Verify**: one command each for build, test and lint with their healthy output, filled at init or by the first build. Phase 5 baselines and verifies with them.
 
-### Changed
+#### Changed
 
 - **Phase 5 plans first.** `delivery-discipline` writes the plan reading only, gets it accepted, keeps it true on every deviation, and only then runs the loop. The planner agent changes no code.
 - **The test loop is protected.** A bug fix starts from a captured failing test the fix cannot edit; changing an assertion to pass is a named mistake and an Important review finding.
@@ -51,7 +92,7 @@ Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbo
 - **`problem-framing`** accepts three ways in (idea, ticket, anomaly) and lists open questions for phase 1.
 - **Must-always-hold rules** are written in `TECH.md` with the deterministic check that enforces them, when one exists. Skills stay advisory.
 
-### Verification
+#### Verification
 
 64 Node tests pass (55 existing, 9 new in `tests/scripts/acceptance-and-loop.test.mjs`). The model-based behavioral scenarios were not rerun.
 

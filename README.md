@@ -188,6 +188,8 @@ You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decisio
 
 **It watches while you work.** Before acting on a request mid-initiative, it checks it against recorded decisions, non-goals, the conditions earlier phases set, and the spec's out-of-scope list. It also notices when your decision has made `PRODUCT.md` or the roadmap wrong, when the request builds on an unvalidated assumption, and when more work is asked for on something whose result nobody has read or whose pilot never started. Each finding takes two lines and never blocks: you choose. The session briefing flags what the files show mechanically (see Project memory below).
 
+**The look, the stack and the bet are yours to pick.** Phase 3 lists at least eight raw ideas before converging, and you choose the bet. Phase 4 models the domain rules with you, shows at least three visual directions as real pages (two inside an existing design system), and turns every open stack layer into a decision card with cost, lock-in and the boring default among the options. The build then sticks to what was decided: a new framework or paid service mid-build stops the slice and comes back to you.
+
 **Every phase report opens with a plain recap.** Five lines at most, for someone who did not follow the work: what was decided, what changed, what is still unknown. Condition ids and file names come after.
 
 ---
@@ -230,7 +232,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**24 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
+**28 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
 
 **20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
@@ -274,7 +276,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 2.1.1 published; `main` carries the changes listed under Unreleased in [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 2.2.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|
@@ -283,10 +285,10 @@ Version 2.1.1 published; `main` carries the changes listed under Unreleased in [
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
 | Gate enforcement | Script checks cover structural conditions and execution records; semantic conditions remain explicit model judgements. `bos.mjs record` writes gate results where shell execution is available. Regression checks run with `pnpm test`; they do not prove model compliance |
-| Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05, after a fix the feature-track case found. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
+| Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05, after a fix the feature-track case found; not rerun since the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
 | Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-67 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
+74 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
@@ -309,7 +311,7 @@ Patterns borrowed, not dependencies. BuilderOS installs on its own.
 | [`AGENTS.md`](AGENTS.md) | The shared contract: architecture, principles, non-negotiables |
 | [`docs/architecture.md`](docs/architecture.md) | How the pieces fit, in diagrams |
 | [`docs/hosts.md`](docs/hosts.md) | Running on Claude Code, Codex, anything else |
-| [`references/capability-map.md`](references/capability-map.md) | The 15 capabilities and their degradation ladders |
+| [`references/capability-map.md`](references/capability-map.md) | The 18 capabilities and their degradation ladders |
 | [`references/analytics-contract.md`](references/analytics-contract.md) | The five analytics question shapes, and what they mean per provider |
 | [`references/builderos-state-schema.md`](references/builderos-state-schema.md) | `.builderos/` layout and `state.json` |
 

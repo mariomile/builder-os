@@ -24,7 +24,7 @@ Your dispatch prompt carries: operating mode and resolved capabilities, pipeline
 
 The primary user action from the bet is the flow you design. Everything else serves it, and a flow that does not trace back to it is scope creep arriving before implementation.
 
-Where a design-quality toolchain is present in this session, hand it the visual layer and keep the structure. Where none is present, you carry the phase alone and say plainly that visual craft is outstanding rather than implying the design is finished.
+The rules and the look are not yours to pick: `builder-os:domain-model` and `builder-os:design-direction` run with the user next. Leave `## Domain model` and `## Visual direction` for them, list the entities your flows touch, and name the primary flow step it should render.
 
 ## Reporting
 

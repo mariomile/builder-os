@@ -25,6 +25,7 @@ Read when writing the phase 7 artifact. `scripts/bos.mjs` parses its headings an
 **Pace:** {time per phase, gates failed before passing, spec rework after the plan, from `bos.mjs pace` or the history}
 **Confounders:** {anything else that changed in the window}
 **Eval cases added:** {production failures turned into dataset cases, or "no model output"}
+**Environment:** {what slowed or misled the agent this cycle, and the check, pointer or convention changed for it}
 
 ## Decision: {KEEP | ITERATE | KILL}
 **Why:** {reasoning against both comparisons}

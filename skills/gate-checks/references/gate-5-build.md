@@ -9,10 +9,11 @@ Read when running gate 5. E.1 and the procedure in `SKILL.md` apply too. **Accep
 | 5.3 | Instrumentation verified firing | Evidence from a real environment, `data` or `code` tagged |
 | 5.4 | No scope creep | Nothing from the Gate 4 out-of-scope list was built |
 | 5.5 | The eval set passes | Eval results names `Run` and `Results` files. The captured run binds dataset/results digests, every case has one boolean result, computed pass rate reaches threshold, every must-pass passes; model verifies execution/rubric correspondence |
-| 5.6 | The plan was accepted before the build | `## Plan` has `**Accepted:**` with who and an actual ISO timestamp; the Slices table has a Files column; `## Risks` has at least one row |
+| 5.6 | The plan was accepted before the build, and could be understood | `## Plan` has `**In plain words:**` and `**Accepted:**` with who and an actual ISO timestamp; `## Seams` has at least one row, each with its interface, where tests sit and a plain-words line; the Slices table has a Files column; `## Risks` has at least one row |
 | 5.7 | The build followed the plan | Model confirms acceptance preceded implementation, and the final diff matches the plan or the plan records each deviation with its reason |
+| 5.8 | A guardrail runs Verify | `TECH.md` has `**Guardrail:**` naming the CI job or pre-commit hook that runs Verify on every change, not "none" |
 
-Script-decided: 5.1, 5.3, 5.4, 5.6. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Model-judged: 5.7. The emitted `checked_by` split is authoritative.
+Script-decided: 5.1, 5.3, 5.4, 5.6, 5.8. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Model-judged: 5.7. The emitted `checked_by` split is authoritative.
 
 ## Execution Evidence
 
