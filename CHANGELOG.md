@@ -2,6 +2,33 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+### Work on a product that already exists (2026-10-20)
+
+BuilderOS was shaped around a new product walking from phase 0 to 7 once. On a live product the work is different: many small changes, in parallel, in code with history, red tests, CI owned by others and users who already rely on the old behavior. Analysis in the project thread; decisions 1A to 4A.
+
+#### Added
+
+- **`change` track.** A modification whose solution is already decided (bug, debt, compliance, contract, exactly specified request, removal). `00-request.md` carries the request, its evidence, its population and the mandate; the mandate check (gate M: M.1 source, M.2 kind, M.3 why no bet, M.4 judged) covers phases 0 to 3 and the work starts at the spec in lite mode. Gate 4.4 is skipped, the look can be `inherited` with a reason, phase 5 is unchanged, and phase 6 closes the initiative unless the release sets an outcome review. A failed mandate check moves the work to `feature`. `bos.mjs new --track change`, `cover --m4`.
+- **`bos.mjs upgrade --to feature|product --reason`**: the ratchet as a command, back to phase 0 with the artifacts kept.
+- **The request's own evidence on the feature track.** `00-request.md` is required there too; C.5 checks its evidence and population (only the requester's words is a warning), C.6 warns on problem evidence older than a year, and gate 2.1 accepts tags from `00-request.md` and the initiative's own `evidence/`. Init on a live product harvests the evidence that already exists (tickets, analytics, call notes) before the coverage check judges it.
+- **Gate 4.11, impact on what exists.** The spec states, for existing data, contracts, tracking events, permissions and current users, what changes and how it is handled. Never relaxed in lite.
+- **`DOMAIN.md` and `TECH.md` → Design system, and gate 6.9.** What an initiative modeled and chose leaves its folder at ship: entities and rules into `DOMAIN.md`, kit and token location into `TECH.md`. `domain-model` and `design-direction` start from them and ask only the delta.
+- **Gate 7.6, cleanup.** Every decision schedules what to remove: the flag and old path after KEEP, the shipped code after KILL.
+- **Release notes say what changes for existing users**, not only what they can now do.
+- **Pre-existing failures.** A suite already red before the change: gate 5.2 compares the final run with the captured baseline (listed failures present in the baseline log, no more failures than before, a separate green run of the mapped tests) instead of demanding exit 0. `TECH.md` gains Known failing and Test (fast).
+- **Where the work lives.** Lifecycle files before code on the default branch, from the build with the code on its branch, an abandoned branch recorded as a decision; the briefing names initiatives that exist only on another branch. Multi-repository and monorepo limits stated.
+
+#### Changed
+
+- **C.3 no longer accepts a `code` tag** as evidence of a problem.
+- **Gate 5.8** accepts `declined by {person} ({why}), {date}` as a visible warning when the CI belongs to someone else.
+
+**Upgrading.** Specs written before this fail 4.11 until `## Impact on what exists` is added; releases fail 6.9 until the domain and look are promoted; outcomes fail 7.6 until `**Cleanup:**` is written. Feature initiatives created before this keep their covered phases; new ones need `00-request.md`.
+
+**Verification.** 87 Node tests pass. Behavioral scenarios not rerun.
+
 ## [2.2.0] - 2026-10-20
 
 Everything merged since 2.1.1, in three blocks: the SDLC alignment (#9), BuilderOS as a copilot (#10, #11), and the design, stack and guardrail rework (#12, #13). Four new skills (`stack-decisions`, `design-direction`, `domain-model`, `bug-diagnosis`), two new capabilities (`ui.render`, `logs.query`), new gates 3.5, 3.6, 4.7 to 4.10, 5.6 to 5.8, 6.8 and 7.5. No new phases or commands.

@@ -11,9 +11,9 @@ Read `evidence-ledger` only when tag counting or source provenance needs clarifi
 
 ## The Conditions
 
-Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), or [C Coverage](references/coverage-check.md). Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
+Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, or [M Mandate](references/mandate-check.md) on the change track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
 
-E.1 runs on every gate, including the coverage check (against `PRODUCT.md`). A tag without its file is an untagged claim wearing a tag.
+E.1 runs on every gate, including the coverage check (against `PRODUCT.md` and `00-request.md`) and the mandate check. A tag without its file is an untagged claim wearing a tag.
 
 | # | Condition | Check |
 |---|-----------|-------|
@@ -63,11 +63,15 @@ Overrides exist; undocumented bypasses are worse than documented ones.
 /bos-gate --override "reason"
 ```
 
-Where commands run, `record {N} --judged ... --override "reason"`. Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome. An override never silently disappears: it is provenance, not shame. The coverage check cannot be overridden.
+Where commands run, `record {N} --judged ... --override "reason"`. Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome. An override never silently disappears: it is provenance, not shame. The coverage and mandate checks cannot be overridden.
 
 ## Coverage Check (feature track)
 
-Runs once, at initialization, when the work is classified as `feature`, standing in for gates 0 and 1 by reading `PRODUCT.md`. Conditions, the check-before-recording rule and both outcomes: [coverage-check.md](references/coverage-check.md).
+Runs once, at initialization, when the work is classified as `feature`, standing in for gates 0 and 1 by reading `PRODUCT.md` and the request's own evidence in `00-request.md`. Conditions, the check-before-recording rule and both outcomes: [coverage-check.md](references/coverage-check.md).
+
+## Mandate Check (change track)
+
+Runs once, at initialization, when the work is classified as `change`, standing in for gates 0 to 3 by reading the mandate in `00-request.md`: the bug, the debt, the rule or the contract that already decided what to build. Conditions and outcomes: [mandate-check.md](references/mandate-check.md). A failure moves the work to `feature`.
 
 ## Spike Stop (spike track)
 

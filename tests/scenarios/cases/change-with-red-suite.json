@@ -1,0 +1,35 @@
+{
+  "name": "change-with-red-suite",
+  "why": "A bug fix on a live product whose suite was already red before the change. It must run as a change (mandate, spec with impact on what exists, accepted plan, build) without touching the unrelated failing test, and gate 5 must pass against the baseline rather than by fixing or skipping the legacy failure",
+  "fixture": "acme",
+  "setup": {
+    "regenerate_roadmap": true,
+    "write": {
+      "package.json": "{\n  \"name\": \"acme-reports\",\n  \"type\": \"module\",\n  \"scripts\": { \"test\": \"node --test test/\" }\n}\n",
+      "src/sort.mjs": "// Sorts report rows by their date column.\nexport const sortByDate = (rows) => [...rows].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));\n",
+      "test/sort.test.mjs": "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\nimport { sortByDate } from '../src/sort.mjs';\n\ntest('keeps rows that share a date', () => {\n  assert.equal(sortByDate([{ date: '1/3/2026' }, { date: '1/3/2026' }]).length, 2);\n});\n",
+      "test/legacy.test.mjs": "import { test } from 'node:test';\nimport assert from 'node:assert/strict';\n\n// Known failure since the invoice module was rewritten; owned by the billing team.\ntest('legacy invoice rounding', () => {\n  assert.equal(Math.round(2.675 * 100) / 100, 2.68);\n});\n"
+    }
+  },
+  "prompt": "Bug dal ticket #981 di Globex: \"nella vista settimanale la colonna data ordina come testo, così marzo viene prima di gennaio\". Le date sono nel formato giorno/mese/anno e devono ordinarsi per data reale, dalla più vecchia alla più recente: non c'è altro da decidere. Trattalo come change, iniziativa \"date-sort\", e porta avanti tutto fino al build verificato senza fermarti: accetto io spec e piano di build, \"procedi fino al build\" (Mario, oggi). Attenzione: la suite ha già un test rosso, legacy invoice rounding, che è del team billing e non va toccato.",
+  "expect": {
+    "files_present": [
+      ".builderos/initiatives/date-sort/00-request.md",
+      ".builderos/initiatives/date-sort/04-spec.md",
+      ".builderos/initiatives/date-sort/05-build-plan.md"
+    ],
+    "files_unchanged": [
+      "test/legacy.test.mjs"
+    ],
+    "history_events": [
+      "track_set",
+      "phase_covered",
+      "gate_passed"
+    ],
+    "state": {
+      "initiative": "date-sort",
+      "track": "change",
+      "current_phase": 6
+    }
+  }
+}

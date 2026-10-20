@@ -38,7 +38,7 @@ Entry for both: using-builder-os (reads memory, briefs, routes)
 | `agents/`, `commands/`, `.claude-plugin/` | Claude Code adapters | No |
 | `.codex-plugin/`, `.agents/plugins/` | Codex plugin manifest and marketplace. Metadata only, no procedure | No |
 
-Project memory lives in the user's working directory: `PRODUCT.md` and `TECH.md` at the root, and `.builderos/` with `ROADMAP.md`, `decisions/`, `evidence/` and one folder per initiative holding its own `state.json` and `evidence/`. Layout and rules in `references/builderos-state-schema.md`. Read memory before starting a phase; write it after finishing one.
+Project memory lives in the user's working directory: `PRODUCT.md`, `DOMAIN.md` and `TECH.md` at the root, and `.builderos/` with `ROADMAP.md`, `decisions/`, `evidence/` and one folder per initiative holding its own `state.json` and `evidence/`. Layout and rules in `references/builderos-state-schema.md`. Read memory before starting a phase; write it after finishing one.
 
 Entry point on every host: `skills/using-builder-os`. Hosts with a session-start hook inject it; elsewhere, read it first. It briefs from the memory and routes.
 

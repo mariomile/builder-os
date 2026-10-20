@@ -6,17 +6,19 @@ The project's memory. Created by `/bos-init`, read at the start of every session
 
 ```
 PRODUCT.md                what the product is: problem, ICP, non-goals, constraints, voice, language
-TECH.md                   how it is built: stack, verify commands, technical constraints, conventions, known traps
+DOMAIN.md                 the product's things and their rules: entities, states, invariants, settled business rules
+TECH.md                   how it is built: stack, design system, verify commands, technical constraints, conventions, known traps
 AGENTS.md                 the project's own agent instructions; /bos-init adds the pointer below
 .builderos/
   local.json              this checkout's active initiative; gitignored, never shared
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
   decisions/
     ADR-001-{slug}.md     one file per decision that is hard to reverse (shared across initiatives)
-  evidence/               sources cited by PRODUCT.md and TECH.md, same format as an initiative's
+  evidence/               sources cited by PRODUCT.md, DOMAIN.md and TECH.md, same format as an initiative's
   initiatives/
-    {initiative}/         one folder per initiative: a feature, a bet, a new product
+    {initiative}/         one folder per initiative: a change, a feature, a bet, a new product
       state.json          this initiative's pipeline state, the machine-read file
+      00-request.md       feature and change tracks: the request verbatim, its evidence, its population, the mandate
       evidence/           one file per source a tag cites: interview notes, query output, excerpts
         runs/             explicitly captured checks: command/exit metadata JSON and raw output logs
       00-frame.md         problem statement, ICP, riskiest assumption
@@ -33,7 +35,9 @@ AGENTS.md                 the project's own agent instructions; /bos-init adds t
       cycle-{N}/          artifacts of an earlier cycle of this initiative
 ```
 
-Throughout the skills and commands, a bare artifact name (`state.json`, `00-frame.md`, `DESIGN.md`, `evidence/`, `questionnaires/`) means the file in the **active initiative's folder**: `.builderos/initiatives/{initiative}/`. `PRODUCT.md`, `TECH.md`, `ROADMAP.md` and `decisions/` are project-wide.
+Throughout the skills and commands, a bare artifact name (`state.json`, `00-frame.md`, `DESIGN.md`, `evidence/`, `questionnaires/`) means the file in the **active initiative's folder**: `.builderos/initiatives/{initiative}/`. `PRODUCT.md`, `DOMAIN.md`, `TECH.md`, `ROADMAP.md` and `decisions/` are project-wide.
+
+**What an initiative settles about the product leaves its folder at ship.** An initiative's `DESIGN.md` holds what it modeled and chose; once it ships, the entities, states, invariants and business rules go to `DOMAIN.md`, and the chosen look's kit and token location to `TECH.md` → Design system (gate 6.9). The next initiative starts from those files and asks only about what it adds or changes. Without this, every feature remodels the same entities from scratch and the third one contradicts the first.
 
 Phase artifacts are Markdown for humans. Each initiative's `state.json` is the machine surface: no agent should have to parse prose to know where an initiative stands.
 
@@ -69,7 +73,7 @@ Code citations to different lines in the same real file count as one source, inc
 
 A tag whose file does not exist fails the gate exactly like an untagged claim. The file makes a source auditable, not true: a person reviewing the initiative can open the notes behind P3, and an invented P3 now has to be invented twice, in a place someone will read.
 
-**Version control:** commit `.builderos/`, `PRODUCT.md` and `TECH.md`. Product decisions belong next to the code they caused, and a teammate cloning the repo inherits the reasoning. Teams that want it private add `.builderos/` to `.gitignore` at init time; `/bos-init` asks once and records the answer.
+**Version control:** commit `.builderos/`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`. Product decisions belong next to the code they caused, and a teammate cloning the repo inherits the reasoning. Teams that want it private add `.builderos/` to `.gitignore` at init time; `/bos-init` asks once and records the answer.
 
 ## Captured Checks and Release Exposure
 
@@ -114,7 +118,7 @@ The source must resolve and be `data` or `doc`; code existence alone does not de
 The files above only help if a new session reads them. Every session, on any host, before answering anything product-related:
 
 1. Read `.builderos/ROADMAP.md` and every `.builderos/initiatives/*/state.json`; resolve the active initiative.
-2. Read `PRODUCT.md`, and `TECH.md` when the work touches code.
+2. Read `PRODUCT.md`, `DOMAIN.md` when the work touches the product's things or rules, and `TECH.md` when the work touches code.
 3. Give the user a briefing of at most five lines: the active initiative and its phase, the last gate result, open overrides, the most recent decision, and what comes next.
 4. Add one **Attention** line when any of these holds, and only then:
    - an outcome review is overdue: an initiative's `review_due` date has passed and phase 7 has not run;
@@ -123,7 +127,8 @@ The files above only help if a new session reads them. Every session, on any hos
    - the roadmap disagrees with an initiative's state.
    - a decision in `decisions/` has a `Revisit when` date that has passed, or has no `Revisit when` section at all;
    - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1;
-   - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user.
+   - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user;
+   - an initiative folder exists on another branch and not on this checkout: its state is travelling with code nobody here is looking at.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
 
@@ -134,7 +139,7 @@ Hosts with a session-start hook get this from `using-builder-os`. Every other ho
 ```markdown
 ## BuilderOS
 
-This project is run with BuilderOS. Before any product or planning work, read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md` and `TECH.md`, then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`.
+This project is run with BuilderOS. Before any product or planning work, read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`, then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`.
 ```
 
 If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same block goes there too.
@@ -152,7 +157,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 ## Now
 | Initiative | Track | Phase | Bet in one line | Folder |
 |------------|-------|-------|-----------------|--------|
-| {name} | {spike/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
+| {name} | {spike/change/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
 
 ## Next
 | Initiative | Why next | What must be true first |
@@ -181,14 +186,21 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 |-------|--------|-----|----------|
 | {interface / backend / data / auth / hosting / jobs / model / integrations / analytics / design kit} | {choice, or "open"} | {one line} | {ADR link, "inherited", or "decide in phase 4"} |
 
+## Design system
+**Kit:** {component library or "custom"}
+**Tokens:** {where the tokens live in the code, e.g. src/styles/tokens.css}
+**Composition:** {grid, density, where primary actions sit; one or two lines}
+
 ## Verify
 | Check | Command | Healthy output |
 |-------|---------|----------------|
 | Build | {one command, exits non-zero on failure} | {what success prints} |
 | Test | {one command} | {e.g. "N passed, 0 failed"} |
+| Test (fast) | {optional: the command that runs only the tests for a path or a pattern, used per slice when the full suite is slow} | {} |
 | Lint | {one command} | {e.g. "0 problems"} |
 
-**Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one}
+**Known failing:** {tests already red before BuilderOS, by name, with the date; "none"}
+**Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one; "declined by {person} ({why}), {date}" when the CI belongs to someone else who said no}
 
 ## Technical constraints
 {Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
@@ -201,6 +213,40 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 ```
 
 Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail when there is none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+
+## DOMAIN.md
+
+```markdown
+# DOMAIN.md — {Product}
+
+## Entities
+| Entity | Means | Lifecycle | Since |
+|--------|-------|-----------|-------|
+| {name in the product's words} | {one sentence} | {states, or "none"} | {initiative that introduced or last changed it} |
+
+## Transitions: {entity}
+| From | To | Who | Guard | Effect |
+
+## Invariants
+- {a rule that holds whatever happens} ({initiative})
+
+## Business rules
+- {a rule a person decided, with who and when} ({initiative}, {decision file if any})
+```
+
+Written at init from the repository when it holds schemas, migrations or status enums (marked unverified until a person confirms them), otherwise the heading only. Grows at every ship (gate 6.9). A rule that a later initiative changes is rewritten with the new initiative named, and the change is a decision in `decisions/` when it passes the ADR test. Terms stay defined in `PRODUCT.md` → Language; this file holds how the things behave.
+
+## Where the work lives
+
+BuilderOS state is files, so in a git repository it lives on a branch. Rules that keep it findable:
+
+- **Before code, on the default branch.** Phases 0 to 4 (or the request and the spec on a `change`) change only `.builderos/`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`; commit them where everyone reads them, directly or through a small pull request, as the team works.
+- **From the build, with the code.** Phase 5 opens a branch for the initiative and names it in `05-build-plan.md` → `**Branch:**`. The initiative's folder changes on that branch and reaches the default branch with the pull request. The pull request description links the initiative folder.
+- **An abandoned branch is a decision.** A branch closed without merging means the initiative is killed or paused: merge its folder back on its own with that event recorded, so the reasoning survives the code.
+- **The briefing looks at other branches.** Where git is available it names initiatives that exist only on another branch.
+- **`ROADMAP.md` conflicts are regenerated**, never merged by hand.
+
+**Limits, stated.** One `PRODUCT.md` and one `TECH.md` per checkout. A product split across several repositories keeps its memory in the repository that owns the product decision and names the others in `TECH.md` → Stack; a change spanning repositories names, in its build plan, the branch in each. A monorepo holding several products gets one BuilderOS root per product directory (`--root`).
 
 ## state.json
 
@@ -267,27 +313,27 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 | `status` | `open` \| `paused` \| `closed` | `closed` after phase 7 closes the cycle, a phase 1 kill, or a spike's answer |
 | `review_due` | date or `null` | Set at phase 6 from the outcome review date (gate 6.5). The briefing flags it once passed |
 | `mode` | `full` \| `lite` | Gate strictness. See `gate-checks` |
-| `track` | `spike` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
+| `track` | `spike` \| `change` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
 | `current_phase` | `0`–`7` | Where the pipeline stands |
 | `cycle` | `1`+ | Increments when phase 7 explicitly re-enters any integer phase 0–6 |
-| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline: the problem did not survive. `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check. `answered` ends a `spike` at phase 1 |
+| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline: the problem did not survive. `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check, or the `change` track skipped because its mandate passed the mandate check. `answered` ends a `spike` at phase 1 |
 | `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
 | `gate.accepted_by`, `gate.accepted_at` | name, ISO timestamp | The person who accepted the artifact, from their own words, and when. Required to pass phases 0, 4 and 6; see `gate-checks`, Acceptance. Absent on a failed gate |
 | `watch` | `{ metric, bands, owner, recheck }` or absent | Set when phase 7 closes with KEEP (gate 7.5). The briefing raises it once `recheck` has passed. `bos.mjs watch` rolls `recheck` after a check without breach (`watch_checked`) or sets it to `null` when a breach became a new initiative (`watch_breached`) |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the `PRODUCT.md` tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase |
 
 ## Rules
 
-0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage check, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, the acceptance at phases 0, 4 and 6, a phase 6 review date, a closing watch, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, `bos.mjs watch` rolls or clears a KEEP watch, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage or mandate check, `bos.mjs upgrade` moves an initiative to a heavier track, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, the acceptance at phases 0, 4 and 6, a phase 6 review date, a closing watch, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, `bos.mjs watch` rolls or clears a KEEP watch, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
 
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
 3. **A phase owns its artifact and gate result.** Only the lifecycle recorder sets the next phase in progress, or resets phase entries when a new cycle starts. Agents never rewrite another phase's artifact.
-4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check is a gate too: it is how a phase becomes `covered`. There is no other path.
+4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check and the `change` track's mandate check are gates too: they are how a phase becomes `covered`. A `change` with no outcome review closes at phase 6. There is no other path.
 5. **A `killed` phase stops the pipeline.** `/bos` reports the kill and offers to start a new cycle from phase 0 with the learning carried forward.
-6. **A track only goes up.** `spike` → `feature` or `product`, `feature` → `product`. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
+6. **A track only goes up.** `change` → `feature` → `product`; an answered `spike` starts a new initiative instead. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
 7. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
 8. **Decision and re-entry agree.** Phase 7 `ITERATE` requires `Re-enters at: phase N` (N = 0–6) and matching `--reenter N`; `KILL` requires `none` and no re-entry; `KEEP` permits either form. A spike always closes after gate 1 with status `answered` and its actual verdict retained. A closed initiative cannot record another gate; coverage cannot reset a feature past phase 0.
 9. **Deferred reviews do not invent decisions.** At phase 7, use `defer-review --review-due YYYY-MM-DD --reason "observed evidence gap"` with a future date. It appends `review_deferred`, keeps phase 7 in progress, sets review_due, and records no KEEP/ITERATE/KILL verdict.

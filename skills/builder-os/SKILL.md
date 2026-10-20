@@ -25,7 +25,7 @@ Methods and procedures live in skills. Resolve capabilities against this session
 ## Procedure
 
 1. **Resolve the initiative.** Read relevant roadmap/state and `PRODUCT.md`; read `TECH.md` when code is involved. If initialization, migration, track classification or switching is requested, use [lifecycle setup](../../references/lifecycle-setup.md). Missing state does not authorize initialization for an unrelated request.
-2. **Check the input.** Read the prior artifact and gate. A covered feature phase uses the evidenced `PRODUCT.md` contract. A failed upstream gate blocks progression until corrected or explicitly overridden. Existing supplied context may answer questions; do not re-interview settled facts.
+2. **Check the input.** Read the prior artifact and gate. A covered feature phase uses the evidenced `PRODUCT.md` contract and the initiative's `00-request.md`; a change covered by its mandate enters phase 4 with `00-request.md` as its bet. A failed upstream gate blocks progression until corrected or explicitly overridden. Existing supplied context may answer questions; do not re-interview settled facts.
 3. **Run the phase skill.** Pass the user's request verbatim, authorized actions, current state, prior artifact and relevant capabilities. Load only supporting skills needed for this phase. Read `evidence-ledger` when capturing claims and `pressure-testing` for a material unresolved assumption or requested critique.
 4. **Verify the output.** Re-read the written artifact and run the relevant gate using the installation's `scripts/bos.mjs`. Completion markers are claims; gates verify only their stated structural and semantic conditions. Read `gate-checks` before recording. Commands that execute checks require an explicit authorized invocation; a gate never reruns an arbitrary command from an artifact.
 5. **Record and update.** Use `scripts/bos.mjs record N` with required judgments and matching verdict, and at phases 0, 4 and 6 the person who accepted (`--accepted-by`, from their own words; see `gate-checks`, Acceptance); update roadmap/context and preserve history. Where execution is unavailable, apply the same checks by reading and record them as model-judged with the limitation stated.
@@ -33,6 +33,7 @@ Methods and procedures live in skills. Resolve capabilities against this session
 ## State and Completion
 
 - A passed or explicitly overridden gate advances the initiative; failed conditions stay visible.
+- A change closes after phase 6 unless its release set an outcome review. Its mandate covers phases 0 to 3; a real choice between solutions found later upgrades it to feature.
 - A spike closes after phase 1 with its problem verdict. A KILLED problem stops the lifecycle; continuing requires an explicit track/new-cycle decision.
 - RELEASE READY means the preparation exists. SHIPPED requires observed, authorized exposure with its environment, version, actual timestamp and source-backed verification. A planned rollout date cannot advance to LEARN.
 - A gate verdict is not an acceptance. The frame, the spec, the build plan and the release each wait for a person; the agent never approves its own work, and a standing instruction counts only when it named that scope.

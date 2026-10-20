@@ -44,9 +44,11 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **7. Confirm the measurement exists** (gate 6.3): a saved query or dashboard for the success metric, named and findable by someone else.
 
-**8. Write release notes** (gate 6.4) per `pm-artifacts`, for the person who will use the thing: lead with what they can now do, without component names, ticket numbers or internal vocabulary.
+**8. Write release notes** (gate 6.4) per `pm-artifacts`, for the person who will use the thing: lead with what they can now do, without component names, ticket numbers or internal vocabulary. Then **What changes for you**, for people already using the product: what moved, behaves differently or was removed, from the spec's Impact on what exists.
 
-**9. Schedule the outcome review** (gate 6.5): an owner and a date, from the phase 3 kill criteria, anchored to the actual verified exposure (the plan may show a provisional date). Where they disagree, the kill criteria win; note the discrepancy.
+**9. Schedule the outcome review** (gate 6.5): an owner and a date, from the phase 3 kill criteria, anchored to the actual verified exposure (the plan may show a provisional date). Where they disagree, the kill criteria win; note the discrepancy. **Change track:** a change with no outcome to measure omits Baseline, Measurement and Outcome review and closes at phase 6 (steps 6, 7 and 9 skipped); one that sets a review runs them and goes to phase 7.
+
+**9b. Promote what the initiative settled** (gate 6.9). Entities, states, invariants and the business rules decided in `DESIGN.md` → Domain model go into the project's `DOMAIN.md`, each marked with this initiative; a visual direction chosen here goes into `TECH.md` → Design system (kit, where the tokens live in the code, composition rules). Record it under `## Promoted`. The next initiative reads those files instead of this folder.
 
 **10. Prepare and report readiness.** Write `.builderos/initiatives/{initiative}/06-release.md` per [the release template](references/release-template.md), headings, bold labels and tables exact. A completed plan is `## RELEASE READY` and remains at phase 6. Do not record a successful ship gate from a future rollout date.
 
@@ -56,7 +58,7 @@ A problem found during rollout or after exposure runs `bug-diagnosis` before any
 
 **12. Gate the verified release.** Run gate 6, including 6.6 exposure structure, 6.7 evidence-to-exposure judgment and 6.8 authorization, then record with the outcome date and the person who authorized (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD --accepted-by "who"` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
 
-Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for observed exposure backed by its evidence and passing gate. Report partial rollout accurately.
+Completion marker: `## RELEASE READY` for preparation; `## SHIPPED` only for observed exposure backed by its evidence and passing gate. Report partial rollout accurately. Where commands run, a change closing at phase 6 records without `--review-due`.
 
 ## Common Mistakes
 

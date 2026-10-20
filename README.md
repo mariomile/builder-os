@@ -56,7 +56,9 @@ A failed gate produces the failed condition, what was found, what would satisfy 
 
 A passed gate is not an acceptance. Where the work changes hands (the frame, the spec, the build plan, the release) a person accepts it, in their own words, and the state records who and when. The agent never approves its own work. The build starts from a plan accepted before any code changes, bug fixes start from a failing test the fix cannot edit, and a KEEP at phase 7 leaves a watch behind it: a breach of its bands starts the next initiative.
 
-Not every request needs all eight phases. Before the first one runs, the work is classified into a **track** and the classification is said out loud: a `spike` wants an answer and stops at the phase 1 verdict, a `feature` changes an existing product and starts at phase 2 once `PRODUCT.md` passes a coverage check, a `product` runs everything. A track only ever upgrades: a feature whose evidence turns out missing becomes a product and re-enters phase 0.
+Not every request needs all eight phases. Before the first one runs, the work is classified into a **track** and the classification is said out loud: a `spike` wants an answer and stops at the phase 1 verdict; a `change` is a modification to a live product whose solution is already decided (a bug, agreed debt, a compliance rule, a contract, a removal) and starts at the spec once its mandate passes a check; a `feature` changes an existing product where something is still to be chosen and starts at phase 2 once `PRODUCT.md` and the request's own evidence pass a coverage check; a `product` runs everything. A track only ever upgrades: a change that turns out to need a choice becomes a feature, a feature whose evidence turns out missing becomes a product and re-enters phase 0.
+
+Work on a product that already exists gets what a new product never needed: the spec states what the change does to existing data, contracts, tracking events, permissions and current users; the release notes say what changes for people already using it; a suite that was red before the change is judged against its baseline instead of blocking forever; what an initiative settled about the product (its entities, its rules, its look) moves into `DOMAIN.md` and `TECH.md` at ship, so the next feature starts from it.
 
 ### 2. The evidence ledger
 
@@ -246,7 +248,8 @@ A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEA
 
 ```
 PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language
-TECH.md                   how it is built: stack, technical constraints, conventions, known traps
+DOMAIN.md                 the product's things and their rules: entities, states, invariants, business rules
+TECH.md                   how it is built: stack, design system, verify commands, technical constraints, conventions, known traps
 AGENTS.md                 gets a BuilderOS block telling every new session to read the files below first
 .builderos/
   ROADMAP.md              the master plan: direction, now / next / later, done and dropped
@@ -255,6 +258,7 @@ AGENTS.md                 gets a BuilderOS block telling every new session to re
   local.json              which initiative is active on this checkout (gitignored)
   initiatives/{name}/     one folder per piece of work
     state.json            phase, track, gates, overrides, history
+    00-request.md         feature and change: the request, its own evidence, the mandate
     evidence/             one file per source a tag cites
     00-frame.md           problem, ICP, riskiest assumption
     01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
@@ -288,7 +292,7 @@ Version 2.2.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 | Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05, after a fix the feature-track case found; not rerun since the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
 | Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-74 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
+87 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 

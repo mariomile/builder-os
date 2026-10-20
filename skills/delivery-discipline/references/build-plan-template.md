@@ -10,6 +10,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 ## Plan
 **In plain words:** {what gets built, in what order, what the owner can try after each slice, the riskiest step; no jargon}
 **Accepted:** {who} · {ISO timestamp with Z or an offset, before the first code change}
+**Branch:** {the branch the build happens on, and the pull request once open}
 
 ## Seams
 | Module | New or changed | Interface | Hides | Tests at | In plain words |
@@ -18,6 +19,11 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 ## Test baseline
 **Run:** {project-relative evidence/runs/*.json captured before any change}
 {passing, failing, duration}
+
+## Pre-existing failures
+| Test | Since |
+| {name exactly as the baseline log prints it} | {before this initiative; TECH.md → Known failing, or the commit} |
+{only when the baseline was red; omit otherwise}
 
 ## Slices
 | # | Slice | Files | Acceptance criteria | Blocks on | Status |
@@ -38,6 +44,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 
 ## Test output
 **Run:** {project-relative evidence/runs/*.json from the final run}
+**Mapped run:** {only when the baseline was red: a captured run of the mapped tests alone, exiting 0}
 {captured runner output; command, exit status and log are resolved from the record}
 
 ## Instrumentation

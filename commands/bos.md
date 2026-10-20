@@ -40,7 +40,7 @@ Stateful entry point. Reads where the project stands and routes to the next phas
 Before dispatching, one block:
 
 ```markdown
-**{Product}** · {initiative} · cycle {C} · phase {N} — {phase name} · mode {full|lite} · track {spike|feature|product}
+**{Product}** · {initiative} · cycle {C} · phase {N} — {phase name} · mode {full|lite} · track {spike|change|feature|product}
 Last gate: {passed | passed (overridden) | failed: {condition}}
 → Dispatching {agent}
 ```

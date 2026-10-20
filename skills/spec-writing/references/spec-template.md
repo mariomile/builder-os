@@ -18,6 +18,17 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 | Item | Kind | Reason |
 | {item} | not now / not ever / not until X | {reason, or the trigger} |
 
+## Impact on what exists
+| Area | Today | What changes | Handling |
+|------|-------|--------------|----------|
+| Existing data | {rows and fields already there, with counts where measured} | {new field, new rule, new state} | {backfill, default, migration; or "nothing to do: {why}"} |
+| Contracts | {APIs, webhooks, exports, integrations consumed by others} | {} | {versioning, notice, unchanged} |
+| Tracking events | {events in this area today} | {added, renamed, redefined} | {who reads them; dashboards and baselines affected} |
+| Permissions | {roles, plans, tenants that see this area} | {} | {} |
+| Current users | {what they do today} | {what moves, appears or disappears for them} | {default on/off, how they are told} |
+
+{Or, when nothing exists yet: **Impact on what exists:** not applicable, {reason}}
+
 ## Not yet specified
 | Open question | Decides | Blocks |
 | {in-scope question still open} | {person} | {AC numbers that wait on it, or "none"} |

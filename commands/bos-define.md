@@ -21,7 +21,7 @@ Dispatch `builder-os:opportunity-mapper` with this context:
 ```text
 Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: initiative [slug], phase 2, cycle [C], mode [full|lite], track [spike|feature|product]
+Pipeline state: initiative [slug], phase 2, cycle [C], mode [full|lite], track [spike|change|feature|product]
 
 PRODUCT.md:
 [content]

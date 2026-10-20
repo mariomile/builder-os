@@ -26,9 +26,9 @@ Ask through the `pressure-testing` rounds. Read the [direction method](reference
 
 ## Procedure
 
-1. **Read the inputs.** `PRODUCT.md` voice adjectives and their counter-examples, the ICP and where they work, the primary flow in `DESIGN.md`, and the existing design system where one exists.
+1. **Read the inputs.** `PRODUCT.md` voice adjectives and their counter-examples, the ICP and where they work, the primary flow in `DESIGN.md`, and the existing design system where one exists: `TECH.md` → Design system first, then the tokens and kit in the code.
 
-2. **Decide what is open.** No interface (an API, a job, a CLI with no new output): write `**Visual direction:** not applicable, {reason}` and stop. An existing design system (feature track, or any product that has one): the style is inherited; what is open is the composition of the new screens, so produce at least two **layout versions** inside the system. A new product, or a restyle the user asked for: the style is open; produce at least three **visual directions**. Lite mode needs two either way.
+2. **Decide what is open.** No interface (an API, a job, a CLI with no new output): write `**Visual direction:** not applicable, {reason}` and stop. An existing design system (feature track, or any product that has one): the style is inherited; what is open is the composition of the new screens, so produce at least two **layout versions** inside the system. A new product, or a restyle the user asked for: the style is open; produce at least three **visual directions**. Lite mode needs two either way. Change track: one version, or `**Visual direction:** inherited, {reason}` when no screen changes its composition (a new column, a fixed label).
 
 3. **Diverge on purpose.** Versions disagree about structure: layout model, information hierarchy, primary affordance or density, one named axis each, stated in one line. Colour and type ride on a structure; on a new product each direction pairs its structure with a tone, but two versions that differ only in palette or font are one version. Each traces to the voice adjectives, and each traces to the voice adjectives: "calm, for operators who keep it open all day" is a direction; "blue version" is not. Render the same screen in every version: the step of the primary flow the user will see most, with realistic content from the domain, labelled as sample content. No lorem ipsum: it hides the density problem the version exists to show.
 
@@ -40,7 +40,7 @@ Ask through the `pressure-testing` rounds. Read the [direction method](reference
 
 7. **Extract the system.** The version files are a reference, not code. From the chosen one write the tokens the build applies (colour roles with contrast ratios, type scale, spacing scale, radius, elevation, motion) and the composition rules (grid, density, where primary actions sit). The build implements them with the kit's components; it never copies the HTML.
 
-8. **Record** in `DESIGN.md` → `## Visual direction` per the [design template](../ux-architecture/references/design-template.md), and add the choice to the spec's `## What we chose` summary.
+8. **Record** in `DESIGN.md` → `## Visual direction` per the [design template](../ux-architecture/references/design-template.md), and add the choice to the spec's `## What we chose` summary. A new look reaches `TECH.md` → Design system at ship (gate 6.9), so the next feature inherits it from there.
 
 Completion marker: `## DIRECTION CHOSEN` with the versions shown and their files, the choice and who made it, the kit and its alternatives, and the tokens.
 
