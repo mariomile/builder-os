@@ -8,7 +8,12 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 # Build — {feature}
 
 ## Plan
+**In plain words:** {what gets built, in what order, what the owner can try after each slice, the riskiest step; no jargon}
 **Accepted:** {who} · {ISO timestamp with Z or an offset, before the first code change}
+
+## Seams
+| Module | New or changed | Interface | Hides | Tests at | In plain words |
+| {name} | new / changed | {what callers ask, what it promises, how it fails} | {what stays inside} | {the seam the tests cross} | {one line a non-engineer follows} |
 
 ## Test baseline
 **Run:** {project-relative evidence/runs/*.json captured before any change}

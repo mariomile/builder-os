@@ -49,11 +49,14 @@ test('gate 4.7 needs a Conflicts section, and every conflict names who decides',
   assert.equal(gate(root, 4).by['4.7'], 'pass', 'stating none is a valid answer');
 });
 
+const CHOSEN = '\n## Stack\n| Layer | Choice | Status | Decided by | ADR |\n|---|---|---|---|---|\n| backend | Node | inherited | — | — |\n\n## What we chose\nNothing new: the export runs on the inherited Node backend.\n';
+const NO_UI = '\n## Domain model\n**Domain model:** not applicable, the export reads existing deals and changes no state.\n\n## Visual direction\n**Visual direction:** not applicable, the export reuses the existing report screen unchanged.\n';
+
 test('phase 4 advances only with the person who accepted the spec, and records it', () => {
   const root = project();
   setState(root, { current_phase: 4, phases: { ...state(root).phases, 4: { status: 'in_progress', artifact: null, gate: null } } });
-  write(root, 'DESIGN.md', DESIGN);
-  write(root, '04-spec.md', SPEC('\n## Conflicts\nNone found.\n'));
+  write(root, 'DESIGN.md', DESIGN + NO_UI);
+  write(root, '04-spec.md', SPEC('\n## Conflicts\nNone found.\n' + CHOSEN));
   const judged = gate(root, 4).checked_by.model.map((id) => `${id}=pass`).join(',');
   const refused = run(root, 'record', '4', '--judged', judged);
   assert.equal(refused.code, 2);
@@ -78,16 +81,17 @@ test('a failed gate needs no acceptance and records none', () => {
   assert.equal(state(root).phases['4'].gate.accepted_by, undefined);
 });
 
-const BUILD = ({ accepted = '**Accepted:** Mario · 2026-01-01T09:00Z', files = true, risks = true } = {}) => `# Build\n\n## Plan\n${accepted}\n\n## Slices\n| # | Slice |${files ? ' Files |' : ''} Acceptance criteria | Blocks on | Status |\n|---|---|${files ? '---|' : ''}---|---|---|\n| 1 | export end to end |${files ? ' src/export.ts |' : ''} 1 | none | done |\n\n## Risks\n| Risk | Mitigation |\n|---|---|\n${risks ? '| large accounts time out | stream rows |\n' : ''}`;
+const SEAMS = '\n## Seams\n| Module | New or changed | Interface | Hides | Tests at | In plain words |\n|---|---|---|---|---|---|\n| exporter | new | exportWeek(teamId) returns rows or a typed error | paging, CSV escaping | exportWeek | one place turns a week of deals into a file |\n';
+const BUILD = ({ accepted = '**Accepted:** Mario · 2026-01-01T09:00Z', files = true, risks = true, plain = true, seams = SEAMS } = {}) => `# Build\n\n## Plan\n${plain ? '**In plain words:** first the download end to end, then large accounts; you can try the download after slice 1.\n' : ''}${accepted}\n${seams}\n## Slices\n| # | Slice |${files ? ' Files |' : ''} Acceptance criteria | Blocks on | Status |\n|---|---|${files ? '---|' : ''}---|---|---|\n| 1 | export end to end |${files ? ' src/export.ts |' : ''} 1 | none | done |\n\n## Risks\n| Risk | Mitigation |\n|---|---|\n${risks ? '| large accounts time out | stream rows |\n' : ''}`;
 
-test('gate 5.6 needs an accepted plan whose slices name files and whose risks are written; 5.7 is judged', () => {
+test('gate 5.6 needs an accepted plan explained in plain words, with seams, slices that name files and written risks; 5.7 is judged', () => {
   const root = project();
   write(root, '04-spec.md', SPEC(''));
   write(root, '05-build-plan.md', BUILD());
   const g = gate(root, 5);
   assert.equal(g.by['5.6'], 'pass');
   assert.equal(g.by['5.7'], 'judge');
-  for (const variant of [{ accepted: '**Accepted:** Mario' }, { accepted: '**Accepted:** 2026-01-01T09:00Z' }, { accepted: '**Accepted:** Mario · 2999-01-01T09:00Z' }, { files: false }, { risks: false }]) {
+  for (const variant of [{ accepted: '**Accepted:** Mario' }, { accepted: '**Accepted:** 2026-01-01T09:00Z' }, { accepted: '**Accepted:** Mario · 2999-01-01T09:00Z' }, { files: false }, { risks: false }, { plain: false }, { seams: '' }, { seams: SEAMS.replace('one place turns a week of deals into a file', '') }, { seams: SEAMS.replace('exportWeek |', ' |') }]) {
     write(root, '05-build-plan.md', BUILD(variant));
     assert.equal(gate(root, 5).by['5.6'], 'fail', JSON.stringify(variant));
   }

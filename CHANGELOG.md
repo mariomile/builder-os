@@ -2,6 +2,34 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased] - 2026-10-20
+
+The design and stack choices stop happening by accident. Before this, no phase decided the stack (`TECH.md` stayed "no code yet" until the first build slice picked one), the visual layer was declared out of scope when no design tool was connected, and phase 3 stopped at the three options the gate counted and could pick the bet itself. Now each of these is a choice the user makes, in rounds, knowing what is chosen, why, what it costs and what the alternatives were.
+
+### Added
+
+- **`stack-decisions` skill.** Layers the work touches are inherited, decided or not needed; every open layer becomes a decision card (plain-language gloss, cost tagged or flagged unverified, lock-in, what would make us switch, the boring default always among the options) asked in rounds, with drivers traced to `PRODUCT.md` and an ADR for hard-to-reverse choices. Feature track inherits the stack and asks only what the feature adds or strains.
+- **`design-direction` skill.** At least three visual directions on a new product, two layout versions inside an existing design system (or in lite mode), differing in structure (layout, hierarchy, primary affordance, density), never only in colour. On a running product they mount inside the real page behind a `?variant=` switch on a throwaway branch; otherwise each is a self-contained HTML file under the initiative's `design/` folder. Revisions are new numbered files; after three rounds without a choice it proposes fixing the strongest. The design kit is chosen after the interface layer; tokens and composition rules are extracted into `DESIGN.md`, and the HTML stays a reference, never code.
+- **`domain-model` skill.** The entities the work touches, their states and transitions (who, under which condition, with which effect), invariants, awkward scenarios, and the business rules put to the user as round questions ("can a closed ticket be reopened?"). A clickable logic prototype (one HTML file, pure module, guided scenarios) when the rules are non-trivial, and a data sketch the stack decision reads. New terms go into `PRODUCT.md` → Language.
+- **Seams in the build plan.** The modules the work creates or changes, their interfaces, what they hide and where tests sit, each with one plain line; the central module is designed two or three ways and the losers go under rejected alternatives. The plan opens with `**In plain words:**`, presented before acceptance. Tests are written at the seams the plan names.
+- **`ui.render` capability**, with HTML files as its floor.
+- **Gates 3.5 and 3.6**: at least eight raw ideas before convergence (five in lite), and `**Chosen by:**` naming the person who chose the bet.
+- **Gate 4.10**: `DESIGN.md` → `## Domain model` with entities, transitions naming who, invariants, data and the person who decided the rules, or "not applicable" with a reason.
+- **Gate 5.6 extended**: the plain-words summary and the Seams table (interface, tests at, plain line per module).
+- **Gates 4.8 and 4.9**: the spec's `## Stack` lists every layer with its status, a person on every decided layer and existing ADRs, plus `## What we chose`, a plain-language summary shown before acceptance; `DESIGN.md` → `## Visual direction` with the versions, their files, who chose, the kit and the tokens, or "not applicable" with a reason.
+- **Briefing line** when an open initiative is past phase 4 while `TECH.md` still has open or empty stack layers. Gates already passed are not re-checked.
+
+### Changed
+
+- **Phase 3 diverges, then converges, and the person chooses.** `ideation-methods` adds the `## Divergence` list (with the user's own ideas) and makes selection a round; the solution-architect agent returns the round instead of picking.
+- **Phase 4 runs flows, rules, look, stack, kit, then the spec.** `/bos-shape` runs `domain-model`, `design-direction` and `stack-decisions` in the main conversation, where the user can answer.
+- **Phase 5 builds on what was decided.** A structural addition (framework, database, hosted service, paid API, runtime) stops the slice and returns to `stack-decisions`; utility libraries are listed in the review. An undecided layer or a departure from the tokens and kit is an Important review finding.
+- **Init no longer guesses a stack.** Undecided layers are written `open` in `TECH.md`.
+
+### Verification
+
+73 Node tests pass (67 existing, 6 new in `tests/scripts/design-and-stack.test.mjs`). The model-based behavioral scenarios were not rerun.
+
 ## [Unreleased] - 2026-10-04
 
 Aligns the delivery half of the lifecycle with Anthropic's AI-Native SDLC Playbook: the plan is reviewed before the code, a person accepts the work where it changes hands, the test loop cannot be weakened from inside, and production feeds the next cycle. No new phases, commands or capabilities; skills stay host-agnostic and every addition keeps a floor.

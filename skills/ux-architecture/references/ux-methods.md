@@ -71,9 +71,7 @@ The floor is a floor. A full audit belongs to a dedicated accessibility pass; st
 
 ## Interop
 
-Where a design-quality toolchain is present in the session, hand it the visual layer: typography, spacing, color, motion, and whatever detectors it runs. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor, and the handoff is one direction only.
-
-Where none is present, this skill carries the phase alone. It produces a structurally complete design that a competent implementer can build; it does not produce visual polish, and it says so rather than pretending otherwise.
+The visual layer (typography, spacing, colour, motion, the design kit) belongs to `design-direction`, which renders versions for the user to choose from and writes the tokens into `DESIGN.md`. Where a design-quality toolchain is present it renders through it; where none is, it writes HTML files. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor; the component inventory names components of the kit `design-direction` settles.
 
 ## More Common Mistakes
 

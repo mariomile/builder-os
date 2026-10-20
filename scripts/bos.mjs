@@ -195,6 +195,112 @@ function audit(text) {
   };
 }
 
+// ---------- stack and visual direction (gates 4.8, 4.9) ----------
+
+const NOBODY = /^(—|-|–|n\/?a|none|agent|model|claude|codex|ai|auto)?$/i;
+const rawRows = (text) => (text || '').split('\n').filter((l) => /^\s*\|/.test(l)).slice(1)
+  .map((l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim()))
+  .filter((r) => !r.every((c) => /^:?-{2,}:?$/.test(c) || c === '') && nonEmpty(r[0]));
+
+function stackInfo(spec) {
+  const problems = [];
+  const sec = section(spec, 'Stack');
+  if (sec === null) return { rows: 0, decided: 0, problems: ['no "## Stack" section: list every layer the work touches as inherited, decided or not needed'] };
+  const rows = rawRows(sec);
+  if (!rows.length) problems.push('the Stack table has no layers');
+  let decided = 0;
+  for (const r of rows) {
+    const status = (r[2] || '').toLowerCase();
+    if (!/^(inherited|decided|not needed)\b/.test(status)) { problems.push(`${r[0]}: status "${r[2] || ''}" is not inherited, decided or not needed`); continue; }
+    if (/^decided/.test(status)) {
+      decided++;
+      if (!nonEmpty(r[3]) || NOBODY.test(r[3])) problems.push(`${r[0]}: decided with nobody named`);
+    }
+    if (!nonEmpty(r[1]) && !/^not needed/.test(status)) problems.push(`${r[0]}: no choice`);
+    const adr = (r[4] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim();
+    if (nonEmpty(adr) && !NOBODY.test(adr)) {
+      const name = path.basename(adr);
+      if (!fs.existsSync(path.join(BOS, 'decisions', name)) && !fs.existsSync(path.join(ROOT, adr))) problems.push(`${r[0]}: ADR ${adr} not found in .builderos/decisions/`);
+    }
+  }
+  if (section(spec, 'What we chose') === null) problems.push('no "## What we chose" summary for the person accepting the spec');
+  return { rows: rows.length, decided, problems };
+}
+
+function visualInfo(ctx, need) {
+  const problems = [];
+  const sec = section(ctx.design, 'Visual direction');
+  const na = field(sec || ctx.design || '', 'Visual direction');
+  if (na && /^not applicable/i.test(na)) {
+    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems, detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
+  }
+  if (sec === null) return { problems: ['no "## Visual direction" in DESIGN.md: show versions and record the choice, or state "not applicable" with the reason'] };
+  const versions = rawRows(sec.split(/\*\*Tokens/)[0]);
+  if (versions.length < need) problems.push(`${versions.length} versions shown (${need} needed)`);
+  const missing = versions.map((r) => (r[2] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim())
+    .filter((f) => /\.(html?|png|jpe?g|svg|pdf)$/i.test(f) && !fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f)));
+  // A route inside the running app ("/reports?variant=b on prototype/x") is not a file to check.
+  const unlocated = versions.filter((r) => !nonEmpty(r[2]));
+  if (unlocated.length) problems.push(`versions with no file or route: ${unlocated.map((r) => r[0]).join(', ')}`);
+  if (missing.length) problems.push(`version files not found: ${missing.join(', ')}`);
+  for (const label of ['Chosen', 'Chosen by', 'Design kit']) if (!nonEmpty(field(sec, label))) problems.push(`no "**${label}:**"`);
+  const by = field(sec, 'Chosen by');
+  if (by && NOBODY.test(by)) problems.push('the look was not chosen by a person');
+  if (!/\*\*Tokens:?\*\*/i.test(sec) || !rawRows(sec.split(/\*\*Tokens:?\*\*/i)[1] || '').some((r) => nonEmpty(r[1]))) problems.push('no tokens extracted from the chosen version');
+  return { problems, detail: `${versions.length} versions, chosen by ${by}, kit: ${field(sec, 'Design kit')}` };
+}
+
+// Gate 5.6: the modules and test seams, each explained in one plain line.
+function seamGaps(plan) {
+  const sec = section(plan, 'Seams');
+  if (sec === null) return ['no "## Seams" section: the modules, their interfaces and where tests sit'];
+  const head = ((sec.split('\n').find((l) => /^\s*\|/.test(l)) || '').split('|').map((c) => c.trim().toLowerCase()));
+  const col = (name) => head.findIndex((c) => c.startsWith(name)) - 1;
+  const rows = rawRows(sec);
+  if (!rows.length) return ['the Seams table has no modules'];
+  const gaps = [];
+  for (const [label, name] of [['interface', 'interface'], ['tests at', 'tests at'], ['plain-words line', 'in plain words']]) {
+    const i = col(name);
+    if (i < 0) gaps.push(`the Seams table has no ${label} column`);
+    else { const bad = rows.filter((r) => !nonEmpty(r[i])); if (bad.length) gaps.push(`seams with no ${label}: ${bad.map((r) => r[0]).join(', ')}`); }
+  }
+  return gaps;
+}
+
+// Subsections ("### Name") inside a "## " section.
+function subsection(text, prefix) {
+  const lines = (text || '').split('\n');
+  const start = lines.findIndex((l) => /^###\s/.test(l) && l.replace(/^###\s+/, '').toLowerCase().startsWith(prefix.toLowerCase()));
+  if (start < 0) return null;
+  const out = [];
+  for (let i = start + 1; i < lines.length && !/^###?\s/.test(lines[i]); i++) out.push(lines[i]);
+  return out.join('\n');
+}
+
+function domainInfo(ctx) {
+  const sec = section(ctx.design, 'Domain model');
+  const na = field(sec || ctx.design || '', 'Domain model');
+  if (na && /^not applicable/i.test(na)) {
+    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
+  }
+  if (sec === null) return { problems: ['no "## Domain model" in DESIGN.md: entities, transitions, invariants and data, or "not applicable" with the reason'] };
+  const problems = [];
+  const entities = rawRows(subsection(sec, 'Entities'));
+  if (!entities.length) problems.push('no entities');
+  for (const e of entities.filter((r) => /^yes/i.test(r[2] || ''))) {
+    const tr = rawRows(subsection(sec, `Transitions: ${e[0]}`));
+    if (!tr.length) problems.push(`${e[0]} has a lifecycle and no transitions table`);
+    else if (tr.some((r) => !nonEmpty(r[2]))) problems.push(`${e[0]}: a transition with nobody allowed to trigger it`);
+  }
+  if (subsection(sec, 'Invariants') === null) problems.push('no invariants');
+  if (!rawRows(subsection(sec, 'Data')).length) problems.push('no data sketch');
+  const by = field(sec, 'Rules decided by');
+  if (!nonEmpty(by) || NOBODY.test(by)) problems.push('no person under "**Rules decided by:**"');
+  const proto = (field(sec, 'Prototype') || '').replace(/[`\[\]]/g, '').trim();
+  if (/\.html?$/i.test(proto) && !fs.existsSync(path.join(ctx.dir, proto)) && !fs.existsSync(path.join(ROOT, proto))) problems.push(`prototype ${proto} not found`);
+  return { problems, detail: `${entities.length} entities, rules decided by ${by}` };
+}
+
 // ---------- gates ----------
 
 // The list in gate-checks, condition 0.1. Terms PRODUCT.md defines under ## Language are the product's own
@@ -328,6 +434,11 @@ function gate(n, ctx) {
       const order = field(ct, 'Order') || '';
       pass('3.4', ratio >= 0.2 || /test first|override/i.test(order), `ratio ${Math.round(ratio * 100)}%, order: ${order || 'missing'}`);
     } else pass('3.4', false, 'test cost or build cost missing');
+    const raw = tableRows(section(a, 'Divergence')).filter((r) => nonEmpty(r[1]));
+    const rawNeed = lite ? 5 : 8;
+    pass('3.5', raw.length >= rawNeed, `${raw.length} raw ideas before convergence (${rawNeed} needed)`);
+    const chosenBy = field(section(a, 'Selected') || '', 'Chosen by');
+    pass('3.6', nonEmpty(chosenBy) && !/^(agent|model|claude|codex|ai|auto)/i.test(chosenBy), chosenBy ? `chosen by ${chosenBy}` : 'no "**Chosen by:**" under Selected: the person chooses the bet');
     return R;
   }
 
@@ -358,6 +469,12 @@ function gate(n, ctx) {
       .filter((r) => !r.every((c) => /^:?-{2,}:?$/.test(c) || c === '') && nonEmpty(r[0]));
     const unowned = conflictRows.filter((r) => !nonEmpty(r[3]));
     pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${conflictRows.length} conflicts, each with who decides`);
+    const stack = stackInfo(a);
+    pass('4.8', stack.problems.length === 0, stack.problems.length ? stack.problems.join('; ') : `${stack.rows} layers (${stack.decided} decided with a person), what we chose summarized`);
+    const vd = visualInfo(ctx, lite ? 2 : (ctx.track === 'feature' ? 2 : 3));
+    pass('4.9', vd.problems.length === 0, vd.problems.length ? vd.problems.join('; ') : vd.detail);
+    const dm = domainInfo(ctx);
+    pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
     return R;
   }
 
@@ -371,6 +488,8 @@ function gate(n, ctx) {
       !(validTimestamp(acceptedAt) && Date.parse(acceptedAt) <= Date.now() && accepted.replace(acceptedAt, '').replace(/[·\s]/g, '').length > 1) && 'Accepted needs who and an actual ISO timestamp',
       !/\|\s*files?\b/i.test(sliceHeader) && 'the Slices table has no Files column',
       !risks.length && 'no Risks rows',
+      !nonEmpty(field(plan, 'In plain words')) && 'no "**In plain words:**" summary for the owner',
+      ...seamGaps(a),
     ].filter(Boolean);
     pass('5.6', planGaps.length === 0, planGaps.length ? planGaps.join('; ') : `plan accepted ${acceptedAt}, slices name their files, ${risks.length} risks`);
     judge('5.7', 'was the plan accepted before implementation started, and does the final diff match it (or was the plan updated with the deviation)?');
@@ -615,6 +734,15 @@ function verified(md) {
   return m ? { date: m[1], sha: m[2] || null } : null;
 }
 
+function techStackGap() {
+  const tech = read(path.join(ROOT, 'TECH.md'));
+  if (!tech) return null;
+  const rows = rawRows(section(tech, 'Stack'));
+  if (!rows.length) return 'has no layers';
+  const open = rows.filter((r) => !nonEmpty(r[1]) || /^(open|tbd|\?|no code yet)\b/i.test(r[1]));
+  return open.length ? `has open layers (${open.map((r) => r[0]).join(', ')})` : null;
+}
+
 function techStale() {
   const tech = read(path.join(ROOT, 'TECH.md'));
   if (!tech) return null;
@@ -711,6 +839,9 @@ function brief() {
   }
   const unvalidated = ((read(path.join(ROOT, 'PRODUCT.md')) || '').match(/\[assumption:unvalidated\]/g) || []).length;
   if (unvalidated && all.some((i) => (i.state.status || 'open') !== 'closed' && (i.state.current_phase ?? 0) >= 2)) attention.push(`PRODUCT.md still rests on ${unvalidated} unvalidated assumption${unvalidated > 1 ? 's' : ''} past phase 1`);
+  const stackGap = techStackGap();
+  const pastShape = all.filter((i) => (i.state.status || 'open') === 'open' && (i.state.current_phase ?? 0) >= 5);
+  if (stackGap && pastShape.length) attention.push(`${pastShape.map((i) => i.state.title || i.slug).join(', ')} past phase 4 while TECH.md stack ${stackGap}: decide it with the user (stack-decisions)`);
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
   console.log(lines.slice(0, 5).join('\n'));

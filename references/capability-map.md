@@ -20,6 +20,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `research.search` | Search saved reading and highlights | Readwise, Raindrop, Pocket |
 | `web.search` | Search the open web | any web search tool |
 | `web.fetch` | Fetch and read a URL | any fetch tool |
+| `ui.render` | Show the user a rendered interface: a design version, a prototype screen | host previews and artifacts, design tools (Figma, Claude Design, v0), a browser screenshot of a local page |
 | `repo.read` | Read source code, configs, git history | any file and shell access |
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
@@ -51,6 +52,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `meetings.read` | connected transcripts | transcript files the user provides | — | ask the user |
 | `research.search` | connected library | local notes | `web.search` | skip, note the gap |
 | `web.search` | live search | — | — | skip, note the gap |
+| `ui.render` | host preview or design tool | self-contained HTML files the user opens from disk | — | text wireframes, only for a standalone answer kept in chat |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
 

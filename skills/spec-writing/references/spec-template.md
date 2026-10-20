@@ -30,6 +30,15 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 ## Flows
 {reference to DESIGN.md, with the flow list and where each is specified}
 
+## Stack
+**Drivers:** {three to five, each with its source}
+| Layer | Choice | Status | Decided by | ADR |
+| {layer} | {choice} | inherited / decided / not needed | {person, or "—"} | {decisions/ADR-NNN-slug.md, or "—"} |
+
+## What we chose
+| Choice | What | Why | Set aside | Cost | We'd change it if |
+| {stack layer, visual direction or design kit} | {choice} | {one line} | {main alternative} | {money, time or upkeep} | {condition} |
+
 ## Acceptance criteria
 | # | Criterion | Flow |
 | 1 | {subject + verifiable verb + condition} | {flow} |

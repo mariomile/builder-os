@@ -14,8 +14,8 @@ Orchestrate the requested initiative. Standalone documents, research guides, cal
 | 0 FRAME | Problem and falsifiable assumption | `problem-framing` | `00-frame.md` |
 | 1 DISCOVER | Evidence, synthesis, verdict | `research-methods`, `discovery-methods` | `01-discovery.md` |
 | 2 DEFINE | Opportunity and outcome metric | `opportunity-mapping`, strategy as needed | `02-definition.md` |
-| 3 IDEATE | Distinct options, bet and test | `ideation-methods`, experiments as needed | `03-solution-bet.md` |
-| 4 SHAPE | Buildable spec, states, measurement | `spec-writing`, UX/tracking as needed | `04-spec.md`, `DESIGN.md` |
+| 3 IDEATE | Wide ideas, distinct options, the user's bet and test | `ideation-methods`, experiments as needed | `03-solution-bet.md` |
+| 4 SHAPE | Flows, then the rules, the look and the stack decided with the user, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `design-direction`, `stack-decisions`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
 | 5 BUILD | Authorized implementation and verification | `delivery-discipline`, tracking as needed | `05-build-plan.md` |
 | 6 SHIP | Readiness, authorized exposure and verification | `release-ops`, writing as needed | `06-release.md` |
 | 7 LEARN | Compare outcomes, decide or defer | `outcome-review`, analysis as needed | `07-outcome.md` |

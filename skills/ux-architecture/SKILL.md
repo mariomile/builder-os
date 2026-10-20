@@ -5,7 +5,7 @@ description: "Use when a feature needs its information architecture, user flows,
 
 # UX Architecture
 
-The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. Visual craft is separate.
+The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look is chosen next, by the user, from several rendered versions: `design-direction` owns it.
 
 ## Mode and resources
 
@@ -24,7 +24,7 @@ Read the relevant section of [UX methods](references/ux-methods.md) for the tabl
 | `analytics.replay` | Where users actually stall in the current flow | Skip; design from structure rather than observation, and say so |
 | `files.read` / `files.write` | Supplied context, requested design and lifecycle artifacts | Inline design needs no file write; lifecycle writes require it |
 
-**No data capability is required.** Where a design-quality toolchain is present, hand it the visual layer and keep the structure here; where none is, say visual polish is not covered.
+**No data capability is required.** The visual layer is never left uncovered: `design-direction` renders versions as files on any host, and uses a design toolchain where one resolved.
 
 ## Procedure
 
@@ -37,7 +37,7 @@ Apply only the steps needed for the requested artifact. Delegate when available 
 5. **Cover the relevant states:** empty (with the action that fills it), loading, partial, error, success, permission. Inspect existing auth, tenancy and permission behavior before defining the permission state, and preserve that contract; if unavailable, label the assumption unverified rather than choosing a disclosure policy. Error copy names what failed and the next action, where disclosure is permitted.
 6. **Inventory the components:** exists, extend (name what else it affects), new (justify it).
 7. **State the accessibility floor.** Keyboard path with tab order for the primary flow, contrast target as a ratio, focus behavior on open, close, error and completion.
-8. **Deliver the design** to the requested destination. In lifecycle SHAPE write the initiative's `DESIGN.md` and hand its flow list to the spec phase when requested. A complete design alone does not pass gate 4.
+8. **Deliver the design** to the requested destination. In lifecycle SHAPE write the initiative's `DESIGN.md`, then hand the primary flow to `design-direction` for the visual direction and the flow list to the spec phase. A complete structure alone does not pass gate 4: 4.9 needs the visual direction too.
 
 Completion marker: `## DESIGN COMPLETE` with the flow list, the state matrix, the component inventory and the accessibility floor.
 

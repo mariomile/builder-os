@@ -35,13 +35,15 @@ Apply only the steps needed for the requested artifact. Delegate when available 
 
 1. **Read the requested inputs.** Standalone ideation uses the supplied problem/opportunity and constraints. For lifecycle IDEATE, read `02-definition.md` and `00-frame.md`: the selected opportunity, the success metric with its baseline and target, and the riskiest assumption. No `02-definition.md` on disk means stop: options generated without a chosen opportunity are a brainstorm, not a phase.
 
-2. **Generate mechanically distinct options.** Gate 3.1 is deterministic: each option has a different primary user action, written as "the user {verb}s {object}". Two options producing the same sentence are one option with two skins; merge them. Work four prompts in order until at least three distinct options exist: shift who acts (user, system, teammate, your team by hand); shift when it happens (prevention, intervention, recovery); remove rather than add; take the constraint away, then name the crude version that fits this quarter. The set includes a manual or human-powered option and a removal option. If merging drops the set below three, keep generating: gate 3.1 counts distinct mechanisms, not entries.
+2. **Diverge before judging.** Generate wide first, with no scoring and no favourites: at least eight raw ideas (five in lite mode; gate 3.5), each one line, written into `## Divergence` with the prompt that produced it. Work the prompts in order: shift who acts (user, system, teammate, your team by hand); shift when it happens (prevention, intervention, recovery); remove rather than add; take the constraint away, then name the crude version that fits this quarter; borrow how another domain solves the same shape of problem. In the first round, ask the user for the ideas they already have and add them under their name: an idea they arrived with and never saw compared is the one they will quietly build anyway. Wild and crude ideas belong here; the list is cheap, a missed mechanism is not.
+
+2b. **Converge into mechanically distinct options.** Cluster the raw ideas by primary user action, written as "the user {verb}s {object}". Gate 3.1 is deterministic: two ideas producing the same sentence are one option with two skins; merge them and keep the strongest skin. Keep at least three distinct options, including a manual or human-powered option and a removal option. If merging drops the set below three, go back to diverging: gate 3.1 counts distinct mechanisms, not entries.
 
 3. **Score.** Impact, Confidence, Effort, Reversibility, each 1 to 5, shown separately; no composite score. Confidence is scored from tags in `01-discovery.md`, not enthusiasm: an option resting on `[assumption:unvalidated]` scores 1 or 2 however obvious it feels, and the score line says so.
 
 4. **Pressure-test a proposed bet when selection is requested.** Compare the separate axes and strategic constraints; there is no composite highest scorer. For material unresolved decisions ask what would make it wrong, which evidence would change it, and the cheapest way to find out. Record unresolved uncertainty with the test that addresses it; do not force another approval for decisions already delegated.
 
-5. **Select the bet if requested.** An options-only request stops after comparison. For selection, choose one within delegated authority or ask about a material unresolved preference. Write the rejections, each with a reason and a revisit condition, as phase 2 does. **Reversibility breaks ties, not impact.**
+5. **The user chooses the bet.** An options-only request stops after comparison. In lifecycle IDEATE the selection is a round per `pressure-testing`: the options with their scores and one line each on what choosing it means, a recommendation and its reason. Record `**Chosen by:**` with the person and their answer (gate 3.6); a standing instruction that named this scope ("proceed through the build") counts, quoted with its date, and the recap still shows the alternatives so it can be reversed in a word. The agent never selects the bet on its own. Write the rejections, each with a reason and a revisit condition, as phase 2 does. **Reversibility breaks ties, not impact.**
 
 6. **Write kill criteria (gate 3.2, not negotiable).** Before the build: metric (the phase 2 success metric or a named leading indicator), threshold (a number separating continue from stop) and date, all mandatory, plus the action on failure, in a form someone not in the room can apply: "on {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differently}." A criterion that cannot be failed is decoration.
 
@@ -49,7 +51,7 @@ Apply only the steps needed for the requested artifact. Delegate when available 
 
 8. **Deliver.** Return standalone alternatives, a proposed bet or test design as requested without lifecycle gate claims. In lifecycle mode: write `.builderos/initiatives/{initiative}/03-solution-bet.md`, run gate 3 and record it (`scripts/bos.mjs record 3` where commands run), which advances to phase 4 on pass.
 
-Completion marker: `## BET SELECTED` with the option set, the selection, the kill criteria, the test design and the gate result.
+Completion marker: `## BET SELECTED` with the raw ideas count, the option set, who chose the bet, the selection, the kill criteria, the test design and the gate result.
 
 ## Output Contract
 
@@ -59,6 +61,8 @@ Standalone output follows the requested format and destination, adapting the tem
 
 | Mistake | Correct |
 |---------|---------|
+| Three options and straight to scoring | Diverge to eight raw ideas first; three is the floor of the converged set, not the size of the search |
+| The agent picks the bet because it scored best | Present the round; the person chooses and is recorded |
 | No manual or removal option in the set | Work prompts 1 and 3 before scoring |
 | Confidence scored on enthusiasm | Score from tags; unvalidated means 1 or 2 |
 | Kill criteria with no date, or a threshold that cannot be failed | Metric, threshold, date; write the number that would embarrass you |

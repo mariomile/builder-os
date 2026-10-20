@@ -38,8 +38,9 @@ User request:
 Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 before declaring completion.
 ```
 
-5. **Verify completion:** `## BET SELECTED` with a gate 3 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 3 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
-6. **Present** the option set with its primary actions, the selected bet, the kill criteria and the test order.
+5. **The person chooses.** The first dispatch returns the raw ideas, the scored options and a selection round. Present the round, take the answer, then dispatch again with `Chosen by: [person and their words]` to write the bet. Never pick it for them.
+6. **Verify completion:** `## BET SELECTED` with a gate 3 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 3 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
+7. **Present** the option set with its primary actions, the selected bet, the kill criteria and the test order.
 
 ## Arguments
 
@@ -48,7 +49,7 @@ Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 befo
 
 ## Notes
 
-Gate 3.1 counts mechanisms, not entries. Three rows in the table that all describe the same primary user action count as one option and the gate fails, correctly.
+Gate 3.5 counts raw ideas before convergence (8, lite 5); 3.6 needs who chose the bet. Gate 3.1 counts mechanisms, not entries. Three rows in the table that all describe the same primary user action count as one option and the gate fails, correctly.
 
 Gate 3.4 is where this phase earns its keep. When the test costs under 20% of the build, the test runs first. A team that overrides it is making a real decision, logged, that phase 7 will read back when judging the outcome.
 
