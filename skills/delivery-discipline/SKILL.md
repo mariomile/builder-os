@@ -31,7 +31,7 @@ For task decomposition, produce the plan (step 3) from the supplied spec; do not
 
 Run in order; delegate where the host allows, inline where it does not.
 
-**1. Read `04-spec.md`, `DESIGN.md`, `TECH.md`.** No `04-spec.md` means stop.
+**1. Read `04-spec.md`, `DESIGN.md`, `TECH.md`.** No `04-spec.md` means stop. The build uses the stack in the spec's `## Stack` and the tokens and kit in `DESIGN.md` → Visual direction; it chooses neither. A layer the work needs that is still open, or a **structural** addition found later (a framework, a database, a hosted service, a paid API, a runtime), stops the slice and goes back to `stack-decisions` as a card for the user; plan and `TECH.md` are updated before it resumes. Utility libraries are the build's call, listed in the review with their reason.
 
 **2. Record the test baseline** before any code: run `TECH.md` → Verify through `run-check`; note passes, failures and duration. Where Verify is empty, fill it first. Where verifying needs several commands and environment knowledge, slice one wraps them in a single target. No suite: say so; slice one creates it.
 
@@ -48,7 +48,7 @@ Run in order; delegate where the host allows, inline where it does not.
 3. **Write the least code that passes it.**
 4. **Refactor with the test green.**
 5. **Verify the slice's instrumentation** fires in a real environment with the tracking plan's properties.
-6. **Review** on two axes, tagging each finding with its axis, **standards** (good code?) or **spec conformance** (the specified thing?): behavior against each criterion the slice claims, including phase 4's enumerated states, and the diff against the plan. Review in a fresh context holding spec, plan and diff but not the build conversation; where the host cannot delegate, reread the diff from the start as someone else's. The context that wrote the code never approves it. **Important** findings (break a criterion or enumerated state, expose data, violate a `TECH.md` constraint, weaken a test) are fixed now or the gate fails; list at most five **nits** and count the rest. A recurring finding goes into `TECH.md` (Conventions or Known traps) now; a change that falsifies a `TECH.md` line updates it.
+6. **Review** on two axes, tagging each finding with its axis, **standards** (good code?) or **spec conformance** (the specified thing?): behavior against each criterion the slice claims, including phase 4's enumerated states, and the diff against the plan. Review in a fresh context holding spec, plan and diff but not the build conversation; where the host cannot delegate, reread the diff from the start as someone else's. The context that wrote the code never approves it. **Important** findings (break a criterion or enumerated state, expose data, violate a `TECH.md` constraint, weaken a test, add a structural layer nobody decided, depart from the chosen tokens or kit) are fixed now or the gate fails; list at most five **nits** and count the rest. A recurring finding goes into `TECH.md` (Conventions or Known traps) now; a change that falsifies a `TECH.md` line updates it.
 
 Before reporting a slice finished, run Verify and show the output.
 

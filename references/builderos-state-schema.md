@@ -122,7 +122,8 @@ The files above only help if a new session reads them. Every session, on any hos
    - an open initiative has not changed in 30 days: its `updated_at` says so;
    - the roadmap disagrees with an initiative's state.
    - a decision in `decisions/` has a `Revisit when` date that has passed, or has no `Revisit when` section at all;
-   - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1.
+   - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1;
+   - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
 
@@ -178,7 +179,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 ## Stack
 | Layer | Choice | Why | Decision |
 |-------|--------|-----|----------|
-| {frontend / backend / data / hosting / analytics} | {choice} | {one line} | {ADR link, or "inherited"} |
+| {interface / backend / data / auth / hosting / jobs / model / integrations / analytics / design kit} | {choice, or "open"} | {one line} | {ADR link, "inherited", or "decide in phase 4"} |
 
 ## Verify
 | Check | Command | Healthy output |
@@ -197,7 +198,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 {What has bitten before, with the initiative or commit where it happened.}
 ```
 
-Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. Phase 5 fills Verify when it is empty and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
 
 ## state.json
 

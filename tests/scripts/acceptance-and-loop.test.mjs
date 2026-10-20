@@ -49,11 +49,14 @@ test('gate 4.7 needs a Conflicts section, and every conflict names who decides',
   assert.equal(gate(root, 4).by['4.7'], 'pass', 'stating none is a valid answer');
 });
 
+const CHOSEN = '\n## Stack\n| Layer | Choice | Status | Decided by | ADR |\n|---|---|---|---|---|\n| backend | Node | inherited | — | — |\n\n## What we chose\nNothing new: the export runs on the inherited Node backend.\n';
+const NO_UI = '\n## Visual direction\n**Visual direction:** not applicable, the export reuses the existing report screen unchanged.\n';
+
 test('phase 4 advances only with the person who accepted the spec, and records it', () => {
   const root = project();
   setState(root, { current_phase: 4, phases: { ...state(root).phases, 4: { status: 'in_progress', artifact: null, gate: null } } });
-  write(root, 'DESIGN.md', DESIGN);
-  write(root, '04-spec.md', SPEC('\n## Conflicts\nNone found.\n'));
+  write(root, 'DESIGN.md', DESIGN + NO_UI);
+  write(root, '04-spec.md', SPEC('\n## Conflicts\nNone found.\n' + CHOSEN));
   const judged = gate(root, 4).checked_by.model.map((id) => `${id}=pass`).join(',');
   const refused = run(root, 'record', '4', '--judged', judged);
   assert.equal(refused.code, 2);

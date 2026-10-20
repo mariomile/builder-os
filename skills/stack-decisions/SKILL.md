@@ -43,7 +43,9 @@ Apply only the steps the request needs. Delegate when available and authorized; 
 
 7. **Record.** Each decided layer goes into `TECH.md` → Stack (Layer, Choice, Why, Decision). A choice that is hard to reverse, surprising without context and the result of a real trade-off (data store, backend runtime, hosting, auth, model provider, usually) gets an ADR in `decisions/` with the options considered, the drivers and a `Revisit when`. In lifecycle SHAPE write the `## Stack` section of `04-spec.md`: one row per layer with its status, choice, who decided and the ADR. Move `TECH.md` → Verified only when it was checked against the repository.
 
-8. **Hand off.** The build plan reads the decided stack and adds nothing at the level of a layer: a new framework, database, hosted service, paid API or runtime discovered mid-build sends the work back to this skill, never into the code.
+8. **Summarize for acceptance.** Each decided layer gets a line in the spec's `## What we chose`: what, why, the alternative set aside, the cost, what would make us change it. The user accepts the spec having read it.
+
+9. **Hand off.** The build plan reads the decided stack and adds nothing at the level of a layer. A **structural** addition discovered mid-build (a framework, a database, a hosted service, a paid API, a runtime) stops the slice and comes back here as a card; the plan and `TECH.md` are updated before the slice resumes. A utility library (a date helper, a parser) is the build's call, listed in the review with its reason.
 
 Completion marker: `## STACK DECIDED` with the layer table (inherited, decided, not needed), the drivers, who decided each open layer, the ADRs written and any spike or deferred risk.
 
@@ -59,7 +61,7 @@ Lifecycle: `TECH.md` → Stack updated, ADRs in `.builderos/decisions/`, and in 
 | {layer} | {choice} | inherited / decided / not needed | {person, or "—" when inherited or not needed} | {decisions/ADR-NNN-slug.md, or "—"} |
 ```
 
-Gate 4.8 parses this table: every row has a status, every `decided` row names who decided it, and every ADR it links exists. Standalone output is the decision cards and the recommendation, in the requested format.
+Gate 4.8 parses this table: every row has a status, every `decided` row names who decided it, every ADR it links exists, and `## What we chose` is present. Standalone output is the decision cards and the recommendation, in the requested format.
 
 ## Common Mistakes
 

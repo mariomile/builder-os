@@ -1,0 +1,2 @@
+# expects: skill=design-direction (standalone)
+Prima di sviluppare la dashboard voglio vedere tre versioni diverse del design e scegliere anche il design kit giusto.

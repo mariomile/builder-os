@@ -1,0 +1,2 @@
+# expects: skill=stack-decisions (standalone)
+Sto costruendo un tool B2B per agenzie e non so che stack usare: backend, database, dove ospitarlo. Spiegami le opzioni, pro e contro, e cosa mi consigli.

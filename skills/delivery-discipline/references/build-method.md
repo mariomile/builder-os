@@ -75,7 +75,7 @@ A review that only runs the first axis will approve a beautifully implemented mi
 
 | Severity | Means | Handling |
 |----------|-------|----------|
-| **Important** | Breaks an acceptance criterion or an enumerated state, exposes data, violates a `TECH.md` constraint, or weakens a test | Fixed in this phase, or the gate fails |
+| **Important** | Breaks an acceptance criterion or an enumerated state, exposes data, violates a `TECH.md` constraint, weakens a test, adds a structural layer (framework, database, hosted service, paid API, runtime) nobody decided, or departs from the tokens and kit in `DESIGN.md` | Fixed in this phase, or the gate fails |
 | **Nit** | Style, naming, a cleaner shape | At most five listed; the rest summarized as a count |
 
 Skip what the toolchain already checks (formatting, lint rules) and generated files. Tag each finding with its axis (standards or spec).
