@@ -35,6 +35,16 @@ A **module** is anything with an interface and an implementation: a function, a 
 
 The owner reads one plain line per seam; the rest is for the reviewer and the next agent.
 
+## Guardrails
+
+A guardrail runs Verify (build, test, lint) on every change without anyone asking: a CI job on every push, a pre-commit hook, or both. A repository with neither is itself a finding: every rule then depends on an agent remembering it.
+
+- **Slice zero adds one when there is none.** The cheapest that fits the repository: a CI workflow where the code is hosted on a service that runs one, a pre-commit hook otherwise. It runs the exact Verify commands from `TECH.md` and fails on a non-zero exit. Record it in `TECH.md` → Guardrail with the file that defines it. Adding it is a code change like any other: it is in the plan the owner accepts.
+- **Mechanical rules become checks.** A finding that is a fixed pattern (a banned call, an import that must not happen, a file that must not be edited, a missing await) gets a deterministic check in the guardrail: a lint rule, a type, a hook, a CI step. Default to building the check over writing the rule.
+- **Judgment stays in words.** Cross-file consistency, naming that fits the domain, "matches the surrounding code": these go in `TECH.md` → Conventions, which the reviewer reads with the diff. The implementing context is already the most loaded one; standards are the reviewer's job.
+
+Gate 5.8 checks that `TECH.md` names a guardrail. An override is legitimate where none can exist (no hosting, no hooks), logged with that reason.
+
 ## Tracer Bullets
 
 ### Slice rules

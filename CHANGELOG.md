@@ -19,6 +19,11 @@ The design and stack choices stop happening by accident. Before this, no phase d
 - **Gates 4.8 and 4.9**: the spec's `## Stack` lists every layer with its status, a person on every decided layer and existing ADRs, plus `## What we chose`, a plain-language summary shown before acceptance; `DESIGN.md` → `## Visual direction` with the versions, their files, who chose, the kit and the tokens, or "not applicable" with a reason.
 - **Briefing line** when an open initiative is past phase 4 while `TECH.md` still has open or empty stack layers. Gates already passed are not re-checked.
 
+- **`bug-diagnosis` skill.** A loop that goes red on this bug, captured before any change; the case made minimal; at most three hypotheses, each killed or confirmed by instrumentation one at a time; the cause fixed rather than the symptom; a regression test at the seam and a check for the whole class when it is mechanical; four plain lines for the owner. Phase 5 uses it for bugs, phase 6 for problems after exposure.
+- **Guardrails and gate 5.8.** `TECH.md` gains `**Guardrail:**`: the CI job or pre-commit hook that runs Verify on every change. Slice zero adds one when there is none; gate 5.8 fails on "none". Mechanical review findings become checks in it; judgment calls go to Conventions for the reviewer.
+- **Environment retro in phase 7.** What slowed or misled the agent this cycle, turned into a pointer, a check or a convention, recorded under Pipeline notes.
+- **`logs.query` capability**, with the user's error text as its floor.
+
 ### Changed
 
 - **Phase 3 diverges, then converges, and the person chooses.** `ideation-methods` adds the `## Divergence` list (with the user's own ideas) and makes selection a round; the solution-architect agent returns the round instead of picking.
@@ -28,7 +33,7 @@ The design and stack choices stop happening by accident. Before this, no phase d
 
 ### Verification
 
-73 Node tests pass (67 existing, 6 new in `tests/scripts/design-and-stack.test.mjs`). The model-based behavioral scenarios were not rerun.
+74 Node tests pass (67 existing, 6 new in `tests/scripts/design-and-stack.test.mjs`, 1 new for gate 5.8). The model-based behavioral scenarios were not rerun.
 
 ## [Unreleased] - 2026-10-04
 
