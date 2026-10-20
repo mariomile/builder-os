@@ -257,3 +257,23 @@ test('the briefing names initiatives that exist only on another branch', () => {
   git('checkout', '-q', 'main');
   assert.match(run(root, 'brief').out, /date-sort exists only on feat\/date-sort/);
 });
+
+test('"Not applicable" written as the section\'s own prose counts, with its reason', () => {
+  const root = project();
+  write(root, 'DESIGN.md', '# Design\n\n## Visual direction\n\nNot applicable.\n\nReason: only the sort order changes; nothing visual moves.\n\n## Domain model\n\nNot applicable.\n');
+  write(root, '04-spec.md', '# Spec\n\n## Impact on what exists\nNot applicable, nothing is built yet.\n');
+  const g = gate(root, 4);
+  assert.equal(g.by['4.9'], 'pass');
+  assert.equal(g.by['4.10'], 'fail', 'no reason given for the domain');
+  assert.equal(g.by['4.11'], 'pass');
+});
+
+test('gate 5.3 on a change whose spec tracks nothing is skipped, whatever the instrumentation table says', () => {
+  const root = project();
+  setState(root, { track: 'change' });
+  write(root, '04-spec.md', '# Spec\n## Acceptance criteria\n| # | Criterion |\n|---|---|\n| 1 | sorts |\n\n## Tracking plan\n| Event | Trigger | Properties | Measures | New or existing |\n|---|---|---|---|---|\n| None | — | — | — | — |\n');
+  write(root, '05-build-plan.md', '# Build\n## Instrumentation\n| Event | Triggered by | Arrived | Properties verified | Evidence |\n|---|---|---|---|---|\n| none | — | no events in this change | — | — |\n');
+  assert.equal(gate(root, 5).by['5.3'], 'skip');
+  setState(root, { track: 'feature' });
+  assert.equal(gate(root, 5).by['5.3'], 'fail');
+});

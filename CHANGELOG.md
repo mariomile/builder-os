@@ -27,7 +27,7 @@ BuilderOS was shaped around a new product walking from phase 0 to 7 once. On a l
 
 **Upgrading.** Specs written before this fail 4.11 until `## Impact on what exists` is added; releases fail 6.9 until the domain and look are promoted; outcomes fail 7.6 until `**Cleanup:**` is written. Feature initiatives created before this keep their covered phases; new ones need `00-request.md`.
 
-**Verification.** 87 Node tests pass. Behavioral scenarios not rerun.
+**Verification.** 89 Node tests pass. Behavioral scenarios on Claude Code 2.1.305: the two new cases (`live-product-first-feature`, `change-with-red-suite`) and both feature-track cases pass; the first runs found three defects, fixed (see `tests/scenarios/README.md`). The other five cases were not rerun.
 
 ## [2.2.0] - 2026-10-20
 

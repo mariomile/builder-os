@@ -205,6 +205,16 @@ function audit(text) {
 
 // ---------- stack and visual direction (gates 4.8, 4.9) ----------
 
+// "Not applicable" as a bold field (`**Visual direction:** not applicable, {reason}`) or as the section's own prose
+// ("Not applicable." followed by the reason): either way, the reason is whatever follows the words.
+function notApplicable(sec, whole, label, word = 'not applicable') {
+  const f = field(sec || whole || '', label);
+  const prose = (sec || '').replace(/^\s+/, '');
+  const text = f && f.toLowerCase().startsWith(word) ? f : prose.toLowerCase().startsWith(word) ? prose : null;
+  if (!text) return null;
+  return { text: text.trim(), reason: text.slice(word.length).replace(/^[\s,.:;—-]*(reason:?\s*)?/i, '').trim() };
+}
+
 const NOBODY = /^(—|-|–|n\/?a|none|agent|model|claude|codex|ai|auto)?$/i;
 const rawRows = (text) => (text || '').split('\n').filter((l) => /^\s*\|/.test(l)).slice(1)
   .map((l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim()))
@@ -238,15 +248,12 @@ function stackInfo(spec) {
 function visualInfo(ctx, need, inheritable = false) {
   const problems = [];
   const sec = section(ctx.design, 'Visual direction');
-  const na = field(sec || ctx.design || '', 'Visual direction');
-  if (na && /^not applicable/i.test(na)) {
-    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems, detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
-  }
+  const na = notApplicable(sec, ctx.design, 'Visual direction');
+  if (na) return na.reason.length > 3 ? { problems, detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
   // A change that adds no screen composition keeps the existing one; it says so and why.
-  if (inheritable && na && /^inherited/i.test(na)) {
-    return na.replace(/^inherited[\s,.:;—-]*/i, '').length > 3 ? { problems, detail: `inherited: ${na}` } : { problems: ['"inherited" needs its reason'] };
-  }
-  if (sec === null) return { problems: ['no "## Visual direction" in DESIGN.md: show versions and record the choice, or state "not applicable" with the reason'] };
+  const inh = inheritable && notApplicable(sec, ctx.design, 'Visual direction', 'inherited');
+  if (inh) return inh.reason.length > 3 ? { problems, detail: `inherited: ${inh.reason}` } : { problems: ['"inherited" needs its reason'] };
+  if (sec === null) return { problems: ['no "## Visual direction" in DESIGN.md: show versions and record the choice, or write "**Visual direction:** not applicable, {reason}"'] };
   const versions = rawRows(sec.split(/\*\*Tokens/)[0]);
   if (versions.length < need) problems.push(`${versions.length} versions shown (${need} needed)`);
   const missing = versions.map((r) => (r[2] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim())
@@ -266,10 +273,8 @@ function visualInfo(ctx, need, inheritable = false) {
 const IMPACT_AREAS = [['existing data', /data|record|row/i], ['contracts', /contract|api|webhook|export|integration/i], ['tracking events', /event|tracking|analytics/i], ['permissions', /permission|role|access|plan/i], ['current users', /user|customer|account/i]];
 function impactInfo(spec) {
   const sec = section(spec, 'Impact on what exists');
-  const na = field(sec || '', 'Impact on what exists');
-  if (na && /^not applicable/i.test(na)) {
-    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason (nothing exists yet)'] };
-  }
+  const na = notApplicable(sec, '', 'Impact on what exists');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason (nothing exists yet)'] };
   if (sec === null) return { problems: ['no "## Impact on what exists": existing data, contracts, tracking events, permissions and current users, each with how it is handled'] };
   const rows = rawRows(sec);
   const problems = [];
@@ -281,12 +286,21 @@ function impactInfo(spec) {
   return { problems, detail: `${rows.length} areas, each with its handling` };
 }
 
+// A tracking-plan row that names an event, not a "none" placeholder (in any wording: none, nessuno, n/a, a dash,
+// or a row whose trigger and properties are both empty).
+const DASH = /^(|[-—–]+|n\/?a)$/i;
+const realEvent = (r) => {
+  const name = (r[0] || '').replace(/[`*]/g, '').trim();
+  if (DASH.test(name) || /^(none|no events?|nessun[oa]?|nessun evento|keine|aucun)\b/i.test(name)) return false;
+  return !(DASH.test((r[1] || '').trim()) && DASH.test((r[2] || '').trim()));
+};
+
 // Gate 6.9: what this initiative settled about the product outlives its folder. Every entity it modeled is in
 // the project's DOMAIN.md; a look it chose is in TECH.md's Design system.
 function promotionGaps(ctx) {
   const gaps = [];
   const dm = section(ctx.design, 'Domain model');
-  const dmNa = /^not applicable/i.test(field(dm || ctx.design || '', 'Domain model') || '');
+  const dmNa = Boolean(notApplicable(dm, ctx.design, 'Domain model'));
   if (dm !== null && !dmNa) {
     const domain = (read(path.join(ROOT, 'DOMAIN.md')) || '').toLowerCase();
     const absent = rawRows(subsection(dm, 'Entities')).map((r) => r[0].replace(/[`*]/g, '').trim()).filter((e) => e && !domain.includes(e.toLowerCase()));
@@ -330,10 +344,8 @@ function subsection(text, prefix) {
 
 function domainInfo(ctx) {
   const sec = section(ctx.design, 'Domain model');
-  const na = field(sec || ctx.design || '', 'Domain model');
-  if (na && /^not applicable/i.test(na)) {
-    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
-  }
+  const na = notApplicable(sec, ctx.design, 'Domain model');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
   if (sec === null) return { problems: ['no "## Domain model" in DESIGN.md: entities, transitions, invariants and data, or "not applicable" with the reason'] };
   const problems = [];
   const entities = rawRows(subsection(sec, 'Entities'));
@@ -612,7 +624,7 @@ function gate(n, ctx) {
     else judge('5.2', `${run.detail}; confirm the recorded command/output covers every mapped test and the current implementation`);
     const inst = tableRows(section(a, 'Instrumentation'));
     const unverified = inst.filter((r) => !/^yes/i.test(r[2] || '') || !hasTag(r[4] || '', ['data', 'code']));
-    if (ctx.track === 'change' && !inst.length && !tableRows(section(ctx.spec, 'Tracking plan')).length) skip('5.3', 'change track with no tracking plan: nothing to instrument');
+    if (ctx.track === 'change' && !tableRows(section(ctx.spec, 'Tracking plan')).filter(realEvent).length) skip('5.3', 'change track with no tracking plan in the spec: nothing to instrument');
     else pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `unverified: ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
     const scope = tableRows(section(a, 'Scope check'));
     const oos = tableRows(section(ctx.spec, 'Out of scope')).filter((r) => nonEmpty(r[0]));
