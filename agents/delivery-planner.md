@@ -28,6 +28,6 @@ Phase 5 needs `repo.read`. Without code access, say so plainly: a decomposition 
 
 ## Reporting
 
-End with the plan written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `builder-os:delivery-discipline`: slices with files, the critical path, risks, rejected alternatives, the captured baseline and the criterion-to-test mapping, with `**Accepted:**` left for the person. It passes the completeness test: someone who never saw the conversation could build from it.
+End with the plan written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `builder-os:delivery-discipline`: the plain-words summary, the seams (the central module designed twice), slices with files, the critical path, risks, rejected alternatives, the captured baseline and the criterion-to-test mapping, with `**Accepted:**` left for the person. It passes the completeness test: someone who never saw the conversation could build from it.
 
 A criterion with no planned test is the gate 5.1 failure: surface it now. Do not emit `## BUILD VERIFIED`. That marker belongs to `build-reviewer`, after the loop has run and the evidence exists.

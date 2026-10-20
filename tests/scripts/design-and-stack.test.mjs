@@ -1,5 +1,5 @@
 // Tests for wide ideation chosen by a person (gates 3.5, 3.6), the stack decided with the user (4.8),
-// the visual direction chosen from rendered versions (4.9), and the briefing line on an undecided stack.
+// the visual direction chosen from rendered versions (4.9), the domain modeled with a person (4.10), and the briefing line on an undecided stack.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
@@ -106,6 +106,29 @@ test('gate 4.9 needs rendered versions, a person who chose, the kit and the toke
   assert.equal(gate(root, 4).by['4.9'], 'fail', 'not applicable needs its reason');
   write(root, 'DESIGN.md', A11Y + '\n## Visual direction\n**Visual direction:** not applicable, the change is an API endpoint with no screen.\n');
   assert.equal(gate(root, 4).by['4.9'], 'pass');
+});
+
+const DOMAIN = ({ who = 'reviewer', by = 'Mario', proto = 'design/domain-prototype.html', invariants = true } = {}) => `${A11Y}\n## Domain model\n### Entities\n| Entity | Means | Lifecycle |\n|---|---|---|\n| Export | a CSV a manager asked for | yes |\n| Deal | an open opportunity | no |\n\n### Transitions: Export\n| From | To | Who | Only if | Then |\n|---|---|---|---|---|\n| requested | ready | ${who} | the file is built | the manager is notified |\n\n${invariants ? '### Invariants\n- An export never changes after it is ready.\n\n' : ''}### Data\n| Entity | Key fields | Relations | Deleted with |\n|---|---|---|---|\n| Export | owner, state | many deals | its owner |\n\n**Rules decided by:** ${by}\n**Prototype:** ${proto}\n`;
+
+test('gate 4.10 needs entities, transitions with who, invariants, data and a person who decided the rules', () => {
+  const root = project();
+  write(root, '04-spec.md', SPEC('| backend | Node | inherited | — | — |'));
+  write(root, 'DESIGN.md', A11Y);
+  assert.match(gate(root, 4).detail['4.10'], /no "## Domain model"/);
+  write(root, 'DESIGN.md', DOMAIN());
+  assert.match(gate(root, 4).detail['4.10'], /prototype design\/domain-prototype\.html not found/);
+  write(root, 'design/domain-prototype.html', '<!doctype html><title>rules</title>');
+  assert.equal(gate(root, 4).by['4.10'], 'pass');
+  write(root, 'DESIGN.md', DOMAIN({ who: '' }));
+  assert.match(gate(root, 4).detail['4.10'], /nobody allowed/);
+  write(root, 'DESIGN.md', DOMAIN({ by: 'agent' }));
+  assert.equal(gate(root, 4).by['4.10'], 'fail', 'the agent does not decide business rules');
+  write(root, 'DESIGN.md', DOMAIN({ invariants: false }));
+  assert.match(gate(root, 4).detail['4.10'], /no invariants/);
+  write(root, 'DESIGN.md', DOMAIN().replace(/### Transitions[\s\S]*?### Invariants/, '### Invariants'));
+  assert.match(gate(root, 4).detail['4.10'], /Export has a lifecycle and no transitions table/);
+  write(root, 'DESIGN.md', A11Y + '\n## Domain model\n**Domain model:** not applicable, a copy change on the export button.\n');
+  assert.equal(gate(root, 4).by['4.10'], 'pass');
 });
 
 test('brief flags an initiative past phase 4 while TECH.md still has an undecided stack layer', () => {

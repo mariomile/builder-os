@@ -29,7 +29,7 @@ Ask through the `pressure-testing` rounds: two to four options per question, one
 
 Apply only the steps the request needs. Delegate when available and authorized; otherwise run inline.
 
-1. **Read the inputs.** `PRODUCT.md` constraints (budget, team, regulation, distribution), `TECH.md`, the bet's primary action and the flows in `DESIGN.md`. Read the repository where `repo.read` resolved: a manifest is a fact, a memory of the stack is not.
+1. **Read the inputs.** `PRODUCT.md` constraints (budget, team, regulation, distribution), `TECH.md`, the bet's primary action, the flows and the domain model's data sketch in `DESIGN.md` (the shape of the data drives the data layer). Read the repository where `repo.read` resolved: a manifest is a fact, a memory of the stack is not.
 
 2. **List the layers this work touches**, from the catalogue in the method: only those it actually needs. Mark each **inherited** (exists and nothing in this work strains it), **open** (does not exist yet, or this work strains it) or **not needed** (with the reason). An inherited layer is kept unless a driver below breaks it; reopening one is itself an open question.
 

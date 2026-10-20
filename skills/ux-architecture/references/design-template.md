@@ -1,6 +1,6 @@
 # Design Template
 
-The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor and gate 4.9 its visual direction; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
+The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction and gate 4.10 its domain model; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
 
 ```markdown
 # Design — {feature}
@@ -30,6 +30,28 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 **Keyboard path:** {tab order for the primary flow}
 **Contrast:** {ratio for text and meaningful non-text}
 **Focus:** on open {} · on close {} · on error {} · on completion {}
+
+## Domain model
+### Entities
+| Entity | Means | Lifecycle |
+|--------|-------|-----------|
+| {entity} | {one line, in the product's words} | yes / no |
+
+### Transitions: {entity}
+| From | To | Who | Only if | Then |
+|------|----|-----|---------|------|
+| {state} | {state} | {role} | {guard} | {effect} |
+
+### Invariants
+- {rule that holds whatever happens}
+
+### Data
+| Entity | Key fields | Relations | Deleted with |
+|--------|-----------|-----------|--------------|
+
+**Rules decided by:** {person, with the round answers or ADR links}
+**Prototype:** {design/domain-prototype.html, or "not needed: {reason}"}
+{or, when nothing changes state or shape: **Domain model:** not applicable, {reason}}
 
 ## Visual direction
 | Version | Axis and direction | File | Verdict |

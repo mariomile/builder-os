@@ -1,0 +1,2 @@
+# expects: skill=domain-model (standalone)
+Nel mio tracker un ticket chiuso si può riaprire? E chi può spostarlo da "in review" a "done"? Voglio fissare queste regole e lo schema dei dati prima di scrivere codice.

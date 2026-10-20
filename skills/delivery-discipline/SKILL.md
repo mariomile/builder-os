@@ -35,15 +35,19 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **2. Record the test baseline** before any code: run `TECH.md` → Verify through `run-check`; note passes, failures and duration. Where Verify is empty, fill it first. Where verifying needs several commands and environment knowledge, slice one wraps them in a single target. No suite: say so; slice one creates it.
 
-**3. Write the plan, reading only** (spec, `TECH.md`, codebase): change no code or test, and use the host's read-only planning mode where one exists; the baseline writes only evidence files. The plan holds slices with files, criteria and blocking edges; the critical path; risks with mitigations; rejected alternatives with why each lost; and a planned test for every numbered criterion (one without is the gate 5.1 failure, found now). Slices are tracer bullets, each end to end and mapped to criteria by number; apply the slice rules in [the build method](references/build-method.md#slice-rules) while writing the plan.
+**3. Write the plan, reading only** (spec, `TECH.md`, codebase): change no code or test, and use the host's read-only planning mode where one exists; the baseline writes only evidence files. The plan holds the **seams**: the modules this work creates or changes, each with its interface (what callers can ask of it and what it promises), what it hides, and where its tests sit, chosen per [the build method](references/build-method.md#seams); slices with files, criteria and blocking edges; the critical path; risks with mitigations; rejected alternatives with why each lost; and a planned test for every numbered criterion (one without is the gate 5.1 failure, found now). Slices are tracer bullets, each end to end and mapped to criteria by number; apply the slice rules in [the build method](references/build-method.md#slice-rules) while writing the plan.
+
+**Design the central module twice.** The module most slices depend on, or the one holding the domain rules, gets two or three radically different interfaces (the smallest, the most flexible, the one that makes the common case trivial), delegated in parallel where the host allows; compare them on how much each hides and where change would land, pick one, and put the others under rejected alternatives.
+
+**Explain it in plain words.** Open the plan with `**In plain words:**`: what gets built, in what order, what the user will be able to try after each slice, and the riskiest step. Every seam gets one line a non-engineer can follow ("one place decides whether a ticket may change state; every screen asks it"). The owner accepts what they understood, not a table.
 
 **Completeness test:** an engineer who never saw this conversation could build from the plan without asking which file, which order or which test.
 
-**4. Get the plan accepted.** Interrogate it (what breaks, the riskiest step, what was rejected and why), then ask. Record `**Accepted:** {who} · {ISO timestamp}` from the person's own words, or quote an earlier standing instruction ("proceed through the build without stopping") with its date. Never accept on their behalf. No code before that line.
+**4. Get the plan accepted.** Present `**In plain words:**` first. Interrogate it (what breaks, the riskiest step, what was rejected and why), then ask. Record `**Accepted:** {who} · {ISO timestamp}` from the person's own words, or quote an earlier standing instruction ("proceed through the build without stopping") with its date. Never accept on their behalf. No code before that line.
 
 **5. Run the loop per slice**, in order:
 
-1. **Write the test first** from the criterion, by number. An untestable criterion goes back to phase 4.
+1. **Write the test first** from the criterion, by number, at a seam the plan names; a test that reaches past a seam into internals is rewritten at the seam. An untestable criterion goes back to phase 4.
 2. **Watch it fail.**
 3. **Write the least code that passes it.**
 4. **Refactor with the test green.**

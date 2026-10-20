@@ -250,6 +250,57 @@ function visualInfo(ctx, need) {
   return { problems, detail: `${versions.length} versions, chosen by ${by}, kit: ${field(sec, 'Design kit')}` };
 }
 
+// Gate 5.6: the modules and test seams, each explained in one plain line.
+function seamGaps(plan) {
+  const sec = section(plan, 'Seams');
+  if (sec === null) return ['no "## Seams" section: the modules, their interfaces and where tests sit'];
+  const head = ((sec.split('\n').find((l) => /^\s*\|/.test(l)) || '').split('|').map((c) => c.trim().toLowerCase()));
+  const col = (name) => head.findIndex((c) => c.startsWith(name)) - 1;
+  const rows = rawRows(sec);
+  if (!rows.length) return ['the Seams table has no modules'];
+  const gaps = [];
+  for (const [label, name] of [['interface', 'interface'], ['tests at', 'tests at'], ['plain-words line', 'in plain words']]) {
+    const i = col(name);
+    if (i < 0) gaps.push(`the Seams table has no ${label} column`);
+    else { const bad = rows.filter((r) => !nonEmpty(r[i])); if (bad.length) gaps.push(`seams with no ${label}: ${bad.map((r) => r[0]).join(', ')}`); }
+  }
+  return gaps;
+}
+
+// Subsections ("### Name") inside a "## " section.
+function subsection(text, prefix) {
+  const lines = (text || '').split('\n');
+  const start = lines.findIndex((l) => /^###\s/.test(l) && l.replace(/^###\s+/, '').toLowerCase().startsWith(prefix.toLowerCase()));
+  if (start < 0) return null;
+  const out = [];
+  for (let i = start + 1; i < lines.length && !/^###?\s/.test(lines[i]); i++) out.push(lines[i]);
+  return out.join('\n');
+}
+
+function domainInfo(ctx) {
+  const sec = section(ctx.design, 'Domain model');
+  const na = field(sec || ctx.design || '', 'Domain model');
+  if (na && /^not applicable/i.test(na)) {
+    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
+  }
+  if (sec === null) return { problems: ['no "## Domain model" in DESIGN.md: entities, transitions, invariants and data, or "not applicable" with the reason'] };
+  const problems = [];
+  const entities = rawRows(subsection(sec, 'Entities'));
+  if (!entities.length) problems.push('no entities');
+  for (const e of entities.filter((r) => /^yes/i.test(r[2] || ''))) {
+    const tr = rawRows(subsection(sec, `Transitions: ${e[0]}`));
+    if (!tr.length) problems.push(`${e[0]} has a lifecycle and no transitions table`);
+    else if (tr.some((r) => !nonEmpty(r[2]))) problems.push(`${e[0]}: a transition with nobody allowed to trigger it`);
+  }
+  if (subsection(sec, 'Invariants') === null) problems.push('no invariants');
+  if (!rawRows(subsection(sec, 'Data')).length) problems.push('no data sketch');
+  const by = field(sec, 'Rules decided by');
+  if (!nonEmpty(by) || NOBODY.test(by)) problems.push('no person under "**Rules decided by:**"');
+  const proto = (field(sec, 'Prototype') || '').replace(/[`\[\]]/g, '').trim();
+  if (/\.html?$/i.test(proto) && !fs.existsSync(path.join(ctx.dir, proto)) && !fs.existsSync(path.join(ROOT, proto))) problems.push(`prototype ${proto} not found`);
+  return { problems, detail: `${entities.length} entities, rules decided by ${by}` };
+}
+
 // ---------- gates ----------
 
 // The list in gate-checks, condition 0.1. Terms PRODUCT.md defines under ## Language are the product's own
@@ -422,6 +473,8 @@ function gate(n, ctx) {
     pass('4.8', stack.problems.length === 0, stack.problems.length ? stack.problems.join('; ') : `${stack.rows} layers (${stack.decided} decided with a person), what we chose summarized`);
     const vd = visualInfo(ctx, lite ? 2 : (ctx.track === 'feature' ? 2 : 3));
     pass('4.9', vd.problems.length === 0, vd.problems.length ? vd.problems.join('; ') : vd.detail);
+    const dm = domainInfo(ctx);
+    pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
     return R;
   }
 
@@ -435,6 +488,8 @@ function gate(n, ctx) {
       !(validTimestamp(acceptedAt) && Date.parse(acceptedAt) <= Date.now() && accepted.replace(acceptedAt, '').replace(/[·\s]/g, '').length > 1) && 'Accepted needs who and an actual ISO timestamp',
       !/\|\s*files?\b/i.test(sliceHeader) && 'the Slices table has no Files column',
       !risks.length && 'no Risks rows',
+      !nonEmpty(field(plan, 'In plain words')) && 'no "**In plain words:**" summary for the owner',
+      ...seamGaps(a),
     ].filter(Boolean);
     pass('5.6', planGaps.length === 0, planGaps.length ? planGaps.join('; ') : `plan accepted ${acceptedAt}, slices name their files, ${risks.length} risks`);
     judge('5.7', 'was the plan accepted before implementation started, and does the final diff match it (or was the plan updated with the deviation)?');
