@@ -34,7 +34,7 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 ## Visual direction
 | Version | Axis and direction | File | Verdict |
 |---------|--------------------|------|---------|
-| A | {axis: what it optimizes} | design/a-v1.html | chosen / rejected: {why} / combined into {version} |
+| A | {axis: what it optimizes} | design/a-v1.html, or the route and branch | chosen / rejected: {why} / combined into {version} |
 
 **Chosen:** {version and file}
 **Chosen by:** {person, from their answer}

@@ -30,9 +30,9 @@ Ask through the `pressure-testing` rounds. Read the [direction method](reference
 
 2. **Decide what is open.** No interface (an API, a job, a CLI with no new output): write `**Visual direction:** not applicable, {reason}` and stop. An existing design system (feature track, or any product that has one): the style is inherited; what is open is the composition of the new screens, so produce at least two **layout versions** inside the system. A new product, or a restyle the user asked for: the style is open; produce at least three **visual directions**. Lite mode needs two either way.
 
-3. **Diverge on purpose.** Each version differs from the others on a named axis (density, tone, hierarchy, layout model, colour temperature, type personality), stated in one line, and each traces to the voice adjectives: "calm, for operators who keep it open all day" is a direction; "blue version" is not. Render the same screen in every version: the step of the primary flow the user will see most, with realistic content from the domain, labelled as sample content. No lorem ipsum: it hides the density problem the version exists to show.
+3. **Diverge on purpose.** Versions disagree about structure: layout model, information hierarchy, primary affordance or density, one named axis each, stated in one line. Colour and type ride on a structure; on a new product each direction pairs its structure with a tone, but two versions that differ only in palette or font are one version. Each traces to the voice adjectives, and each traces to the voice adjectives: "calm, for operators who keep it open all day" is a direction; "blue version" is not. Render the same screen in every version: the step of the primary flow the user will see most, with realistic content from the domain, labelled as sample content. No lorem ipsum: it hides the density problem the version exists to show.
 
-4. **Show them.** Through `ui.render` where it resolved, and always as files: `.builderos/initiatives/{initiative}/design/{letter}-v{n}.html`, self-contained (inline styles, no network fonts required), one per version. Present the paths and, per version: what it optimizes, what it gives up, which user it fits.
+4. **Show them where they will live.** A version judged in a vacuum always looks fine. When the product exists and runs, mount the versions inside the real page (its header, navigation, data and density) behind a variant switch in the URL, on a throwaway branch, and record the route per version. When it does not, or the app cannot run here, write files: `.builderos/initiatives/{initiative}/design/{letter}-v{n}.html`, self-contained (inline styles, no network fonts required), one per version, with the surrounding chrome sketched in. Use `ui.render` where it resolved, either way. Present the paths and, per version: what it optimizes, what it gives up, which user it fits.
 
 5. **Converge in rounds.** Ask which version, with a recommendation tied to the voice and the ICP. The user can pick one, or combine named parts ("A's layout with C's palette"): that becomes a new file `{letter}-v{n+1}.html`, never an overwrite, so every round stays comparable. After three rounds without a choice, recommend fixing the strongest version and listing what is still unsettled as a later polish item.
 
@@ -48,7 +48,8 @@ Completion marker: `## DIRECTION CHOSEN` with the versions shown and their files
 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|
-| Three versions that differ only in colour | The user chooses a palette, not a direction | Differ on a named axis each; same screen, same content |
+| Three versions that differ only in colour | The user chooses a palette, not a direction | Differ in structure (layout, hierarchy, primary affordance, density); same screen, same content |
+| Versions on a blank page when the product exists | Every version looks fine in isolation | Mount them in the real page behind a variant switch, on a throwaway branch |
 | Lorem ipsum or an empty dashboard | Hides density and hierarchy problems | Realistic domain content, labelled as sample |
 | Overwriting a version after feedback | The user loses what they were comparing | Every round is a new numbered file |
 | Shipping the chosen HTML as the first component | Demo code without states, accessibility or the kit | Extract tokens and rules; build with the kit |

@@ -92,6 +92,9 @@ test('gate 4.9 needs rendered versions, a person who chose, the kit and the toke
   write(root, 'design/a-v1.html', '<!doctype html><title>A</title>');
   write(root, 'design/b-v1.html', '<!doctype html><title>B</title>');
   assert.equal(gate(root, 4).by['4.9'], 'pass', 'feature track in lite mode needs two');
+  write(root, 'DESIGN.md', VISUAL(['/reports?variant=a on prototype/csv-export', '/reports?variant=b on prototype/csv-export']));
+  assert.equal(gate(root, 4).by['4.9'], 'pass', 'versions mounted in the running app are routes, not files');
+  write(root, 'DESIGN.md', VISUAL(['design/a-v1.html', 'design/b-v1.html']));
   setState(root, { mode: 'full', track: 'product' });
   assert.match(gate(root, 4).detail['4.9'], /2 versions shown \(3 needed\)/, 'a new product needs three directions');
   setState(root, { mode: 'lite', track: 'feature' });

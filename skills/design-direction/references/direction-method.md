@@ -4,6 +4,8 @@ The axes, the file rules, the kit card and the token list behind `design-directi
 
 ## Axes of Difference
 
+Structural axes first: every version takes a different one of the first four rows. The last two are tone, layered on a structure on a new product, never a version on their own.
+
 Pick one axis per version and say it. Two versions on the same axis at opposite ends make the trade-off visible; three versions on three axes give the widest spread.
 
 | Axis | One end | Other end | Who it tends to fit |
@@ -19,7 +21,8 @@ Tie each version to the voice adjectives in `PRODUCT.md`. A version that contrad
 
 ## Version Files
 
-- Path: `.builderos/initiatives/{initiative}/design/{letter}-v{n}.html`, for example `a-v1.html`, `b-v1.html`, `c-v1.html`, then `a-v2.html` for the first revision of A.
+- **In the real app** when the product exists and runs: the versions render inside the existing page behind a `?variant=` URL parameter, with a small switcher bar (previous, label, next, arrow keys) that never ships to production; the variant code lives on a throwaway branch named for the initiative, and the main branch keeps only the chosen direction, rebuilt properly. The File column records the route (`/reports?variant=b`) and the branch.
+- **As files** otherwise. Path: `.builderos/initiatives/{initiative}/design/{letter}-v{n}.html`, for example `a-v1.html`, `b-v1.html`, `c-v1.html`, then `a-v2.html` for the first revision of A.
 - Self-contained: one file, inline CSS, system fonts or a font stack that degrades cleanly, no build step, opens from disk in any browser.
 - Same screen in every version, at desktop width, with a narrow-width rendering below it when the ICP uses phones.
 - Realistic content from the domain, with a visible "sample content" label. The empty and error state of that screen, small, under the main rendering, so the direction is judged on its hard states too.

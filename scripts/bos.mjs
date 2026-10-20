@@ -238,7 +238,10 @@ function visualInfo(ctx, need) {
   const versions = rawRows(sec.split(/\*\*Tokens/)[0]);
   if (versions.length < need) problems.push(`${versions.length} versions shown (${need} needed)`);
   const missing = versions.map((r) => (r[2] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim())
-    .filter((f) => nonEmpty(f) && !fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f)));
+    .filter((f) => /\.(html?|png|jpe?g|svg|pdf)$/i.test(f) && !fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f)));
+  // A route inside the running app ("/reports?variant=b on prototype/x") is not a file to check.
+  const unlocated = versions.filter((r) => !nonEmpty(r[2]));
+  if (unlocated.length) problems.push(`versions with no file or route: ${unlocated.map((r) => r[0]).join(', ')}`);
   if (missing.length) problems.push(`version files not found: ${missing.join(', ')}`);
   for (const label of ['Chosen', 'Chosen by', 'Design kit']) if (!nonEmpty(field(sec, label))) problems.push(`no "**${label}:**"`);
   const by = field(sec, 'Chosen by');
