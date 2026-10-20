@@ -25,3 +25,7 @@ A nonzero host exit or empty case selection fails the runner. Cases are judged o
 ## Remediation smoke checks (2026-09-30)
 
 Claude Code 2.1.285 passed `failed-runner-refused` and `standalone-inline-prd` using the local plugin bundle. Codex CLI 0.159.1 with its configured model passed the same standalone inline PRD prompt through a complete local bundle exposed by skill symlinks; the source fixture was unchanged. These are bounded smoke checks, not a whole-lifecycle evaluation or proof of implicit triggering. The ambient Codex invocation reported global skill-budget, connector-auth and unrelated hook warnings; no global connectors/hooks were altered for these checks. Run outputs are audit-session evidence, not committed customer records.
+
+## Full run (2026-10-05)
+
+All 9 cases passed on Claude Code with the local plugin bundle, on the branch that became PR #10. `feature-track` failed on the first run: `bos.mjs new` without `--track` created a `product` initiative the model could not reclassify, and `bos-init` pointed at the wrong file for the setup procedure. After both fixes it passed 3 runs out of 3.
