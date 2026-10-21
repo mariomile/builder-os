@@ -42,6 +42,13 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 **Version:** {observed version or revision}
 **Verification:** {observed result with resolving [data:*] or [doc:*] source}
 
+## Production readiness
+**Errors seen by:** {how an error reaches the team before a user reports it: the error tracker, the alert, who receives it}
+**Backup restored:** {date and what was restored, once; or "not applicable, {why}" when nothing is stored}
+
+## First real use
+{product track: the first person outside the team who did the primary action, when, with its `[data:...]` or `[doc:...]` tag. Online is not in use: phase 7 starts here. Other tracks: omit.}
+
 ## Outcome review
 **Owner:** {person} · **Date:** {date, from the phase 3 kill criteria}
 **Will evaluate:** {the kill criteria, restated}

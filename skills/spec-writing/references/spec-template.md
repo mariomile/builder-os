@@ -54,6 +54,17 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 | # | Criterion | Flow |
 | 1 | {subject + verifiable verb + condition} | {flow} |
 
+## Quality bar
+| Area | Criteria | Not applicable because |
+|------|----------|------------------------|
+| Permissions | {AC numbers: who can see and do what, and what a user outside the role gets} | {or why it does not apply} |
+| Personal data | {AC numbers: what is stored, who reads it, retention, deletion} | {} |
+| Performance | {AC numbers: the budget on the primary action, measured how} | {} |
+{Accessibility, end-to-end, dependencies and secrets are automatic checks in the guardrail (TECH.md → Quality checks), not criteria here.}
+
+## Real users
+{product track: the session where a person from the ICP walked the problem, the concept or the clickable prototype; what they did, where they stuck, what changed; each with its `[interview:Pn]`, `[doc:...]` or `[data:...]` tag. Other tracks: omit.}
+
 ## States
 | Flow / step | Empty | Loading | Partial | Error | Success | Permission |
 
