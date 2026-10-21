@@ -1,6 +1,6 @@
 ---
 name: delivery-discipline
-description: "Use when a spec needs decomposing into buildable work, when implementation needs a test baseline and a red-green loop, or when built work needs reviewing against the spec rather than only against code standards"
+description: "Plans and runs a build: seams and slices, a plan the owner accepts before code, a test baseline, red-green per acceptance criterion, review in a fresh context, guardrails and quality checks in CI, and a look at the built interface. Use when a spec needs breaking into buildable work, when implementation starts, or when built work needs reviewing against the spec."
 ---
 
 # Delivery Discipline

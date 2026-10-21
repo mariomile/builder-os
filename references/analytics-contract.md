@@ -17,7 +17,7 @@ Read this with [capability mapping](capability-map.md), which defines `analytics
 | **Needs** | `analytics.events` |
 | **Inputs** | optional name filter, optional lookback |
 | **Result** | event names, volume per event over the lookback, property keys per event, and for low-cardinality properties their values |
-| **Used by** | `tracking-standards` (what is already instrumented), `growth-frameworks` (are funnel steps emitted at all), any phase that must not design an event that already exists |
+| **Used by** | `tracking-standards` (what is already instrumented), `product-analysis` (growth) (are funnel steps emitted at all), any phase that must not design an event that already exists |
 | **Floor** | read the instrumentation from source: grep the repo for the analytics SDK's call sites and collect the literal event names. This is often more accurate than the catalogue, which accumulates dead events |
 
 ### 2. Volume
@@ -43,7 +43,7 @@ State the unit of count explicitly in the artifact. "12,400 signups" is ambiguou
 | **Needs** | `analytics.query` |
 | **Inputs** | ordered steps (2+ events), date range, conversion window, whether steps must be strictly sequential, optional breakdown |
 | **Result** | per step: actors entering, actors converting, conversion rate from previous step and from first step; median time to convert per step where available |
-| **Used by** | `growth-frameworks` (activation diagnosis), gate 5 and gate 6 instrumentation checks, `experiment-methodology` |
+| **Used by** | `product-analysis` (growth) (activation diagnosis), gate 5 and gate 6 instrumentation checks, `experiment-methodology` |
 | **Floor** | a funnel assembled from separate Volume queries, one per step, clearly marked as an **unlinked funnel**: it counts distinct populations per step, not the same cohort walking through, so it flatters conversion at every step |
 
 The conversion window is the single most common source of a wrong funnel number. Every provider has one, their defaults differ, and a window of one day against a product with a weekly usage rhythm will report an activation collapse that is an artifact of the setting. Read the window, record it in the artifact next to the number.
@@ -57,7 +57,7 @@ The conversion window is the single most common source of a wrong funnel number.
 | **Needs** | `analytics.query` |
 | **Inputs** | the starting event, the returning event, cohort granularity (day, week, month), number of periods, retention definition |
 | **Result** | a triangle: cohort, size, and the percentage active in each subsequent period |
-| **Used by** | `strategy-frameworks` (PMF curve shape), `growth-frameworks`, `financial-models` (revenue retention is the same shape over revenue) |
+| **Used by** | `product-analysis` (strategy) (PMF curve shape), `product-analysis` (growth), `product-analysis` (finance) (revenue retention is the same shape over revenue) |
 | **Floor** | ask for the curve, or read repeat-usage from the application database via `db.query`. Absent both, the PMF signal that depends on it is recorded as unavailable, not guessed |
 
 Two definitions are in circulation and they produce different curves from the same data:
@@ -122,4 +122,4 @@ A phase never tells the user to go connect a named product. It states which shap
 
 ## Historical Billing Extension
 
-Financial Volume and Retention use historical normalized MRR snapshots at account/plan/period grain, an authoritative calendar declaring closed and complete periods, and first-paid-period history. Provide explicit report start/end and an opening snapshot for the first transition. Absence means zero only inside a declared complete period; open or missing periods are unavailable. Current subscription status cannot reconstruct history. Cohort denominators use inception MRR, even when the report display starts later. See [the billing query contract](../skills/financial-models/references/revenue-sql.md) for executable schemas and queries.
+Financial Volume and Retention use historical normalized MRR snapshots at account/plan/period grain, an authoritative calendar declaring closed and complete periods, and first-paid-period history. Provide explicit report start/end and an opening snapshot for the first transition. Absence means zero only inside a declared complete period; open or missing periods are unavailable. Current subscription status cannot reconstruct history. Cohort denominators use inception MRR, even when the report display starts later. See [the billing query contract](../skills/product-analysis/references/revenue-sql.md) for executable schemas and queries.

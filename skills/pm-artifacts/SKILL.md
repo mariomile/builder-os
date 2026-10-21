@@ -1,6 +1,6 @@
 ---
 name: pm-artifacts
-description: "Use when generating PRDs, release notes, stakeholder updates, or executive summaries — provides templates and format guidelines for each artifact type"
+description: "Writes product communication in a fitting format: release notes, stakeholder updates, executive summaries, decision memos. Use when someone asks for release notes, a status update, an exec summary or a memo for a product decision."
 ---
 
 # PM Artifacts

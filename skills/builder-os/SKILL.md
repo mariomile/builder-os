@@ -1,6 +1,6 @@
 ---
 name: builder-os
-description: "Use when the user requests a BuilderOS initiative, a lifecycle phase, or continuation of a gated pipeline from a problem toward verified production and learning"
+description: "Runs the BuilderOS lifecycle: eight gated phases from a problem to a product in production and its measured outcome, with state, evidence files and acceptance by a person at each gate. Use when the user starts or continues a BuilderOS initiative, asks to run a phase, or wants an idea taken all the way to production."
 ---
 
 # BuilderOS — Lifecycle Hub

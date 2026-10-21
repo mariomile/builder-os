@@ -1,15 +1,10 @@
----
-name: growth-frameworks
-description: "Use when designing growth strategies, analyzing activation funnels, interpreting retention curves, or mapping growth loops"
----
-
 # Growth Frameworks
 
 ## Scope and resources
 
-Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`. A single loop question does not require every analytics shape or a full growth report; use only the relevant steps below.
+Follow `references/operating-modes.md` at the installation root. A single loop question does not require every analytics shape or a full growth report; use only the relevant steps below.
 
-Load [growth method details](references/growth-methods.md) only for the relevant section: loops, activation, retention, ICE, bottleneck value, the intervention format or the output contract. Load `evidence-ledger` for sourced claims, the applicable query shape from `references/analytics-contract.md`, `references/capability-map.md` before a data provider, and only the relevant definition from `saas-metrics-reference`.
+Load [growth method details](growth-methods.md) only for the relevant section: loops, activation, retention, ICE, bottleneck value, the intervention format or the output contract. Load `evidence-ledger` for sourced claims, the applicable query shape from `references/analytics-contract.md`, `references/capability-map.md` before a data provider, and only the relevant definition from [metrics](metrics.md).
 
 ## Capabilities
 

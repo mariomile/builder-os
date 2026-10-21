@@ -1,6 +1,6 @@
 ---
 name: using-builder-os
-description: "Use when a product request needs routing among BuilderOS methods or lifecycle phases, or when the user asks where an active initiative stands or what to do next"
+description: "Entry point to BuilderOS: briefs from the project memory, checks each request against decisions and earlier conditions, and routes to the lifecycle or to the method that answers. Use at the start of product work, when a product request needs routing, or when the user asks where an initiative stands or what to do next."
 ---
 
 # Using BuilderOS
@@ -46,12 +46,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
-| Health or metric definition | `saas-metrics-reference`; growth for a related diagnosis |
-| Activation, retention or growth loops | `growth-frameworks` |
-| Revenue or unit economics | `financial-models` |
-| Competitors or positioning | `competitive-intel`; strategy as needed |
-| PMF, North Star or strategic fit | `strategy-frameworks` |
-| OKRs | `okr-frameworks` |
+| Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |
 | Tracking plan or instrumentation audit | `tracking-standards` |
 | Experiment design or result | `experiment-methodology` |
 | Release notes, stakeholder update or other document | `pm-artifacts` |

@@ -1,15 +1,10 @@
----
-name: financial-models
-description: "Use when calculating SaaS revenue metrics, building MRR waterfalls, modeling unit economics, or projecting financial scenarios"
----
-
 # Financial Models
 
 ## Scope and resources
 
-Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`. A standalone metric question does not require a full financial report. In lifecycle work, read only the active initiative artifacts relevant to the question. Run only the numbered steps the request needs.
+Follow `references/operating-modes.md` at the installation root. A standalone metric question does not require a full financial report. In lifecycle work, read only the active initiative artifacts relevant to the question. Run only the numbered steps the request needs.
 
-Load `evidence-ledger` when recording sourced claims, `references/capability-map.md` before accessing a data provider, and the relevant section of `saas-metrics-reference` when a definition needs clarification. Load [historical revenue SQL](references/revenue-sql.md) only when querying revenue, and [financial formulas and models](references/revenue-models.md) only for the requested formula, projection, heuristic comparison or the full-report output contract.
+Load `evidence-ledger` when recording sourced claims, `references/capability-map.md` before accessing a data provider, and the relevant section of [metrics](metrics.md) when a definition needs clarification. Load [historical revenue SQL](revenue-sql.md) only when querying revenue, and [financial formulas and models](revenue-models.md) only for the requested formula, projection, heuristic comparison or the full-report output contract.
 
 ## Capabilities
 

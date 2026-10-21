@@ -1,6 +1,6 @@
 # Growth Method Details
 
-Read only the loop, activation, retention, prioritization, bottleneck-value, intervention-format or output-contract section needed for the request. This resource resolves relative to its owning `SKILL.md`. Patterns and thresholds below are hypotheses/heuristics, not causal proof or PMF classification.
+Read only the loop, activation, retention, prioritization, bottleneck-value, intervention-format or output-contract section needed for the request. This resource resolves relative to this folder. Patterns and thresholds below are hypotheses/heuristics, not causal proof or PMF classification.
 
 ## Growth Loop Patterns
 

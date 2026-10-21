@@ -2,6 +2,27 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+A deep pass against what a tier-1 product team would do, and against the Claude Code plugin guidance. Analysis and decisions (Q1 to Q7) in the project thread.
+
+### Added
+
+- **Hooks for rules that must hold every time.** PreToolUse denies a hand-written `state.json` (`bos.mjs guard`); UserPromptSubmit adds one line per message with the phase and what to check the request against (`bos.mjs context`).
+- **The script travels with the project.** `bos.mjs vendor` copies it to `.builderos/bin/bos.mjs`; init runs it and writes the Session Start block into both `AGENTS.md` and `CLAUDE.md`. The briefing flags a stale copy.
+- **Evidence from outside the session.** `bos.mjs evidence add --class interview|doc|data --id --where [--shared] [--from file]` saves notes, tickets, exports or excerpts as evidence files the tags resolve to. Raw material is required, files are never overwritten, one participant per interview file. Starting with no evidence is described in `references/lifecycle-setup.md`.
+- **Quality of what is built.** Gate 4.12 quality bar (permissions, personal data, performance as criteria or a reason), 4.13 a real-user session before the build on the product track, 5.9 interface review of the built states against the chosen direction, 5.10 automatic quality checks in the guardrail (accessibility, end-to-end, dependency audit, secret scan), 6.10 production readiness (errors seen before users report them, a restore tested), 6.11 first real use on the product track. New capability `ui.capture`.
+- **Eval suite** in `evals/` for `claude plugin eval`: routing, briefing, evidence, gates, with and without the plugin. CI runs `npm test` on GitHub Actions.
+
+### Changed
+
+- **Session context** from 8,440 to about 2,100 characters on a project, briefing first; two lines outside a project.
+- **Code before an accepted build plan is a stop, not a flag**, even when the user says to skip: name what the gate needs and offer to finish it, a `change`, or a recorded override. Found by the first eval run, where the plugin wrote code at phase 2.
+- **`product-analysis`** replaces `saas-metrics-reference`, `growth-frameworks`, `financial-models`, `okr-frameworks`, `strategy-frameworks` and `competitive-intel`; their procedures are its references. `product-diagnostician` runs any of its areas; the agents `growth-architect`, `finance-analyst`, `okr-architect`, `north-star-analyst`, `competitive-analyst` and `product-strategist` are removed.
+- **Skill descriptions** say what the skill does and when to use it. With the new outside-project session line, skills loaded on a standalone PRD and a retention question went from 0 of 4 eval runs to 4 of 4.
+
+**Upgrading.** Specs fail 4.12 until `## Quality bar` is written (and 4.13 on the product track until `## Real users`); build plans fail 5.9 until `## Interface review`, and 5.10 until `TECH.md` has `**Quality checks:**`; releases fail 6.10 until `## Production readiness` (and 6.11 on the product track until `## First real use`). Run `bos.mjs vendor` once in each existing project.
+
 ## [2.3.0] - 2026-10-21
 
 Work on a product that already exists (#14): a new `change` track, the request's own evidence on the feature track, the impact on what exists, project-level `DOMAIN.md` and design system, cleanup after a decision, and gates that cope with a suite already red. New gates M.1 to M.4, C.5, C.6, 4.11, 6.9 and 7.6; new command `bos.mjs upgrade`. No new phases, skills or slash commands.

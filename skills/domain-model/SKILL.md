@@ -1,6 +1,6 @@
 ---
 name: domain-model
-description: "Use when a product or feature has things that change state (a ticket, an order, a booking, a subscription), when the business rules about who can do what and when are unclear, when the data model or schema has to be decided, or when the product's terms mean different things to different people"
+description: "Models the business domain with the user: entities, states and transitions with who may trigger them, invariants, awkward scenarios, a clickable logic prototype and a data sketch. Use when a product has things that change state (a ticket, an order, a booking, a subscription), when the rules about who can do what and when are unclear, when the schema has to be decided, or when terms mean different things to different people."
 ---
 
 # Domain Model

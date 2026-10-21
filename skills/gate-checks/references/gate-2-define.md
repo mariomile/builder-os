@@ -8,7 +8,7 @@ Read when running gate 2. E.1 and the procedure in `SKILL.md` apply too. On the 
 | 2.2 | Exactly one selected | With a stated rejection reason for each of the others |
 | 2.3 | Success metric named | With baseline and target, both source-tagged |
 | 2.4 | Baseline is real | Baseline tag is `data`, `code`, or `doc` — not `estimate` or `assumption`. An unsourced zero requires product track plus `Product exists: no`, `Zero rationale`, and valid `First measurement` date under Success metric; then a model must judge applicability to this metric. Existing products require a real source even for zero; missing access stays unavailable |
-| 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `strategy-frameworks`) rejects scale-oriented opportunities |
+| 2.5 | Coherent with PMF stage | Pre-PMF (signal score ≤4 per `product-analysis` (strategy)) rejects scale-oriented opportunities |
 | 2.6 | The metric measures an outcome | Shipping the change cannot by itself satisfy the target. A count of what the system does (alerts sent, emails delivered, a feature released) is output: it goes to the tracking plan or a guardrail, and the metric names what the user does or gets differently |
 
 Script-decided: 2.1, 2.2, 2.3. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. Model-judged: 2.5, 2.6. The emitted `checked_by` split is authoritative.

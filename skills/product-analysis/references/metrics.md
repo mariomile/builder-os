@@ -1,15 +1,10 @@
----
-name: saas-metrics-reference
-description: "Use when diagnosing product health, building a metric tree, or when a SaaS metric needs a definition, a formula, or a benchmark band for its stage"
----
-
 # SaaS Metrics Reference
 
 ## Scope and resources
 
-Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`. Answer a single metric directly with its unit, denominator, period and assumptions; it needs no health scorecard and no other query shapes.
+Follow `references/operating-modes.md` at the installation root. Answer a single metric directly with its unit, denominator, period and assumptions; it needs no health scorecard and no other query shapes.
 
-Load [metric definitions and heuristic bands](references/metric-definitions.md) only for the requested metric/category, and [the diagnosis reference](references/diagnosis.md) for a full diagnosis (query order, metric-tree form, output contract, worked calculation). Load `evidence-ledger` for sourced claims, the relevant section of `references/analytics-contract.md` for a query, and `references/capability-map.md` before accessing a connected source.
+Load [metric definitions and heuristic bands](metric-definitions.md) only for the requested metric/category, and [the diagnosis reference](diagnosis.md) for a full diagnosis (query order, metric-tree form, output contract, worked calculation). Load `evidence-ledger` for sourced claims, the relevant section of `references/analytics-contract.md` for a query, and `references/capability-map.md` before accessing a connected source.
 
 ## Capabilities
 

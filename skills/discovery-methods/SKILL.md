@@ -1,6 +1,6 @@
 ---
 name: discovery-methods
-description: "Use when synthesizing user research, analyzing interview transcripts, scoring opportunities, or mapping insight patterns"
+description: "Turns raw research into findings: synthesis of interviews and notes, insight patterns, opportunity scoring, each claim traced to its source. Use when synthesizing user research, analyzing interview transcripts, clustering feedback or tickets, or scoring opportunities."
 ---
 
 # Discovery Methods

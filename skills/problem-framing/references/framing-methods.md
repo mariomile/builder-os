@@ -80,7 +80,7 @@ Before the frame is done, a fast scan: is this already solved? Three outcomes, a
 - **Solved badly, adopted anyway** → the strongest starting position. Switching cost is the thing to understand in phase 1.
 - **Solved, not adopted** → most interesting and most dangerous. Something about distribution, trust, or workflow blocked it. That blocker is the actual problem.
 
-Use `competitive-intel` for a prior-art question when needed; delegate only when available and authorized. Depth here is shallow by design: this is a check against wasting phase 1, not a market study.
+Use `product-analysis` (competition) for a prior-art question when needed; delegate only when available and authorized. Depth here is shallow by design: this is a check against wasting phase 1, not a market study.
 
 ## Common Mistakes, With Reasons
 

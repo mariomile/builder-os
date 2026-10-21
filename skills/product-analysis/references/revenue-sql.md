@@ -1,6 +1,6 @@
 # Historical Revenue SQL
 
-Load this reference only for a revenue query. Paths are relative to this reference's owning `SKILL.md`; shared BuilderOS resources resolve from the supplied installation root. These are PostgreSQL query templates, validated on synthetic fixtures in DuckDB; they are not a certification of a customer's PostgreSQL integration. Read the real schema and adapt the input relations, not the metric definitions.
+Load this reference only for a revenue query. Paths are relative to this folder; shared BuilderOS resources resolve from the supplied installation root. These are PostgreSQL query templates, validated on synthetic fixtures in DuckDB; they are not a certification of a customer's PostgreSQL integration. Read the real schema and adapt the input relations, not the metric definitions.
 
 ## Required input contract
 

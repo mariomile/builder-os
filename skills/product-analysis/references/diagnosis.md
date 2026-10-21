@@ -1,6 +1,6 @@
 # Product Health Diagnosis Reference
 
-Read when running a full product-health diagnosis: the query order, the metric-tree form, the output contract, and the full common-mistakes list with a worked calculation. The procedure is in [the skill](../SKILL.md).
+Read when running a full product-health diagnosis: the query order, the metric-tree form, the output contract, and the full common-mistakes list with a worked calculation. The procedure is in [metrics](metrics.md).
 
 ## Query order
 

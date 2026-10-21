@@ -1,6 +1,6 @@
 # Financial Formulas and Models
 
-Read only the relevant metric, projection, heuristic or output-contract section. This resource resolves relative to its owning `SKILL.md`; sibling SQL is in `revenue-sql.md`.
+Read only the relevant metric, projection, heuristic or output-contract section. This resource resolves relative to this folder; sibling SQL is in `revenue-sql.md`.
 
 ## Output Contract
 

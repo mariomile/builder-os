@@ -1,15 +1,10 @@
----
-name: strategy-frameworks
-description: "Use when assessing product-market fit, auditing positioning, selecting a North Star metric, or evaluating strategic coherence"
----
-
 # Strategy Frameworks
 
 ## Scope and resources
 
-Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`. Run only the relevant audit/selection steps. Read `PRODUCT.md` and initiative state only for lifecycle work or when the user asked for product-wide context.
+Follow `references/operating-modes.md` at the installation root. Run only the relevant audit/selection steps. Read `PRODUCT.md` and initiative state only for lifecycle work or when the user asked for product-wide context.
 
-Load `evidence-ledger` for claims, `references/capability-map.md` before accessing a provider, only the needed analytics shape, `growth-frameworks` for retention interpretation, and the relevant `saas-metrics-reference` definition when unclear. [Strategy method details](references/strategy-methods.md) holds the PMF, positioning and North Star rubrics, signal-reading notes, examples and both output contracts; read only the section the request needs.
+Load `evidence-ledger` for claims, `references/capability-map.md` before accessing a provider, only the needed analytics shape, [growth](growth.md) for retention interpretation, and the relevant definition in [metrics](metrics.md) when unclear. [Strategy method details](strategy-methods.md) holds the PMF, positioning and North Star rubrics, signal-reading notes, examples and both output contracts; read only the section the request needs.
 
 ## Capabilities
 

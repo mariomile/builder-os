@@ -1,2 +1,2 @@
-# expects: skill=strategy-frameworks agent=north-star-analyst
+# expects: skill=product-analysis agent=product-diagnostician
 We're not sure what our North Star metric should be. We want to pick the right metric that captures the core value we deliver and aligns our team around what matters most.

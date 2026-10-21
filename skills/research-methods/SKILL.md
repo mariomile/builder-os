@@ -1,6 +1,6 @@
 ---
 name: research-methods
-description: "Use when planning user research, writing interview guides, deciding how many people to talk to, mining existing sources for evidence, or judging whether research is finished"
+description: "Plans and runs user research: what to learn, who and how many to talk to, interview guides, mining existing sources, recruiting, and when research is finished. Use when planning interviews or a survey, writing an interview guide, deciding sample size, or judging whether discovery has enough evidence."
 ---
 
 # Research Methods

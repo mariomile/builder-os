@@ -1,6 +1,6 @@
 ---
 name: pressure-testing
-description: "Use when a decision, problem statement, opportunity, or bet needs adversarial interrogation before it passes a gate, or when the user's reasoning has unresolved branches"
+description: "Interrogates a decision before it is relied on: questions in rounds of at most four, each with options, consequences and a recommendation, until the reasoning has no open branch. Use when a decision, problem statement, opportunity or bet is about to pass a gate, when the user asks to be grilled, or when their reasoning has unresolved branches."
 ---
 
 # Pressure Testing

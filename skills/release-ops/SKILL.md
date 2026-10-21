@@ -1,6 +1,6 @@
 ---
 name: release-ops
-description: "Use when built work is about to reach users — choosing a rollout strategy, designing the rollback, capturing the baseline before exposure, and writing release notes for the people who will read them"
+description: "Takes built work to users safely: rollout strategy, a tested rollback, the baseline before exposure, production readiness, release notes for the people affected, exposure verified and the first real use recorded. Use when a release is being planned or executed, or when a rollback or baseline is missing."
 ---
 
 # Release Ops

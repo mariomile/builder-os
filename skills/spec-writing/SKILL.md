@@ -1,6 +1,6 @@
 ---
 name: spec-writing
-description: "Use when a chosen bet needs a buildable specification — scope boundaries, testable acceptance criteria, enumerated states and edge cases, and the tracking plan that will measure whether it worked"
+description: "Writes specs and PRDs a team can build from: scope and out of scope, impact on what exists, numbered testable acceptance criteria, states and edge cases, the quality bar, the tracking plan, and a real-user session before the build. Use when someone asks for a PRD, a spec or acceptance criteria, or when a chosen bet needs a buildable specification."
 ---
 
 # Spec Writing

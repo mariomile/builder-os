@@ -1,6 +1,6 @@
 # Strategy Method Details
 
-Read only the PMF, positioning, North Star, signal-reading, example or output-contract section needed for the request. This file resolves relative to its owning `SKILL.md`.
+Read only the PMF, positioning, North Star, signal-reading, example or output-contract section needed for the request. This file resolves relative to this folder.
 
 ## PMF Signal Framework (4 Signals)
 

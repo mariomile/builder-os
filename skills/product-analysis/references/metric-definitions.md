@@ -1,6 +1,6 @@
 # SaaS Metric Definitions and Heuristic Bands
 
-Read only the requested metric/category and relevant heuristic band. Resolve this resource relative to its owning `SKILL.md`. No table below establishes PMF or company stage.
+Read only the requested metric/category and relevant heuristic band. Links resolve relative to this folder. No table below establishes PMF or company stage.
 
 ## Core Metrics
 
@@ -57,7 +57,7 @@ The Shape column names the question shape from `references/analytics-contract.md
 
 ## Units, windows and undefined ratios
 
-Specify currency/unit, monthly plan normalization, discounts/trials/taxes policy, timezone, date range, complete closed periods and unit of analysis. A present-day subscription status is not historical monthly MRR; use the [historical revenue input contract](../../financial-models/references/revenue-sql.md) when querying history. Zero MRR is a measured amount; a missing snapshot is unavailable. Zero denominators make ARPA/churn/LTV/CAC ratios undefined, not zero. A zero-churn month is insufficient evidence of infinite customer LTV.
+Specify currency/unit, monthly plan normalization, discounts/trials/taxes policy, timezone, date range, complete closed periods and unit of analysis. A present-day subscription status is not historical monthly MRR; use the [historical revenue input contract](revenue-sql.md) when querying history. Zero MRR is a measured amount; a missing snapshot is unavailable. Zero denominators make ARPA/churn/LTV/CAC ratios undefined, not zero. A zero-churn month is insufficient evidence of infinite customer LTV.
 
 For customer LTV, churn is a monthly probability/fraction of starting accounts, not revenue churn or a percentage numeral. The simple model assumes constant ARPA, margin and independent churn over time; prefer measured cohort value when available. Label whether LTV includes gross margin when using LTV:CAC.
 
@@ -76,7 +76,7 @@ Ending MRR = Starting MRR
   − Churn MRR        (cancellations)
 ```
 
-The identity is the check: if the components do not reconcile to the ending figure, the segmentation is wrong, not the arithmetic. `financial-models` holds the query patterns for computing it against a billing schema.
+The identity is the check: if the components do not reconcile to the ending figure, the segmentation is wrong, not the arithmetic. [Historical revenue SQL](revenue-sql.md) holds the query patterns for computing it against a billing schema.
 
 ## Benchmark Bands
 

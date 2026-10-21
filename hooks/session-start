@@ -37,7 +37,7 @@ Resolve support paths (skills/, references/, scripts/) from this installation ro
 # Outside a BuilderOS project the session gets two lines, not the router: the
 # plugin is installed per user and most sessions are not product work.
 if [ ! -d ".builderos" ]; then
-  session_context="BuilderOS (gated product lifecycle) is installed. For an idea, a product or a feature to take to production, load the using-builder-os skill; otherwise ignore it.
+  session_context="BuilderOS is installed: product methods (PRDs and specs, research, metrics and growth analysis, UX and design, stack choices, releases) and a gated lifecycle from an idea to production. For product work, load the BuilderOS skill that fits before answering, or using-builder-os to route; other requests ignore it.
 
 ${root_line}${script_line}"
 else

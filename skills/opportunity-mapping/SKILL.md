@@ -1,6 +1,6 @@
 ---
 name: opportunity-mapping
-description: "Use when turning validated research into a structured set of opportunities, choosing which one to attack, or connecting that choice to a success metric with a real baseline"
+description: "Turns validated research into a set of opportunities, picks the one to attack and ties it to a success metric with a real baseline. Use when research is done and the team must choose what to work on, or when a choice needs a metric to be judged by."
 ---
 
 # Opportunity Mapping
@@ -13,7 +13,7 @@ Follow [operating modes and resource paths](../../references/operating-modes.md)
 
 **Lifecycle:** the phase prerequisites, artifact paths and gate recording below apply only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
 
-Load the PMF or North Star section of `strategy-frameworks` only when that assessment is needed. Use `saas-metrics-reference` for unclear metric definitions, `evidence-ledger` for lifecycle traceability, and `gate-checks` for lifecycle completion. Ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
+Load the PMF or North Star section of `product-analysis` (strategy) only when that assessment is needed. Use `product-analysis` (metrics) for unclear metric definitions, `evidence-ledger` for lifecycle traceability, and `gate-checks` for lifecycle completion. Ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
 
 Read [opportunity reference](references/opportunity-reference.md) when you need the tree diagram and examples, the sizing table, the PMF signal bands, the success-metric part rules or the output template.
 

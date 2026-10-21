@@ -1,6 +1,6 @@
 ---
 name: stack-decisions
-description: "Use when a product or feature needs technology choices made (frontend, backend, data, auth, hosting, background work, model provider, integrations), when TECH.md has a layer the work needs that nobody decided, or when the user asks which stack to use and why"
+description: "Decides technology with the user in plain language: each open layer (frontend, backend, data, auth, hosting, background work, model provider, integrations) as a card with what, why, cost, lock-in and alternatives, and ADRs for the hard-to-reverse ones. Use when a product or feature needs technology choices, when TECH.md has an undecided layer, or when the user asks which stack to use and why."
 ---
 
 # Stack Decisions

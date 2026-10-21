@@ -1,6 +1,6 @@
 ---
 name: evidence-ledger
-description: "Use when writing any claim into a BuilderOS phase artifact, when auditing an artifact for unsourced numbers, or when a gate requires counting evidence"
+description: "Keeps every claim traceable: the source-tag grammar, one evidence file per tag, importing material from outside the session, and how gates count sources. Use when writing a claim into a BuilderOS artifact, when saving interview notes, tickets or data the user brings, when auditing an artifact for unsourced numbers, or when a gate counts evidence."
 ---
 
 # Evidence Ledger

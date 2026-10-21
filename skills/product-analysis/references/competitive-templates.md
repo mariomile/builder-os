@@ -1,6 +1,6 @@
 # Competitive Analysis Templates and Source Fitness
 
-Read only the section the current `competitive-intel` step needs.
+Read only the section the current step in [competition](competition.md) needs.
 
 ## Source Fitness
 

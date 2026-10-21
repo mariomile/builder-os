@@ -93,11 +93,11 @@ Rules, enforced on every change:
 ```yaml
 ---
 name: skill-name
-description: "Use when [specific triggering conditions]"
+description: "Does [what, in a sentence]. Use when [the requests and situations that should load it]."
 ---
 ```
 
-Description states triggering conditions ONLY. Not a workflow summary.
+The description says what the skill does and when to use it, in the third person, in the words a user would type, under 500 characters. It is how a host decides to load the skill, and every description is in context in every session, so it carries no procedure. A description change is measured with the eval suite (`evals/`, `claude plugin eval`), never judged by eye.
 
 ## Skill Contract
 

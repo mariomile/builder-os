@@ -1,6 +1,6 @@
 # OKR Method Reference
 
-Read when writing or reviewing objectives and key results (the KR quality check), scoring, checking alignment, finding a baseline, or setting the review cadence. The procedure is in [the skill](../SKILL.md).
+Read when writing or reviewing objectives and key results (the KR quality check), scoring, checking alignment, finding a baseline, or setting the review cadence. The procedure is in [OKRs](okrs.md).
 
 ## OKR Methodology
 
