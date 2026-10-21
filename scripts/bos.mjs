@@ -286,6 +286,64 @@ function impactInfo(spec) {
   return { problems, detail: `${rows.length} areas, each with its handling` };
 }
 
+// ---------- quality of what is built (gates 4.12, 4.13, 5.9, 5.10, 6.10, 6.11) ----------
+
+// Gate 4.12: what a machine cannot decide is written as numbered criteria, so gate 5.1 maps tests to it.
+const QUALITY_AREAS = [['permissions', /permission|role|access/i], ['personal data', /personal|privacy|pii|gdpr/i], ['performance', /perform|latency|speed|budget/i]];
+function qualityInfo(spec) {
+  const sec = section(spec, 'Quality bar');
+  if (sec === null) return { problems: ['no "## Quality bar": permissions, personal data and performance, each as numbered criteria or "not applicable" with the reason'] };
+  const acs = new Set(tableRows(section(spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x)));
+  const rows = rawRows(sec);
+  const problems = [];
+  for (const [name, re] of QUALITY_AREAS) {
+    const row = rows.find((r) => re.test(r[0]));
+    if (!row) { problems.push(`no row for ${name}`); continue; }
+    const cited = (row[1] || '').match(/\d+/g) || [];
+    const why = (row[2] || '').replace(/^not applicable[\s,.:;—-]*/i, '');
+    if (cited.length) { const missing = cited.filter((c) => !acs.has(c)); if (missing.length) problems.push(`${name} cites criteria that do not exist: ${missing.join(', ')}`); }
+    else if (!nonEmpty(why) || why.length <= 3) problems.push(`${name}: cite the acceptance criteria that cover it, or say why it does not apply`);
+  }
+  return { problems, detail: `${QUALITY_AREAS.length} areas covered by criteria or a stated reason` };
+}
+
+// Gate 4.13 (product track): someone from the ICP saw the problem, the concept or the prototype before the build.
+function realUsersInfo(spec) {
+  const sec = section(spec, 'Real users');
+  if (sec === null) return { problems: ['no "## Real users": at least one session with a person from the ICP before the build, tagged to its evidence file (or an override with the reason)'] };
+  const t = tags(sec).filter((x) => ['interview', 'doc', 'data'].includes(x.cls));
+  return t.length ? { problems: [], detail: `${t.length} real-user source${t.length > 1 ? 's' : ''}: ${t.map((x) => x.raw).join(', ')}` } : { problems: ['"## Real users" cites no interview, doc or data tag: a plan to talk to users is not a session'] };
+}
+
+// Gate 5.9: the built interface was looked at, state by state, against the direction the person chose.
+function interfaceReview(plan, ctx) {
+  const vd = section(ctx.design || '', 'Visual direction');
+  if (notApplicable(vd, ctx.design, 'Visual direction')) return { skip: 'no interface (visual direction not applicable)' };
+  const na = notApplicable(section(plan, 'Interface review'), '', 'Interface review');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
+  const sec = section(plan, 'Interface review');
+  if (sec === null) return { problems: ['no "## Interface review": each state of the primary flow rendered from the built product, compared with the chosen version and tokens'] };
+  const rows = rawRows(sec);
+  const problems = [];
+  for (const st of ['empty', 'error']) if (!rows.some((r) => new RegExp(st, 'i').test(r[0]))) problems.push(`no ${st} state reviewed`);
+  for (const r of rows) {
+    if (!nonEmpty(r[1])) problems.push(`${r[0]}: no screenshot or route`);
+    else for (const f of (r[1].match(/[\w./-]+\.(png|jpe?g|webp|gif)/gi) || [])) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: ${f} not found`);
+    if (!/^yes\b/i.test(r[2] || '')) problems.push(`${r[0]}: does not match the chosen direction (fix it, or record the deviation in DESIGN.md and say yes)`);
+  }
+  return { problems, detail: `${rows.length} states reviewed against the chosen direction` };
+}
+
+// Gate 5.10: quality a machine can check runs every time, in the guardrail, not in someone's memory.
+const QUALITY_CHECKS = [['accessibility', /accessib|a11y|axe/i], ['end-to-end', /end-to-end|e2e|playwright|cypress/i], ['dependency audit', /dependenc|audit/i], ['secret scan', /secret/i]];
+function qualityChecks() {
+  const v = field(read(path.join(ROOT, 'TECH.md')) || '', 'Quality checks');
+  if (!nonEmpty(v)) return { problems: ['TECH.md names no "**Quality checks:**": accessibility, end-to-end, dependency audit and secret scan in the guardrail, each named or "n/a" with why'] };
+  if (/^declined by\s+\S+.{6,}/i.test(v)) return { declined: v };
+  const missing = QUALITY_CHECKS.filter(([, re]) => !re.test(v)).map(([n]) => n);
+  return missing.length ? { problems: [`Quality checks does not cover: ${missing.join(', ')}`] } : { problems: [], detail: `quality checks: ${v}` };
+}
+
 // A tracking-plan row that names an event, not a "none" placeholder (in any wording: none, nessuno, n/a, a dash,
 // or a row whose trigger and properties are both empty).
 const DASH = /^(|[-—–]+|n\/?a)$/i;
@@ -585,6 +643,10 @@ function gate(n, ctx) {
     pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
     const im = impactInfo(a);
     pass('4.11', im.problems.length === 0, im.problems.length ? im.problems.join('; ') : im.detail);
+    const qb = qualityInfo(a);
+    pass('4.12', qb.problems.length === 0, qb.problems.length ? qb.problems.join('; ') : qb.detail);
+    if (ctx.track !== 'product') skip('4.13', `${ctx.track} track: the product's users are already reachable through its evidence`);
+    else { const ru = realUsersInfo(a); pass('4.13', ru.problems.length === 0, ru.problems.length ? ru.problems.join('; ') : ru.detail); }
     return R;
   }
 
@@ -607,6 +669,12 @@ function gate(n, ctx) {
     // On a repository whose CI belongs to someone else, adding it is their call: a named refusal is visible, not a pass.
     if (guard && /^declined by\s+\S+.{6,}/i.test(guard)) warn('5.8', false, `no guardrail, ${guard}`);
     else pass('5.8', nonEmpty(guard) && !/^(none|no|n\/?a|—|-)\b/i.test(guard), guard ? `guardrail: ${guard}` : 'TECH.md names no "**Guardrail:**" running Verify on every change');
+    const ir = interfaceReview(a, ctx);
+    if (ir.skip) skip('5.9', ir.skip);
+    else pass('5.9', ir.problems.length === 0, ir.problems.length ? ir.problems.join('; ') : ir.detail);
+    const qc = qualityChecks();
+    if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
+    else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
@@ -666,6 +734,15 @@ function gate(n, ctx) {
     pass('6.8', nonEmpty(field(exposure, 'Authorized by')), 'Exposure verification names who authorized exposure');
     const promo = promotionGaps(ctx);
     pass('6.9', promo.length === 0, promo.length ? promo.join('; ') : 'domain and design system promoted to project memory, or nothing to promote');
+    const pr = section(a, 'Production readiness') || '';
+    const prGaps = ['Errors seen by', 'Backup restored'].filter((k) => !nonEmpty(field(pr, k)));
+    pass('6.10', prGaps.length === 0, prGaps.length ? `"## Production readiness" missing: ${prGaps.join(', ')} (how an error is seen before a user reports it; a restore tested once, or "not applicable" with why)` : 'errors visible before users report them, restore tested or not applicable');
+    if (ctx.track !== 'product') skip('6.11', `${ctx.track} track: exposure to existing users is the use`);
+    else {
+      const fu = section(a, 'First real use');
+      const ok = fu !== null && hasTag(fu, ['data', 'doc']);
+      pass('6.11', ok, ok ? 'a person outside the team did the primary action, with its source' : 'no "## First real use" with a data or doc tag: online is not in use; phase 7 starts when someone outside the team has done the primary action');
+    }
     return R;
   }
 
@@ -1440,6 +1517,43 @@ function migrate() {
   console.log(`Migrated schema 1 to initiatives/${slug}/state.json. Moved: ${moved.join(', ') || 'nothing'}. Add .builderos/local.json to .gitignore.`);
 }
 
+// ---------- evidence import ----------
+
+// Evidence that lives outside the session (pasted notes, an interview file, an export, a link with
+// its excerpt) becomes a file the gates can resolve. The raw material is required: a link alone is
+// a pointer, and a pointer to nothing is an invented source.
+function evidenceAdd() {
+  if (args[1] !== 'add') die('usage: evidence add --class interview|doc|data --id ID --where "call, URL, query and parameters" [--by who] [--captured YYYY-MM-DD] [--shared] [--from file]   (raw material from --from or stdin)');
+  const cls = opt('--class');
+  const id = opt('--id');
+  const where = opt('--where');
+  if (!['interview', 'doc', 'data'].includes(cls)) die('evidence add needs --class interview, doc or data (estimate and assumption need no file)');
+  if (!id || /[\s\]]/.test(id)) die('evidence add needs --id without spaces, the identifier the tag will carry (P3, support-tickets-aug, posthog:funnel_q3)');
+  if (cls === 'interview' && id.includes(',')) die('one participant per file: add P1 and P4 separately, then cite [interview:P1,P4]');
+  if (!nonEmpty(where)) die('evidence add needs --where: the call, the ticket URL, the query tool and parameters, or the file path it came from');
+  const captured = opt('--captured') || new Date().toISOString().slice(0, 10);
+  if (!validDate(captured) || Date.parse(captured) > Date.now()) die('--captured must be a real date, not in the future');
+  const from = opt('--from');
+  let raw = '';
+  if (from) { raw = read(path.resolve(from)); if (raw === null) die(`--from ${from} does not exist`); }
+  else { try { raw = fs.readFileSync(0, 'utf8'); } catch { raw = ''; } }
+  if (raw.trim().length < 20) die('the raw material is missing or too short: paste the notes, the quotes, the query output or the excerpt itself, not a summary or a bare link');
+  let dir;
+  if (flag('--shared')) dir = path.join(BOS, 'evidence');
+  else {
+    const active = resolveActive(loadInitiatives());
+    if (!active) die('no active initiative: pass --shared for evidence behind PRODUCT.md, DOMAIN.md or TECH.md, or select an initiative');
+    dir = path.join(INIT_DIR, active.slug, 'evidence');
+  }
+  if (!fs.existsSync(BOS)) die('no .builderos/ here: initialize the project first');
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, id.replace(/[:/]/g, '-') + '.md');
+  if (fs.existsSync(file)) die(`${rel(file)} already exists: evidence files are never overwritten; use a new id`);
+  const by = opt('--by') || 'the user';
+  fs.writeFileSync(file, `# ${id}\n\n**Class:** ${cls}\n**Captured:** ${captured} · **By:** ${by} · **Where:** ${where}\n\n${raw.trim()}\n`);
+  console.log(`Saved ${rel(file)}. Cite it as [${cls}:${id}].`);
+}
+
 // ---------- project copy and host guard ----------
 
 const SELF = fileURLToPath(import.meta.url);
@@ -1477,6 +1591,33 @@ function guard() {
   }
 }
 
+// UserPromptSubmit hook: one line per message, so the check against standing conditions happens
+// at every request and not only when the session starts. Silent outside an active initiative.
+function context() {
+  try { fs.readFileSync(0, 'utf8'); } catch { /* the prompt itself is not needed */ }
+  if (!fs.existsSync(INIT_DIR)) return;
+  let active;
+  try { active = resolveActive(loadInitiatives()); } catch { return; }
+  if (!active || (active.state.status || 'open') !== 'open') return;
+  const s = active.state;
+  const p = s.current_phase ?? 0;
+  const dir = path.join(INIT_DIR, active.slug);
+  const listItems = (text) => (text || '').split('\n').filter((l) => /^\s*([-*]|\d+\.)\s+\S/.test(l) || (/^\s*\|/.test(l) && !/^\s*\|\s*:?-{2,}/.test(l))).length;
+  const nonGoals = listItems(section(read(path.join(ROOT, 'PRODUCT.md')) || '', 'Non-Goals'));
+  const oos = tableRows(section(read(path.join(dir, '04-spec.md')) || '', 'Out of scope')).filter((r) => nonEmpty(r[0])).length;
+  const bits = [`BuilderOS · ${s.title || active.slug}: phase ${p} ${PHASES[p]} (${s.track || 'product'} track), ${lastGate(s)}`];
+  if (p === 5) {
+    const accepted = field(section(read(path.join(dir, '05-build-plan.md')) || '', 'Plan') || '', 'Accepted') || '';
+    bits.push(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(accepted) ? 'build plan accepted' : 'build plan not accepted yet: no code for this initiative until a person accepts it');
+  }
+  const ov = overrides(s);
+  if (ov.length) bits.push(`overrides in force: phase ${ov.join('; phase ')}`);
+  const against = ['decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];
+  if (oos) against.push(`the spec's out-of-scope (${oos} items)`);
+  bits.push(`If this message asks for product work, check it against ${against.join(', ')}; name a collision in at most two lines, then continue`);
+  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: bits.join('. ') + '.' } }));
+}
+
 // ---------- main ----------
 
 const cmd = args[0];
@@ -1494,7 +1635,9 @@ else if (cmd === 'pace') pace();
 else if (cmd === 'watch') watch();
 else if (cmd === 'vendor') vendor();
 else if (cmd === 'guard') guard();
+else if (cmd === 'context') context();
+else if (cmd === 'evidence') evidenceAdd();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

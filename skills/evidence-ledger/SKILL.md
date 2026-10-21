@@ -28,6 +28,10 @@ A pointer to nothing is an invented source. Every `interview`, `doc` and `data` 
 
 Write the evidence file when the source is captured, not when the gate fails: notes written from memory a week later are a `doc` about an interview, not the interview. What the user tells you in the conversation is `[doc:user-{YYYY-MM-DD}-{topic}]`, with their words copied verbatim into the file.
 
+## Evidence From Outside the Session
+
+Most evidence lives somewhere the session cannot reach: interview notes in a notes app, a call transcript, a CSV export, a support inbox, a survey tool. It counts the moment its raw material is in `evidence/`. Ask the user to paste it or give the file path, then save it with `scripts/bos.mjs evidence add --class interview|doc|data --id {id} --where "{where it came from}" [--from {file}]` (the raw material from the file or pasted on stdin; `--shared` for evidence behind `PRODUCT.md`, `DOMAIN.md` or `TECH.md`), which writes the format above and prints the tag to cite. One participant per interview file. A link alone is not evidence: save the excerpt the claim rests on, with the link as **Where**. Where commands cannot run, write the same file by hand. Resolve a connected source first when one answers the question (`tickets.read`, `meetings.read`, `docs.search`); importing is the floor, not a second-class path.
+
 ## Source Hierarchy
 
 Choose the source that best answers this claim by directness, relevant population, observation date, provenance and known limitations; source class alone never decides a conflict. Estimates and assumptions stay explicitly uncertain. Read all relevant conflicting sources, not just the first found. Write the conflict into the artifact, recording both and explaining the choice or leaving it unresolved. Examples: [examples.md](references/examples.md), Source Conflicts.

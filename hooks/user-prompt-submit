@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# UserPromptSubmit hook for BuilderOS: one line of standing context per message; silent on any failure.
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+[ -d ".builderos/initiatives" ] || exit 0
+command -v node >/dev/null 2>&1 || exit 0
+node "${PLUGIN_ROOT}/scripts/bos.mjs" context 2>/dev/null || exit 0
