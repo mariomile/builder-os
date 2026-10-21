@@ -24,6 +24,8 @@ Ask through the `pressure-testing` rounds. Read the [domain method](references/d
 
 ## Procedure
 
+0. **Start from what is already settled.** Read the project's `DOMAIN.md` first, and the schema, migrations and status enums where `repo.read` resolved. On a product that exists, model only the delta: the entities this work adds, the states and transitions it adds or changes, the invariants it touches. Name every existing rule it changes as a change, with the initiative that set it, and ask it as a round question; never redefine an entity silently. Where an invariant tightens, count the existing rows that already violate it (`db.query`) and hand the number to the spec's Impact on what exists.
+
 1. **Name the things.** From the flows, the spec scope and `PRODUCT.md`: the entities the user acts on, each with a one-line definition in the product's words. Check every term against `PRODUCT.md` → Language. A term used two ways, or two terms for one thing, is a question for the user ("is a *project* the same as a *workspace*?"), settled before anything else, then written into Language.
 
 2. **Give each entity its states and transitions.** For every entity with a lifecycle: the states, and per transition who can trigger it, what must be true first (the guard), and what happens as a result (the effect: notifications, other entities that change, what becomes irreversible). An entity with no lifecycle gets a line saying so.
@@ -38,7 +40,7 @@ Ask through the `pressure-testing` rounds. Read the [domain method](references/d
 
 7. **Sketch the data.** Per entity: the fields that matter, the relationships (one-to-many, many-to-many) and what is deleted with what. Not a migration, the shape: enough for `stack-decisions` to choose a store and for the build to write the schema without inventing a rule.
 
-8. **Record and explain.** Write `## Domain model` in `DESIGN.md` per the [design template](../ux-architecture/references/design-template.md). Then a short plain-language paragraph for the spec's `## What we chose`: what the product's main objects are and the two or three rules that will surprise someone. New terms go into `PRODUCT.md` → Language.
+8. **Record and explain.** Write `## Domain model` in `DESIGN.md` per the [design template](../ux-architecture/references/design-template.md). At ship, phase 6 promotes it into the project's `DOMAIN.md` (gate 6.9); standalone work on a product with a `DOMAIN.md` proposes the edit there. Then a short plain-language paragraph for the spec's `## What we chose`: what the product's main objects are and the two or three rules that will surprise someone. New terms go into `PRODUCT.md` → Language.
 
 Completion marker: `## DOMAIN MODELED` with the entities, the transitions with who and guard, the invariants, the rules the user decided, the prototype path when built, and the data sketch.
 

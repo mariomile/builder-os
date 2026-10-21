@@ -21,7 +21,7 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 ## Output
 
 ```markdown
-## {Product} · {initiative title} — cycle {C}, mode {full|lite}, track {spike|feature|product}
+## {Product} · {initiative title} — cycle {C}, mode {full|lite}, track {spike|change|feature|product}
 
 | # | Phase | Status | Gate | Artifact |
 |---|-------|--------|------|----------|

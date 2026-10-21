@@ -8,9 +8,10 @@ Read when running gate 7. E.1 and the procedure in `SKILL.md` apply too. Read th
 | 7.2 | Kill criteria evaluated | The Phase 3 threshold checked against the actual, verdict stated |
 | 7.3 | Decision recorded | `KEEP` / `ITERATE` / `KILL`; `Re-enters at: phase 0-6` or `none`. ITERATE requires a phase, KILL requires none; CLI decision/re-entry must agree |
 | 7.4 | Generalized learning | One sentence that outlives the feature, written into `decisions/` |
+| 7.6 | Cleanup is scheduled | `**Cleanup:**` under the decision: after KEEP, the flag and the old code path to remove; after KILL, the shipped code to remove (as a `change` initiative); with an owner and a date. `none` only with its reason |
 | 7.5 | A closing KEEP sets a watch | When the decision is KEEP with `Re-enters at: none`, `## Watch` names the metric, the bands, the owner and a valid recheck date. Skipped for ITERATE, KILL and a KEEP that re-enters |
 
-Script-decided: 7.1, 7.2, 7.3, 7.5. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
+Script-decided: 7.1, 7.2, 7.3, 7.5, 7.6. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
 
 **Recording.** Phase 7 passes `keep|iterate|kill`, matching its heading and `Re-enters at` field. `iterate` requires `--reenter 0-6`, `kill` prohibits it, and `keep` permits either an explicit re-entry or `none`.
 

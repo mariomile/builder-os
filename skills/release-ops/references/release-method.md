@@ -61,6 +61,8 @@ Exposure to users is the one step in the lifecycle nobody can undo by the time t
 
 A changelog is a legitimate artifact and a different one from release notes. Both can exist; only one satisfies gate 6.4.
 
+On a product people already use, "what you can now do" is half the news. The other half is what changed under them: a total that now excludes something, a setting that moved, a default that flipped, a button that is gone. That line comes from the spec's Impact on what exists, current users row, and it is written even when the answer is "nothing changes for you".
+
 A review with no owner does not happen. A review with no date happens when someone remembers, which is after the result has become obvious enough that there is nothing left to learn.
 
 ## Claims and Their Evidence

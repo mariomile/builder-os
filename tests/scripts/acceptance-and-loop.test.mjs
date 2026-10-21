@@ -49,7 +49,8 @@ test('gate 4.7 needs a Conflicts section, and every conflict names who decides',
   assert.equal(gate(root, 4).by['4.7'], 'pass', 'stating none is a valid answer');
 });
 
-const CHOSEN = '\n## Stack\n| Layer | Choice | Status | Decided by | ADR |\n|---|---|---|---|---|\n| backend | Node | inherited | — | — |\n\n## What we chose\nNothing new: the export runs on the inherited Node backend.\n';
+const IMPACT = '\n## Impact on what exists\n| Area | Today | What changes | Handling |\n|---|---|---|---|\n| Existing data | deals table | nothing | nothing to do: export reads only |\n| Contracts | no public API | nothing | nothing to do |\n| Tracking events | report_viewed | adds export_completed | new event, nothing renamed |\n| Permissions | managers see their team | same rule | export respects it |\n| Current users | weekly report | a new button | release note says where it is |\n';
+const CHOSEN = IMPACT + '\n## Stack\n| Layer | Choice | Status | Decided by | ADR |\n|---|---|---|---|---|\n| backend | Node | inherited | — | — |\n\n## What we chose\nNothing new: the export runs on the inherited Node backend.\n';
 const NO_UI = '\n## Domain model\n**Domain model:** not applicable, the export reads existing deals and changes no state.\n\n## Visual direction\n**Visual direction:** not applicable, the export reuses the existing report screen unchanged.\n';
 
 test('phase 4 advances only with the person who accepted the spec, and records it', () => {
@@ -120,7 +121,7 @@ test('gate 6.8 needs the person who authorized exposure', () => {
   assert.equal(gate(root, 6).by['6.8'], 'pass');
 });
 
-const OUTCOME = (decision, reentry, watch) => `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 32% | 30% | +32 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 32 > 15\n\n## Decision: ${decision}\n**Why:** above target\n**Re-enters at:** ${reentry}\n\n## Learning\nManagers export when the file matches the meeting agenda.\n${watch}`;
+const OUTCOME = (decision, reentry, watch) => `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 32% | 30% | +32 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 32 > 15\n\n## Decision: ${decision}\n**Why:** above target\n**Re-enters at:** ${reentry}\n**Cleanup:** remove the export flag by 2027-01-15, owner Mario\n\n## Learning\nManagers export when the file matches the meeting agenda.\n${watch}`;
 const WATCH = (recheck) => `\n## Watch\n**Metric:** share of managers with a weekly export\n**Bands:** 1σ note, 2σ diagnose read-only, 3σ new initiative\n**Owner:** Mario\n**Recheck:** ${recheck}\n`;
 
 test('a closing KEEP needs a watch (7.5), record stores it, and brief raises it when due', () => {

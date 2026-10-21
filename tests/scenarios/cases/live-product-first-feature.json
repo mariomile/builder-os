@@ -1,0 +1,13 @@
+{
+  "name": "live-product-first-feature",
+  "why": "The most common first contact: a product already live with users, no BuilderOS memory yet, and a feature request with tickets behind it. The run must draft the memory from what exists, save the request's own evidence in 00-request.md, and classify the work out loud instead of treating the product as an idea",
+  "fixture": "acme",
+  "setup": { "remove": [".builderos", "PRODUCT.md"] },
+  "prompt": "Acme Reports è in produzione da un anno, circa 40 team di vendita lo usano ogni settimana. Tre clienti hanno aperto ticket per poter filtrare il report settimanale per team: #5102 Northwind \"ogni lunedì ricostruisco a mano la vista del mio team\", #5117 Globex \"il report mescola tre team, non mi serve così\", #5140 Initech \"vorrei vedere solo i miei 12 rep\". Inizia con BuilderOS l'iniziativa \"team-filter\" e dimmi da dove partiamo.",
+  "expect": {
+    "output_matches": ["(?i)(feature|product)"],
+    "files_present": ["PRODUCT.md", "DOMAIN.md", "TECH.md", ".builderos/ROADMAP.md", ".builderos/initiatives/team-filter/00-request.md"],
+    "history_events": ["track_set"],
+    "state": { "initiative": "team-filter" }
+  }
+}

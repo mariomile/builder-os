@@ -18,6 +18,22 @@ Write the boundary that someone will argue with. An out-of-scope list containing
 
 **Out of scope is not the same as not yet specified.** Out of scope lies beyond what this release is for: it never comes back unless the bet changes. Not yet specified lies inside the scope and is simply not decided yet: how a limit is enforced, which of two error behaviors applies. Filing an open question under out of scope quietly drops it; leaving it unfiled hands the decision to whoever implements it. Each open question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, so phase 5 can build the slices that do not.
 
+## Impact on What Exists
+
+New products have users only after they ship; a change to a live product has them before it starts. The questions that bite are about the state that predates the change, and none of them show up in a flow diagram.
+
+Example, for "a deal can now be marked *on hold*" in a CRM report:
+
+| Area | Today | What changes | Handling |
+|------|-------|--------------|----------|
+| Existing data | 41,200 deals, status open/won/lost `[data:db:deal_status_counts]` | new status `on_hold` | no backfill; existing deals keep their status |
+| Contracts | the CSV export lists status as free text; two customers parse it `[doc:support-export-parsers]` | a fourth value appears | announce in the changelog a week before; value is lowercase like the others |
+| Tracking events | `deal_status_changed` with `to` property | `to` gains `on_hold` | the win-rate dashboard filters `to in (won, lost)`: unchanged, checked |
+| Permissions | reps change their own deals, managers any in the team | same | on hold follows the same rule |
+| Current users | managers read open pipeline weekly | on-hold deals leave the open total | default: counted separately under the total; release note says so |
+
+A row that says "nothing to do" still names why. "Current users" is the row most often wrong: a total that silently changes is a bug report on Monday.
+
 ## Constraint Conflicts
 
 The constraints in `PRODUCT.md` (regulatory, distribution, resource) and in `TECH.md` (technical constraints, conventions) apply while the spec is written, not when someone notices them in review. Most of the time the spec can satisfy all of them. Sometimes two cannot hold at once: "every export of personal data is audited" against "no new table without an ADR", when the audit log needs a table.

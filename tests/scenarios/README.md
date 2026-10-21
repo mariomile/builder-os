@@ -29,3 +29,7 @@ Claude Code 2.1.285 passed `failed-runner-refused` and `standalone-inline-prd` u
 ## Full run (2026-10-05)
 
 All 9 cases passed on Claude Code with the local plugin bundle, on the branch that became PR #10. `feature-track` failed on the first run: `bos.mjs new` without `--track` created a `product` initiative the model could not reclassify, and `bos-init` pointed at the wrong file for the setup procedure. After both fixes it passed 3 runs out of 3.
+
+## Work on existing products (2026-10-20)
+
+Two new cases: `live-product-first-feature` (a live product with no BuilderOS memory and a feature backed by tickets) and `change-with-red-suite` (a bug fix as a `change` on a suite with a failing test that is not this initiative's). Run on Claude Code 2.1.305 with `--allowedTools 'Bash(node:*)' 'Bash(npm:*)' 'Read'`: without `Read` the headless host could not open the plugin's `references/` from a project under `/tmp` and stopped to ask. The first runs found three defects, each fixed before the final run: the model asked permission before writing `00-request.md`; "Not applicable." written as prose under a heading did not count for 4.9, 4.10 and 4.11; gate 5.3 failed a change whose tracking plan holds a single "none" row. Final run: both new cases and both feature-track cases pass, and `change-with-red-suite` records gate 5 without an override, with 5.2 judged against the red baseline. The other five cases were not rerun.

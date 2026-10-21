@@ -21,7 +21,7 @@ Dispatch `builder-os:delivery-planner`, get the plan accepted, run the loop, the
 Operating mode: [mode] · Capabilities: [resolved]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
 Delivery toolchain present: [yes, named | no]
-PRODUCT.md, TECH.md, 04-spec.md, DESIGN.md: [content]
+PRODUCT.md, DOMAIN.md, TECH.md, 04-spec.md, DESIGN.md: [content]
 
 Write the plan into .builderos/initiatives/{initiative}/05-build-plan.md:
 slices with files, critical path, risks, rejected alternatives, captured

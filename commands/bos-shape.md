@@ -11,8 +11,8 @@ Dispatch `builder-os:ux-architect`, run the rules, the look and the stack with t
 
 ## Steps
 
-1. **Check pipeline state.** Read the active initiative's `state.json` (per the schema, Active Initiative). Phase 3 must have passed or been overridden.
-2. **Read `03-solution-bet.md` and `02-definition.md`** in `.builderos/initiatives/{initiative}/`: the primary action, the kill criteria, the success metric.
+1. **Check pipeline state.** Read the active initiative's `state.json` (per the schema, Active Initiative). Phase 3 must have passed, been overridden, or be `covered` by the change track's mandate check (then the input is `00-request.md` instead of `03-solution-bet.md`).
+2. **Read `03-solution-bet.md` and `02-definition.md`** in `.builderos/initiatives/{initiative}/`: the primary action, the kill criteria, the success metric. On the change track, `00-request.md` and `DOMAIN.md` instead.
 3. **Resolve capabilities** per `references/capability-map.md`, including `ui.render`, and derive the operating mode.
 4. **Dispatch `builder-os:ux-architect`** with mode, capabilities, pipeline state (initiative, phase 4, cycle, mode), `PRODUCT.md`, `03-solution-bet.md` and the user's request. It writes the flows into `DESIGN.md` and ends with `## DESIGN COMPLETE`.
 5. **Run `domain-model`, then `design-direction`, in this conversation:** entities, transitions and business rules as round questions, a logic prototype when the rules are non-trivial; then the versions as files under `design/`, shown through `ui.render` where it resolved, the choice in rounds. The user's answers cannot be collected inside a dispatch.

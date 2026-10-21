@@ -37,9 +37,9 @@ Gate 7.3: one of three, with the re-entry point.
 
 | Decision | Means | Re-enters at |
 |----------|-------|-------------|
-| **KEEP** | Retain the change; identify any authorized cleanup separately | Normally none; explicit continued cycle may name phase N |
+| **KEEP** | Retain the change; schedule the flag and old-path removal under Cleanup (gate 7.6) | Normally none; explicit continued cycle may name phase N |
 | **ITERATE** | The direction holds, the execution or the scope was wrong | Phase 3 for a different mechanism, or phase 4 for a different execution |
-| **KILL** | The bet was wrong. Revert or leave it and stop investing | No re-entry; this bet closes. A different direction needs a separately authorized initiative |
+| **KILL** | The bet was wrong. Stop investing, and schedule removing what shipped under Cleanup (gate 7.6), or say why it stays | No re-entry; this bet closes. A different direction needs a separately authorized initiative |
 
 State which phase the next cycle re-enters at, and why. "We will keep an eye on it" is not a decision and does not satisfy gate 7.3.
 

@@ -44,6 +44,7 @@ for (const c of cases) {
   fs.cpSync(path.join(REPO, 'tests/fixtures', c.fixture), dir, { recursive: true });
   for (const r of (c.setup && c.setup.remove) || []) fs.rmSync(path.join(dir, r), { recursive: true, force: true });
   if (c.setup && c.setup.regenerate_roadmap) spawnSync(process.execPath, [path.join(REPO, 'scripts/bos.mjs'), 'roadmap', '--root', dir]);
+  for (const [f, body] of Object.entries((c.setup && c.setup.write) || {})) { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), body); }
   if (c.setup && c.setup.local_active) fs.writeFileSync(path.join(dir, '.builderos/local.json'), JSON.stringify({ active: c.setup.local_active }));
   const before = Object.fromEntries(((c.expect.files_unchanged) || []).map((f) => [f, fs.readFileSync(path.join(dir, f), 'utf8')]));
 
@@ -60,6 +61,7 @@ for (const c of cases) {
   for (const p of c.expect.output_not_matches || []) if (re(p).test(out)) problems.push(`output matches forbidden ${p}`);
   for (const [f, s] of Object.entries(before)) if (fs.readFileSync(path.join(dir, f), 'utf8') !== s) problems.push(`${f} changed`);
   for (const f of c.expect.files_absent || []) if (fs.existsSync(path.join(dir, f))) problems.push(`${f} was written`);
+  for (const f of c.expect.files_present || []) if (!fs.existsSync(path.join(dir, f))) problems.push(`${f} was not written`);
   if (c.expect.state) {
     const { initiative, ...want } = c.expect.state;
     const p = path.join(dir, '.builderos/initiatives', initiative, 'state.json');

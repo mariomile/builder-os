@@ -3,11 +3,15 @@
 // Run from the project root (the directory holding PRODUCT.md and .builderos/).
 //
 //   node bos.mjs brief                     session briefing, with the attention line
-//   node bos.mjs gate <0-7|C> [--json]     script-decided gate conditions; the rest listed as judge
-//   node bos.mjs new <slug> --title "..." --track spike|feature|product [--mode full|lite] [--reason "..."]
+//   node bos.mjs gate <0-7|C|M> [--json]   script-decided gate conditions; the rest listed as judge
+//   node bos.mjs new <slug> --title "..." --track spike|feature|change|product [--mode full|lite] [--reason "..."]
 //                                          create an initiative with a valid state.json and make it active
-//   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and, if it passes,
-//                                          record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
+//   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and 00-request.md and, if it
+//                                          passes, record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
+//   node bos.mjs cover --m4 "reason"       change track: run the mandate check on 00-request.md and, if it passes, record
+//                                          phases 0 to 3 as covered and start at phase 4; a failure moves the work to feature
+//   node bos.mjs upgrade --to feature|product --reason "..."
+//                                          the ratchet: move the active initiative to a heavier track and restart at phase 0
 //   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason] [--review-due date] [--reenter N]
 //                                          write a gate result to state.json: the script's verdict plus the model's
 //                                          on the judge conditions; advances, closes, or keeps the phase open.
@@ -53,6 +57,10 @@ const PRIMARY = new Set(['data', 'interview', 'code']);
 // The phase 5 plan is accepted inside its artifact (gate 5.6), before the build loop starts.
 const ACCEPTANCE_PHASES = [0, 4, 6];
 const DAY = 86400000;
+// Lightest to heaviest; the ratchet only moves right. spike stays outside it: an answered spike ends.
+const TRACKS = ['spike', 'change', 'feature', 'product'];
+const REQUEST = '00-request.md';
+const MANDATE_KINDS = ['bug', 'debt', 'compliance', 'contract', 'request', 'removal'];
 
 // ---------- files ----------
 
@@ -197,6 +205,16 @@ function audit(text) {
 
 // ---------- stack and visual direction (gates 4.8, 4.9) ----------
 
+// "Not applicable" as a bold field (`**Visual direction:** not applicable, {reason}`) or as the section's own prose
+// ("Not applicable." followed by the reason): either way, the reason is whatever follows the words.
+function notApplicable(sec, whole, label, word = 'not applicable') {
+  const f = field(sec || whole || '', label);
+  const prose = (sec || '').replace(/^\s+/, '');
+  const text = f && f.toLowerCase().startsWith(word) ? f : prose.toLowerCase().startsWith(word) ? prose : null;
+  if (!text) return null;
+  return { text: text.trim(), reason: text.slice(word.length).replace(/^[\s,.:;—-]*(reason:?\s*)?/i, '').trim() };
+}
+
 const NOBODY = /^(—|-|–|n\/?a|none|agent|model|claude|codex|ai|auto)?$/i;
 const rawRows = (text) => (text || '').split('\n').filter((l) => /^\s*\|/.test(l)).slice(1)
   .map((l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim()))
@@ -227,14 +245,15 @@ function stackInfo(spec) {
   return { rows: rows.length, decided, problems };
 }
 
-function visualInfo(ctx, need) {
+function visualInfo(ctx, need, inheritable = false) {
   const problems = [];
   const sec = section(ctx.design, 'Visual direction');
-  const na = field(sec || ctx.design || '', 'Visual direction');
-  if (na && /^not applicable/i.test(na)) {
-    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems, detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
-  }
-  if (sec === null) return { problems: ['no "## Visual direction" in DESIGN.md: show versions and record the choice, or state "not applicable" with the reason'] };
+  const na = notApplicable(sec, ctx.design, 'Visual direction');
+  if (na) return na.reason.length > 3 ? { problems, detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
+  // A change that adds no screen composition keeps the existing one; it says so and why.
+  const inh = inheritable && notApplicable(sec, ctx.design, 'Visual direction', 'inherited');
+  if (inh) return inh.reason.length > 3 ? { problems, detail: `inherited: ${inh.reason}` } : { problems: ['"inherited" needs its reason'] };
+  if (sec === null) return { problems: ['no "## Visual direction" in DESIGN.md: show versions and record the choice, or write "**Visual direction:** not applicable, {reason}"'] };
   const versions = rawRows(sec.split(/\*\*Tokens/)[0]);
   if (versions.length < need) problems.push(`${versions.length} versions shown (${need} needed)`);
   const missing = versions.map((r) => (r[2] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim())
@@ -248,6 +267,52 @@ function visualInfo(ctx, need) {
   if (by && NOBODY.test(by)) problems.push('the look was not chosen by a person');
   if (!/\*\*Tokens:?\*\*/i.test(sec) || !rawRows(sec.split(/\*\*Tokens:?\*\*/i)[1] || '').some((r) => nonEmpty(r[1]))) problems.push('no tokens extracted from the chosen version');
   return { problems, detail: `${versions.length} versions, chosen by ${by}, kit: ${field(sec, 'Design kit')}` };
+}
+
+// Gate 4.11: what the change does to what already exists. Five areas, each with how it is handled.
+const IMPACT_AREAS = [['existing data', /data|record|row/i], ['contracts', /contract|api|webhook|export|integration/i], ['tracking events', /event|tracking|analytics/i], ['permissions', /permission|role|access|plan/i], ['current users', /user|customer|account/i]];
+function impactInfo(spec) {
+  const sec = section(spec, 'Impact on what exists');
+  const na = notApplicable(sec, '', 'Impact on what exists');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason (nothing exists yet)'] };
+  if (sec === null) return { problems: ['no "## Impact on what exists": existing data, contracts, tracking events, permissions and current users, each with how it is handled'] };
+  const rows = rawRows(sec);
+  const problems = [];
+  for (const [name, re] of IMPACT_AREAS) {
+    const row = rows.find((r) => re.test(r[0]));
+    if (!row) problems.push(`no row for ${name}`);
+    else if (!nonEmpty(row[3])) problems.push(`${name}: no handling (write "nothing to do" with the reason when nothing changes)`);
+  }
+  return { problems, detail: `${rows.length} areas, each with its handling` };
+}
+
+// A tracking-plan row that names an event, not a "none" placeholder (in any wording: none, nessuno, n/a, a dash,
+// or a row whose trigger and properties are both empty).
+const DASH = /^(|[-—–]+|n\/?a)$/i;
+const realEvent = (r) => {
+  const name = (r[0] || '').replace(/[`*]/g, '').trim();
+  if (DASH.test(name) || /^(none|no events?|nessun[oa]?|nessun evento|keine|aucun)\b/i.test(name)) return false;
+  return !(DASH.test((r[1] || '').trim()) && DASH.test((r[2] || '').trim()));
+};
+
+// Gate 6.9: what this initiative settled about the product outlives its folder. Every entity it modeled is in
+// the project's DOMAIN.md; a look it chose is in TECH.md's Design system.
+function promotionGaps(ctx) {
+  const gaps = [];
+  const dm = section(ctx.design, 'Domain model');
+  const dmNa = Boolean(notApplicable(dm, ctx.design, 'Domain model'));
+  if (dm !== null && !dmNa) {
+    const domain = (read(path.join(ROOT, 'DOMAIN.md')) || '').toLowerCase();
+    const absent = rawRows(subsection(dm, 'Entities')).map((r) => r[0].replace(/[`*]/g, '').trim()).filter((e) => e && !domain.includes(e.toLowerCase()));
+    if (absent.length) gaps.push(`entities not in the project's DOMAIN.md: ${absent.join(', ')}`);
+  }
+  const vd = section(ctx.design, 'Visual direction');
+  const vdState = field(vd || ctx.design || '', 'Visual direction') || '';
+  if (vd !== null && !/^(not applicable|inherited)/i.test(vdState) && nonEmpty(field(vd, 'Chosen'))) {
+    const ds = section(read(path.join(ROOT, 'TECH.md')), 'Design system');
+    if (ds === null || !nonEmpty(field(ds, 'Kit')) || !nonEmpty(field(ds, 'Tokens'))) gaps.push('the chosen look is not in TECH.md → "## Design system" (**Kit:** and **Tokens:** where they live in the code)');
+  }
+  return gaps;
 }
 
 // Gate 5.6: the modules and test seams, each explained in one plain line.
@@ -279,10 +344,8 @@ function subsection(text, prefix) {
 
 function domainInfo(ctx) {
   const sec = section(ctx.design, 'Domain model');
-  const na = field(sec || ctx.design || '', 'Domain model');
-  if (na && /^not applicable/i.test(na)) {
-    return na.replace(/^not applicable[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `not applicable: ${na}` } : { problems: ['"not applicable" needs its reason'] };
-  }
+  const na = notApplicable(sec, ctx.design, 'Domain model');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
   if (sec === null) return { problems: ['no "## Domain model" in DESIGN.md: entities, transitions, invariants and data, or "not applicable" with the reason'] };
   const problems = [];
   const entities = rawRows(subsection(sec, 'Entities'));
@@ -326,6 +389,32 @@ function solutionWord(statement, product) {
   return s.match(SOLUTION_WORDS) || s.match(SOLUTION_AI);
 }
 
+// C.5 and M.1: the request carries its own source, beyond the product's evidence.
+function requestEvidence(ctx, id, pass, warn) {
+  const req = section(ctx.request, 'Request');
+  if (!ctx.request || req === null) return pass(id, false, `no ${REQUEST} with a "## Request" section in the initiative: the request verbatim and **Evidence:** behind it`);
+  const ev = field(req, 'Evidence') || '';
+  const own = tags(ev).filter((t) => ['data', 'interview', 'doc'].includes(t.cls));
+  if (!own.length) return pass(id, false, 'the request has no data, interview or doc tag under "**Evidence:**"');
+  if (!nonEmpty(field(req, 'Population'))) return pass(id, false, 'no "**Population:**": who asked or is affected (one account, a segment, everyone)');
+  const onlyRequester = own.every((t) => /^user-/.test(t.id));
+  warn(id, !onlyRequester, onlyRequester ? `the only evidence is the requester's own words (${own.map((t) => t.raw).join(', ')}); a ticket, a data point or a customer's words would carry it` : `request evidenced by ${own.map((t) => t.raw).join(', ')}`);
+}
+
+// Evidence files whose Captured date is more than a year old.
+function staleEvidence(text, ctx) {
+  const out = [];
+  for (const t of tags(text)) {
+    if (!['data', 'interview', 'doc'].includes(t.cls)) continue;
+    for (const id of t.cls === 'interview' ? t.id.split(',').map((x) => x.trim()) : [t.id]) {
+      const f = evidenceFile([path.join(ctx.dir, 'evidence'), path.join(BOS, 'evidence')], id.replace(/[:/]/g, '-') + '.md');
+      const d = ((read(f) || '').match(/\*\*Captured:\*\*\s*(\d{4}-\d{2}-\d{2})/) || [])[1];
+      if (d && (Date.now() - Date.parse(d)) / DAY > 365) out.push(`${t.raw} (${d})`);
+    }
+  }
+  return [...new Set(out)];
+}
+
 function firstParagraph(text) {
   return (text || '').split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith('**')) || '';
 }
@@ -350,9 +439,24 @@ function gate(n, ctx) {
     const size = rows.find((r) => /size/i.test(r[0]));
     pass('C.2', seg && nonEmpty(seg[1]) && size && hasTag(size[1]), seg ? (size && hasTag(size[1]) ? `primary segment: ${seg[1]}` : 'primary size carries no tag') : 'no primary segment in the ICP table');
     const parts = { 'The Problem': statement, 'Who has it': field(prob, 'Who has it'), 'What that costs them': field(prob, 'What that costs them') };
-    const bad = Object.entries(parts).filter(([, t]) => !t || !hasTag(t, ['data', 'interview', 'code', 'doc']) || hasTag(t, ['assumption']));
-    pass('C.3', bad.length === 0, bad.length ? `no primary-source tag on: ${bad.map(([k]) => k).join(', ')}` : 'all three evidenced');
-    judge('C.4', 'does the request address the evidenced problem, for this ICP?');
+    // Code proves that something exists, never that someone has a problem: it does not count here.
+    const bad = Object.entries(parts).filter(([, t]) => !t || !hasTag(t, ['data', 'interview', 'doc']) || hasTag(t, ['assumption']));
+    pass('C.3', bad.length === 0, bad.length ? `no data, interview or doc tag on: ${bad.map(([k]) => k).join(', ')}` : 'all three evidenced');
+    judge('C.4', 'does the request address the evidenced problem, for this ICP, and for how much of it (one account or the segment)?');
+    requestEvidence(ctx, 'C.5', pass, warn);
+    const old = staleEvidence(Object.values(parts).join('\n'), ctx);
+    warn('C.6', old.length === 0, old.length ? `problem evidence older than a year: ${old.join(', ')}; is it still true of the product as it is now?` : 'problem evidence captured within a year');
+    return R;
+  }
+
+  if (n === 'M') {
+    requestEvidence(ctx, 'M.1', pass, warn);
+    const md = section(a, 'Mandate') || '';
+    const kind = (field(md, 'Kind') || '').toLowerCase().split(/[\s,;—-]/)[0];
+    pass('M.2', MANDATE_KINDS.includes(kind), kind ? (MANDATE_KINDS.includes(kind) ? `kind: ${kind}` : `kind "${kind}" is not ${MANDATE_KINDS.join(', ')}`) : `no "**Kind:**" under ## Mandate (${MANDATE_KINDS.join(', ')})`);
+    const why = field(md, 'Why no bet') || '';
+    pass('M.3', why.replace(TAG_RE, '').trim().length > 10, why ? 'why no bet is stated' : 'no "**Why no bet:**": say what already fixed the solution');
+    judge('M.4', 'is the solution really fixed by the mandate, with no choice between ways of solving it and no change users would notice as new behavior? Otherwise it is a feature');
     return R;
   }
 
@@ -401,9 +505,12 @@ function gate(n, ctx) {
   if (n === 2) {
     const opps = tableRows(section(a, 'Opportunity tree'));
     const need = lite ? 2 : 3;
-    const prior = (ctx.discovery || '') + '\n' + (ctx.track === 'feature' ? ctx.product || '' : '');
+    const feature = ctx.track === 'feature';
+    const prior = (ctx.discovery || '') + '\n' + (feature ? (ctx.product || '') + '\n' + (ctx.request || '') : '');
     const priorTags = new Set(tags(prior).map((t) => t.raw));
-    const untraced = opps.filter((r) => !tags(r[1] || '').some((t) => priorTags.has(t.raw)));
+    // On the feature track the initiative's own sources count too: the tickets and data behind this request.
+    const own = (t) => feature && ['data', 'interview', 'doc'].includes(t.cls) && checkEvidence(t.raw, [path.join(ctx.dir, 'evidence')]).length === 0;
+    const untraced = opps.filter((r) => !tags(r[1] || '').some((t) => priorTags.has(t.raw) || own(t)));
     pass('2.1', opps.length >= need && untraced.length === 0, opps.length < need ? `${opps.length} opportunities, ${need} needed` : untraced.length ? `not traceable to phase 1 evidence: ${untraced.map((r) => r[0]).join(', ')}` : `${opps.length} opportunities, all traced`);
     const sel = heading(a, 'Selected');
     const rej = tableRows(section(a, 'Rejected')).filter((r) => nonEmpty(r[1]));
@@ -451,7 +558,8 @@ function gate(n, ctx) {
     const holes = states.filter((r) => !nonEmpty(r[1]) || !nonEmpty(r[4]));
     pass('4.3', states.length > 0 && holes.length === 0, states.length === 0 ? 'no states table' : holes.length ? `empty or error state missing for: ${holes.map((r) => r[0]).join(', ')}` : `${states.length} flows, empty and error states enumerated`);
     const tp = section(a, 'Tracking plan');
-    judge('4.4', tableRows(tp).length && nonEmpty(field(tp, 'Computes the phase 2 metric')) ? 'events listed; do they compute the phase 2 metric?' : 'tracking plan or its computation line missing');
+    if (ctx.track === 'change') skip('4.4', 'change track: no phase 2 metric to compute');
+    else judge('4.4', tableRows(tp).length && nonEmpty(field(tp, 'Computes the phase 2 metric')) ? 'events listed; do they compute the phase 2 metric?' : 'tracking plan or its computation line missing');
     const both = (a || '') + '\n' + (ctx.design || '');
     const a11y = ['keyboard', 'contrast', 'focus'].filter((w) => !new RegExp(w, 'i').test(both));
     (lite ? warn : pass)('4.5', a11y.length === 0, a11y.length ? `missing: ${a11y.join(', ')}` : 'keyboard, contrast, focus stated');
@@ -471,10 +579,12 @@ function gate(n, ctx) {
     pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${conflictRows.length} conflicts, each with who decides`);
     const stack = stackInfo(a);
     pass('4.8', stack.problems.length === 0, stack.problems.length ? stack.problems.join('; ') : `${stack.rows} layers (${stack.decided} decided with a person), what we chose summarized`);
-    const vd = visualInfo(ctx, lite ? 2 : (ctx.track === 'feature' ? 2 : 3));
+    const vd = visualInfo(ctx, ctx.track === 'change' ? 1 : lite ? 2 : (ctx.track === 'feature' ? 2 : 3), ctx.track === 'change');
     pass('4.9', vd.problems.length === 0, vd.problems.length ? vd.problems.join('; ') : vd.detail);
     const dm = domainInfo(ctx);
     pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
+    const im = impactInfo(a);
+    pass('4.11', im.problems.length === 0, im.problems.length ? im.problems.join('; ') : im.detail);
     return R;
   }
 
@@ -494,7 +604,9 @@ function gate(n, ctx) {
     pass('5.6', planGaps.length === 0, planGaps.length ? planGaps.join('; ') : `plan accepted ${acceptedAt}, slices name their files, ${risks.length} risks`);
     judge('5.7', 'was the plan accepted before implementation started, and does the final diff match it (or was the plan updated with the deviation)?');
     const guard = field(read(path.join(ROOT, 'TECH.md')) || '', 'Guardrail');
-    pass('5.8', nonEmpty(guard) && !/^(none|no|n\/?a|—|-)\b/i.test(guard), guard ? `guardrail: ${guard}` : 'TECH.md names no "**Guardrail:**" running Verify on every change');
+    // On a repository whose CI belongs to someone else, adding it is their call: a named refusal is visible, not a pass.
+    if (guard && /^declined by\s+\S+.{6,}/i.test(guard)) warn('5.8', false, `no guardrail, ${guard}`);
+    else pass('5.8', nonEmpty(guard) && !/^(none|no|n\/?a|—|-)\b/i.test(guard), guard ? `guardrail: ${guard}` : 'TECH.md names no "**Guardrail:**" running Verify on every change');
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
@@ -505,11 +617,15 @@ function gate(n, ctx) {
     const outSec = section(a, 'Test output');
     const failing = map.filter((r) => !/^pass\b/i.test(r[3] || ''));
     const run = runEvidence(outSec, ctx);
-    if (!run.valid || failing.length) pass('5.2', false, failing.length ? `not passing: ${failing.map((r) => r[0]).join(', ')}` : run.detail);
+    const vsBase = !failing.length && run.red ? redAgainstBaseline(a, ctx, run) : null;
+    if (failing.length) pass('5.2', false, `not passing: ${failing.map((r) => r[0]).join(', ')}`);
+    else if (vsBase) (vsBase.ok ? judge : (id, d) => pass(id, false, d))('5.2', vsBase.detail);
+    else if (!run.valid) pass('5.2', false, run.detail);
     else judge('5.2', `${run.detail}; confirm the recorded command/output covers every mapped test and the current implementation`);
     const inst = tableRows(section(a, 'Instrumentation'));
     const unverified = inst.filter((r) => !/^yes/i.test(r[2] || '') || !hasTag(r[4] || '', ['data', 'code']));
-    pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `unverified: ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
+    if (ctx.track === 'change' && !tableRows(section(ctx.spec, 'Tracking plan')).filter(realEvent).length) skip('5.3', 'change track with no tracking plan in the spec: nothing to instrument');
+    else pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `unverified: ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
     const scope = tableRows(section(a, 'Scope check'));
     const oos = tableRows(section(ctx.spec, 'Out of scope')).filter((r) => nonEmpty(r[0]));
     const built = scope.filter((r) => !/^no\b/i.test(r[1] || ''));
@@ -533,16 +649,23 @@ function gate(n, ctx) {
     const brows = tableRows(section(a, 'Baseline')).filter((r) => nonEmpty(r[1]));
     const exposure = section(a, 'Exposure verification');
     const exposed = field(exposure, 'Exposed at');
-    pass('6.2', ts.length >= 1 && validTimestamp(ts[0]) && validTimestamp(exposed) && Date.parse(ts[0]) < Date.parse(exposed) && brows.length > 0, `baseline captured ${ts[0] || 'missing'}, actual exposure ${exposed || 'missing'}`);
+    // A change with no outcome to measure carries no baseline, measurement or review; it closes at phase 6.
+    const unmeasured = ctx.track === 'change' && !bh && section(a, 'Measurement') === null && section(a, 'Outcome review') === null;
+    if (unmeasured) skip('6.2', 'change track with no outcome to measure');
+    else pass('6.2', ts.length >= 1 && validTimestamp(ts[0]) && validTimestamp(exposed) && Date.parse(ts[0]) < Date.parse(exposed) && brows.length > 0, `baseline captured ${ts[0] || 'missing'}, actual exposure ${exposed || 'missing'}`);
     const observed = field(exposure, 'Verification');
     pass('6.6', /^verified$/i.test(field(exposure, 'Status') || '') && validTimestamp(exposed) && Date.parse(exposed) <= Date.now() && nonEmpty(field(exposure, 'Environment')) && nonEmpty(field(exposure, 'Version')) && observed && hasTag(observed, ['data', 'doc']) && observed.replace(TAG_RE, '').trim().length > 10, 'verified exposure requires actual non-future timestamp, environment, version and observed result with data/doc evidence');
     judge('6.7', 'does the exposure evidence demonstrate the intended behavior available to users in the stated environment/version?');
-    pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
+    if (unmeasured) skip('6.3', 'change track with no outcome to measure');
+    else pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
     judge('6.4', `are the release notes written for users, not a commit list?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-    pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
+    if (unmeasured) skip('6.5', 'change track with no outcome review: the initiative closes here');
+    else pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
     pass('6.8', nonEmpty(field(exposure, 'Authorized by')), 'Exposure verification names who authorized exposure');
+    const promo = promotionGaps(ctx);
+    pass('6.9', promo.length === 0, promo.length ? promo.join('; ') : 'domain and design system promoted to project memory, or nothing to promote');
     return R;
   }
 
@@ -564,6 +687,9 @@ function gate(n, ctx) {
       pass('7.5', gaps.length === 0, gaps.length ? `a closing KEEP needs a watch; missing: ${gaps.join(', ')}` : 'watch with metric, bands, owner and recheck date');
     } else skip('7.5', 'only a closing KEEP sets a watch');
     judge('7.4', nonEmpty(firstParagraph(section(a, 'Learning'))) ? 'does the learning outlive the feature, and is it in decisions/?' : 'no learning');
+    const cleanup = field(section(a, 'Decision') || '', 'Cleanup') || '';
+    const bareNone = /^none\b/i.test(cleanup) && cleanup.replace(/^none[\s,.:;—-]*/i, '').length <= 3;
+    pass('7.6', nonEmpty(cleanup) && !bareNone, !cleanup ? 'no "**Cleanup:**" under the decision: the flag and old path after KEEP, the shipped code after KILL, with an owner and a date, or "none" with the reason' : bareNone ? '"none" needs its reason' : `cleanup: ${cleanup}`);
     return R;
   }
   die(`unknown gate ${n}`);
@@ -595,10 +721,10 @@ function mappedTestFile(cell) {
   }
   return null;
 }
-function runEvidence(sec, ctx) {
-  const fail = (detail) => ({ valid: false, detail });
-  const p = resourceFile(field(sec, 'Run'), ctx);
-  if (!p) return fail('no existing **Run:** JSON record; pasted runner text is not execution evidence');
+function runEvidence(sec, ctx, label = 'Run') {
+  const fail = (detail, extra = {}) => ({ valid: false, detail, ...extra });
+  const p = resourceFile(field(sec, label), ctx);
+  if (!p) return fail(`no existing **${label}:** JSON record; pasted runner text is not execution evidence`);
   let r;
   try { r = JSON.parse(read(p)); } catch { return fail('invalid run record JSON'); }
   if (!r || typeof r !== 'object' || Array.isArray(r)) return fail('run record is not an object');
@@ -607,10 +733,29 @@ function runEvidence(sec, ctx) {
   if (!fs.existsSync(path.resolve(ROOT, r.cwd)) || !fs.statSync(path.resolve(ROOT, r.cwd)).isDirectory()) return fail('recorded cwd is unavailable');
   const output = read(log);
   if (digest(output) !== r.output_sha256) return fail('run output digest mismatch');
-  if (r.exit_code !== 0) return fail(`recorded command exited ${r.exit_code}`);
+  // A red run is still a valid record of what happened: the baseline comparison in gate 5.2 reads it.
+  const red = { red: true, record: r, output };
+  if (r.exit_code !== 0) return fail(`recorded command exited ${r.exit_code}`, red);
   // Catch common failed runner summaries even when wrappers incorrectly return zero. Never infer pass from prose.
-  if (/\b[1-9]\d*\s+(?:failed|failing)\b|^# fail [1-9]\d*|^not ok\b|^FAIL\b/im.test(output)) return fail('recorded runner output contains failures');
-  return { valid: true, detail: `recorded exit 0 at ${r.finished_at} (${r.command.join(' ')})`, record: r };
+  if (/\b[1-9]\d*\s+(?:failed|failing)\b|^# fail [1-9]\d*|^not ok\b|^FAIL\b/im.test(output)) return fail('recorded runner output contains failures', red);
+  return { valid: true, detail: `recorded exit 0 at ${r.finished_at} (${r.command.join(' ')})`, record: r, output };
+}
+
+// Gate 5.2 on a suite that was already red: the final run may fail only on what failed before the change,
+// listed one by one, never more of them, and a separate run of the mapped tests passes.
+const failCount = (out) => Math.max(0, ...[...(out || '').matchAll(/\b(\d+)\s+(?:failed|failing)\b|^# fail (\d+)/gim)].map((m) => Number(m[1] || m[2])));
+function redAgainstBaseline(a, ctx, final) {
+  const base = runEvidence(section(a, 'Test baseline'), ctx);
+  if (!base.red) return { ok: false, detail: `${final.detail}; the baseline ${base.valid ? 'was green, so every failure is new' : 'is not a recorded red run'}` };
+  if (Date.parse(base.record.started_at) >= Date.parse(final.record.started_at)) return { ok: false, detail: 'the baseline run is not earlier than the final run' };
+  const pre = rawRows(section(a, 'Pre-existing failures'));
+  if (!pre.length) return { ok: false, detail: `${final.detail}; list each failure the baseline already had under "## Pre-existing failures"` };
+  const absent = pre.filter((r) => !base.output.includes(r[0]));
+  if (absent.length) return { ok: false, detail: `listed as pre-existing but not in the baseline log: ${absent.map((r) => r[0]).join(', ')}` };
+  if (failCount(final.output) > failCount(base.output)) return { ok: false, detail: `more failures than the baseline (${failCount(final.output)} vs ${failCount(base.output)})` };
+  const mapped = runEvidence(section(a, 'Test output'), ctx, 'Mapped run');
+  if (!mapped.valid) return { ok: false, detail: `the full suite is red as before; the mapped tests need their own green run: ${mapped.detail}` };
+  return { ok: true, detail: `full suite red only on ${pre.length} pre-existing failure${pre.length > 1 ? 's' : ''}, mapped tests green (${mapped.detail}); confirm no new failure hides among them` };
 }
 function evalInfo(ctx) {
   const sec = section(ctx.artifact && /Eval set/.test(ctx.artifact) ? ctx.artifact : ctx.spec, 'Eval set') || '';
@@ -683,12 +828,12 @@ function runCheck() {
 
 function runGate(which) {
   const all = loadInitiatives();
-  const n = which === 'C' || which === 'c' ? 'C' : Number(which);
-  if (n !== 'C' && !(Number.isInteger(n) && n >= 0 && n <= 7)) die('gate takes a phase number 0-7 or C');
+  const n = /^[cm]$/i.test(which || '') ? which.toUpperCase() : Number(which);
+  if (n !== 'C' && n !== 'M' && !(Number.isInteger(n) && n >= 0 && n <= 7)) die('gate takes a phase number 0-7, C (coverage) or M (mandate)');
   const init = resolveActive(all);
   if (!init && n !== 'C') die('no active initiative: pass --initiative <slug>');
   const dir = init ? init.dir : BOS;
-  const file = n === 'C' ? path.join(ROOT, 'PRODUCT.md') : path.join(dir, ARTIFACTS[n]);
+  const file = n === 'C' ? path.join(ROOT, 'PRODUCT.md') : n === 'M' ? path.join(dir, REQUEST) : path.join(dir, ARTIFACTS[n]);
   const artifact = read(file);
   if (!artifact) die(`${rel(file)} does not exist: the phase has not produced its artifact`);
   const ctx = {
@@ -699,10 +844,11 @@ function runGate(which) {
     discovery: read(path.join(dir, ARTIFACTS[1])),
     spec: read(path.join(dir, ARTIFACTS[4])),
     design: read(path.join(dir, 'DESIGN.md')),
+    request: init ? read(path.join(dir, REQUEST)) : null,
   };
   const results = [];
   const evDirs = [path.join(dir, 'evidence'), path.join(BOS, 'evidence')];
-  const missing = checkEvidence(artifact + (n === 4 ? '\n' + (ctx.design || '') : ''), evDirs);
+  const missing = checkEvidence(artifact + (n === 4 ? '\n' + (ctx.design || '') : '') + (n === 'C' ? '\n' + (ctx.request || '') : ''), evDirs);
   results.push({ id: 'E.1', status: missing.length ? 'fail' : 'pass', detail: missing.length ? `unresolved: ${missing.slice(0, 5).join('; ')}${missing.length > 5 ? ` (+${missing.length - 5})` : ''}` : 'every tag resolves' });
   results.push(...gate(n, ctx));
   const au = audit(artifact);
@@ -761,12 +907,30 @@ function techStale() {
   return age > 60 ? `TECH.md last verified ${v.date}, ${Math.round(age)} days ago` : null;
 }
 
+// Initiatives whose folder exists on another branch and not on this checkout: their state travels with a branch
+// nobody here is looking at (references/builderos-state-schema.md, Where the work lives).
+function branchOnlyInitiatives(all) {
+  if (git('rev-parse', '--is-inside-work-tree') !== 'true') return [];
+  const here = new Set(all.map((i) => i.slug));
+  const current = git('rev-parse', '--abbrev-ref', 'HEAD');
+  const refs = (git('for-each-ref', '--format=%(refname:short)', 'refs/heads', 'refs/remotes') || '').split('\n')
+    .filter((r) => r && r !== current && !/\/HEAD$|^origin$/.test(r) && r !== `origin/${current}`).slice(0, 30);
+  const found = new Map();
+  for (const ref of refs) {
+    for (const line of (git('ls-tree', '--name-only', ref, '.builderos/initiatives/') || '').split('\n')) {
+      const slug = path.basename(line.trim());
+      if (slug && !here.has(slug)) found.set(slug, [...(found.get(slug) || []), ref]);
+    }
+  }
+  return [...found].map(([slug, rs]) => `${slug} exists only on ${rs.slice(0, 2).join(', ')}${rs.length > 2 ? ` (+${rs.length - 2})` : ''}`);
+}
+
 function lastGate(state) {
   const ph = state.phases || {};
   const done = Object.keys(ph).map(Number).filter((k) => ph[k] && ph[k].gate).sort((x, y) => y - x);
   if (!done.length) return 'no gate run yet';
   const g = ph[done[0]].gate;
-  if (ph[done[0]].status === 'covered') return 'phases 0 and 1 covered by PRODUCT.md';
+  if (ph[done[0]].status === 'covered') return state.track === 'change' ? 'phases 0 to 3 covered by the mandate' : 'phases 0 and 1 covered by PRODUCT.md';
   return `gate ${done[0]} ${g.overridden ? 'overridden' : g.passed ? 'passed' : 'failed'}${g.failed_conditions && g.failed_conditions.length ? ` (${g.failed_conditions.join(', ')})` : ''}`;
 }
 
@@ -819,7 +983,8 @@ function brief() {
     const dec = decisions();
     if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
-    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
+    const coverage = p === 0 && ['feature', 'change'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
+    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
     if (others.length) lines.push(`Also open: ${others.map((i) => `${i.state.title || i.slug} (phase ${i.state.current_phase ?? 0}, ${i.state.status || 'open'})`).join('; ')}.`);
   }
@@ -834,6 +999,8 @@ function brief() {
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
+  const elsewhere = branchOnlyInitiatives(all);
+  if (elsewhere.length) attention.push(`initiatives not on this checkout: ${elsewhere.join('; ')}`);
   const todayIso = new Date().toISOString().slice(0, 10);
   for (const d of decisions()) {
     if (d.revisit === null) attention.push(`decision ${d.name} has no Revisit when condition`);
@@ -911,7 +1078,7 @@ function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
   const track = opt('--track');
-  if (!['spike', 'feature', 'product'].includes(track)) die('new needs --track spike|feature|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product with an evidenced PRODUCT.md that is usually feature');
+  if (!TRACKS.includes(track)) die('new needs --track spike|feature|change|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
@@ -927,7 +1094,7 @@ function newInitiative(slug) {
   const phases = {};
   for (let k = 0; k < 8; k++) phases[k] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
   const state = {
-    schema: 2, slug, title: opt('--title') || slug, mode: opt('--mode') || (track === 'feature' ? 'lite' : 'full'), track,
+    schema: 2, slug, title: opt('--title') || slug, mode: opt('--mode') || (['feature', 'change'].includes(track) ? 'lite' : 'full'), track,
     status: 'open', current_phase: 0, cycle: 1, created_at: now, updated_at: now, review_due: null, phases,
     history: [{ at: now, event: 'track_set', track, reason: opt('--reason') || 'not stated' }],
   };
@@ -940,8 +1107,9 @@ function newInitiative(slug) {
 function cover() {
   const init = resolveActive(loadInitiatives());
   if (!init) die('no active initiative');
-  if (init.state.status === 'closed' || init.state.current_phase !== 0) die('coverage can only be recorded at phase 0 of an open feature initiative');
-  if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature runs the coverage check`);
+  if (init.state.status === 'closed' || init.state.current_phase !== 0) die('coverage can only be recorded at phase 0 of an open feature or change initiative');
+  if (init.state.track === 'change') return coverMandate(init);
+  if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature and change run a coverage check`);
   const c4 = opt('--c4');
   if (!c4) die('C.4 is judged by the model: pass --c4 "how the request serves the evidenced problem"');
   const r = spawnSyncSelf(['gate', 'C', '--json', '--initiative', init.slug]);
@@ -969,6 +1137,62 @@ function cover() {
   writeJSON(path.join(init.dir, 'state.json'), s);
   roadmap();
   console.log(`Coverage check passed: phases 0 and 1 covered by ${used.join(', ')}. ${init.slug} starts at phase 2.`);
+}
+
+// Change track: the mandate stands in for phases 0 to 3. A failed mandate check is the ratchet, not a dead end:
+// the work moves to feature and runs the feature coverage check next.
+function coverMandate(init) {
+  const m4 = opt('--m4');
+  if (!m4) die('M.4 is judged by the model: pass --m4 "why the mandate fixes the solution"');
+  const j = JSON.parse(spawnSyncSelf(['gate', 'M', '--json', '--initiative', init.slug]) || '{}');
+  if (!j.results) die(`${REQUEST} is missing: write the request, its evidence and the mandate first`);
+  const now = new Date().toISOString();
+  const s = init.state;
+  if (j.failed.length) {
+    const why = `mandate check failed: ${j.failed.join(', ')}`;
+    s.track = 'feature';
+    s.history.push({ at: now, event: 'track_upgraded', from: 'change', to: 'feature', reason: why });
+    s.updated_at = now;
+    writeJSON(path.join(init.dir, 'state.json'), s);
+    roadmap();
+    console.log(`${why}: ${init.slug} is now a feature, still at phase 0. Run \`gate C\`, then \`cover --c4\`.`);
+    process.exit(1);
+  }
+  const used = [...new Set(tags(section(read(path.join(init.dir, REQUEST)), 'Request')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
+  for (const k of ['0', '1', '2', '3']) {
+    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, checked_by: { script: j.checked_by.script, model: ['M.4'] }, failed_conditions: [], overridden: false } };
+    s.history.push({ at: now, event: 'phase_covered', phase: Number(k), tags: used, m4 });
+  }
+  s.phases['4'] = { status: 'in_progress', artifact: null, gate: null };
+  s.current_phase = 4;
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`Mandate check passed: phases 0 to 3 covered by ${used.join(', ')}. ${init.slug} starts at phase 4.`);
+}
+
+// The ratchet, by hand: the work turned out heavier than its track. Artifacts stay on disk; the pipeline restarts
+// at phase 0, where a feature runs its coverage check and a product frames the problem.
+function upgrade() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const s = init.state;
+  const to = opt('--to'), reason = opt('--reason');
+  if (s.status === 'closed') die('a closed initiative does not change track');
+  if (!['feature', 'product'].includes(to)) die('upgrade --to feature|product');
+  if (!nonEmpty(reason)) die('upgrade needs --reason: the observation that showed the track was too light');
+  if (s.track === 'spike') die('an answered or running spike does not upgrade; start a new initiative that reuses its evidence');
+  if (TRACKS.indexOf(to) <= TRACKS.indexOf(s.track)) die(`the ratchet only goes one way: ${s.track} cannot become ${to}`);
+  const now = new Date().toISOString();
+  s.history.push({ at: now, event: 'track_upgraded', from: s.track, to, reason });
+  s.track = to;
+  s.current_phase = 0;
+  for (let k = 0; k < 8; k++) s.phases[String(k)] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
+  if (to === 'product' && s.mode === 'lite') s.mode = 'full';
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`${init.slug} is now ${to}, back at phase 0; the artifacts written so far stay where they are.${to === 'feature' ? ' Run `gate C`, then `cover --c4`.' : ''}`);
 }
 
 // Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
@@ -1020,7 +1244,9 @@ function record(which) {
   } else if (verdict) die('--verdict is only valid for phase 1 or 7');
   if (n !== 7 && rawReentry !== undefined) die('--reenter is only valid for phase 7');
   const due = opt('--review-due');
-  if (n === 6 && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
+  // A change with no outcome review closes at phase 6; one that set a review goes to phase 7 like any other.
+  const closesAtShip = n === 6 && s.track === 'change' && due === undefined && section(artifact, 'Outcome review') === null;
+  if (n === 6 && !closesAtShip && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
   if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();
   const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
@@ -1039,9 +1265,9 @@ function record(which) {
   if (verdict) ph.verdict = verdict;
   if (n === 7) s.review_due = null;
   const spikeStop = n === 1 && s.track === 'spike';
-  const stops = (n === 1 && (verdict === 'killed' || spikeStop)) || (n === 7 && reenter === null);
+  const stops = (n === 1 && (verdict === 'killed' || spikeStop)) || (n === 7 && reenter === null) || closesAtShip;
   ph.status = spikeStop ? 'answered' : n === 1 && verdict === 'killed' ? 'killed' : 'passed';
-  if (n === 6) s.review_due = due;
+  if (n === 6) s.review_due = due ?? null;
   s.history.push({ at: now, event: gateEntry.overridden ? 'gate_overridden' : 'gate_passed', phase: n, ...(verdict ? { verdict } : {}), ...(gateEntry.overridden ? { failed_conditions: failed, reason: override } : {}), ...(gateEntry.accepted_by ? { accepted_by: gateEntry.accepted_by } : {}) });
   if (n === 7 && verdict === 'keep' && reenter === null) {
     const w = section(artifact, 'Watch') || '';
@@ -1096,7 +1322,7 @@ function schemaProblems(i) {
   for (const k of ['schema', 'slug', 'title', 'status', 'current_phase', 'cycle', 'phases', 'history']) if (s[k] === undefined) p.push(`no ${k}`);
   if (s.schema !== undefined && s.schema !== 2) p.push(`schema ${s.schema}`);
   if (!['full', 'lite'].includes(s.mode)) p.push(`mode ${s.mode}`);
-  if (s.track !== undefined && !['spike', 'feature', 'product'].includes(s.track)) p.push(`track ${s.track}`);
+  if (s.track !== undefined && !TRACKS.includes(s.track)) p.push(`track ${s.track}`);
   if (!['open', 'paused', 'closed'].includes(s.status)) p.push(`status ${s.status}`);
   if (!Number.isInteger(s.current_phase) || s.current_phase < 0 || s.current_phase > 7) p.push(`phase ${s.current_phase}`);
   if (!Number.isInteger(s.cycle) || s.cycle < 1) p.push(`cycle ${s.cycle}`);
@@ -1221,12 +1447,13 @@ else if (cmd === 'run-check') runCheck();
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'new') newInitiative(args[1]);
 else if (cmd === 'cover') cover();
+else if (cmd === 'upgrade') upgrade();
 else if (cmd === 'record') record(args[1]);
 else if (cmd === 'defer-review') deferReview();
 else if (cmd === 'migrate') migrate();
 else if (cmd === 'pace') pace();
 else if (cmd === 'watch') watch();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C> [--json] | new <slug> --title t --track k | cover --c4 reason | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

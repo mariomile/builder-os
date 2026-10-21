@@ -31,7 +31,8 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 **Success metric measured by:** {named saved query or dashboard}
 
 ## Release notes
-{the notes, written for users}
+{the notes, written for users: what they can now do}
+**What changes for you:** {for people already using the product: what moved, what behaves differently, what was removed, what they need to do; "nothing" when the change only adds}
 
 ## Exposure verification
 **Authorized by:** {who authorized exposure, and how: the message, the ticket, the approval}
@@ -44,4 +45,9 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 ## Outcome review
 **Owner:** {person} · **Date:** {date, from the phase 3 kill criteria}
 **Will evaluate:** {the kill criteria, restated}
+
+{Change track with nothing to measure: omit Baseline, Measurement and Outcome review; the initiative closes at phase 6.}
+
+## Promoted
+{what this initiative settled that now lives in project memory: entities and rules added to DOMAIN.md, kit and token location in TECH.md → Design system; or "nothing to promote"}
 ```

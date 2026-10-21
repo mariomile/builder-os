@@ -39,11 +39,17 @@ The owner reads one plain line per seam; the rest is for the reviewer and the ne
 
 A guardrail runs Verify (build, test, lint) on every change without anyone asking: a CI job on every push, a pre-commit hook, or both. A repository with neither is itself a finding: every rule then depends on an agent remembering it.
 
-- **Slice zero adds one when there is none.** The cheapest that fits the repository: a CI workflow where the code is hosted on a service that runs one, a pre-commit hook otherwise. It runs the exact Verify commands from `TECH.md` and fails on a non-zero exit. Record it in `TECH.md` → Guardrail with the file that defines it. Adding it is a code change like any other: it is in the plan the owner accepts.
+- **Slice zero adds one when there is none.** The cheapest that fits the repository: a CI workflow where the code is hosted on a service that runs one, a pre-commit hook otherwise. It runs the exact Verify commands from `TECH.md` and fails on a non-zero exit. Record it in `TECH.md` → Guardrail with the file that defines it. Adding it is a code change like any other: it is in the plan the owner accepts. **On a repository whose CI is someone else's** (a platform team, a protected configuration, a client's repository), adding or changing it is that owner's decision: put it to them as a question in the plan, propose a local pre-commit hook meanwhile, and if they decline record `**Guardrail:** declined by {person} ({why}), {date}`, which gate 5.8 shows as a warning rather than a pass.
 - **Mechanical rules become checks.** A finding that is a fixed pattern (a banned call, an import that must not happen, a file that must not be edited, a missing await) gets a deterministic check in the guardrail: a lint rule, a type, a hook, a CI step. Default to building the check over writing the rule.
 - **Judgment stays in words.** Cross-file consistency, naming that fits the domain, "matches the surrounding code": these go in `TECH.md` → Conventions, which the reviewer reads with the diff. The implementing context is already the most loaded one; standards are the reviewer's job.
 
 Gate 5.8 checks that `TECH.md` names a guardrail. An override is legitimate where none can exist (no hosting, no hooks), logged with that reason.
+
+## Slow Suites and Where the Work Lives
+
+On a large codebase the full suite takes minutes. Per slice, run `TECH.md` → Verify → Test (fast) on the files the slice touches; run the full Verify before reporting a slice finished only when it is cheap, and always before the final capture for gate 5.2. Record the fast command in `TECH.md` once you find it.
+
+The build happens on its own branch, named in the plan (`**Branch:**`), and reaches the default branch through a pull request that links the initiative folder; the folder's changes travel with it ([Where the work lives](../../../references/builderos-state-schema.md#where-the-work-lives)). Opening the pull request is within an authorized build; merging it is the owner's call unless they delegated it.
 
 ## Tracer Bullets
 
