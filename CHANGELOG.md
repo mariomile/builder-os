@@ -2,7 +2,9 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased]
+## [2.3.0] - 2026-10-21
+
+Work on a product that already exists (#14): a new `change` track, the request's own evidence on the feature track, the impact on what exists, project-level `DOMAIN.md` and design system, cleanup after a decision, and gates that cope with a suite already red. New gates M.1 to M.4, C.5, C.6, 4.11, 6.9 and 7.6; new command `bos.mjs upgrade`. No new phases, skills or slash commands.
 
 ### Work on a product that already exists (2026-10-20)
 
