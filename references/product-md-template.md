@@ -9,7 +9,7 @@ Every field carries a source tag per `evidence-ledger`. A fresh `PRODUCT.md` is 
 ```markdown
 # PRODUCT.md — {Product Name}
 
-**Stage:** {idea | pre-PMF | emerging-PMF | scaling}
+**Stage:** {idea | pre-PMF | emerging-PMF | scaling}: changes the rules, see `## Business` → Stage exit
 **Last amended:** {YYYY-MM-DD}
 **Amendment count:** {n}
 
@@ -67,10 +67,22 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 
 {Added the moment a term is settled, not in batches. A glossary, not a spec: no implementation, no decisions. When a user or an artifact uses a term against its definition here, say so before continuing.}
 
-## Success
+## Business
 
-**North Star:** {metric, or "not yet selected — phase 2"} `[tag]`
-**Current baseline:** {number with date, or 0 for pre-launch} `[tag]`
+**Stage exit:** {before PMF: the thresholds that would say the product has left this stage, chosen by the user with the reason. Example: week-6 retention flat on 3 cohorts, 40% "very disappointed" on 30+ answers, a third of new users not brought by the founder}
+**North Star:** {metric, baseline with date} `[tag]`, or "not yet selected" until the first product review
+**Revenue model:** {who pays, the price metric (seat, usage, outcome), starting price, billing period; or "not for sale, {why}"}
+**Growth engine:** {self-serve | founder-led sales | community | partners | ...: how new users arrive without the team pushing each one}
+
+### Metric tree
+| Lever | Metric | Current | Source or question |
+|-------|--------|---------|--------------------|
+| Acquisition | {} | {value} | `[tag]`, or "unavailable: {the question that would fill it}" |
+| Activation | {} | {} | |
+| Retention | {} | {} | |
+| Monetization | {} | {} | |
+
+{Three to six levers under the North Star. Every initiative names the one it moves (gate 2.7); the product review reads all of them. One tree, extended, never a second one.}
 
 ## Data Sources
 
@@ -95,6 +107,7 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 - Phase 2 selects an opportunity that shifts the ICP
 - Phase 7 produces evidence that contradicts a field
 - A strategic decision recorded as an ADR
+- A product review moves the stage (`skills/builder-os/references/product-review.md`)
 
 Every amendment appends to the log with its evidence. An amendment with no evidence tag is a preference change and should be questioned via `pressure-testing` before it lands.
 

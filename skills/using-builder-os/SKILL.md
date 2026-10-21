@@ -33,6 +33,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 |------------------|--------------|
 | An idea or problem in one sentence ("I want to build X") | Lifecycle requested or project initialized: `builder-os`, starting with no setup questions per [lifecycle setup](../../references/lifecycle-setup.md). Otherwise `problem-framing`'s first round inline, then offer to keep it as an initiative |
 | Run or continue an initiative; explicitly request a spike | `builder-os`, lifecycle |
+| What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |

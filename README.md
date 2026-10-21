@@ -212,6 +212,7 @@ Skills, agents and commands load with the `builder-os:` namespace. Commands disp
 /builder-os:bos             stateful hub — routes to the current phase
 /builder-os:bos-status      pipeline state on one screen
 /builder-os:bos-gate        run the current gate
+/builder-os:bos-review      product review: levers, stage, what to build next
 /builder-os:bos-frame … /builder-os:bos-learn
 ```
 
@@ -238,26 +239,27 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 **14 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
-**15 commands**, namespaced `/builder-os:bos-*` on Claude Code. Not sure which one? `/builder-os:bos-ask`.
+**16 commands**, namespaced `/builder-os:bos-*` on Claude Code. Not sure which one? `/builder-os:bos-ask`.
 
 A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEARN require actual exposure evidence: status verified, an actual timestamp, environment, version and an observed result with a resolvable data/document source. Preparation does not authorize deployment.
 
 **Three hooks on Claude Code.** At session start a short briefing (under 3,000 characters inside a project, two lines outside one); before each file write, a refusal to hand-write `state.json`; with each message, one line naming the active phase and what to check the request against.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, evidence import, roadmap regeneration and migration. `bos.mjs vendor` copies it into the project (`.builderos/bin/bos.mjs`) so a session without the plugin still runs the gates.
+**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, evidence import, the product review check, roadmap regeneration and migration. `bos.mjs vendor` copies it into the project (`.builderos/bin/bos.mjs`) so a session without the plugin still runs the gates.
 
 **An eval suite.** `evals/` runs with `claude plugin eval .`, each case with and without the plugin. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
 ### Project memory
 
 ```
-PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language
+PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language, and the business: stage, North Star, metric tree, revenue model
 DOMAIN.md                 the product's things and their rules: entities, states, invariants, business rules
-TECH.md                   how it is built: stack, design system, verify commands, technical constraints, conventions, known traps
+TECH.md                   how it is built and run: stack, design system, verify commands, operations, technical constraints, conventions, known traps
 AGENTS.md                 gets a BuilderOS block telling every new session to read the files below first
 .builderos/
   ROADMAP.md              the master plan: direction, now / next / later, done and dropped
   decisions/              ADRs, shared across initiatives
+  reviews/                product reviews: levers read, stage, what to build next
   evidence/               the sources behind PRODUCT.md and TECH.md
   local.json              which initiative is active on this checkout (gitignored)
   initiatives/{name}/     one folder per piece of work

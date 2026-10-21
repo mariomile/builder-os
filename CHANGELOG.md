@@ -23,6 +23,17 @@ A deep pass against what a tier-1 product team would do, and against the Claude 
 
 **Upgrading.** Specs fail 4.12 until `## Quality bar` is written (and 4.13 on the product track until `## Real users`); build plans fail 5.9 until `## Interface review`, and 5.10 until `TECH.md` has `**Quality checks:**`; releases fail 6.10 until `## Production readiness` (and 6.11 on the product track until `## First real use`). Run `bos.mjs vendor` once in each existing project.
 
+### From one bet to a product that earns (2026-10-21)
+
+The lifecycle shipped one bet well and said nothing between bets or around the product: no stage, no link from initiatives to a North Star, no channel, price or payment, no operations beyond the first incident. Analysis in the project thread "Da zero a milioni" (`da-zero-a-milioni-2026-10-21.md`), decisions 1A 2A 3A 4A.
+
+- **The product loop.** `PRODUCT.md` → `## Business` replaces `## Success`: stage exit thresholds, North Star, revenue model, growth engine and a metric tree of three to six levers. A product review (`skills/builder-os/references/product-review.md`, `/builder-os:bos-review`, checked by `bos.mjs review`, conditions R.1 to R.5) reads every lever, judges the stage, and proposes one to three initiatives for a person to pick; it is written to `.builderos/reviews/`. The briefing flags it weekly before PMF and monthly after. Gate 2.7: each initiative names the lever it moves.
+- **The stage changes the rules.** Before PMF scale work is rejected (2.5, new 3.8 and 4.15, model-judged), experiments are judged qualitatively against thresholds written first, concierge and Wizard of Oz are the preferred tests. After PMF, operations carry an SLO, incident response and a cost per active user.
+- **Distribution and money in the bet.** Gate 3.7 (product track): `## Business case` with the first 100 users, cost per user, and for a product for sale the price and the willingness-to-pay test. Gate 4.14: a tagged willingness-to-pay result and a payments row in the stack (payments and tax join the layer catalogue, with the Italian SdI and EU OSS case). Gate 6.12: a first real payment before phase 7. Products "not for sale" skip the money lines. Subscription states join the domain method.
+- **Operations by stage.** Gate 6.10 now also reads `TECH.md` → `## Operations`: Privacy always, AI disclosure when a model speaks (AI Act Article 50), SLO, incident response and cost per active user after PMF. Product facts written once, not per release.
+
+**Upgrading.** Gate 2.7 warns until a first product review writes the metric tree. Product-track bets fail 3.7 until `PRODUCT.md` declares a revenue model and the bet has a business case; specs for products for sale fail 4.14 until a willingness-to-pay result and a payments layer exist; releases fail 6.10 until `TECH.md` → Operations has Privacy (plus the post-PMF lines at `emerging-PMF` or `scaling`), and 6.12 until a first payment on a product for sale.
+
 ## [2.3.0] - 2026-10-21
 
 Work on a product that already exists (#14): a new `change` track, the request's own evidence on the feature track, the impact on what exists, project-level `DOMAIN.md` and design system, cleanup after a decision, and gates that cope with a suite already red. New gates M.1 to M.4, C.5, C.6, 4.11, 6.9 and 7.6; new command `bos.mjs upgrade`. No new phases, skills or slash commands.

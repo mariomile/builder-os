@@ -51,7 +51,7 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **9b. Promote what the initiative settled** (gate 6.9). Entities, states, invariants and the business rules decided in `DESIGN.md` → Domain model go into the project's `DOMAIN.md`, each marked with this initiative; a visual direction chosen here goes into `TECH.md` → Design system (kit, where the tokens live in the code, composition rules). Record it under `## Promoted`. The next initiative reads those files instead of this folder.
 
-**9c. Get ready for the first incident** (gate 6.10). `**Errors seen by:**` how an error reaches the team before a user reports it (an error tracker with an alert, the log query someone watches); `**Backup restored:**` a restore of the stored data tested once, with the date, or "not applicable" with why. Under `## Production readiness`.
+**9c. Get ready for the first incident** (gate 6.10). `**Errors seen by:**` how an error reaches the team before a user reports it (an error tracker with an alert, the log query someone watches); `**Backup restored:**` a restore of the stored data tested once, with the date, or "not applicable" with why. Under `## Production readiness`. Then check `TECH.md` → `## Operations` for the product's stage and fill what is missing: **Privacy** always (privacy notice, sub-processors with their data processing agreements, deletion on request, data region); **AI disclosure** when the spec declares model output (people are told they are dealing with an AI system; in the EU, Article 50 of the AI Act); after PMF **SLO**, **Incident response** (who is alerted, how users are told, the postmortem that becomes an anomaly initiative) and **Cost per active user** with its budget alert. Written once for the product and kept true, not per release. Privacy and AI disclosure are product checklists, not legal advice: say so, and name what a professional should confirm.
 
 **10. Prepare and report readiness.** Write `.builderos/initiatives/{initiative}/06-release.md` per [the release template](references/release-template.md), headings, bold labels and tables exact. A completed plan is `## RELEASE READY` and remains at phase 6. Do not record a successful ship gate from a future rollout date.
 
@@ -60,6 +60,8 @@ Run in order; delegate where the host allows, inline where it does not.
 A problem found during rollout or after exposure runs `bug-diagnosis` before any fix, and the rollback in step 3 is the first answer when users are affected.
 
 **11b. Wait for the first real use** (product track, gate 6.11). Online is not in use. Record under `## First real use` the first person outside the team who did the primary action, with its `data` or `doc` tag. Until then the initiative stays at phase 6: tell the user who to invite and what to watch, and come back when it happens.
+
+**11c. Wait for the first payment** (product track, for sale, gate 6.12). A product for sale enters phase 7 when someone outside the team has paid. Record it under `## First payment` with its `data` or `doc` tag (the payment record, the invoice). Free trials and pilots do not count.
 
 **12. Gate the verified release.** Run gate 6, including 6.6 exposure structure, 6.7 evidence-to-exposure judgment and 6.8 authorization, then record with the outcome date and the person who authorized (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD --accepted-by "who"` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
 

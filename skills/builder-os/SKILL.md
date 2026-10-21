@@ -22,6 +22,10 @@ Orchestrate the requested initiative. Standalone documents, research guides, cal
 
 Methods and procedures live in skills. Resolve capabilities against this session, per [capability map](../../references/capability-map.md) when an operation needs them. If delegation is available, pass the request, scope and relevant context to a phase skill, wait for its result, then verify it. Otherwise run the same procedure inline; do not invent a dispatch or install a host feature.
 
+## The Product Loop
+
+Initiatives answer whether one bet worked; the product review decides which bet comes next. `PRODUCT.md` → `## Business` holds the stage, its exit thresholds, the North Star, the revenue model, the growth engine and the metric tree. Every initiative names the lever it moves (gate 2.7). The review reads every lever weekly before PMF and monthly after, judges the stage, and proposes at most three initiatives for the person to pick. The stage changes the rules: before PMF, scale work waits and experiments are judged qualitatively; after it, operations carry an SLO, incident response and a cost per user. Read [the product review](references/product-review.md) when the person asks how the product is doing or what to build next, or when the briefing says the review is due.
+
 ## Procedure
 
 1. **Resolve the initiative.** Read relevant roadmap/state and `PRODUCT.md`; read `TECH.md` when code is involved. If initialization, migration, track classification or switching is requested, use [lifecycle setup](../../references/lifecycle-setup.md). Missing state does not authorize initialization for an unrelated request.
@@ -55,4 +59,5 @@ Report the active initiative, phase, artifact, gate outcome and the next in-scop
 | A release plan enters LEARN | Remain in SHIP until actual exposure is verified |
 | Missing metrics become zero | Preserve the unavailable baseline and name the measurement gap |
 | Repeating an already authorized decision question | Proceed within the scope and authority granted |
+| Starting the next initiative from whoever asked last | Run the product review: it reads the levers and the person picks |
 | Recording an acceptance nobody gave | Ask at phases 0, 4, 6 and before the build loop; record only the person's answer |

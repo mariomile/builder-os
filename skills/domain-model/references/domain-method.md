@@ -71,6 +71,10 @@ Rockys-like issue tracker, phase 4, after the flows. The scenarios raise three r
 
 Then the prototype (`design/domain-prototype.html`) with tabs "bug comes back", "assignee leaves", "two reviewers at once". The user plays it, changes Q3 after the second tab, and the model is recorded.
 
+### Money has states too
+
+A product for sale models its subscription like any other entity, before the build, because the edge cases are where revenue leaks: `trial → active → past_due → cancelled`, plus `paused` and `refunded` when the product offers them. The round asks what the product does at each edge: trial ends without a card, a payment fails three times, a customer downgrades mid-period with more seats than the new plan allows, a refund after the data was exported. The invariant every billing model needs: no access past the paid period without a written rule saying why (grace days, read-only mode). Who triggers each transition is named, as always: the customer, the payment provider's webhook, a person on the team.
+
 ## Not Applicable
 
 Write `**Domain model:** not applicable, {reason}` only when the work changes no entity's states, fields or relations: a copy change, a new chart over existing data, a style pass. A new status, a new field with rules, or a new relation is never "not applicable".
