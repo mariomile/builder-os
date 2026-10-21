@@ -78,10 +78,25 @@ test('hook JSON is valid for each adapter and advertises an executable quoted pa
 
 test('hook emits valid JSON even when content includes control characters', (t) => {
   const { install, project } = temporaryBundle(t);
-  const bootstrap = path.join(install, 'skills/using-builder-os/SKILL.md');
+  fs.mkdirSync(path.join(project, '.builderos'));
+  const rules = path.join(install, 'hooks/session-context.md');
   const controls = String.fromCharCode(...Array.from({ length: 31 }, (_, i) => i + 1));
-  fs.appendFileSync(bootstrap, `\n${controls}\n`);
+  fs.appendFileSync(rules, `\n${controls}\n`);
   assert.ok(runHook(install, project).additionalContext.includes(controls));
+});
+
+// Hosts cap injected context (Claude Code: 10,000 characters, then a 2,000-character preview),
+// and a per-user install reaches every session, most of which are not product work.
+test('session context stays small: two lines outside a project, briefing first inside one', (t) => {
+  const { install, project } = temporaryBundle(t);
+  const outside = runHook(install, project, { CLAUDE_PLUGIN_ROOT: install }).hookSpecificOutput.additionalContext;
+  assert.ok(outside.length < 1000, `${outside.length} characters outside a BuilderOS project`);
+  assert.ok(!outside.includes('Rules that hold'));
+  fs.cpSync(path.join(REPO, 'tests/fixtures/acme'), project, { recursive: true });
+  const inside = runHook(install, project, { CLAUDE_PLUGIN_ROOT: install }).hookSpecificOutput.additionalContext;
+  assert.ok(inside.length < 3000, `${inside.length} characters inside a BuilderOS project`);
+  assert.ok(inside.indexOf('**Project memory briefing:**') < inside.indexOf('Rules that hold'), 'the briefing comes before the rules');
+  assert.ok(inside.includes('Never write `state.json` by hand'));
 });
 
 test('OpenCode adapter uses sibling resources and does not duplicate discovery paths', async (t) => {

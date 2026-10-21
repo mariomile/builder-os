@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# PreToolUse hook for BuilderOS: the script decides; without node the edit goes through.
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+command -v node >/dev/null 2>&1 || exit 0
+node "${PLUGIN_ROOT}/scripts/bos.mjs" guard || exit 0

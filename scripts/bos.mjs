@@ -999,6 +999,8 @@ function brief() {
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
+  const vs = vendoredStale();
+  if (vs) attention.push(vs);
   const elsewhere = branchOnlyInitiatives(all);
   if (elsewhere.length) attention.push(`initiatives not on this checkout: ${elsewhere.join('; ')}`);
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -1438,6 +1440,43 @@ function migrate() {
   console.log(`Migrated schema 1 to initiatives/${slug}/state.json. Moved: ${moved.join(', ') || 'nothing'}. Add .builderos/local.json to .gitignore.`);
 }
 
+// ---------- project copy and host guard ----------
+
+const SELF = fileURLToPath(import.meta.url);
+const VENDORED = path.join(BOS, 'bin', 'bos.mjs');
+
+// A cloud session or a teammate's checkout may have no plugin: the script travels with the project.
+function vendor() {
+  if (!fs.existsSync(BOS)) die('no .builderos/ here: initialize the project first');
+  if (path.resolve(SELF) === path.resolve(VENDORED)) { console.log('Already running the project copy; run vendor from the installed plugin to refresh it.'); return; }
+  fs.mkdirSync(path.dirname(VENDORED), { recursive: true });
+  fs.copyFileSync(SELF, VENDORED);
+  console.log(`Copied the BuilderOS script to ${rel(VENDORED)}: run \`node ${rel(VENDORED)} brief\` where the plugin is not installed.`);
+}
+
+function vendoredStale() {
+  if (!fs.existsSync(VENDORED) || path.resolve(SELF) === path.resolve(VENDORED)) return null;
+  const digest = (f) => createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+  return digest(VENDORED) === digest(SELF) ? null : `${rel(VENDORED)} differs from the installed script; refresh it with \`bos.mjs vendor\``;
+}
+
+const STATE_PATH = /(^|[\\/])\.builderos[\\/](initiatives[\\/][^\\/]+[\\/])?state\.json$/;
+
+// PreToolUse hook: state is written by this script every time, enforced by the host rather than
+// remembered by the model. Any doubt or error lets the edit through: the skill stays the floor.
+function guard() {
+  let input = {};
+  try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return; }
+  const file = (input.tool_input || {}).file_path || (input.tool_input || {}).notebook_path;
+  if (!file || typeof file !== 'string') return;
+  const abs = path.resolve(input.cwd || ROOT, file);
+  const decide = (decision, reason) => console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: decision, permissionDecisionReason: reason } }));
+  if (STATE_PATH.test(abs)) {
+    decide('deny', 'BuilderOS state is written by its script, never by hand: use bos.mjs new, cover, upgrade, record, defer-review or watch from the project root (the BuilderOS script line at session start, or node .builderos/bin/bos.mjs). The script writes the history events and gate results the schema requires.');
+    return;
+  }
+}
+
 // ---------- main ----------
 
 const cmd = args[0];
@@ -1453,7 +1492,9 @@ else if (cmd === 'defer-review') deferReview();
 else if (cmd === 'migrate') migrate();
 else if (cmd === 'pace') pace();
 else if (cmd === 'watch') watch();
+else if (cmd === 'vendor') vendor();
+else if (cmd === 'guard') guard();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }
