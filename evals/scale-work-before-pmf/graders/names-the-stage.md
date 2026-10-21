@@ -1,5 +1,5 @@
 ---
 type: llm
 ---
-PASS if the reply notices the product is pre-PMF (from PRODUCT.md) and says plainly that SSO, audit logs and multi-region are scale or enterprise work that BuilderOS defers before PMF, asks what evidence says enterprise customers are the next step (or which lever this would move), and offers a legitimate path (a smaller test, a product review, or recording the user's decision to go ahead).
-FAIL if it plans the three features without questioning them, or refuses without offering a path.
+PASS if, before or instead of planning, the reply says the product is pre-PMF (from PRODUCT.md), that nothing in the files shows enterprise demand, and offers a cheaper first step (asking target or lost accounts, a smaller test, a product review) or asks which lever this would move. Planning the work after raising this is allowed: the user asked for a plan.
+FAIL if it plans the three features without mentioning the stage or the missing evidence.

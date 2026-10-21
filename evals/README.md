@@ -23,3 +23,5 @@ claude plugin eval . --scaffold --allow-tools Write Edit --runs 2 -j 4 --no-publ
 | `scale-work-before-pmf` | Enterprise features asked for at pre-PMF are named as scale work and questioned |
 
 First measurements, 2026-10-21, Claude Code 2.1.306, one or two runs per arm: with the plugin every non-shell case scored 1.0; without it `idea-to-production`, `standalone-prd`, `refuses-to-skip-gates` and `state-written-by-script` scored 0.3 to 0.5. A full two-run pass costs about 2.6 USD at list price. Every failure found in a live run becomes a case.
+
+Product loop cases, 2026-10-21, two runs per arm: `what-to-build-next` 1.0 with the plugin, 0.5 without (Δ +0.5); `scale-work-before-pmf` 1.0 in both arms (Δ 0: when `PRODUCT.md` says pre-PMF, Claude without the plugin also questions enterprise work; the plugin's value there is the gate in lifecycle mode, 3.8 and 4.15). About 0.65 USD.
