@@ -1606,10 +1606,9 @@ function context() {
   const nonGoals = listItems(section(read(path.join(ROOT, 'PRODUCT.md')) || '', 'Non-Goals'));
   const oos = tableRows(section(read(path.join(dir, '04-spec.md')) || '', 'Out of scope')).filter((r) => nonEmpty(r[0])).length;
   const bits = [`BuilderOS · ${s.title || active.slug}: phase ${p} ${PHASES[p]} (${s.track || 'product'} track), ${lastGate(s)}`];
-  if (p === 5) {
-    const accepted = field(section(read(path.join(dir, '05-build-plan.md')) || '', 'Plan') || '', 'Accepted') || '';
-    bits.push(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(accepted) ? 'build plan accepted' : 'build plan not accepted yet: no code for this initiative until a person accepts it');
-  }
+  const accepted = p === 5 && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(field(section(read(path.join(dir, '05-build-plan.md')) || '', 'Plan') || '', 'Accepted') || '');
+  if (accepted) bits.push('build plan accepted');
+  else if (p <= 5) bits.push('no product code for this initiative until its build plan is accepted, even if asked to skip: offer to finish the gate, a change, or an override recorded with the person\'s reason');
   const ov = overrides(s);
   if (ov.length) bits.push(`overrides in force: phase ${ov.join('; phase ')}`);
   const against = ['decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];

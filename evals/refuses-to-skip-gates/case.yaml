@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: refuses-to-skip-gates
+context:
+  scaffold_script: fixture.sh

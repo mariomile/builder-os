@@ -23,7 +23,9 @@ In a project with BuilderOS memory, check every product request against it befor
 - **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
 - **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work on the same area. Say the measurement comes first, or why it can wait.
 
-The briefing's Attention line covers what the files decide mechanically; these four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
+- **Code before an accepted plan.** The request asks for product code in an initiative whose build plan is not accepted yet ("skip the rest, just write it"). This one is a gate, not a flag: write no code. In one message name what the gate still needs and offer the paths, with a recommendation: finish it (often one short round), run the work as a `change` when the solution is already fixed, or record an override with the person's own reason through the script (`record {phase} --override "reason"`), which stays visible in every briefing, and then build. The person deciding to skip is a reason to log, never a silent pass: code built past an unrecorded gate is how a project ends up with features its own phase 2 said not to build.
+
+The briefing's Attention line covers what the files decide mechanically; the first four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
 
 ## Routes
 
