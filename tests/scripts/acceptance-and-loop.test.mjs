@@ -122,7 +122,7 @@ test('gate 6.8 needs the person who authorized exposure', () => {
   assert.equal(gate(root, 6).by['6.8'], 'pass');
 });
 
-const OUTCOME = (decision, reentry, watch) => `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 32% | 30% | +32 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 32 > 15\n\n## Decision: ${decision}\n**Why:** above target\n**Re-enters at:** ${reentry}\n**Cleanup:** remove the export flag by 2027-01-15, owner Mario\n\n## Learning\nManagers export when the file matches the meeting agenda.\n${watch}`;
+const OUTCOME = (decision, reentry, watch) => `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 32% | 30% | +32 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 32 > 15\n\n## Decision: ${decision}\n**Why:** above target\n**Chosen by:** Mario, \"keep\"\n**Re-enters at:** ${reentry}\n**Cleanup:** remove the export flag by 2027-01-15, owner Mario\n\n## Learning\nManagers export when the file matches the meeting agenda.\n${watch}`;
 const WATCH = (recheck) => `\n## Watch\n**Metric:** share of managers with a weekly export\n**Bands:** 1σ note, 2σ diagnose read-only, 3σ new initiative\n**Owner:** Mario\n**Recheck:** ${recheck}\n`;
 
 test('a closing KEEP needs a watch (7.5), record stores it, and brief raises it when due', () => {

@@ -14,6 +14,9 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
   bin/bos.mjs             a copy of the BuilderOS script (`bos.mjs vendor`), for sessions without the plugin
   local.json              this checkout's active initiative; gitignored, never shared
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
+  maps/
+    {slug}/MAP.md         a wayfinding map: destination, notes, decisions so far, the fog, out of scope (`skills/wayfinding`)
+    {slug}/tickets/NN-{slug}.md  one decision ticket: type, status, blocked by, claimed by, question, resolution
   reviews/
     {YYYY-MM-DD}.md       one product review: levers read, stage verdict, 1-3 proposals, who decided (`skills/builder-os/references/product-review.md`)
   decisions/
@@ -123,7 +126,7 @@ The files above only help if a new session reads them. Every session, on any hos
 
 1. Read `.builderos/ROADMAP.md` and every `.builderos/initiatives/*/state.json`; resolve the active initiative.
 2. Read `PRODUCT.md`, `DOMAIN.md` when the work touches the product's things or rules, and `TECH.md` when the work touches code.
-3. Give the user a briefing of at most five lines: the active initiative and its phase, the last gate result, open overrides, the most recent decision, and what comes next.
+3. Give the user a briefing of at most five lines: the active initiative and its phase, the last gate result, open overrides, the most recent decision, and what comes next. Add one line per open map in `.builderos/maps/`: its destination and the next ticket on its frontier.
 4. Add one **Attention** line when any of these holds, and only then:
    - an outcome review is overdue: an initiative's `review_due` date has passed and phase 7 has not run;
    - `TECH.md` is stale: its `Verified` commit is older than the latest commit touching a dependency manifest or lockfile, or, without git, its date is more than 60 days old;
@@ -133,6 +136,7 @@ The files above only help if a new session reads them. Every session, on any hos
    - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1;
    - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user;
    - an initiative folder exists on another branch and not on this checkout: its state is travelling with code nobody here is looking at.
+   - a ticket in a map has no `**Type:**`;
    - the product review is due: none in `.builderos/reviews/` yet, or the latest is older than 7 days before PMF (`idea`, `pre-PMF`) or 31 days after it.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.

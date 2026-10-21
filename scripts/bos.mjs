@@ -26,6 +26,8 @@
 //   node bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."
 //                                          defer phase 7 without inventing an outcome verdict
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
+//   node bos.mjs map [slug]                a wayfinding map's destination, decisions so far, frontier, claimed and blocked
+//                                          tickets and the fog (.builderos/maps/{slug}/); every open map without a slug
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //
 // Options: --initiative <slug> acts on another initiative, --root <dir> sets the project root.
@@ -148,6 +150,12 @@ function tags(text) {
 const hasTag = (t, classes) => tags(t).some((x) => !classes || classes.includes(x.cls));
 const DATE_RE = /\b\d{4}-\d{2}(-\d{2})?\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b|\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
 const nonEmpty = (v) => v !== null && v !== undefined && String(v).trim() !== '' && !/^\{.*\}$/.test(String(v).trim());
+// A decision the person made: a `**Chosen by:**` line naming someone, never the agent.
+const AGENT_NAME = /^(agent|model|claude|codex|ai|auto)\b/i;
+function chosenBy(sec, what) {
+  const by = field(sec || '', 'Chosen by');
+  return { ok: nonEmpty(by) && !AGENT_NAME.test(by), detail: by ? (AGENT_NAME.test(by) ? `"${by}" is the agent: the person chooses ${what}` : `chosen by ${by}`) : `no "**Chosen by:**": the person chooses ${what}` };
+}
 
 // ---------- evidence ----------
 
@@ -650,6 +658,8 @@ function gate(n, ctx) {
     judge('0.3', nonEmpty(field(section(a, 'Riskiest assumption'), 'Would be falsified by')) ? 'falsifier present; is it an observation?' : 'no "Would be falsified by" line');
     const why = section(a, 'Why now');
     judge('0.4', why && hasTag(why) && DATE_RE.test(why) ? 'dated and tagged; is it a change in the world?' : 'why now lacks a date or a tag');
+    const risk = chosenBy(section(a, 'Riskiest assumption'), 'which assumption phase 1 tests');
+    pass('0.5', risk.ok, risk.detail);
     return R;
   }
 
@@ -679,6 +689,8 @@ function gate(n, ctx) {
     pass('1.4', /when\s.+?,\s*i want to\s.+?,\s*so (that )?i can\s.+/i.test(section(a, 'JTBD') || ''), 'JTBD in the form When / I want to / so I can');
     const dis = section(a, 'Disconfirming');
     judge('1.5', nonEmpty(field(dis, 'Sought')) && nonEmpty(field(dis, 'Found')) ? 'sought and found present; was it really looked for?' : 'Sought or Found missing');
+    const next = chosenBy(v, 'whether the work continues, stops or reshapes');
+    pass('1.6', next.ok, next.detail);
     return R;
   }
 
@@ -708,6 +720,8 @@ function gate(n, ctx) {
     const moves = field(sm, 'Moves');
     if (!levers.length) warn('2.7', false, 'PRODUCT.md has no metric tree: run a product review so each initiative names the lever it moves');
     else pass('2.7', !!leverOf(moves, levers), moves ? (leverOf(moves, levers) ? `moves ${leverOf(moves, levers).name}` : `"${moves}" is not a lever of the metric tree (${levers.map((l) => l.name).join(', ')})`) : 'no "**Moves:**" under Success metric: which lever of the metric tree this initiative moves');
+    const opp = chosenBy(section(a, 'Selected'), 'the opportunity and its target');
+    pass('2.8', opp.ok, opp.detail);
     return R;
   }
 
@@ -729,8 +743,8 @@ function gate(n, ctx) {
     const raw = tableRows(section(a, 'Divergence')).filter((r) => nonEmpty(r[1]));
     const rawNeed = lite ? 5 : 8;
     pass('3.5', raw.length >= rawNeed, `${raw.length} raw ideas before convergence (${rawNeed} needed)`);
-    const chosenBy = field(section(a, 'Selected') || '', 'Chosen by');
-    pass('3.6', nonEmpty(chosenBy) && !/^(agent|model|claude|codex|ai|auto)/i.test(chosenBy), chosenBy ? `chosen by ${chosenBy}` : 'no "**Chosen by:**" under Selected: the person chooses the bet');
+    const bet = chosenBy(section(a, 'Selected'), 'the bet');
+    pass('3.6', bet.ok, bet.detail);
     if (ctx.track !== 'product') skip('3.7', `${ctx.track} track: the product already reaches its users and is priced`);
     else { const bc = businessCase(a, ctx.product); pass('3.7', bc.problems.length === 0, bc.problems.length ? bc.problems.join('; ') : bc.detail); }
     const stage = productStage(ctx.product);
@@ -889,6 +903,8 @@ function gate(n, ctx) {
       const ok = fp !== null && hasTag(fp, ['data', 'doc']);
       pass('6.12', ok, ok ? 'a customer outside the team paid, with its source' : 'no "## First payment" with a data or doc tag: a product for sale enters phase 7 when someone has paid for it');
     }
+    const roll = chosenBy(section(a, 'Rollout'), 'the rollout strategy');
+    pass('6.13', roll.ok, roll.detail);
     return R;
   }
 
@@ -913,6 +929,8 @@ function gate(n, ctx) {
     const cleanup = field(section(a, 'Decision') || '', 'Cleanup') || '';
     const bareNone = /^none\b/i.test(cleanup) && cleanup.replace(/^none[\s,.:;—-]*/i, '').length <= 3;
     pass('7.6', nonEmpty(cleanup) && !bareNone, !cleanup ? 'no "**Cleanup:**" under the decision: the flag and old path after KEEP, the shipped code after KILL, with an owner and a date, or "none" with the reason' : bareNone ? '"none" needs its reason' : `cleanup: ${cleanup}`);
+    const verdict = chosenBy(section(a, 'Decision'), 'keep, iterate or kill');
+    pass('7.7', verdict.ok, verdict.detail);
     return R;
   }
   die(`unknown gate ${n}`);
@@ -1240,8 +1258,65 @@ function brief() {
   if (productText) { const due = reviewDue(productText); if (due) attention.push(due); }
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
-  console.log(lines.slice(0, 5).join('\n'));
+  for (const m of loadMaps()) { if (!m.done) lines.push(mapLine(m)); attention.push(...m.problems.map((pr) => `map ${m.slug}: ${pr}`)); }
+  console.log(lines.slice(0, 6).join('\n'));
   if (attention.length) console.log(`Attention: ${attention.join('; ')}.`);
+}
+
+// ---------- wayfinding maps ----------
+
+// A map is .builderos/maps/{slug}/MAP.md plus one file per decision ticket in tickets/, numbered NN-slug.md.
+const TICKET_TYPES = ['research', 'prototype', 'grilling', 'task'];
+// Ticket labels are often left empty (an unclaimed ticket), so read them on their own line only.
+const lineField = (text, label) => { const m = (text || '').match(new RegExp(`\\*\\*${label}:?\\*\\*:?[ \\t]*(.*)`, 'i')); return m && m[1].trim() ? m[1].trim() : null; };
+function loadMaps() {
+  const root = path.join(BOS, 'maps');
+  if (!fs.existsSync(root)) return [];
+  return fs.readdirSync(root).filter((d) => fs.existsSync(path.join(root, d, 'MAP.md'))).sort().map((slug) => {
+    const dir = path.join(root, slug);
+    const md = read(path.join(dir, 'MAP.md'));
+    const tdir = path.join(dir, 'tickets');
+    const tickets = (fs.existsSync(tdir) ? fs.readdirSync(tdir) : []).filter((f) => /^\d{2,}-.+\.md$/.test(f)).sort().map((f) => {
+      const tx = read(path.join(tdir, f));
+      const num = f.match(/^(\d+)/)[1];
+      const blockers = (lineField(tx, 'Blocked by') || '').match(/\b\d{2,}\b/g) || [];
+      return { num, file: f, title: ((tx.match(/^#\s*(?:\d+\s*[:.]\s*)?(.+)$/m) || [])[1] || f).trim(), type: (lineField(tx, 'Type') || '').toLowerCase(), status: (lineField(tx, 'Status') || 'open').toLowerCase().split(/\s/)[0], claimed: lineField(tx, 'Claimed by'), blockers };
+    });
+    const closed = new Set(tickets.filter((x) => ['closed', 'out-of-scope'].includes(x.status)).map((x) => x.num));
+    const open = tickets.filter((x) => !closed.has(x.num));
+    const fog = tableRows(section(md, 'Not yet specified')).length + ((section(md, 'Not yet specified') || '').split('\n').filter((l) => /^\s*[-*]\s+\S/.test(l)).length);
+    return {
+      slug, dir, md, tickets, fog,
+      title: ((md.match(/^#\s*(?:Map\s*[—:-]\s*)?(.+)$/m) || [])[1] || slug).trim(),
+      destination: firstParagraph(section(md, 'Destination')) || '',
+      done: /^(done|reached|closed)\b/i.test(lineField(md, 'Status') || ''),
+      frontier: open.filter((x) => !nonEmpty(x.claimed) && x.blockers.every((b) => closed.has(b))),
+      claimed: open.filter((x) => nonEmpty(x.claimed)),
+      blocked: open.filter((x) => !nonEmpty(x.claimed) && !x.blockers.every((b) => closed.has(b))),
+      decided: tickets.filter((x) => x.status === 'closed').length,
+      problems: tickets.filter((x) => !TICKET_TYPES.includes(x.type)).map((x) => `${x.file} has no **Type:** (${TICKET_TYPES.join(', ')})`),
+    };
+  });
+}
+const named = (x) => `${x.num} ${x.title}${x.type ? ` (${x.type})` : ''}`;
+function mapLine(m) {
+  if (!m.frontier.length && !m.claimed.length && !m.blocked.length) return `Map ${m.title}: no open ticket${m.fog ? `, ${m.fog} patches of fog left to chart` : '; the way to the destination is clear, hand off or mark it done'}.`;
+  return `Map ${m.title} → ${m.destination || 'destination not named'}: next ${m.frontier.length ? named(m.frontier[0]) : 'nothing takeable (all open tickets claimed or blocked)'}; ${m.frontier.length} on the frontier, ${m.claimed.length} claimed, ${m.blocked.length} blocked, ${m.decided} decided, ${m.fog} in the fog.`;
+}
+function map() {
+  const all = loadMaps();
+  const slug = args[1] && !args[1].startsWith('--') ? args[1] : null;
+  const pick = slug ? all.filter((m) => m.slug === slug) : all.filter((m) => !m.done);
+  if (slug && !pick.length) die(`no map .builderos/maps/${slug}/MAP.md`);
+  if (!pick.length) { console.log('No open map in .builderos/maps/.'); return; }
+  for (const m of pick) {
+    console.log(`# ${m.title}\nDestination: ${m.destination || 'not named: name it before charting tickets'}`);
+    console.log(`Frontier: ${m.frontier.map(named).join('; ') || 'none'}`);
+    if (m.claimed.length) console.log(`Claimed: ${m.claimed.map((x) => `${named(x)} by ${x.claimed}`).join('; ')}`);
+    if (m.blocked.length) console.log(`Blocked: ${m.blocked.map((x) => `${named(x)} by ${x.blockers.join(', ')}`).join('; ')}`);
+    console.log(`Decided: ${m.decided} · Fog: ${m.fog}`);
+    if (m.problems.length) console.log(`Problems: ${m.problems.join('; ')}`);
+  }
 }
 
 // ---------- roadmap ----------
@@ -1785,7 +1860,8 @@ else if (cmd === 'guard') guard();
 else if (cmd === 'context') context();
 else if (cmd === 'evidence') evidenceAdd();
 else if (cmd === 'review') review();
+else if (cmd === 'map') map();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

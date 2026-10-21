@@ -33,7 +33,7 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **1. Read `05-build-plan.md`, `04-spec.md`, `03-solution-bet.md`, `02-definition.md`:** the verified build, tracking plan, kill criteria, and success metric with its phase 2 definition. No `05-build-plan.md` means stop.
 
-**2. Choose one rollout strategy** (flag, internal, canary, percentage, full) and say why. Full release is legitimate where the change is reversible, the blast radius low, or volume too low to slice; say which applies. State the exposure at each step, what is watched between steps, and a numeric condition for proceeding.
+**2. Put the rollout to the person as a decision card** (flag, internal, canary, percentage, full): the two or three that fit, each with its exposure per step, what is watched between steps, the numeric condition for proceeding and what it costs, and a recommendation. Full release is legitimate where the change is reversible, the blast radius low, or volume too low to slice; say which applies. Record `**Chosen by:**` under `## Rollout` with their answer (gate 6.13).
 
 **3. Design the rollback** (gate 6.1): a specific reversing mechanism, a named owner with how to reach them, and a test. Answer what happens to data written while the feature was live, even when the answer is "nothing is written". With a migration, the rollback is not the inverse migration by default: state whether the change is actually reversible.
 

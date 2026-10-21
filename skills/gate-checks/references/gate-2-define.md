@@ -11,8 +11,9 @@ Read when running gate 2. E.1 and the procedure in `SKILL.md` apply too. On the 
 | 2.5 | Coherent with the stage | The stage is `PRODUCT.md` → `**Stage:**`. Before PMF (`idea`, `pre-PMF`, or a signal score ≤4 per `product-analysis` (strategy)) scale-oriented opportunities are rejected: the work is learning whether there is a product |
 | 2.6 | The metric measures an outcome | Shipping the change cannot by itself satisfy the target. A count of what the system does (alerts sent, emails delivered, a feature released) is output: it goes to the tracking plan or a guardrail, and the metric names what the user does or gets differently |
 | 2.7 | The initiative moves a lever of the product | `**Moves:**` under Success metric names a lever (or its metric) of `PRODUCT.md` → `## Business` → Metric tree. With no metric tree yet it is a warning that asks for a product review. Skipped on the change track |
+| 2.8 | A person chose the opportunity and its target | `**Chosen by:**` under `## Selected` names who chose, from their answer to the round that put the opportunities and the target to them; never the agent |
 
-Script-decided: 2.1, 2.2, 2.3, 2.7. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. Model-judged: 2.5, 2.6. The emitted `checked_by` split is authoritative.
+Script-decided: 2.1, 2.2, 2.3, 2.7, 2.8. 2.4 is script-decided for sourced baselines, model-judged for a structurally justified pre-product zero. Model-judged: 2.5, 2.6. The emitted `checked_by` split is authoritative.
 
 Example: An existing feature's baseline `0, first measured 2026-09-20` fails 2.4 without a source. A nonexistent product's `Baseline: 0`, `Product exists: no`, `Zero rationale: No users exist to complete this event`, `First measurement: 2026-10-01` reaches model judgment; the rationale must actually apply to the metric.
 

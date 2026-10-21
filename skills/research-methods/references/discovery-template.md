@@ -35,4 +35,5 @@ When {situation}, I want to {motivation}, so I can {outcome}. `[tag]`
 
 ## Verdict
 **{VALIDATED | KILLED | RESHAPED}** — {reasoning, citing tags}
+**Chosen by:** {person, from their answer: continue, stop or reshape}
 ```

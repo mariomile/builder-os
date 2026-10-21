@@ -38,6 +38,10 @@ Phases 0, 4 and 6 each need a person's acceptance, and the build plan inside pha
 
 **Rules.** Acceptance comes from the person's own words in the conversation, never inferred and never written on their behalf; ask, then record. A standing instruction counts when it named the scope ("proceed through the build without stopping"): quote it with its date as the acceptance. A solo builder accepts their own artifacts; it costs a sentence and leaves a record of what was actually read. The script refuses to pass phases 0, 4 and 6 without `--accepted-by`; a failed gate records no acceptance. Acceptance never replaces a failed condition: an override still needs its reason.
 
+## Decisions
+
+The choices a phase turns on belong to a person, and each gate checks a `**Chosen by:**` naming who chose, from their answer, never the agent: the assumption phase 1 tests (0.5), what a discovery verdict means for the work (1.6), the opportunity and its target (2.8), the bet (3.6), the look (4.9), the rollout (6.13), and keep, iterate or kill (7.7). The agent does the analysis and recommends in a `pressure-testing` round; "go with the recommendations" is a valid answer and is quoted as such. A standing instruction that named the scope counts, quoted with its date, exactly as for acceptance.
+
 ## Refusal Protocol
 
 When a condition fails, the agent produces exactly this, and does not advance:

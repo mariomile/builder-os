@@ -50,9 +50,18 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 | Choice | What | Why | Set aside | Cost | We'd change it if |
 | {stack layer, visual direction or design kit} | {choice} | {one line} | {main alternative} | {money, time or upkeep} | {condition} |
 
+## User stories
+1. As a {actor}, I want {capability}, so that {benefit}
+{A long numbered list covering every actor and every flow in scope; each acceptance criterion below traces to at least one story}
+
 ## Acceptance criteria
 | # | Criterion | Flow |
 | 1 | {subject + verifiable verb + condition} | {flow} |
+
+## Test seams
+| Seam | What is tested there | Exists today |
+| {the highest point the behavior can be tested from: an API, a module interface, the UI} | {criteria by number} | {yes, or new} |
+{Prefer existing seams and as few as possible; phase 5 plans its tests at these}
 
 ## Quality bar
 | Area | Criteria | Not applicable because |

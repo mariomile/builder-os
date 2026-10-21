@@ -183,7 +183,7 @@ test('gate 6 requires baseline before actual verified exposure', () => {
 
 test('gate 7 needs one decision and the kill-criteria verdict', () => {
   const root = project();
-  write(root, '07-outcome.md', `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 22% | 30% | +22 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 22 > 15\n\n## Decision: ITERATE\n**Why:** below target, above kill line\n**Re-enters at:** phase 3\n**Cleanup:** none, the flag stays while cycle 2 runs\n\n## Learning\nManagers export when the file matches the meeting agenda.\n`);
+  write(root, '07-outcome.md', `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 22% | 30% | +22 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 22 > 15\n\n## Decision: ITERATE\n**Why:** below target, above kill line\n**Chosen by:** Mario, \"iterate\"\n**Re-enters at:** phase 3\n**Cleanup:** none, the flag stays while cycle 2 runs\n\n## Learning\nManagers export when the file matches the meeting agenda.\n`);
   const g = gate(root, 7);
   assert.deepEqual(g.failed, []);
   assert.equal(g.by['7.4'], 'judge');

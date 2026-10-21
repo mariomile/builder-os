@@ -23,7 +23,7 @@ function project(t) {
   return { root, dir, write, run, gate, state };
 }
 const discovery = (verdict = 'VALIDATED') => `# Discovery\n## Evidence\n${[1,2,3,4,5].map(n => `[code:src/export.ts:${n}]`).join(' ')}\n## Verdict\n${verdict} [code:src/export.ts:1]\n## JTBD\nWhen Monday starts, I want to see deals, so I can prepare.\n## Disconfirming\n**Sought:** contrary behavior\n**Found:** none\n`;
-const outcome = (decision, reenter) => `# Outcome\n## Measured\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 20 | 30 | 20 | [code:src/export.ts:1] |\n## Against kill criteria\n**Verdict:** cleared\n## Decision: ${decision}\n**Re-enters at:** ${reenter}\n## Learning\nUsers need exports for meetings.\n`;
+const outcome = (decision, reenter) => `# Outcome\n## Measured\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 20 | 30 | 20 | [code:src/export.ts:1] |\n## Against kill criteria\n**Verdict:** cleared\n## Decision: ${decision}\n**Chosen by:** Mario\n**Re-enters at:** ${reenter}\n## Learning\nUsers need exports for meetings.\n`;
 const build = (testPath = 'test/export.test.mjs', output = '2 passed, 0 failed', runPath = '') => `# Build\n## Acceptance criteria to tests\n| # | Criterion | Test | Result |\n|---|---|---|---|\n| 1 | export | ${testPath} | pass |\n## Test output\n${runPath ? `**Run:** ${runPath}\n` : ''}\`\`\`\n${output}\n\`\`\`\n`;
 
 test('five code line citations are one source', t => {

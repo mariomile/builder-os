@@ -20,7 +20,7 @@ Orchestrate the requested initiative. Standalone documents, research guides, cal
 | 6 SHIP | Readiness, authorized exposure and verification | `release-ops`, writing as needed | `06-release.md` |
 | 7 LEARN | Compare outcomes, decide or defer | `outcome-review`, analysis as needed | `07-outcome.md` |
 
-Methods and procedures live in skills. Resolve capabilities against this session, per [capability map](../../references/capability-map.md) when an operation needs them. If delegation is available, pass the request, scope and relevant context to a phase skill, wait for its result, then verify it. Otherwise run the same procedure inline; do not invent a dispatch or install a host feature.
+When the open decisions of an idea, or of one phase, will not fit one session, chart them with `wayfinding` first: its destination is the initiative (or the phase artifact), and each new session works one ticket. Methods and procedures live in skills. Resolve capabilities against this session, per [capability map](../../references/capability-map.md) when an operation needs them. If delegation is available, pass the request, scope and relevant context to a phase skill, wait for its result, then verify it. Otherwise run the same procedure inline; do not invent a dispatch or install a host feature.
 
 ## The Product Loop
 
@@ -40,6 +40,7 @@ Initiatives answer whether one bet worked; the product review decides which bet 
 - A change closes after phase 6 unless its release set an outcome review. Its mandate covers phases 0 to 3; a real choice between solutions found later upgrades it to feature.
 - A spike closes after phase 1 with its problem verdict. A KILLED problem stops the lifecycle; continuing requires an explicit track/new-cycle decision.
 - RELEASE READY means the preparation exists. SHIPPED requires observed, authorized exposure with its environment, version, actual timestamp and source-backed verification. A planned rollout date cannot advance to LEARN.
+- The agent analyses and recommends; the person chooses. The assumption to test, the next step after a discovery verdict, the opportunity and target, the bet, the look, the stack, the rollout and keep/iterate/kill are each a round question, recorded as `**Chosen by:**` (`gate-checks`, Decisions).
 - A gate verdict is not an acceptance. The frame, the spec, the build plan and the release each wait for a person; the agent never approves its own work, and a standing instruction counts only when it named that scope.
 - KEEP closes the cycle and sets a watch; a breach of its bands starts a new initiative from the anomaly. ITERATE/KILL use a coherent re-entry point or an explicit close. An insufficient observation window defers review with date and reason while phase 7 remains open; it fabricates no verdict.
 

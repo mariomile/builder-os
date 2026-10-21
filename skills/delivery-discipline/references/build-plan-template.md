@@ -30,6 +30,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | 1 | {end-to-end description} | {files created or changed} | 1, 4 | none | done |
 
 **Critical path:** {the longest blocking chain, and its length}
+**Tickets:** {the folder or tracker the accepted slices were published to, one ticket per slice; or "not published"}
 
 ## Risks
 | Risk | Mitigation |
@@ -72,4 +73,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 
 ## Deviations from spec
 {anything built differently, with the reason and whether the spec was amended; deviations from the plan are recorded in the plan itself}
+
+## Retro
+**Environment:** {what slowed or misled the agent during the build, and the pointer, check or convention changed for it, per `retro`}
 ```

@@ -9,6 +9,7 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 
 ## Rollout
 **Strategy:** {flag / internal / canary / percentage / full} — {why}
+**Chosen by:** {person, from their answer to the decision card}
 | Step | Exposure | Watched | Condition to proceed |
 
 ## Rollback

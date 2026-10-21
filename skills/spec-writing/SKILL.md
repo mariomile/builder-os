@@ -30,6 +30,15 @@ Read the relevant section of [spec methods](references/spec-methods.md) for the 
 
 Use supplied requirements, current behavior and constraints. Write the requested scope, numbered assertions and relevant states. Mark unknown facts and owner decisions; do not require a solution-bet file or initialize an initiative. A request for a draft does not authorize implementation.
 
+## Synthesis Procedure
+
+When the person asks to turn what was already discussed into a spec (by name, `to-spec`), write it from the conversation and the code without an interview.
+
+1. **Gather.** The conversation, every artifact and file it referenced, `TECH.md`, `DOMAIN.md` and the decisions in the area; explore the code the change touches where `repo.read` resolved. Use the product's terms from `PRODUCT.md` → Language. Done when every statement the spec will make has a place in the conversation or the code it came from.
+2. **Propose the test seams.** The highest points the behavior can be tested from, existing ones first, as few as possible. Check them with the person in one question; this is the only question. Done when they said yes or picked other seams.
+3. **Write** the [spec template](references/spec-template.md) sections the material supports: problem and solution from the user's side, a long list of user stories, scope and out of scope, numbered acceptance criteria, states, test seams, the decisions made (modules, interfaces, schema, contracts) without file paths or code. A gap is written under **Not yet specified** with who decides it, never filled with a guess. Done when every user story maps to a criterion and every gap is named.
+4. **Deliver** to the requested destination: a file, a document, or the person's tracker through `tickets.write`. In a lifecycle initiative it becomes `04-spec.md` and gate 4 runs on it like any spec: what the conversation never settled shows up as failed conditions, and the steps below close them.
+
 ## Lifecycle Procedure
 
 Run in order. Delegate where the host allows it, run inline where it does not.
@@ -40,7 +49,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 2b. **Write the impact on what exists** (gate 4.11, never relaxed). What this change does to what is already there, one row each: **existing data** (rows written before the change: their shape, a backfill or default, how many violate a new rule, counted with `db.query` where it resolved), **contracts** (APIs, webhooks, exports, integrations someone else consumes: what breaks if a field changes), **tracking events** (an event renamed or redefined breaks dashboards and other initiatives' baselines: list each one changed, never only the new ones), **permissions** (roles, plans, tenants: who sees the change), **current users** (on or off by default, what moves or disappears, how they hear about it). "Nothing to do" with its reason is a valid handling. On a product with nothing built yet, write `**Impact on what exists:** not applicable, {reason}`.
 
-3. **Bound the scope.** In scope, then out of scope as not now, not ever by design, or not until X, including the boundary someone will argue with. Gate 4.2 fails an empty list. An undecided in-scope question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, never under out of scope.
+3. **Bound the scope.** In scope, then out of scope as not now, not ever by design, or not until X, including the boundary someone will argue with. Each boundary a reasonable person could draw on the other side is a round question for the owner (in, out, or not until X, with what each costs), with a recommendation; the rest you write. Gate 4.2 fails an empty list. An undecided in-scope question goes under **Not yet specified** with who decides it and which acceptance criteria wait on it, never under out of scope.
 
 4. **Design the flows.** Hand information architecture, flows, per-step states, the component inventory and the accessibility floor to `ux-architecture`, which writes `DESIGN.md`; consume its flow list. Every flow traces to the phase 3 primary action.
 
@@ -52,7 +61,9 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 4d. **Put it in front of a real user** (product track, gate 4.13). Before the build, one session with a person from the ICP walking the clickable version from 4b: does the problem land, does the concept make sense, where do they stick on the primary action. Write the recruiting message, the script (problem first, then the prototype, then silence while they try) and the note template; the user runs the session and pastes the notes, saved with `scripts/bos.mjs evidence add --class interview --id P{n}`. Record what they did and what changed under `## Real users`, tagged. On a product for sale, the same session shows the price: write what they did under `**Willingness to pay:**` with its tag (gate 4.14). A pre-order, a letter of intent or a click on a price counts; "they liked it" does not. When nobody from the ICP can be reached this week, say what the build is betting on without it and offer an override with that reason; never write a session that did not happen.
 
-5. **Write acceptance criteria.** One per requirement, numbered, because phase 5 maps tests to them by number. Gate 4.1: each is a testable assertion with a subject that exists in the product, a verb with an observable outcome, and a condition under which it is checked. Adjective test: strike every adjective; if nothing verifiable remains, it was not a criterion.
+5. **Write the user stories, then the acceptance criteria.** A long numbered list of stories ("As a {actor}, I want {capability}, so that {benefit}") covering every actor and flow in scope; each criterion traces to a story. Criteria: one per requirement, numbered, because phase 5 maps tests to them by number. Gate 4.1: each is a testable assertion with a subject that exists in the product, a verb with an observable outcome, and a condition under which it is checked. Adjective test: strike every adjective; if nothing verifiable remains, it was not a criterion.
+
+5a. **Name the test seams.** The highest points the behavior can be tested from (an API, a module interface, the UI), existing ones first and as few as possible, each with the criteria tested there. Phase 5 plans its tests at these seams.
 
 6. **Enumerate states and edge cases.** Six states per flow: empty, loading, partial, error, success, permission; gate 4.3 requires empty and error for every flow. Then the four edge-case categories: zero/one/many/too many, concurrency, interrupted, hostile or malformed input. Every case gets an expected behavior; "undefined" only when written down as a deliberate choice.
 

@@ -29,6 +29,7 @@ Read when writing the phase 7 artifact. `scripts/bos.mjs` parses its headings an
 
 ## Decision: {KEEP | ITERATE | KILL}
 **Why:** {reasoning against both comparisons}
+**Chosen by:** {person, from their answer to the recommendation}
 **Re-enters at:** {phase N for ITERATE; none for KILL or a closed KEEP}
 **Cleanup:** {KEEP: the flag and the old code path to remove, with owner and date; KILL: the shipped code to remove, as a change initiative, with owner and date; ITERATE: what stays until the next cycle decides; or "none, {reason}"}
 **Next:** {the specific thing that happens now}

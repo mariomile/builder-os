@@ -201,7 +201,7 @@ test('gate 5.8: a guardrail declined by its owner is a visible warning, not a pa
   assert.equal(gate(root, 5).by['5.8'], 'fail');
 });
 
-const RELEASE = (outcome = true) => `# Release\n\n## Rollback\n**Mechanism:** revert\n**Owner:** Mario\n**Tested:** 2026-10-01\n\n## Exposure verification\n**Status:** verified\n**Exposed at:** 2026-10-02T10:00:00Z\n**Environment:** production\n**Version:** v1.4.2\n**Verification:** the date column sorts as dates in production \`[doc:ticket-981]\`\n**Authorized by:** Mario, "vai" in the thread\n\n## Production readiness\n**Errors seen by:** error tracker alert to Mario\n**Backup restored:** not applicable, no data changes\n${outcome ? '\n## Outcome review\n**Owner:** Mario · **Date:** 2026-11-01\n' : ''}`;
+const RELEASE = (outcome = true) => `# Release\n\n## Rollout\n**Strategy:** full, 40 users and a tested rollback\n**Chosen by:** Mario\n\n## Rollback\n**Mechanism:** revert\n**Owner:** Mario\n**Tested:** 2026-10-01\n\n## Exposure verification\n**Status:** verified\n**Exposed at:** 2026-10-02T10:00:00Z\n**Environment:** production\n**Version:** v1.4.2\n**Verification:** the date column sorts as dates in production \`[doc:ticket-981]\`\n**Authorized by:** Mario, "vai" in the thread\n\n## Production readiness\n**Errors seen by:** error tracker alert to Mario\n**Backup restored:** not applicable, no data changes\n${outcome ? '\n## Outcome review\n**Owner:** Mario · **Date:** 2026-11-01\n' : ''}`;
 
 test('a change with no outcome to measure closes at phase 6; one with a review goes on to phase 7', () => {
   const root = project();
@@ -234,7 +234,7 @@ test('gate 6.9 wants the modeled entities in DOMAIN.md and a chosen look in TECH
 
 test('gate 7.6 needs the cleanup after the decision, or "none" with a reason', () => {
   const root = project();
-  const OUT = (cleanup) => `# Outcome\n## Measured\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 20 | 30 | 20 | [code:src/export.ts:1] |\n## Against kill criteria\n**Verdict:** triggered\n## Decision: KILL\n**Re-enters at:** none\n${cleanup}\n## Learning\nUsers need exports for meetings.\n`;
+  const OUT = (cleanup) => `# Outcome\n## Measured\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 20 | 30 | 20 | [code:src/export.ts:1] |\n## Against kill criteria\n**Verdict:** triggered\n## Decision: KILL\n**Chosen by:** Mario\n**Re-enters at:** none\n${cleanup}\n## Learning\nUsers need exports for meetings.\n`;
   write(root, '07-outcome.md', OUT(''));
   assert.equal(gate(root, 7).by['7.6'], 'fail');
   write(root, '07-outcome.md', OUT('**Cleanup:** none'));

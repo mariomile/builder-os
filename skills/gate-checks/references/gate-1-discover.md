@@ -9,8 +9,9 @@ Read when running gate 1. E.1 and the procedure in `SKILL.md` apply too. On the 
 | 1.3 | Explicit verdict | One of `VALIDATED` / `KILLED` / `RESHAPED`, with reasoning that cites tags |
 | 1.4 | JTBD statement present | Form: "When \_\_\_, I want to \_\_\_, so I can \_\_\_" |
 | 1.5 | Disconfirming evidence sought | The artifact names what would have killed the problem and whether it was looked for |
+| 1.6 | A person decided what the verdict means for the work | `**Chosen by:**` under `## Verdict` names who chose to continue, stop or reshape, from their answer; the agent writes the verdict the evidence supports, the person decides what happens next |
 
-Script-decided: 1.1, 1.2, 1.3, 1.4. Model-judged: 1.5. The emitted `checked_by` split is authoritative.
+Script-decided: 1.1, 1.2, 1.3, 1.4, 1.6. Model-judged: 1.5. The emitted `checked_by` split is authoritative.
 
 `KILLED` is a successful gate pass. The pipeline stops and reports. Killing a problem in phase 1 is the cheapest outcome BuilderOS can produce.
 

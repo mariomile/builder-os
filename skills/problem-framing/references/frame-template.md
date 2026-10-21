@@ -23,6 +23,7 @@ The lifecycle output contract for `problem-framing`. Standalone output follows t
 ## Riskiest assumption
 {Falsifiable sentence} `[assumption:unvalidated]`
 **Would be falsified by:** {observation}
+**Chosen by:** {person, from their answer to the round that compared the candidates}
 
 ## Prior art
 {Solved well / badly / not adopted} — {one line each on the two closest} `[tag]`

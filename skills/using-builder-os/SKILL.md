@@ -33,6 +33,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 |------------------|--------------|
 | An idea or problem in one sentence ("I want to build X") | Lifecycle requested or project initialized: `builder-os`, starting with no setup questions per [lifecycle setup](../../references/lifecycle-setup.md). Otherwise `problem-framing`'s first round inline, then offer to keep it as an initiative |
 | Run or continue an initiative; explicitly request a spike | `builder-os`, lifecycle |
+| An effort too big or too foggy for one session; continue a map in `.builderos/maps/` | `wayfinding` |
 | What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
@@ -45,6 +46,9 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |
 | Draft or revise a specification from requirements | `spec-writing`, standalone; UX/tracking as needed |
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
+| Turn what was discussed into a spec, with no interview | `spec-writing`, Synthesis Procedure (`to-spec` by name) |
+| Break a plan or spec into tickets | `delivery-discipline`, [tickets](../delivery-discipline/references/tickets.md) (`to-tickets` by name) |
+| A retrospective on an agent session, or what to change so the agent works better here | [retro](../retro/SKILL.md) (`retro` by name) |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
 | Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |

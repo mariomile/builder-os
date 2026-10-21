@@ -8,5 +8,6 @@ Read when running gate 0. E.1 and the procedure in `SKILL.md` apply too. **Accep
 | 0.2 | Exactly one primary ICP named | A single named segment with a size estimate carrying a source tag |
 | 0.3 | Riskiest assumption is falsifiable | Stated as a sentence that could be shown false by an observation |
 | 0.4 | "Why now" cites a change in the world | A dated external change, not a preference or an availability of technology in general |
+| 0.5 | A person chose the assumption phase 1 tests | `**Chosen by:**` under `## Riskiest assumption` names who picked it from the candidates, from their answer; never the agent |
 
-Script-decided: 0.1, 0.2. Model-judged: 0.3, 0.4. The emitted `checked_by` split is authoritative.
+Script-decided: 0.1, 0.2, 0.5. Model-judged: 0.3, 0.4. The emitted `checked_by` split is authoritative.

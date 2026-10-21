@@ -10,8 +10,9 @@ Read when running gate 7. E.1 and the procedure in `SKILL.md` apply too. Read th
 | 7.4 | Generalized learning | One sentence that outlives the feature, written into `decisions/` |
 | 7.6 | Cleanup is scheduled | `**Cleanup:**` under the decision: after KEEP, the flag and the old code path to remove; after KILL, the shipped code to remove (as a `change` initiative); with an owner and a date. `none` only with its reason |
 | 7.5 | A closing KEEP sets a watch | When the decision is KEEP with `Re-enters at: none`, `## Watch` names the metric, the bands, the owner and a valid recheck date. Skipped for ITERATE, KILL and a KEEP that re-enters |
+| 7.7 | A person made the decision | `**Chosen by:**` under the decision names who chose keep, iterate or kill, from their answer; the agent compares and recommends |
 
-Script-decided: 7.1, 7.2, 7.3, 7.5, 7.6. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
+Script-decided: 7.1, 7.2, 7.3, 7.5, 7.6, 7.7. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
 
 **Recording.** Phase 7 passes `keep|iterate|kill`, matching its heading and `Re-enters at` field. `iterate` requires `--reenter 0-6`, `kill` prohibits it, and `keep` permits either an explicit re-entry or `none`.
 

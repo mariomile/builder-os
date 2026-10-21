@@ -23,6 +23,18 @@ A deep pass against what a tier-1 product team would do, and against the Claude 
 
 **Upgrading.** Specs fail 4.12 until `## Quality bar` is written (and 4.13 on the product track until `## Real users`); build plans fail 5.9 until `## Interface review`, and 5.10 until `TECH.md` has `**Quality checks:**`; releases fail 6.10 until `## Production readiness` (and 6.11 on the product track until `## First real use`). Run `bos.mjs vendor` once in each existing project.
 
+### The person decides, and four skills from Matt Pocock (2026-10-21)
+
+Where BuilderOS still let the agent decide, it now asks; and the parts of Pocock's skills it lacked are in. Analysis in the project thread "Skill scritte alla Pocock" (`skill-alla-pocock-2026-10-21.md`), decisions 1A 2A 3A 4A; the writing rewrite (1A) follows in its own change.
+
+- **Decisions belong to a person.** The agent analyses and recommends in a round; the person chooses, recorded as `**Chosen by:**` and checked by the script: the assumption phase 1 tests (gate 0.5), what a discovery verdict means for the work (1.6), the opportunity and its target (2.8), the rollout (6.13), keep, iterate or kill (7.7), next to the bet (3.6) and the look (4.9) that already were. Scope boundaries in the spec and the slicing of the build plan are round questions too.
+- **`pressure-testing` is relentless.** It keeps a design tree and stops when the frontier is empty, not after one round; each question is worded so "yes" accepts the recommendation; facts are looked up in parallel while the rest of the round is asked.
+- **`wayfinding`** (from Pocock's `wayfinder`): work too big for one session becomes a map in `.builderos/maps/{slug}/` with decision tickets (research, prototype, grilling, task), the fog of war and out of scope, one ticket per session. `bos.mjs map` prints the frontier; the briefing shows the next ticket of every open map.
+- **`retro`, `to-spec`, `to-tickets`**, called by name on Claude Code and Codex (`disable-model-invocation`, `agents/openai.yaml`), each over one method: `retro` holds the environment retrospective that phases 5 and 7 now run; `to-spec` runs the new Synthesis Procedure of `spec-writing` (no interview, one question on the test seams, gaps named); `to-tickets` runs `delivery-discipline/references/tickets.md` (vertical slices, expand–contract for wide refactors, a quiz on the breakdown, one ticket per file or per issue). The spec template gains `## User stories` and `## Test seams`; the build plan gains `**Tickets:**` and `## Retro`.
+- New capabilities `tickets.write` and `sessions.read`.
+
+**Upgrading.** Frames, discoveries, definitions, releases and outcomes fail their gate until the decision carries `**Chosen by:**` from the person's answer.
+
 ### From one bet to a product that earns (2026-10-21)
 
 The lifecycle shipped one bet well and said nothing between bets or around the product: no stage, no link from initiatives to a North Star, no channel, price or payment, no operations beyond the first incident. Analysis in the project thread "Da zero a milioni" (`da-zero-a-milioni-2026-10-21.md`), decisions 1A 2A 3A 4A.
