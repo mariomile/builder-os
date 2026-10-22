@@ -48,6 +48,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Turn what was discussed into a spec, with no interview | `spec-writing`, Synthesis Procedure (`to-spec` by name) |
 | Break a plan or spec into tickets | `delivery-discipline`, [tickets](../delivery-discipline/references/tickets.md) (`to-tickets` by name) |
+| Write, update or prune a repository's `AGENTS.md` or `CLAUDE.md`; the agent keeps getting lost in the code | `agents-md`, standalone |
 | A retrospective on an agent session, or what to change so the agent works better here | [retro](../retro/SKILL.md) (`retro` by name) |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |

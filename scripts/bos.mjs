@@ -828,6 +828,8 @@ function gate(n, ctx) {
     const qc = qualityChecks();
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
+    const cp = contextPaths();
+    pass('5.11', cp.tech && cp.hasMap && cp.missing.length === 0, !cp.tech ? 'no TECH.md' : !cp.hasMap ? 'no "## Map" in TECH.md: where the code the next session needs lives (entry points, modules, tests, generated files), or "not applicable, {reason}"' : cp.missing.length ? `paths that no longer exist: ${cp.missing.join('; ')}` : `TECH.md → Map has ${cp.rows} rows; every path in AGENTS.md, CLAUDE.md and the map exists`);
     const specAC = tableRows(section(ctx.spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x));
     const map = tableRows(section(a, 'Acceptance criteria to tests'));
     const NO_TEST = /^\W*(no test|none|n\/?a|not tested|untested|[-—–]+)\b|^\W*\*\*no test/i;
@@ -1148,6 +1150,39 @@ function techStale() {
   return age > 60 ? `TECH.md last verified ${v.date}, ${Math.round(age)} days ago` : null;
 }
 
+// The files that point the next session at the code: AGENTS.md and CLAUDE.md at the root, and TECH.md → Map.
+// A path they name that no longer exists sends the agent looking for something that is gone.
+const STEERING = ['AGENTS.md', 'CLAUDE.md'];
+function pathLike(token) {
+  const p = token.trim().replace(/[),.;:]+$/, '').replace(/:\d+([-,]\d+)*$/, '');
+  if (!p.includes('/') || /^(https?:|~|\/|-)/.test(p) || /[*{}<>$|]/.test(p) || /\s/.test(p)) return null;
+  return p.replace(/^\.\//, '');
+}
+function contextPaths() {
+  const missing = [];
+  const named = (file, text) => {
+    for (const m of (text || '').matchAll(/`([^`\n]+)`/g)) {
+      const p = pathLike(m[1]);
+      if (p && !fs.existsSync(path.join(ROOT, p))) missing.push(`${file} names \`${p}\``);
+    }
+  };
+  for (const f of STEERING) named(f, read(path.join(ROOT, f)));
+  const tech = read(path.join(ROOT, 'TECH.md'));
+  const mapSec = section(tech || '', 'Map');
+  const rows = tableRows(mapSec).filter((r) => nonEmpty(r[0]));
+  named('TECH.md → Map', rows.map((r) => r[0]).join('\n') + '\n' + (field(mapSec || '', 'Generated') || ''));
+  const notApplicable = /not applicable[,:;—-]\s*\S.{2,}/i.test(mapSec || '');
+  return { tech: !!tech, hasMap: rows.length > 0 || notApplicable, rows: rows.length, missing };
+}
+function domainStale() {
+  if (!fs.existsSync(path.join(ROOT, 'DOMAIN.md')) || git('rev-parse', '--is-inside-work-tree') !== 'true') return null;
+  const domain = Number(git('log', '-1', '--format=%ct', '--', 'DOMAIN.md') || 0);
+  const schema = git('log', '-1', '--format=%ct %h', '--', ':(glob)**/migrations/**', ':(glob)**/*schema*', ':(glob)**/*.prisma', ':(glob)**/models/**');
+  if (!domain || !schema) return null;
+  const [when, sha] = schema.split(' ');
+  return Number(when) > domain ? `DOMAIN.md is older than the last schema or migration change (${sha}): check the entities and rules still hold` : null;
+}
+
 // Initiatives whose folder exists on another branch and not on this checkout: their state travels with a branch
 // nobody here is looking at (references/builderos-state-schema.md, Where the work lives).
 function branchOnlyInitiatives(all) {
@@ -1240,6 +1275,12 @@ function brief() {
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
+  const dead = contextPaths().missing;
+  if (dead.length) attention.push(`${dead.slice(0, 3).join(', ')}${dead.length > 3 ? ` and ${dead.length - 3} more` : ''}: no longer there, update the pointer`);
+  const ds = domainStale();
+  if (ds) attention.push(ds);
+  const agentsLines = (read(path.join(ROOT, 'AGENTS.md')) || '').split('\n').length;
+  if (agentsLines > 150) attention.push(`AGENTS.md is ${agentsLines} lines and loads into every session: keep pointers and must-hold rules there, move the rest (agents-md)`);
   const vs = vendoredStale();
   if (vs) attention.push(vs);
   const elsewhere = branchOnlyInitiatives(all);

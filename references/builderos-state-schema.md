@@ -137,6 +137,9 @@ The files above only help if a new session reads them. Every session, on any hos
    - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user;
    - an initiative folder exists on another branch and not on this checkout: its state is travelling with code nobody here is looking at.
    - a ticket in a map has no `**Type:**`;
+   - `AGENTS.md`, `CLAUDE.md` or `TECH.md` → Map names a path that no longer exists;
+   - `DOMAIN.md` was last changed before the latest commit touching a migration, a schema or a models folder;
+   - `AGENTS.md` is longer than 150 lines: it loads into every session, so it holds pointers and must-hold rules (`agents-md`);
    - the product review is due: none in `.builderos/reviews/` yet, or the latest is older than 7 days before PMF (`idea`, `pre-PMF`) or 31 days after it.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
@@ -148,7 +151,7 @@ Hosts with a session-start hook get this from the plugin's hook. Every other ses
 ```markdown
 ## BuilderOS
 
-This project is run with BuilderOS. Before any product or planning work, run `node .builderos/bin/bos.mjs brief` from the project root (or read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`), then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`.
+This project is run with BuilderOS. Before any product or planning work, run `node .builderos/bin/bos.mjs brief` from the project root (or read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`), then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`. Before changing code, read `TECH.md` → Map, Conventions and Technical constraints; the business rules are in `DOMAIN.md`.
 
 If the BuilderOS skills are not loaded in this session, say so in one line and keep these rules: state and gate results are written only by `node .builderos/bin/bos.mjs` (never `state.json` by hand); no number without a source tag backed by a file in `evidence/`; no code before the build plan is accepted by a person; new scope after that is a change of its own.
 ```
@@ -196,6 +199,15 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 | Layer | Choice | Why | Decision |
 |-------|--------|-----|----------|
 | {interface / backend / data / auth / hosting / jobs / model / integrations / analytics / design kit} | {choice, or "open"} | {one line} | {ADR link, "inherited", or "decide in phase 4"} |
+
+## Map
+| Where | What it holds | Read when |
+|-------|---------------|-----------|
+| {a path: an entry point, a module, the tests, a config} | {one line} | {the change that needs it} |
+
+**Generated:** {paths that are generated and never edited by hand, or "none"}
+
+{Only what the agent cannot find in one search: the entry points, the module that holds the domain rules, where each kind of test lives, the files that look editable and are not. Kept true by phase 5 at every build; gate 5.11 checks that every path exists.}
 
 ## Design system
 **Kit:** {component library or "custom"}

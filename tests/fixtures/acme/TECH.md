@@ -2,6 +2,11 @@
 
 **Verified:** 2026-09-01 @ no git
 
+## Map
+| Where | What it holds | Read when |
+|---|---|---|
+| `src/export.ts` | the CSV export of the Monday view, its columns and its filters | changing what an export contains |
+
 ## Operations
 **Privacy:** policy at /privacy; sub-processors (hosting, email) listed there with their DPAs; account deletion removes deals within 30 days; data in the EU
 **SLO:** 99.5% of report requests answered within 2 seconds, monthly
