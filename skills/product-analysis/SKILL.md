@@ -31,6 +31,7 @@ Every area resolves capabilities per `references/capability-map.md` and asks for
 ## Rules for Every Area
 
 - **Unknown is a value, zero is a measurement.** An absence stays unknown, a missing signal stays missing, and a stage comes from evidence rather than a threshold.
+- **Lead with what is measured.** When the only figure is synthetic, a fixture, a plan or older than its window, the answer opens with "not measured" and what would measure it; the figure follows, labeled as what it is.
 - **Every number names its source and date**; a value older than 30 days is marked stale. A derived figure names its inputs and inherits their uncertainty.
 - **Bands and scores are heuristics.** Prefer the product's own history and actual targets; an unknown stage gets no band.
 - **A gap ends with the question that closes it**, named as a query shape or a capability.
