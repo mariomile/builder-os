@@ -1,36 +1,36 @@
 ---
 name: discovery-methods
-description: "Turns raw research into findings: synthesis of interviews and notes, insight patterns, opportunity scoring, each claim traced to its source. Use when synthesizing user research, analyzing interview transcripts, clustering feedback or tickets, or scoring opportunities."
+description: "Turns raw research into findings: synthesis of interviews and notes, themes with counts, opportunity scoring, each claim traced to its source. Use when synthesizing research or transcripts, clustering feedback or tickets, or scoring opportunities."
 ---
 
 # Discovery Methods
 
-## Scope and resources
+**Synthesis** turns raw research into findings a decision can rest on: every claim traced to a participant, every share written with its denominator, prevalence kept apart from confidence. Text the person pastes is the primary input in every configuration; eight pasted transcripts with nothing connected is the normal case.
 
-Follow `../../references/operating-modes.md`, resolved from this `SKILL.md`: Standalone synthesis uses supplied research and the requested output destination, without initiative state. Run only the steps relevant to the request; a theme summary does not require opportunity scoring or a solution recommendation. Load `evidence-ledger` when recording claims, and `references/capability-map.md` (its resolution protocol) only before reaching for a connected source. Load [synthesis method details](references/synthesis-methods.md) only for the relevant coding, scoring, card, confidence, research-gap or common-mistakes section; the file resolves relative to this `SKILL.md`.
+**Mode.** Standalone synthesis uses the supplied research and the requested destination, and runs only the steps the request needs (a theme summary stops at step 4). In the lifecycle it runs inside phase 1 for `research-methods`. Both per [operating modes](../../references/operating-modes.md). Load `evidence-ledger` when recording claims, and the [synthesis method details](references/synthesis-methods.md) for the coding, scoring, card, confidence or research-gap section a step needs.
+
+## Procedure
+
+1. **Ingest.** Start with the supplied inputs; reach for connected sources to close a named gap or when broader research was requested. Per entry, extract the participant (role, company size, plan, anonymized as needed), the context (what they were doing, what triggered the feedback), exact quotes marked as quotes, and researcher observations marked as observations: a quote is evidence, an observation is interpretation. Done when every entry has its participant, context, quotes and observations separated.
+2. **Code the observations.** One code per distinct observation, in the participant's language, naming the problem rather than a solution: "could not find where to invite a teammate" is a code, "needs better invite UX" is a conclusion. Done when every observation carries a code.
+3. **Group into themes.** Affinity-map the codes. A theme has a name, its codes, and the count of distinct participants (not mentions) behind it. Done when every code sits in a theme or is listed as an outlier.
+4. **Quantify.** Per theme: participants affected, share of the sample, over-represented segments, and severity as participants described it. Write every share with its denominator ("3 of 5 participants"). Prevalence is a sample count; report evidence strength (recruitment, segment coverage, behavior, triangulation, contradictions) separately, since convenience-interview percentages say nothing about the population. Done when every theme has its count, denominator and strength.
+5. **Score opportunities** only when prioritization is requested and paired respondent importance and satisfaction ratings exist, with the adapted ODI score in the method details (`I + max(I - S, 0)` on 1–5 inputs, range 1–9, per respondent then summarized within segment; a local adaptation of ODI). Without ratings, report the opportunities unscored with the ratings that are missing. Every opportunity cites its themes and participants; a score informs the choice and leaves it to the person. Done when each opportunity is scored from real ratings or marked unscored with the reason.
+6. **Write insight cards and report.** One card per relevant insight, qualitative findings included when ratings are missing, then the output contract with the questions this research left open and the sample it would take to answer them. Done when every theme appears in a card, the opportunity map or the gaps.
 
 ## Capabilities
 
 | Capability | Used for | Floor when absent |
 |-----------|----------|-------------------|
-| `docs.search` / `docs.read` | Interview notes, feedback collections, research already written down | Work from what the user pastes in |
+| `docs.search` / `docs.read` | Interview notes, feedback collections, research already written | Work from what the person pastes |
 | `tickets.read` | Support tickets and bug reports as unsolicited feedback | Skip, and note the gap |
 | `meetings.read` | Call transcripts | Skip, and note the gap |
-| `research.search` | Saved highlights and reading on the problem space | Skip; it is enrichment, never evidence about *these* users |
-| `files.read` / `files.write` | Transcripts on disk and the artifact itself | Always present |
-
-**Text the user provides is the primary input in every configuration.** Connected sources are enrichment; eight pasted transcripts with nothing connected is the normal case.
-
-## Procedure
-
-1. **Ingest.** Start with the supplied inputs; search connected sources only to close a relevant gap or when broader research was requested; availability alone does not widen the corpus. Per entry, extract the participant (role, company size, plan, anonymized as needed), the context (what they were doing, what triggered the feedback), exact quotes marked as quotes, and researcher observations marked as observations. Keep them apart: a quote is evidence, an observation is interpretation.
-2. **Code the observations.** One code per distinct observation, in the participant's language rather than yours, naming no solution: "could not find where to invite a teammate" is a code, "needs better invite UX" is a conclusion.
-3. **Group into themes.** Affinity-map the codes. A theme needs a name, its codes, and the count of distinct participants (not mentions) who produced it.
-4. **Quantify.** Per theme: participants affected, share of the sample, segments over-represented, and severity as the participants described it. Write every share with its denominator: "3 of 5 participants", not "60% of users". Prevalence is a sample count; report evidence strength (recruitment, segment coverage, behavior, triangulation, contradictions) separately. Convenience-interview percentages are not population confidence.
-5. **Score opportunities** only when prioritization is requested and paired respondent importance/satisfaction ratings exist, using the explicitly adapted ODI score in the method details (`I + max(I - S, 0)` on 1–5 inputs, range 1–9, per respondent then summarized within segment; a local adaptation, not the original ODI aggregate survey method). Otherwise report unscored opportunities with the missing ratings; missing ratings are unavailable, never inferred from mention prevalence. Every opportunity cites the themes and participants behind it; a high score does not select a solution or authorize building.
-6. **Write insight cards and report.** One card per relevant insight; keep qualitative findings even when ratings are missing. Emit the output contract, including the questions this research did not answer and the sample it would take to answer them.
+| `research.search` | Saved highlights and reading on the problem space | Skip; it enriches, and says nothing about *these* users |
+| `files.read` / `files.write` | Transcripts on disk and the artifact | Always present |
 
 ## Output Contract
+
+Ends with `## DISCOVERY SYNTHESIS COMPLETE`, in this shape:
 
 ```markdown
 ## DISCOVERY SYNTHESIS COMPLETE

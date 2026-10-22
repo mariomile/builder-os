@@ -71,6 +71,7 @@ Lifecycle path: `.builderos/initiatives/{initiative}/02-definition.md`. Standalo
 
 ## Selected: {A}
 **Why:** {evidence strength, strategic fit, PMF coherence, reversibility}
+**Chosen by:** {person, from their answer to the round on the opportunity and the target}
 
 ## Rejected
 | Opportunity | Why not now | Revisit when |

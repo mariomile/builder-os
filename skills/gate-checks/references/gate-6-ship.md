@@ -16,8 +16,9 @@ Read when running gate 6. E.1 and the procedure in `SKILL.md` apply too. **Accep
 | 6.10 | Production is ready for its first incident, and for its stage | `## Production readiness` has `**Errors seen by:**` (how an error reaches the team before a user reports it) and `**Backup restored:**` (a restore tested once, with the date, or "not applicable" with why). `TECH.md` → `## Operations` has `**Privacy:**` always, `**AI disclosure:**` when the spec declares model output, and after PMF (`emerging-PMF`, `scaling`) `**SLO:**`, `**Incident response:**` and `**Cost per active user:**`. These are product facts written once, not per release |
 | 6.11 | Someone is using it (product track) | `## First real use` cites a `data` or `doc` tag: a person outside the team did the primary action. Online is not in use. Skipped on the other tracks, where exposure reaches existing users |
 | 6.12 | Someone paid (product track, for sale) | `## First payment` cites a `data` or `doc` tag: a customer outside the team paid. Skipped when `PRODUCT.md` says not for sale and on the other tracks |
+| 6.13 | A person chose the rollout | `**Chosen by:**` under `## Rollout` names who chose the strategy from the decision card; never the agent |
 
-Script-decided: 6.2, 6.3, 6.5, 6.6, 6.8, 6.9, 6.10, 6.11, 6.12. Model-judged: 6.1, 6.4, 6.7.
+Script-decided: 6.2, 6.3, 6.5, 6.6, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13. Model-judged: 6.1, 6.4, 6.7.
 
 **Change track.** A change whose `06-release.md` has no Baseline, Measurement or Outcome review section skips 6.2, 6.3 and 6.5, records without `--review-due`, and closes at phase 6. A change that sets an outcome review runs 6.2 to 6.5 and goes to phase 7. The emitted `checked_by` split is authoritative.
 

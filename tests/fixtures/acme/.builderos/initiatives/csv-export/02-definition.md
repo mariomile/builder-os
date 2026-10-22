@@ -11,6 +11,7 @@ Weekly active report exports per manager
 
 ## Selected: Rebuild of the Monday view
 **Why:** strongest evidence.
+**Chosen by:** Dana, "the Monday view, and 40% by December"
 
 ## Rejected
 | Opportunity | Why not now | Revisit when |

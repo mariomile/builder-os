@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: big-effort-gets-a-map
+context:
+  scaffold_script: fixture.sh

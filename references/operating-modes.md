@@ -26,6 +26,10 @@ Unknown is not zero. Preserve baseline definition, population, window, capture d
 
 Read only resources relevant to the selected mode. Retrieve facts before asking. Ask for a material unresolved preference or decision outside delegated authority; make routine choices already entrusted to the agent. Ask in rounds per `pressure-testing` (Rounds): every question lists its options, recommends one and says why; a factual question offers ways to close the gap, never guessed values.
 
+## Delegation
+
+Where the host can hand work to a separate agent with its own context, a skill's steps may run there; where it cannot, the same steps run inline and the result is the same. Delegate only within the authorization the session already holds. A delegate that needs the person's decision returns the round, and the main conversation asks it. A delegate's report of success is a claim: read what it wrote and run the check before recording anything.
+
 ## Path Resolution
 
 The **project root** holds user inputs, outputs and `.builderos/`. The **installation root** holds BuilderOS `skills/`, `references/` and `scripts/`; these may differ.

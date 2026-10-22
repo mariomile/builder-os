@@ -16,6 +16,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `docs.read` | Fetch a specific document | same |
 | `docs.write` | Create or update a document | Notion, Google Docs, local files |
 | `tickets.read` | Read issues, bugs, support tickets | Linear, Jira, GitHub Issues, Zendesk, Intercom |
+| `tickets.write` | Create and update issues, with parent links and blocking edges where the tracker has them | Linear, Jira, GitHub Issues |
 | `meetings.read` | Read call transcripts and notes | Granola, Gong, Fireflies, Otter |
 | `research.search` | Search saved reading and highlights | Readwise, Raindrop, Pocket |
 | `web.search` | Search the open web | any web search tool |
@@ -27,6 +28,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
 | `shell.exec` | Run a command in the project: the BuilderOS script for gates and briefings, a test suite | any shell access |
+| `sessions.read` | Read the transcripts or logs of earlier agent sessions in this project | the host's own session history, exported transcripts |
 | `schedule.run` | Run a procedure on a schedule without anyone opening a session: the product review, a watch recheck | host routines or scheduled tasks, a cron job running a headless agent |
 
 `files.read` and `files.write` are the only capabilities BuilderOS assumes are always present. Everything in `.builderos/` depends on them. Every other capability is optional and every skill states what it does without one.
@@ -52,6 +54,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `db.query` | live query | exports or reports in docs | schema read from migrations | ask the user |
 | `docs.search` | connected knowledge base | local vault or repo docs | — | ask the user |
 | `tickets.read` | connected tracker | exported tickets in repo | — | ask the user |
+| `tickets.write` | connected tracker, files in `.builderos/` stay the record and each ticket file carries its link | — | — | the files in `.builderos/` are the tracker |
 | `meetings.read` | connected transcripts | transcript files the user provides, saved with `bos.mjs evidence add` | — | ask the user |
 | `research.search` | connected library | local notes | `web.search` | skip, note the gap |
 | `web.search` | live search | — | — | skip, note the gap |
@@ -60,6 +63,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
+| `sessions.read` | the host's session history | a transcript the user exports | — | work from the current conversation and say which sessions were not read |
 | `schedule.run` | a scheduled run of the product review | — | — | the briefing flags the review as due when someone next opens a session |
 
 The floor is always the same: state what could not be retrieved, ask for it, and tag whatever the user provides. The floor is never a plausible-sounding number.

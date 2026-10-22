@@ -97,23 +97,26 @@ description: "Does [what, in a sentence]. Use when [the requests and situations 
 ---
 ```
 
-The description says what the skill does and when to use it, in the third person, in the words a user would type, under 500 characters. It is how a host decides to load the skill, and every description is in context in every session, so it carries no procedure. A description change is measured with the eval suite (`evals/`, `claude plugin eval`), never judged by eye.
+The description says what the skill does and when to use it, in the third person, in the words a user would type, at most 250 characters. It is how a host decides to load the skill, and every description is in context in every session, so it carries no procedure. A description change is measured with the eval suite (`evals/`, `claude plugin eval`), never judged by eye.
 
 ## Skill Contract
 
 Every skill that drives work (as opposed to pure reference) MUST:
 
 1. State when to use it, in triggering-condition form
-2. Hold its method and procedure, with standalone and lifecycle requirements distinguished where relevant
-3. List its capability requirements and the floor for each
-4. Define its output contract and its completion marker
-5. Include concrete common mistakes where useful; read supporting skills and references conditionally rather than loading every background resource
+2. Say in one **Mode** line how standalone and lifecycle use differ, pointing at `references/operating-modes.md` for the rest
+3. Hold its method in `## Procedure`: numbered steps, each ending on **Done when** and a checkable condition
+4. List its capability requirements and the floor for each
+5. Define its output contract and its completion marker
+6. Write guidance as the behavior wanted; contrasts go in a **Watch for** table (Do / Instead of). Disclose reference the steps do not all need into `references/`, reached by a pointer
+
+`tests/scripts/skill-writing.test.mjs` checks all of it, plus the line and word ceilings, the prohibition count and every relative link. The standard comes from Pocock's writing-for-agents: context pointers, completion criteria, leading words, positive phrasing, no-ops cut.
 
 ## Testing
 
 Three layers, cheapest first:
 
-1. **Script tests** (`pnpm test`, which runs every `tests/scripts/*.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration, and the host adapters (manifest versions agree, every command small enough for Codex to import). Run them on every change to `scripts/`, `gate-checks`, the state schema, `commands/` or a manifest.
+1. **Script tests** (`pnpm test`, which runs every `tests/scripts/*.test.mjs`). Deterministic: every gate condition the script decides, the briefing, roadmap regeneration, migration, and the host adapters (manifest versions agree, every command small enough for Codex to import), and the writing standard of every skill. Run them on every change to `scripts/`, `skills/`, the state schema, `commands/` or a manifest.
 2. **Behavioral scenarios** (`tests/scenarios/`). A real host runs a prompt on a copy of a fixture project, and the runner checks what it did to the files: state written, gate refused, nothing past phase 1 on a spike. This is the pressure-scenario method (run without the skill, load it, plug the rationalizations) made repeatable. Every failure found in a live run becomes a case.
 3. **Triggering prompts** (`tests/skill-triggering/`). Which skill a message loads; checked by hand, per its README.
 
