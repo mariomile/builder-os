@@ -1,6 +1,6 @@
 ---
 name: spec-writing
-description: "Use when a chosen bet needs a buildable specification — scope boundaries, testable acceptance criteria, enumerated states and edge cases, and the tracking plan that will measure whether it worked"
+description: "Writes specs and PRDs a team can build from: scope and out of scope, impact on what exists, numbered testable acceptance criteria, states and edge cases, the quality bar, the tracking plan, and a real-user session before the build. Use when someone asks for a PRD, a spec or acceptance criteria, or when a chosen bet needs a buildable specification."
 ---
 
 # Spec Writing
@@ -21,6 +21,7 @@ Read the relevant section of [spec methods](references/spec-methods.md) for the 
 | `analytics.events` | Which of the planned events already exist | Read the instrumentation from source; where there is no source, design from scratch and note it |
 | `docs.search` | Prior specs, design decisions, constraints already agreed | Ask |
 | `tickets.read` | Bugs and requests that bound the scope | Skip |
+| `ui.render` | The clickable version a real user walks (step 4d) | Self-contained HTML the user opens and shares |
 | `files.read` / `files.write` | Previous artifacts, this artifact, state | Required |
 
 **Phase 4 needs no data capability.** Missing `repo.read` makes effort estimates softer and the "what exists today" section thinner; it does not block the phase.
@@ -49,9 +50,13 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 4c. **Decide the stack with the user.** Run `stack-decisions`: inherited layers read from the repository, every open layer the work needs put to the user as a decision card in rounds, ADRs for the hard-to-reverse ones, `TECH.md` → Stack updated, and the `## Stack` section of the spec written (gate 4.8). Then return to `design-direction` for the kit. These steps ask the user; where this phase runs delegated, the delegate returns the round and the main conversation asks it.
 
+4d. **Put it in front of a real user** (product track, gate 4.13). Before the build, one session with a person from the ICP walking the clickable version from 4b: does the problem land, does the concept make sense, where do they stick on the primary action. Write the recruiting message, the script (problem first, then the prototype, then silence while they try) and the note template; the user runs the session and pastes the notes, saved with `scripts/bos.mjs evidence add --class interview --id P{n}`. Record what they did and what changed under `## Real users`, tagged. When nobody from the ICP can be reached this week, say what the build is betting on without it and offer an override with that reason; never write a session that did not happen.
+
 5. **Write acceptance criteria.** One per requirement, numbered, because phase 5 maps tests to them by number. Gate 4.1: each is a testable assertion with a subject that exists in the product, a verb with an observable outcome, and a condition under which it is checked. Adjective test: strike every adjective; if nothing verifiable remains, it was not a criterion.
 
 6. **Enumerate states and edge cases.** Six states per flow: empty, loading, partial, error, success, permission; gate 4.3 requires empty and error for every flow. Then the four edge-case categories: zero/one/many/too many, concurrency, interrupted, hostile or malformed input. Every case gets an expected behavior; "undefined" only when written down as a deliberate choice.
+
+6b. **Write the quality bar** (gate 4.12). Three areas no automatic check decides, each as numbered criteria or "not applicable" with why: **permissions** (who sees and does what; what someone outside the role gets), **personal data** (what is stored, who reads it, retention, deletion), **performance** (a budget on the primary action, and how it is measured). Accessibility, end-to-end, dependencies and secrets are not criteria: phase 5 puts them in the guardrail as checks (gate 5.10).
 
 7. **Design the tracking plan, before the build.** Gate 4.4: work backwards from the phase 2 metric to the events and properties that compute it. Check each against the existing catalogue via `tracking-standards`, mark it new or existing, and state how the events produce the number.
 
@@ -61,7 +66,7 @@ Run in order. Delegate where the host allows it, run inline where it does not.
 
 8. **Write and gate.** Write `.builderos/initiatives/{initiative}/04-spec.md`, confirm `DESIGN.md` exists, run gate 4. Write `## What we chose` in plain words: the product's main objects and the rules that will surprise someone, then per stack layer and for the visual direction and kit, what was chosen, why, the alternative set aside, what it costs, and what would make us change it; one line each, readable by someone who was not in the rounds (gate 4.8 checks the section exists). On a pass, present that summary first, then the spec, and ask for acceptance (a technical reviewer joins for a high-risk change); record it with the person's answer (`scripts/bos.mjs record 4 --judged "{judge-id}=pass|fail,..." --accepted-by "who"` where commands run), which advances to phase 5. Never accept on their behalf.
 
-Completion marker: `## SPEC COMPLETE` with the scope boundaries, the conflicts, the domain rules, the stack and visual direction with who chose them, the numbered acceptance criteria, the state coverage, the tracking plan, the gate result and who accepted.
+Completion marker: `## SPEC COMPLETE` with the scope boundaries, the conflicts, the domain rules, the stack and visual direction with who chose them, the numbered acceptance criteria, the quality bar, the real-user session (product track), the state coverage, the tracking plan, the gate result and who accepted.
 
 ## Output Contract
 

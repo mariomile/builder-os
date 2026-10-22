@@ -22,10 +22,10 @@ Use existing specialists against recorded commitments.
 
 | Question | Agent / portable skill |
 |----------|-------|
-| Did the metric move, and what does the tree look like now | `builder-os:product-diagnostician` / saas-metrics-reference |
-| Did activation or retention change | `builder-os:growth-architect` / growth-frameworks |
-| Did revenue or unit economics change | `builder-os:finance-analyst` / financial-models |
-| Did this move the key results it was tied to | `builder-os:okr-architect` / okr-frameworks |
+| Did the metric move, and what does the tree look like now | `builder-os:product-diagnostician` / product-analysis (metrics) |
+| Did activation or retention change | `builder-os:product-diagnostician` / product-analysis (growth) |
+| Did revenue or unit economics change | `builder-os:product-diagnostician` / product-analysis (finance) |
+| Did this move the key results it was tied to | `builder-os:product-diagnostician` / product-analysis (OKRs) |
 
 Pass baseline, target, kill criteria and measurement window; await all analyses before continuing.
 

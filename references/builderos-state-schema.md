@@ -9,7 +9,9 @@ PRODUCT.md                what the product is: problem, ICP, non-goals, constrai
 DOMAIN.md                 the product's things and their rules: entities, states, invariants, settled business rules
 TECH.md                   how it is built: stack, design system, verify commands, technical constraints, conventions, known traps
 AGENTS.md                 the project's own agent instructions; /bos-init adds the pointer below
+CLAUDE.md                 the same pointer, for every Claude Code surface (cloud project threads load only this)
 .builderos/
+  bin/bos.mjs             a copy of the BuilderOS script (`bos.mjs vendor`), for sessions without the plugin
   local.json              this checkout's active initiative; gitignored, never shared
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
   decisions/
@@ -134,15 +136,17 @@ The model adds what needs judgment while it works, per `using-builder-os` (Watch
 
 Where commands can be executed, `node scripts/bos.mjs brief` (in the plugin) computes all of them from the files and prints the briefing; the model only relays it. Where they cannot, the model reads the same files and applies the same rules.
 
-Hosts with a session-start hook get this from `using-builder-os`. Every other host gets it from the pointer `/bos-init` writes into the project's own `AGENTS.md`:
+Hosts with a session-start hook get this from the plugin's hook. Every other session, including a cloud session or a teammate's checkout without the plugin, gets it from the block `/bos-init` writes into the project's own `AGENTS.md` and `CLAUDE.md`:
 
 ```markdown
 ## BuilderOS
 
-This project is run with BuilderOS. Before any product or planning work, read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`, then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`.
+This project is run with BuilderOS. Before any product or planning work, run `node .builderos/bin/bos.mjs brief` from the project root (or read `.builderos/ROADMAP.md`, each `.builderos/initiatives/*/state.json`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`), then brief the user in at most five lines on where things stand, plus one line if an outcome review is overdue or `TECH.md` is stale. Decisions live in `.builderos/decisions/`; each initiative's reasoning lives in `.builderos/initiatives/`.
+
+If the BuilderOS skills are not loaded in this session, say so in one line and keep these rules: state and gate results are written only by `node .builderos/bin/bos.mjs` (never `state.json` by hand); no number without a source tag backed by a file in `evidence/`; no code before the build plan is accepted by a person; new scope after that is a change of its own.
 ```
 
-If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same block goes there too.
+`CLAUDE.md` gets the block even when it has to be created, because it is the one project file every Claude Code surface loads, project threads in the cloud included; `AGENTS.md` carries it for the other hosts. The script copy at `.builderos/bin/bos.mjs` comes from `bos.mjs vendor` (only Node built-ins, one file); the briefing says when it differs from the installed plugin's.
 
 ## ROADMAP.md
 
@@ -201,6 +205,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 
 **Known failing:** {tests already red before BuilderOS, by name, with the date; "none"}
 **Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one; "declined by {person} ({why}), {date}" when the CI belongs to someone else who said no}
+**Quality checks:** {the automatic checks in the guardrail: accessibility (an axe-style scan on every route), end-to-end on the primary flow, dependency audit, secret scan; each named with its command or "n/a, {why}"; "declined by {person} ({why}), {date}" as for the guardrail}
 
 ## Technical constraints
 {Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
@@ -212,7 +217,7 @@ If the project has a `CLAUDE.md` that does not import `AGENTS.md`, the same bloc
 {What has bitten before, with the initiative or commit where it happened.}
 ```
 
-Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail when there is none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail and the Quality checks when there are none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
 
 ## DOMAIN.md
 

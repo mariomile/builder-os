@@ -1,6 +1,6 @@
 ---
 name: outcome-review
-description: "Use when a shipped change needs judging against the target and the kill criteria it was committed to, when deciding keep, iterate or kill, or when writing the decision record that outlives the feature"
+description: "Judges a shipped change against its target and kill criteria, decides keep, iterate or kill, writes the decision record and the cleanup. Use when an outcome review is due, when someone asks whether a release worked, or when a feature's future has to be decided."
 ---
 
 # Outcome Review

@@ -12,8 +12,10 @@ Read when running gate 5. E.1 and the procedure in `SKILL.md` apply too. **Accep
 | 5.6 | The plan was accepted before the build, and could be understood | `## Plan` has `**In plain words:**` and `**Accepted:**` with who and an actual ISO timestamp; `## Seams` has at least one row, each with its interface, where tests sit and a plain-words line; the Slices table has a Files column; `## Risks` has at least one row |
 | 5.7 | The build followed the plan | Model confirms acceptance preceded implementation, and the final diff matches the plan or the plan records each deviation with its reason |
 | 5.8 | A guardrail runs Verify | `TECH.md` has `**Guardrail:**` naming the CI job or pre-commit hook that runs Verify on every change, not "none". `**Guardrail:** declined by {person} ({why}), {date}` is a warning, not a pass: on a repository whose CI belongs to someone else, adding it is their decision |
+| 5.9 | The built interface was looked at | `05-build-plan.md` → `## Interface review` table (State / Screenshot or route / Matches the chosen direction): rows for at least the empty and error states of the primary flow, each with a screenshot file that exists or a route, each answering yes (a deviation is fixed, or recorded in `DESIGN.md` and then yes). Skipped when the visual direction is not applicable; `**Interface review:** not applicable, {reason}` passes |
+| 5.10 | Quality a machine can check runs every time | `TECH.md` → `**Quality checks:**` names accessibility, end-to-end on the primary flow, dependency audit and secret scan in the guardrail. `declined by {person} ({why})` is a warning, as in 5.8 |
 
-Script-decided: 5.1, 5.3, 5.4, 5.6, 5.8. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Model-judged: 5.7. The emitted `checked_by` split is authoritative.
+Script-decided: 5.1, 5.3, 5.4, 5.6, 5.8, 5.9, 5.10. 5.2 and 5.5 fail deterministic prechecks when execution records/results are missing or failed, then become model-judged for coverage and provenance. Model-judged: 5.7. The emitted `checked_by` split is authoritative.
 
 ## Pre-existing Failures
 

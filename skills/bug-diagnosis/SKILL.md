@@ -1,6 +1,6 @@
 ---
 name: bug-diagnosis
-description: "Use when something is broken, throws, regressed, got slower, fails only sometimes, or a user or monitor reports a problem in production, before anyone proposes a fix"
+description: "Diagnoses a bug before anyone fixes it: a failing loop that reproduces it, captured first, then the cause found by eliminating hypotheses one at a time. Use when something is broken, throws, regressed, got slower, fails only sometimes, or a user or monitor reports a problem in production."
 ---
 
 # Bug Diagnosis

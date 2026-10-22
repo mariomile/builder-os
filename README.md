@@ -234,15 +234,19 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**28 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), and the rest split between the eight phases and the specialists that answer standalone questions. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
+**23 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), three cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`), the rest split between the eight phases and the specialists that answer standalone questions, among them `product-analysis`, one skill for metrics, growth, revenue, strategy, OKRs and competitors. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
 
-**20 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
+**14 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
 **15 commands**, namespaced `/builder-os:bos-*` on Claude Code. Not sure which one? `/builder-os:bos-ask`.
 
 A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEARN require actual exposure evidence: status verified, an actual timestamp, environment, version and an observed result with a resolvable data/document source. Preparation does not authorize deployment.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, roadmap regeneration and migration. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
+**Three hooks on Claude Code.** At session start a short briefing (under 3,000 characters inside a project, two lines outside one); before each file write, a refusal to hand-write `state.json`; with each message, one line naming the active phase and what to check the request against.
+
+**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, evidence import, roadmap regeneration and migration. `bos.mjs vendor` copies it into the project (`.builderos/bin/bos.mjs`) so a session without the plugin still runs the gates.
+
+**An eval suite.** `evals/` runs with `claude plugin eval .`, each case with and without the plugin. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
 ### Project memory
 

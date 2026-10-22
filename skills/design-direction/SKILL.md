@@ -1,6 +1,6 @@
 ---
 name: design-direction
-description: "Use when a product or feature with a user interface needs its look and feel chosen, when the user wants to see several design versions before deciding, or when a design kit or component library has to be picked"
+description: "Lets the user choose the look of a product: several rendered design versions that differ in structure, iterated in rounds, then a design kit and tokens recorded for the build. Use when a product or feature with an interface needs its look and feel decided, when the user wants to see options before choosing, or when a design kit or component library has to be picked."
 ---
 
 # Design Direction

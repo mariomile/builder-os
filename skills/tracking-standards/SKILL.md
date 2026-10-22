@@ -1,6 +1,6 @@
 ---
 name: tracking-standards
-description: "Use when designing event taxonomies, naming conventions, tracking plans, or auditing existing analytics instrumentation"
+description: "Designs and audits product analytics: event taxonomy, naming conventions, properties, tracking plans tied to the metric they compute, and audits of existing instrumentation. Use when designing events or a tracking plan, naming events, or checking what is already tracked."
 ---
 
 # Tracking Standards

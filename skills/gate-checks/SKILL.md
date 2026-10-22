@@ -1,6 +1,6 @@
 ---
 name: gate-checks
-description: "Use when a BuilderOS phase is about to advance, when asked to inspect a lifecycle gate, or when deciding whether a phase artifact is complete enough to hand to the next phase"
+description: "Checks whether a BuilderOS phase may advance: the structural conditions decided by the script, the judgments left to the model, overrides with their reasons, and acceptance by a person. Use when a phase is about to advance, when asked to inspect a gate, or when deciding whether an artifact is ready for the next phase."
 ---
 
 # Gate Checks

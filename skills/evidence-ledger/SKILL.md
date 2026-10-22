@@ -1,6 +1,6 @@
 ---
 name: evidence-ledger
-description: "Use when writing any claim into a BuilderOS phase artifact, when auditing an artifact for unsourced numbers, or when a gate requires counting evidence"
+description: "Keeps every claim traceable: the source-tag grammar, one evidence file per tag, importing material from outside the session, and how gates count sources. Use when writing a claim into a BuilderOS artifact, when saving interview notes, tickets or data the user brings, when auditing an artifact for unsourced numbers, or when a gate counts evidence."
 ---
 
 # Evidence Ledger
@@ -27,6 +27,10 @@ Read [operating modes](../../references/operating-modes.md) first. A standalone 
 A pointer to nothing is an invented source. Every `interview`, `doc` and `data` tag has a file in `evidence/` holding the raw material it cites: notes, the pasted query output with its parameters, the excerpt. Names, format and lookup order: [the state schema](../../references/builderos-state-schema.md), section Evidence Files. Gate condition E.1 checks it on every gate.
 
 Write the evidence file when the source is captured, not when the gate fails: notes written from memory a week later are a `doc` about an interview, not the interview. What the user tells you in the conversation is `[doc:user-{YYYY-MM-DD}-{topic}]`, with their words copied verbatim into the file.
+
+## Evidence From Outside the Session
+
+Most evidence lives somewhere the session cannot reach: interview notes in a notes app, a call transcript, a CSV export, a support inbox, a survey tool. It counts the moment its raw material is in `evidence/`. Ask the user to paste it or give the file path, then save it with `scripts/bos.mjs evidence add --class interview|doc|data --id {id} --where "{where it came from}" [--from {file}]` (the raw material from the file or pasted on stdin; `--shared` for evidence behind `PRODUCT.md`, `DOMAIN.md` or `TECH.md`), which writes the format above and prints the tag to cite. One participant per interview file. A link alone is not evidence: save the excerpt the claim rests on, with the link as **Where**. Where commands cannot run, write the same file by hand. Resolve a connected source first when one answers the question (`tickets.read`, `meetings.read`, `docs.search`); importing is the floor, not a second-class path.
 
 ## Source Hierarchy
 

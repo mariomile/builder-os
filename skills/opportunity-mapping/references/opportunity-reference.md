@@ -33,7 +33,7 @@ Why the structure rules hold: multiple root outcomes mean the strategy is unchos
 
 ## PMF signal bands
 
-| PMF signal score (per `strategy-frameworks`) | Stage | Legitimate opportunity type |
+| PMF signal score (per `product-analysis` (strategy)) | Stage | Legitimate opportunity type |
 |---------------------------------------------|-------|----------------------------|
 | 0–2 | Pre-PMF | Only opportunities that deepen value for the existing narrow segment |
 | 3–4 | Searching | Narrow the segment, or deepen retention. Not acquisition |

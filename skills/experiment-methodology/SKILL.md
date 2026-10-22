@@ -1,6 +1,6 @@
 ---
 name: experiment-methodology
-description: "Use when designing experiments, calculating sample sizes, formulating hypotheses, or interpreting A/B test results"
+description: "Designs and reads experiments: hypotheses, sample sizes and duration, guardrails, and an honest reading of the result. Use when planning an A/B test or a fake door, calculating how many users a test needs, or interpreting a test result."
 ---
 
 # Experiment Methodology

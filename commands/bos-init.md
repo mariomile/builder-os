@@ -37,7 +37,7 @@ The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `Bui
 **Track:** {spike | change | feature | product} — {one-line reason}
 **Starting phase:** {N} — {phase name}{, phases 0–1 covered by PRODUCT.md, if feature}{, phases 0–3 covered by the mandate, if change}
 
-Created: {PRODUCT.md, DOMAIN.md, TECH.md, ROADMAP.md, the AGENTS.md block, on the first run} .builderos/initiatives/{slug}/
+Created: {PRODUCT.md, DOMAIN.md, TECH.md, ROADMAP.md, the AGENTS.md and CLAUDE.md block, .builderos/bin/bos.mjs, on the first run} .builderos/initiatives/{slug}/
 
 {One line on what phase N will do.}
 

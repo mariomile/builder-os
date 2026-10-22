@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-hub_content=$(cat "${PLUGIN_ROOT}/skills/using-builder-os/SKILL.md")
+rules_content=$(cat "${PLUGIN_ROOT}/hooks/session-context.md")
 
 # Quote one path for the Bash shell used by the hook, including apostrophes.
 shell_quote() {
@@ -24,35 +24,44 @@ escape_for_json() {
   printf '%s' "$s"
 }
 
-session_context="You have BuilderOS installed — The Operating System for Product Builders.
-
-**BuilderOS installation root:** ${PLUGIN_ROOT}
-Resolve support paths (skills/, references/, scripts/) from this installation root, never the user's project. Run commands from the user's project so artifacts and state stay there. On Claude Code plugin skills and agents use the builder-os: namespace.
-
-**The using-builder-os skill is already loaded below.** Apply it only within the user's requested scope and existing authorization; load other skills as needed:
-
-${hub_content}"
-
+script_line=""
 if command -v node >/dev/null 2>&1; then
   script_command="node $(shell_quote "${PLUGIN_ROOT}/scripts/bos.mjs")"
-  session_context+="
-
-**BuilderOS script:** \`${script_command}\`. Use this quoted path for scripts/bos.mjs (gate, record, run-check, defer-review, new, cover, brief, pace, watch, roadmap, migrate) from the user's project root."
+  script_line="
+**BuilderOS script:** \`${script_command}\`. Use this quoted path for scripts/bos.mjs (gate, record, run-check, defer-review, new, cover, brief, pace, watch, roadmap, vendor, guard, migrate) from the user's project root."
 fi
 
-if [ -d ".builderos" ] && command -v node >/dev/null 2>&1; then
-  if brief_out=$(node "${PLUGIN_ROOT}/scripts/bos.mjs" brief 2>&1); then
-    session_context+="
+root_line="**BuilderOS installation root:** ${PLUGIN_ROOT}
+Resolve support paths (skills/, references/, scripts/) from this installation root, never the user's project. Run commands from the user's project so artifacts and state stay there. On Claude Code plugin skills and agents use the builder-os: namespace."
 
-**Project memory briefing:**
+# Outside a BuilderOS project the session gets two lines, not the router: the
+# plugin is installed per user and most sessions are not product work.
+if [ ! -d ".builderos" ]; then
+  session_context="BuilderOS is installed: product methods (PRDs and specs, research, metrics and growth analysis, UX and design, stack choices, releases) and a gated lifecycle from an idea to production. For product work, load the BuilderOS skill that fits before answering, or using-builder-os to route; other requests ignore it.
+
+${root_line}${script_line}"
+else
+  # Briefing first: it is the only part that changes per project, and hosts
+  # truncate long context from the end.
+  if command -v node >/dev/null 2>&1; then
+    if brief_out=$(node "${PLUGIN_ROOT}/scripts/bos.mjs" brief 2>&1); then
+      briefing="**Project memory briefing:**
 
 ${brief_out}"
-  else
-    session_context+="
-
-**Project memory briefing unavailable:** ${brief_out}
+    else
+      briefing="**Project memory briefing unavailable:** ${brief_out}
 Inspect the project memory before lifecycle work; do not infer state from a failed briefing."
+    fi
+  else
+    briefing="**Project memory briefing unavailable:** node is not on PATH. Read .builderos/ROADMAP.md and the active initiative's state.json before lifecycle work."
   fi
+  session_context="This project uses BuilderOS — The Operating System for Product Builders.
+
+${briefing}
+
+${rules_content}
+
+${root_line}${script_line}"
 fi
 
 context_json=$(escape_for_json "$session_context")

@@ -1,6 +1,6 @@
 ---
 name: ux-architecture
-description: "Use when a feature needs its information architecture, user flows, state coverage, component inventory or accessibility floor defined before anyone builds it"
+description: "Designs how a feature works before it is built: information architecture, user flows, every state of each step, the component inventory and the accessibility floor. Use when a feature needs its flows, screens or states defined, or when a spec needs DESIGN.md."
 ---
 
 # UX Architecture

@@ -11,7 +11,7 @@ from pathlib import Path
 import duckdb
 
 ROOT = Path(__file__).resolve().parents[2]
-REFERENCE = (ROOT / 'skills/financial-models/references/revenue-sql.md').read_text()
+REFERENCE = (ROOT / 'skills/product-analysis/references/revenue-sql.md').read_text()
 FIXTURES = json.loads((Path(__file__).parent / 'revenue-fixtures.json').read_text())
 
 

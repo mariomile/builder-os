@@ -56,6 +56,13 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 **Results:** {project-relative JSON array of unique {id, pass: boolean} entries covering the dataset}
 {only for model-output specs: dataset/result hashes bound in the run, pass rate, must-pass results, prompt/model versions and rubric}
 
+## Interface review
+| State | Screenshot or route | Matches the chosen direction |
+| empty | {project- or initiative-relative image, or the route to open} | yes / no, {what differs} |
+| error | {} | {} |
+| {other states of the primary flow} | {} | {} |
+{A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. Without an interface: **Interface review:** not applicable, {reason}}
+
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |
 

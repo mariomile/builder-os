@@ -201,7 +201,7 @@ test('gate 5.8: a guardrail declined by its owner is a visible warning, not a pa
   assert.equal(gate(root, 5).by['5.8'], 'fail');
 });
 
-const RELEASE = (outcome = true) => `# Release\n\n## Rollback\n**Mechanism:** revert\n**Owner:** Mario\n**Tested:** 2026-10-01\n\n## Exposure verification\n**Status:** verified\n**Exposed at:** 2026-10-02T10:00:00Z\n**Environment:** production\n**Version:** v1.4.2\n**Verification:** the date column sorts as dates in production \`[doc:ticket-981]\`\n**Authorized by:** Mario, "vai" in the thread\n${outcome ? '\n## Outcome review\n**Owner:** Mario · **Date:** 2026-11-01\n' : ''}`;
+const RELEASE = (outcome = true) => `# Release\n\n## Rollback\n**Mechanism:** revert\n**Owner:** Mario\n**Tested:** 2026-10-01\n\n## Exposure verification\n**Status:** verified\n**Exposed at:** 2026-10-02T10:00:00Z\n**Environment:** production\n**Version:** v1.4.2\n**Verification:** the date column sorts as dates in production \`[doc:ticket-981]\`\n**Authorized by:** Mario, "vai" in the thread\n\n## Production readiness\n**Errors seen by:** error tracker alert to Mario\n**Backup restored:** not applicable, no data changes\n${outcome ? '\n## Outcome review\n**Owner:** Mario · **Date:** 2026-11-01\n' : ''}`;
 
 test('a change with no outcome to measure closes at phase 6; one with a review goes on to phase 7', () => {
   const root = project();

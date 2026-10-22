@@ -1,6 +1,6 @@
 ---
 name: using-builder-os
-description: "Use when a product request needs routing among BuilderOS methods or lifecycle phases, or when the user asks where an active initiative stands or what to do next"
+description: "Entry point to BuilderOS: briefs from the project memory, checks each request against decisions and earlier conditions, and routes to the lifecycle or to the method that answers. Use at the start of product work, when a product request needs routing, or when the user asks where an initiative stands or what to do next."
 ---
 
 # Using BuilderOS
@@ -23,7 +23,9 @@ In a project with BuilderOS memory, check every product request against it befor
 - **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
 - **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work on the same area. Say the measurement comes first, or why it can wait.
 
-The briefing's Attention line covers what the files decide mechanically; these four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
+- **Code before an accepted plan.** The request asks for product code in an initiative whose build plan is not accepted yet ("skip the rest, just write it"). This one is a gate, not a flag: write no code. In one message name what the gate still needs and offer the paths, with a recommendation: finish it (often one short round), run the work as a `change` when the solution is already fixed, or record an override with the person's own reason through the script (`record {phase} --override "reason"`), which stays visible in every briefing, and then build. The person deciding to skip is a reason to log, never a silent pass: code built past an unrecorded gate is how a project ends up with features its own phase 2 said not to build.
+
+The briefing's Attention line covers what the files decide mechanically; the first four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
 
 ## Routes
 
@@ -44,12 +46,7 @@ The briefing's Attention line covers what the files decide mechanically; these f
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
-| Health or metric definition | `saas-metrics-reference`; growth for a related diagnosis |
-| Activation, retention or growth loops | `growth-frameworks` |
-| Revenue or unit economics | `financial-models` |
-| Competitors or positioning | `competitive-intel`; strategy as needed |
-| PMF, North Star or strategic fit | `strategy-frameworks` |
-| OKRs | `okr-frameworks` |
+| Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |
 | Tracking plan or instrumentation audit | `tracking-standards` |
 | Experiment design or result | `experiment-methodology` |
 | Release notes, stakeholder update or other document | `pm-artifacts` |

@@ -22,6 +22,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `web.fetch` | Fetch and read a URL | any fetch tool |
 | `logs.query` | Read production errors, traces and timings | Sentry, Datadog, the hosting provider's logs |
 | `ui.render` | Show the user a rendered interface: a design version, a prototype screen | host previews and artifacts, design tools (Figma, Claude Design, v0), a browser screenshot of a local page |
+| `ui.capture` | Open the built product and capture a state of a screen as an image | a browser the host drives, an end-to-end runner's screenshots, the host's preview |
 | `repo.read` | Read source code, configs, git history | any file and shell access |
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
@@ -50,11 +51,12 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `db.query` | live query | exports or reports in docs | schema read from migrations | ask the user |
 | `docs.search` | connected knowledge base | local vault or repo docs | — | ask the user |
 | `tickets.read` | connected tracker | exported tickets in repo | — | ask the user |
-| `meetings.read` | connected transcripts | transcript files the user provides | — | ask the user |
+| `meetings.read` | connected transcripts | transcript files the user provides, saved with `bos.mjs evidence add` | — | ask the user |
 | `research.search` | connected library | local notes | `web.search` | skip, note the gap |
 | `web.search` | live search | — | — | skip, note the gap |
 | `logs.query` | live query | exported logs or error reports | — | ask the user for the error text, time and account, tag it and save the words in `evidence/` |
 | `ui.render` | host preview or design tool | self-contained HTML files the user opens from disk | — | text wireframes, only for a standalone answer kept in chat |
+| `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
 

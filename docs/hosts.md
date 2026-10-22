@@ -30,6 +30,10 @@ The SessionStart matcher covers startup, resume, fork, clear and compact. Resume
 
 Root `CLAUDE.md` and `AGENTS.md` describe contributing in this checkout. Installing the plugin does **not** load its root `CLAUDE.md` as project instructions. Operational rules therefore live in the loaded skills and commands. Commands dispatch in the foreground, await completion, and re-read the artifact before running its gate. A completion marker alone never advances state.
 
+**Hooks.** Three, in `hooks/hooks.json`. SessionStart injects the briefing first and the rules after it, under 3,000 characters in a project and two lines elsewhere, because Claude Code keeps only a 2,000-character preview of context above 10,000. PreToolUse on `Write|Edit|MultiEdit|NotebookEdit` denies a hand-written `state.json` and names the script command instead; any doubt or error lets the write through. UserPromptSubmit adds one line per message in an active initiative: phase, track, last gate, overrides, and whether code may be written yet. All three need Node; without it they stay silent and the skills are the floor.
+
+**Cloud sessions.** A plugin installed with `/plugin install` on a laptop, or enabled in a repository's `.claude/settings.json`, does not load in a Claude Code cloud session. A plugin enabled on the claude.ai account does, hooks included. For a project worked on in the cloud: enable BuilderOS on the account, and keep the two things that travel with the repository anyway: the Session Start block that init writes into the project's `AGENTS.md` and `CLAUDE.md`, and the project copy of the script (`bos.mjs vendor` writes `.builderos/bin/bos.mjs`; the briefing flags it when it differs from the installed one).
+
 When working on BuilderOS itself, `CLAUDE.md` imports `@AGENTS.md`. This explicit import shares the repository contract; it is not an assumption that Claude Code reads `AGENTS.md` automatically.
 
 ## Codex plugin
@@ -39,7 +43,7 @@ codex plugin marketplace add mariomile/builder-os
 codex plugin add builder-os@builder-os
 ```
 
-Keep the supported `.codex-plugin/plugin.json` manifest. Historical loader verification on Codex CLI 0.157.1 showed the complete plugin installed, all 24 skills discovered as `builder-os:{skill}`, commands imported as `builder-os:source-command-{command}`, and the SessionStart hook discovered. That was a stand-in model run, not evidence that a real model executes the lifecycle correctly. A local marketplace clones committed files; uncommitted fixes require a separate local loading check before publication.
+Keep the supported `.codex-plugin/plugin.json` manifest. Historical loader verification on Codex CLI 0.157.1 showed the complete plugin installed, all 24 skills of that version discovered as `builder-os:{skill}`, commands imported as `builder-os:source-command-{command}`, and the SessionStart hook discovered. That was a stand-in model run, not evidence that a real model executes the lifecycle correctly. A local marketplace clones committed files; uncommitted fixes require a separate local loading check before publication.
 
 For that tested CLI, command files above 3875 bytes were silently dropped. Deterministic tests keep them below 3800 bytes. Omitting `hooks` from the Codex manifest preserves automatic hook discovery; an empty object disabled it in that loader. Hook approval is a host setting: if the hook is unavailable or untrusted, invoke `using-builder-os` and resolve resources from the installed skill's real path.
 

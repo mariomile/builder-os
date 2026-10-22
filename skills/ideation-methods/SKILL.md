@@ -1,6 +1,6 @@
 ---
 name: ideation-methods
-description: "Use when a chosen opportunity needs solution options, when a team has one idea and needs alternatives, or when a bet needs kill criteria and the cheapest test of its riskiest assumption"
+description: "Generates and narrows solutions: many raw ideas, then distinct options compared on impact, confidence and effort, a bet the user picks, its kill criteria and the cheapest test of its riskiest assumption. Use when a chosen problem needs solution options, when a team has one idea and needs alternatives, or when a bet needs kill criteria."
 ---
 
 # Ideation Methods

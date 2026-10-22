@@ -1,6 +1,6 @@
 ---
 name: release-ops
-description: "Use when built work is about to reach users — choosing a rollout strategy, designing the rollback, capturing the baseline before exposure, and writing release notes for the people who will read them"
+description: "Takes built work to users safely: rollout strategy, a tested rollback, the baseline before exposure, production readiness, release notes for the people affected, exposure verified and the first real use recorded. Use when a release is being planned or executed, or when a rollback or baseline is missing."
 ---
 
 # Release Ops
@@ -17,6 +17,7 @@ Read [operating modes](../../references/operating-modes.md) first. Load `pm-arti
 | `analytics.events` | Production events arriving before exposure | The production emission path in code, tagged as weaker evidence |
 | `db.query` | Baselines in the application database | Same floor: ask |
 | `repo.read` | Flag system, migration, deploy configuration | Ask how the release mechanism works; a rollback you cannot describe is not documented |
+| `logs.query` | Where production errors surface (step 9c) | Ask how errors reach the team today; "nobody sees them" is the finding |
 | `docs.write` | Publishing release notes where users read them | Deliver to the requested destination within existing authorization; report unresolved access |
 | `files.read` / `files.write` | Artifacts, state | Required |
 
@@ -50,11 +51,15 @@ Run in order; delegate where the host allows, inline where it does not.
 
 **9b. Promote what the initiative settled** (gate 6.9). Entities, states, invariants and the business rules decided in `DESIGN.md` → Domain model go into the project's `DOMAIN.md`, each marked with this initiative; a visual direction chosen here goes into `TECH.md` → Design system (kit, where the tokens live in the code, composition rules). Record it under `## Promoted`. The next initiative reads those files instead of this folder.
 
+**9c. Get ready for the first incident** (gate 6.10). `**Errors seen by:**` how an error reaches the team before a user reports it (an error tracker with an alert, the log query someone watches); `**Backup restored:**` a restore of the stored data tested once, with the date, or "not applicable" with why. Under `## Production readiness`.
+
 **10. Prepare and report readiness.** Write `.builderos/initiatives/{initiative}/06-release.md` per [the release template](references/release-template.md), headings, bold labels and tables exact. A completed plan is `## RELEASE READY` and remains at phase 6. Do not record a successful ship gate from a future rollout date.
 
 **11. Execute within authorization and verify exposure.** The agent prepares; a person authorizes crossing into user exposure, and planning a release never authorizes the deploy. Record `**Authorized by:**` in Exposure verification with who and how (the message, the ticket, the approval) (gate 6.8). If deployment is authorized, perform the rollout, observe the exposed version in the intended environment and capture a resolving data or document source. Otherwise report the concrete readiness result and the remaining authorization or access. Record an actual, non-future timestamp, environment, version and verification. Installed-app behavior requires observing the installed app; publication alone proves publication. A release rule that must hold every time (no production deploy without approval) goes in `TECH.md` → Technical constraints with its deterministic check (host hook or protected CI step) when one exists.
 
 A problem found during rollout or after exposure runs `bug-diagnosis` before any fix, and the rollback in step 3 is the first answer when users are affected.
+
+**11b. Wait for the first real use** (product track, gate 6.11). Online is not in use. Record under `## First real use` the first person outside the team who did the primary action, with its `data` or `doc` tag. Until then the initiative stays at phase 6: tell the user who to invite and what to watch, and come back when it happens.
 
 **12. Gate the verified release.** Run gate 6, including 6.6 exposure structure, 6.7 evidence-to-exposure judgment and 6.8 authorization, then record with the outcome date and the person who authorized (`scripts/bos.mjs record 6 --review-due YYYY-MM-DD --accepted-by "who"` and required judgments). Only a successful verified release advances to phase 7. Update project context and roadmap within the selected initiative.
 
