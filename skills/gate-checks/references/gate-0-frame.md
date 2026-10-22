@@ -1,6 +1,6 @@
 # Gate 0 — Frame
 
-Read when running gate 0. E.1 and the procedure in `SKILL.md` apply too. **Acceptance:** whoever owns the problem, recorded with `record 0 --accepted-by "who"` (`SKILL.md`, Acceptance).
+Read when running gate 0. E.1, E.2 and the procedure in `SKILL.md` apply too. **Acceptance:** whoever owns the problem, recorded with `record 0 --accepted-by "who"` (`SKILL.md`, Acceptance).
 
 | # | Condition | Check |
 |---|-----------|-------|

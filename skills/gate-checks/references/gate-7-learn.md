@@ -1,6 +1,6 @@
 # Gate 7 — Learn
 
-Read when running gate 7. E.1 and the procedure in `SKILL.md` apply too. Read the override log (`SKILL.md`, Override Protocol) when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
+Read when running gate 7. E.1, E.2 and the procedure in `SKILL.md` apply too. Read the override log (`SKILL.md`, Override Protocol) when judging the outcome: a bet that failed after three overridden gates learned something different from one that failed clean.
 
 | # | Condition | Check |
 |---|-----------|-------|

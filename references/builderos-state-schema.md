@@ -140,7 +140,11 @@ The files above only help if a new session reads them. Every session, on any hos
    - `AGENTS.md`, `CLAUDE.md` or `TECH.md` → Map names a path that no longer exists;
    - `DOMAIN.md` was last changed before the latest commit touching a migration, a schema or a models folder;
    - `AGENTS.md` is longer than 150 lines: it loads into every session, so it holds pointers and must-hold rules (`agents-md`);
-   - the product review is due: none in `.builderos/reviews/` yet, or the latest is older than 7 days before PMF (`idea`, `pre-PMF`) or 31 days after it.
+   - the product review is due: none in `.builderos/reviews/` yet, or the latest is older than 7 days before PMF (`idea`, `pre-PMF`) or 31 days after it;
+   - a passed gate never checked a condition now in force, and its artifact does not meet it yet: debt from a later release, listed per initiative (`gate-checks`, Debt After a Release);
+   - a claim on an open initiative is older than 14 days.
+
+When the active initiative has a round asked and not answered, the Next line says so: draft ahead on the recommended options, marked provisional (`pressure-testing`, Working Ahead). A claim shows on the initiative's line.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
 
@@ -232,6 +236,7 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 **SLO:** {after PMF: one or two promises on the primary flow (availability, response time) and the alert when the error budget burns}
 **Incident response:** {after PMF: who is alerted and how, how users are told, and the postmortem that becomes an initiative}
 **Cost per active user:** {after PMF: infrastructure plus model cost per active user per month, with the budget alert}
+**Model degradation:** {after PMF, with model output: the must-pass cases run on sampled production turns, how often, and the pass rate that alerts; omit otherwise}
 
 ## Technical constraints
 {Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
@@ -318,7 +323,9 @@ A phase that passed through an overridden gate:
   "gate": {
     "passed": true,
     "checked_at": "2026-09-13T11:00:00Z",
-    "checked_by": { "script": ["0.1", "0.2"], "model": ["0.3", "0.4"] },
+    "bos_version": "3.0.0",
+    "checked_by": { "script": ["E.1", "E.2", "0.1", "0.2", "0.5"], "model": ["0.3", "0.4"] },
+    "skipped": [],
     "failed_conditions": ["0.4"],
     "overridden": true,
     "override_reason": "No dated external change found; problem judged durable, revisit after interviews",
@@ -326,6 +333,12 @@ A phase that passed through an overridden gate:
     "accepted_at": "2026-09-13T11:00:00Z"
   }
 }
+```
+
+An initiative someone is working on carries its claim at the top level, `null` once released:
+
+```json
+"claim": { "by": "Mario", "at": "2026-10-22T16:20:00Z" }
 ```
 
 A closed initiative that ended with KEEP carries its watch at the top level:
@@ -351,13 +364,15 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 | `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
+| `gate.bos_version`, `gate.skipped` | version, condition ids | The BuilderOS release whose script recorded the gate, and the conditions it skipped as not applicable. Together with `checked_by` they tell a later release which of its conditions this record never saw. Absent on records written before gates carried them; the briefing then treats every condition missing from `checked_by` as unseen |
+| `claim` | `{ by, at }`, `null` or absent | Who is working on the initiative, from `bos.mjs claim --by`. One owner at a time: a second claim is refused unless taken over with `--take --reason`. Commit it so other sessions and checkouts see it |
 | `gate.accepted_by`, `gate.accepted_at` | name, ISO timestamp | The person who accepted the artifact, from their own words, and when. Required to pass phases 0, 4 and 6; see `gate-checks`, Acceptance. Absent on a failed gate |
 | `watch` | `{ metric, bands, owner, recheck }` or absent | Set when phase 7 closes with KEEP (gate 7.5). The briefing raises it once `recheck` has passed. `bos.mjs watch` rolls `recheck` after a check without breach (`watch_checked`) or sets it to `null` when a breach became a new initiative (`watch_breached`) |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. Ownership events: `claimed`, `claim_released`, `claim_taken` (with `from` and the reason). Round events: `round_asked` (phase, number of questions), `round_answered` (phase, the answer as given, who gave it, `waited_hours` since the round was asked). No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase and time waiting on rounds |
 
 ## Rules
 
-0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage or mandate check, `bos.mjs upgrade` moves an initiative to a heavier track, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, the acceptance at phases 0, 4 and 6, a phase 6 review date, a closing watch, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, `bos.mjs watch` rolls or clears a KEEP watch, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
+0. **Write state through the script where commands run.** `bos.mjs new` creates an initiative, `bos.mjs cover` records the coverage or mandate check, `bos.mjs upgrade` moves an initiative to a heavier track, `bos.mjs record {N}` records a gate result (and a phase 1 verdict, the acceptance at phases 0, 4 and 6, a phase 6 review date, a closing watch, a close), `bos.mjs run-check` records only an explicitly authorized command, `bos.mjs defer-review` moves only the review date while holding phase 7, `bos.mjs watch` rolls or clears a KEEP watch, `bos.mjs claim` sets or releases the owner, `bos.mjs round` records a round asked and its answer, `bos.mjs doctor` reports the install, the memory and the debt without writing, and the briefing flags any state file that does not follow this schema. By hand, follow the example above field for field; do not add fields.
 
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.

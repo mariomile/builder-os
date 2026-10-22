@@ -21,7 +21,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `research.search` | Search saved reading and highlights | Readwise, Raindrop, Pocket |
 | `web.search` | Search the open web | any web search tool |
 | `web.fetch` | Fetch and read a URL | any fetch tool |
-| `logs.query` | Read production errors, traces and timings | Sentry, Datadog, the hosting provider's logs |
+| `logs.query` | Read production errors, traces and timings, including a model's turns with their tool calls, latency and cost | Sentry, Datadog, the hosting provider's logs, an LLM tracing tool (Langfuse, LangSmith, …) |
 | `ui.render` | Show the user a rendered interface: a design version, a prototype screen | host previews and artifacts, design tools (Figma, Claude Design, v0), a browser screenshot of a local page |
 | `ui.capture` | Open the built product and capture a state of a screen as an image | a browser the host drives, an end-to-end runner's screenshots, the host's preview |
 | `repo.read` | Read source code, configs, git history | any file and shell access |

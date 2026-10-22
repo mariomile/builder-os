@@ -1,6 +1,6 @@
 # Gate 2 — Define
 
-Read when running gate 2. E.1 and the procedure in `SKILL.md` apply too. On the feature track, `PRODUCT.md` tags count as phase 1 evidence tags for 2.1.
+Read when running gate 2. E.1, E.2 and the procedure in `SKILL.md` apply too. On the feature track, `PRODUCT.md` tags count as phase 1 evidence tags for 2.1.
 
 | # | Condition | Check |
 |---|-----------|-------|

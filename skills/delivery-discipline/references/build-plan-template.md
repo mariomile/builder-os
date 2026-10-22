@@ -58,11 +58,25 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 {only for model-output specs: dataset/result hashes bound in the run, pass rate, must-pass results, prompt/model versions and rubric}
 
 ## Interface review
+**Widths:** {the widest and the narrowest the ICP uses, in pixels: 1280 and 390}
 | State | Screenshot or route | Matches the chosen direction |
-| empty | {project- or initiative-relative image, or the route to open} | yes / no, {what differs} |
+| empty | {images at both widths, project- or initiative-relative, or the route to open} | yes / no, {what differs} |
+| loading | {} | {} |
+| partial | {} | {} |
 | error | {} | {} |
-| {other states of the primary flow} | {} | {} |
-{A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. Without an interface: **Interface review:** not applicable, {reason}}
+| success | {} | {} |
+| permission | {or "not applicable, {why}" when the flow has no such state} | {} |
+{A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. The change track reviews empty and error at one width. Without an interface: **Interface review:** not applicable, {reason}}
+
+## Craft critique
+**Run by:** {a separate agent given only DESIGN.md, the voice adjectives and the captures; or a person who did not build it}
+| Aspect | Finding | What happened |
+| Hierarchy | {what draws the eye first, and whether it should; or "none found"} | {fixed, or recorded in DESIGN.md} |
+| Spacing rhythm | {} | {} |
+| Typography | {} | {} |
+| Copy against the voice | {} | {} |
+| Focus states | {} | {} |
+| Motion and reduced motion | {} | {} |
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |

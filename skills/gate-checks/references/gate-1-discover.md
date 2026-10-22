@@ -1,6 +1,6 @@
 # Gate 1 — Discover
 
-Read when running gate 1. E.1 and the procedure in `SKILL.md` apply too. On the spike track, also read Spike Stop below.
+Read when running gate 1. E.1, E.2 and the procedure in `SKILL.md` apply too. On the spike track, also read Spike Stop below.
 
 | # | Condition | Check |
 |---|-----------|-------|

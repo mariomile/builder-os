@@ -56,6 +56,14 @@ Each answered round reshapes the tree: settled decisions push the frontier outwa
 
 **Facts are yours, decisions are theirs.** Before a question reaches the person, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Look it up without blocking the round: delegate the lookup where the host supports it, and while it runs ask the rest of the frontier; only the questions downstream of that fact wait. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Carry forward explicit decisions and authorization, and make routine reversible choices within delegated scope, stating important assumptions (operating modes, Questions). Ask only when a material preference remains unresolved or the choice exceeds authorization.
 
+## Working Ahead
+
+A round that waits on the person should not stop the work. While it waits, draft what hangs on each question as if its recommended option were chosen, in the artifact where it will live, each block opened with `**Provisional:** drafted on the recommendation of round {n}, Q{k}; not chosen yet`. Keep it apart from the decision: the `**Chosen by:**` line stays empty, nothing provisional goes into `decisions/`, and nothing irreversible runs on it (no exposure, no migration, no message sent outside the project). Work only on the recommended option, and only on branches whose upstream questions are answered.
+
+When the answer arrives: a confirmed block loses its marker and the decision gets its `**Chosen by:**`; a block whose question went another way is deleted and redrafted on the chosen option, before anything else builds on it. Gate E.2 fails while any marker is left, so provisional work cannot pass as decided.
+
+Where commands run, record the round when it reaches the person (`scripts/bos.mjs round --asked {questions}`) and the answer as given (`round --answered "1B, 2A" --by "{person}"`): the briefing then says a round is waiting, and `pace` shows how long the work waited on decisions.
+
 ## Tone and Question Banks
 
 Direct, aimed at the reasoning, warm toward the person. Ask plainly; a softened question lets the premise survive. Follow the answer, not the script: load [phase question banks](references/question-banks.md) only when a deeper review needs examples, as a starting point, and follow whichever branch is load-bearing in this case.
@@ -83,3 +91,4 @@ Only unresolved branches named by the applicable gate block that gate. A mandato
 | Offer ways to close a factual gap and recommend one | Guessed values as options |
 | Resolve the capability first; ask when the ladder is exhausted | Asking the person for a fact the session could retrieve |
 | Attack the load-bearing assumption, plainly | Peripheral details, softened questions |
+| Draft ahead on the recommendation, marked provisional, while a round waits | Idling until the person answers, or writing the recommendation in as decided |

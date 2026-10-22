@@ -13,11 +13,12 @@ Read `evidence-ledger` when tag counting or source provenance needs clarifying, 
 
 Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, or [M Mandate](references/mandate-check.md) on the change track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
 
-E.1 runs on every gate, including the coverage check (against `PRODUCT.md` and `00-request.md`) and the mandate check. A tag without its file is an untagged claim wearing a tag.
+E.1 and E.2 run on every gate, including the coverage check (against `PRODUCT.md` and `00-request.md`) and the mandate check. A tag without its file is an untagged claim wearing a tag; a provisional block is a recommendation wearing a decision.
 
 | # | Condition | Check |
 |---|-----------|-------|
 | E.1 | Every source tag points at something | Each `interview`, `doc` and `data` tag in the artifact has its file in `evidence/` per the schema, Evidence Files; each `code` tag names a file that exists |
+| E.2 | No provisional work is left | No `**Provisional:**` marker outside code fences, in the artifact or (phase 4) `DESIGN.md`: work drafted ahead while a round waited is kept with its marker removed when the person's answer confirmed it, deleted otherwise (`pressure-testing`, Working Ahead) |
 
 ## Who Checks
 
@@ -26,9 +27,13 @@ A gate checked by the model that wrote the artifact is a gate checked on trust, 
 - **Script-decided** conditions are structure and arithmetic: a word list, a tag count, an enum, a date comparison, a table with no empty cell. Where commands run, `node scripts/bos.mjs gate {N}` decides them and prints one line per condition. Relay that result as decided; the model judges the `judge` lines alone.
 - **Model-judged** conditions need meaning: whether an assumption is falsifiable, whether two options are mechanically distinct. The script lists them as `judge`, with whatever structural precheck it could run, and the model decides them.
 
-Where commands cannot run, the model checks every condition and records all of them under `model`: same conditions, weaker provenance, and the record says so. E.1 is script-decided; each conditions file states its own split, and the emitted `checked_by` split is authoritative.
+Where commands cannot run, the model checks every condition and records all of them under `model`: same conditions, weaker provenance, and the record says so. E.1 and E.2 are script-decided; each conditions file states its own split, and the emitted `checked_by` split is authoritative.
 
-**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phases 1, 6 and 7 take phase-specific flags (verdict, review date, re-entry), stated in their conditions files. Verdict/enum contradictions cannot be overridden.
+**Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phases 1, 6 and 7 take phase-specific flags (verdict, review date, re-entry), stated in their conditions files. The record also stores the script's version and the skipped conditions, so a later release can tell "not applicable then" from "not there yet". Verdict/enum contradictions cannot be overridden.
+
+## Debt After a Release
+
+Each record carries the BuilderOS version that wrote it (`gate.bos_version`) and the conditions it skipped as not applicable. A release that adds conditions leaves earlier passed gates passed: the briefing lists, per initiative, the conditions in force now that the record did not check and the artifact does not meet yet, and `bos.mjs doctor` lists them per phase with their detail. That list is debt. Meet it when the work next touches that phase (a new cycle, a change to the artifact), or name it at phase 7 when it bears on the outcome. The phase stays passed.
 
 ## Acceptance
 

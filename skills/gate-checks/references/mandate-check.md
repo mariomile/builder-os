@@ -1,6 +1,6 @@
 # Mandate Check (change track)
 
-Read when initializing work classified as `change`. E.1 applies too, against `00-request.md`.
+Read when initializing work classified as `change`. E.1 and E.2 apply too, against `00-request.md`.
 
 Runs once, at initialization, when the work is classified as `change`: a modification to a product that already exists whose reason and solution were decided before BuilderOS saw it. A bug with an obvious correct behavior, debt the team agreed to pay, a rule the product must now follow, a contract that promised a specific capability, a removal already decided. It stands in for gates 0 to 3: the mandate replaces the problem frame, the discovery, the outcome metric and the bet, because nobody has a choice to make there. It does not replace anything after: the spec, the build and the release run their gates in full.
 

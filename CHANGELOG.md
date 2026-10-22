@@ -2,6 +2,23 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+After 3.0.0: what existing projects meet when the rules change, two sessions on one initiative, work that waits on a round, how a model-driven product behaves, and the craft of what the person sees. Analysis and decisions (1B, 3A, 4A) in the project thread "Cosa migliorare ancora" (`cosa-migliorare-ancora-2026-10-21.md`).
+
+### Added
+
+- **Gate records carry their version.** `record`, `cover` and `gate --json` store `bos_version` and the conditions skipped as not applicable, so a later release can tell "not applicable then" from "not there yet". A test keeps `VERSION` in `scripts/bos.mjs` equal to `package.json`.
+- **Debt after a release.** The briefing lists, per initiative, conditions now in force that a passed gate never checked and its artifact does not meet yet; the phase stays passed (`gate-checks`, Debt After a Release). An initiative whose gates passed under 2.1 now sees what 2.2 to 3.0 added.
+- **`bos.mjs doctor`**: Node, the hooks next to the script, the project copy, `PRODUCT.md`, `TECH.md`, `AGENTS.md` and its BuilderOS block, each initiative's state and claim, and the debt per phase with its detail. `/builder-os:bos-status --doctor` relays it.
+- **One owner per initiative.** `bos.mjs claim --by "who"` (`--release`, `--take --reason`), shown in the briefing and in the per-message line; a second claim is refused. Events `claimed`, `claim_released`, `claim_taken`; a claim older than 14 days is flagged.
+- **Rounds are recorded, and the work goes on while one waits.** `bos.mjs round --asked N` and `--answered "1B, 2A" --by "who"` (events `round_asked`, `round_answered` with the hours waited; `pace` shows the median wait). While a round waits, the agent drafts ahead on the recommended options in blocks marked `**Provisional:**`, kept apart from `**Chosen by:**` and from `decisions/`; the answer keeps or deletes each block (`pressure-testing`, Working Ahead). Gate E.2, on every gate, fails while a marker is left.
+- **`agent-design`** and gate 4.16, when the spec declares model output: autonomy per action (does, proposes, asks, never, with `never` enforced by withholding the tool), every `asks` as a tested acceptance criterion, the hand-off, injection surfaces each with a mitigation and a must-pass eval case, degradation for slow, down and wrong, and a latency budget per turn. Gate 6.10 adds `**Agent traces:**` to production readiness and, after PMF, `**Model degradation:**` to `TECH.md` → Operations. `logs.query` covers model traces. Eval case `agent-autonomy`.
+- **Design craft.** `design-direction` studies three to five real reference screens before drawing, and each version names the generic default it avoids; versions may embed a real typeface instead of system fonts. Gate 4.9 counts the references and checks the `Avoids` column. The build reviews all six states at two widths (5.9; empty and error at one width on the change track) and gets a fresh-context craft critique of hierarchy, spacing rhythm, typography, copy against the voice, focus states and motion (new gate 5.12).
+- **The first day** (product track, gate 4.17): a `### First day` flow from the first visit to the first useful outcome, and `**Activation:**` in the spec citing its acceptance criterion and the tracking-plan event that measures it.
+
+**Upgrading.** Specs with model output fail 4.16 until `## Agent behavior` is written; product-track specs fail 4.17 until the first day is designed; design directions fail 4.9 until `**References:**` and the `Avoids` column are there; build plans fail 5.9 until all six states and `**Widths:**` are reviewed, and 5.12 until `## Craft critique`; releases with model output fail 6.10 until `**Agent traces:**`. Gates already passed stay passed and show these as debt. Run `bos.mjs vendor` once in each project, then `bos.mjs doctor`.
+
 ## [3.0.0] - 2026-10-22
 
 A major version because existing work changes under it (#16, #17, #18): six analysis skills and six agents are replaced by `product-analysis`, and frames, discoveries, definitions, specs, build plans and releases written before now fail new gates until they carry the new sections (see each Upgrading note). What it adds: hooks for the rules that must always hold, gates on the quality of what is built, the product loop from stage to payment, decisions recorded as the person's, `wayfinding`, `retro`, `to-spec`, `to-tickets`, `agents-md`, and every skill rewritten to one writing standard kept by a test.

@@ -1,6 +1,22 @@
 # Direction Method
 
-The axes, the file rules, the kit card and the token list behind `design-direction`. Product names are examples of a kind of option, never defaults.
+The references, the axes, the defaults to steer away from, the file rules, the kit card and the token list behind `design-direction`. Product names are examples of a kind of option, never defaults.
+
+## References
+
+Three to five real screens, captured before any version is drawn, saved as `design/refs/{product}-{screen}.png` in the initiative folder and listed under `**References:**` with one line each. Pick them for this ICP and this kind of screen: the tools the ICP opens every day, and the best example of the same pattern anywhere (the list, the report, the editor). Each line names what to take from it: the hierarchy, the density, how the primary action sits, a typographic choice, an empty state. A reference is a source of craft, never a template to copy; a version that reads as a clone of one reference has failed the axis.
+
+## Defaults to Steer Away From
+
+The look a generator produces unprompted is the same for every product, so it says nothing about this one. Each version names in its `Avoids` column the default it replaces, and what replaces it:
+
+- A centred hero with a gradient headline and two buttons, on a page that is a tool, not a landing page
+- Purple-to-blue gradients, glassmorphism, glowing borders
+- One sans-serif at one weight everywhere, with hierarchy done by size alone
+- Cards with identical radius and shadow for every kind of content
+- Emoji or generic line icons as the only visual identity
+- Centred text blocks, equal spacing everywhere, no rhythm between sections
+- Grey placeholder content ("Lorem ipsum", "Item 1") that hides density problems
 
 ## Axes of Difference
 
@@ -23,7 +39,7 @@ Tie each version to the voice adjectives in `PRODUCT.md`. A version that contrad
 
 - **In the real app** when the product exists and runs: the versions render inside the existing page behind a `?variant=` URL parameter, with a small switcher bar (previous, label, next, arrow keys) that never ships to production; the variant code lives on a throwaway branch named for the initiative, and the main branch keeps only the chosen direction, rebuilt properly. The File column records the route (`/reports?variant=b`) and the branch.
 - **As files** otherwise. Path: `.builderos/initiatives/{initiative}/design/{letter}-v{n}.html`, for example `a-v1.html`, `b-v1.html`, `c-v1.html`, then `a-v2.html` for the first revision of A.
-- Self-contained: one file, inline CSS, system fonts or a font stack that degrades cleanly, no build step, opens from disk in any browser.
+- Self-contained: one file, inline CSS, no build step, opens from disk in any browser. Type is part of the direction: where the version has type personality, embed a real typeface (a web font linked from a font service, or inlined) with a system stack as the fallback, and name it in the header comment. System fonts are a choice for a quiet, tool-like direction, not the default for all.
 - Same screen in every version, at desktop width, with a narrow-width rendering below it when the ICP uses phones.
 - Realistic content from the domain, with a visible "sample content" label. The empty and error state of that screen, small, under the main rendering, so the direction is judged on its hard states too.
 - A header comment with the axis, the voice adjectives it serves and the date.

@@ -62,7 +62,8 @@ test('gate 3.6 needs a person to have chosen the bet', () => {
 
 const SPEC = (stack, summary = true) => `# Spec\n\n## Out of scope\n| Item | Kind | Reason |\n|---|---|---|\n| XLSX | not now | CSV first |\n\n## Conflicts\nNone found.\n\n## Stack\n**Drivers:** one maintainer\n| Layer | Choice | Status | Decided by | ADR |\n|---|---|---|---|---|\n${stack}\n${summary ? '\n## What we chose\n| Choice | What | Why | Set aside | Cost | We\'d change it if |\n|---|---|---|---|---|---|\n| queue | database job table | one maintainer | managed queue | none | jobs pass 1000 a day |\n' : ''}\n## Acceptance criteria\n| # | Criterion | Flow |\n|---|---|---|\n| 1 | A manager downloads the weekly view as CSV | export |\n\n## States\n| Flow / step | Empty | Loading | Partial | Error | Success | Permission |\n|---|---|---|---|---|---|---|\n| export | no deals message | spinner | partial note | retry | file saved | hidden |\n\n**Model output:** no\n\n## Tracking plan\n| Event | Trigger | Properties | Measures | New or existing |\n|---|---|---|---|---|\n| export_completed | download | rows | exports | new |\n\n**Computes the phase 2 metric:** managers with one export_completed per week\n`;
 const A11Y = '# Design\n\n## Accessibility floor\nKeyboard path through the export button, contrast 4.5:1, focus returns to the button.\n';
-const VISUAL = (versions, { by = 'Mario', kit = 'inherited: Acme UI', tokens = true } = {}) => `${A11Y}\n## Visual direction\n| Version | Axis and direction | File | Verdict |\n|---|---|---|---|\n${versions.map((f, i) => `| ${'ABC'[i]} | density | ${f} | ${i ? 'rejected: too sparse' : 'chosen'} |`).join('\n')}\n\n**Chosen:** A\n**Chosen by:** ${by}\n**Why:** calm for all-day operators\n**Design kit:** ${kit}\n${tokens ? '**Tokens:**\n| Token group | Values |\n|---|---|\n| Colour roles | primary #1f4fd1 (6.1:1) |\n' : ''}`;
+const REFS = ['design/refs/linear-list.png', 'design/refs/stripe-report.png', 'design/refs/notion-table.png'];
+const VISUAL = (versions, { by = 'Mario', kit = 'inherited: Acme UI', tokens = true, refs = REFS, avoids = true } = {}) => `${A11Y}\n## Visual direction\n**References:** ${refs.join(', ')}\n| Version | Axis and direction | File | ${avoids ? 'Avoids | ' : ''}Verdict |\n|---|---|---|---|${avoids ? '---|' : ''}\n${versions.map((f, i) => `| ${'ABC'[i]} | density | ${f} | ${avoids ? `${i === 2 && avoids === 'gap' ? '' : 'centered card hero, purple gradient'} | ` : ''}${i ? 'rejected: too sparse' : 'chosen'} |`).join('\n')}\n\n**Chosen:** A\n**Chosen by:** ${by}\n**Why:** calm for all-day operators\n**Design kit:** ${kit}\n${tokens ? '**Tokens:**\n| Token group | Values |\n|---|---|\n| Colour roles | primary #1f4fd1 (6.1:1) |\n' : ''}`;
 
 test('gate 4.8 needs every layer with a status, a person on every decided one, existing ADRs and the summary', () => {
   const root = project();
@@ -91,7 +92,14 @@ test('gate 4.9 needs rendered versions, a person who chose, the kit and the toke
   assert.match(gate(root, 4).detail['4.9'], /version files not found/);
   write(root, 'design/a-v1.html', '<!doctype html><title>A</title>');
   write(root, 'design/b-v1.html', '<!doctype html><title>B</title>');
+  assert.match(gate(root, 4).detail['4.9'], /0 reference screens found/, 'real screens are studied before versions');
+  fs.mkdirSync(path.join(INIT(root), 'design/refs'), { recursive: true });
+  for (const r of REFS) write(root, r, 'png');
   assert.equal(gate(root, 4).by['4.9'], 'pass', 'feature track in lite mode needs two');
+  write(root, 'DESIGN.md', VISUAL(['design/a-v1.html', 'design/b-v1.html'], { avoids: false }));
+  assert.match(gate(root, 4).detail['4.9'], /no "Avoids" column/);
+  write(root, 'DESIGN.md', VISUAL(['design/a-v1.html', 'design/b-v1.html'], { refs: REFS.slice(0, 1) }));
+  assert.match(gate(root, 4).detail['4.9'], /1 reference screens found .* \(2 needed\)/);
   write(root, 'DESIGN.md', VISUAL(['/reports?variant=a on prototype/csv-export', '/reports?variant=b on prototype/csv-export']));
   assert.equal(gate(root, 4).by['4.9'], 'pass', 'versions mounted in the running app are routes, not files');
   write(root, 'DESIGN.md', VISUAL(['design/a-v1.html', 'design/b-v1.html']));

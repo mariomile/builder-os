@@ -29,6 +29,12 @@
 //   node bos.mjs map [slug]                a wayfinding map's destination, decisions so far, frontier, claimed and blocked
 //                                          tickets and the fog (.builderos/maps/{slug}/); every open map without a slug
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
+//   node bos.mjs doctor                    check the install, the project memory, every initiative's state, and the
+//                                          conditions added since each passed gate that its artifact does not meet yet
+//   node bos.mjs claim --by "who" [--release | --take --reason "..."]
+//                                          one owner per initiative at a time, so two sessions do not write one state
+//   node bos.mjs round --asked N | --answered "1B, 2A" --by "who"
+//                                          record a round of questions put to the person, and its answer
 //
 // Options: --initiative <slug> acts on another initiative, --root <dir> sets the project root.
 
@@ -51,6 +57,8 @@ const ROOT = path.resolve(opt('--root') || process.cwd());
 const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
+// The BuilderOS release this script belongs to, stamped on every gate record. Kept equal to package.json by a test.
+const VERSION = '3.0.0';
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
@@ -270,6 +278,18 @@ function visualInfo(ctx, need, inheritable = false) {
   const unlocated = versions.filter((r) => !nonEmpty(r[2]));
   if (unlocated.length) problems.push(`versions with no file or route: ${unlocated.map((r) => r[0]).join(', ')}`);
   if (missing.length) problems.push(`version files not found: ${missing.join(', ')}`);
+  // Craft: real screens studied before rendering, and each version naming the generic default it steers away from.
+  if (need >= 2) {
+    const refs = field(sec, 'References') || '';
+    const files = (refs.match(/[\w./-]+\.(png|jpe?g|webp|gif|svg|html?|pdf)/gi) || []).filter((f) => fs.existsSync(path.join(ctx.dir, f)) || fs.existsSync(path.join(ROOT, f)));
+    const found = new Set([...files, ...tags(refs).filter((t) => t.cls === 'doc').map((t) => t.raw)]).size;
+    const want = ctx.track === 'product' && ctx.mode !== 'lite' ? 3 : 2;
+    if (found < want) problems.push(`${found} reference screens found under "**References:**" (${want} needed): real products the ICP knows, saved before the versions`);
+    const header = ((sec.split(/\*\*Tokens/)[0].split('\n').find((l) => /^\s*\|/.test(l)) || '').split('|').map((c) => c.trim()).filter(Boolean));
+    const col = header.findIndex((c) => /avoid/i.test(c));
+    if (col < 0) problems.push('the versions table has no "Avoids" column: the generic default each version steers away from');
+    else { const silent = versions.filter((r) => !nonEmpty(r[col])); if (silent.length) problems.push(`versions naming no default they avoid: ${silent.map((r) => r[0]).join(', ')}`); }
+  }
   for (const label of ['Chosen', 'Chosen by', 'Design kit']) if (!nonEmpty(field(sec, label))) problems.push(`no "**${label}:**"`);
   const by = field(sec, 'Chosen by');
   if (by && NOBODY.test(by)) problems.push('the look was not chosen by a person');
@@ -292,6 +312,60 @@ function impactInfo(spec) {
     else if (!nonEmpty(row[3])) problems.push(`${name}: no handling (write "nothing to do" with the reason when nothing changes)`);
   }
   return { problems, detail: `${rows.length} areas, each with its handling` };
+}
+
+// ---------- agent behavior and the first day (gates 4.16, 4.17) ----------
+
+// Gate 4.16: a product whose output comes from a model says what it may do alone, where it hands to a person,
+// what can reach it from outside, and what happens when the model is slow, down or wrong.
+const AUTONOMY = ['does', 'proposes', 'asks', 'never'];
+function agentInfo(spec, ctx) {
+  const sec = section(spec, 'Agent behavior');
+  if (sec === null) return { problems: ['no "## Agent behavior": autonomy per action, hand-off, injection surfaces, degradation and the latency budget (agent-design)'] };
+  const problems = [];
+  const acs = new Set(tableRows(section(spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x)));
+  const actions = rawRows(sec.split(/^###\s/m)[0]);
+  if (!actions.length) problems.push('the autonomy table has no actions');
+  for (const r of actions) {
+    const level = (r[1] || '').toLowerCase().split(/[\s,;.]/)[0];
+    if (!AUTONOMY.includes(level)) { problems.push(`${r[0]}: autonomy "${r[1] || ''}" is not ${AUTONOMY.join(', ')}`); continue; }
+    const cited = (r[3] || '').match(/\d+/g) || [];
+    if (level === 'asks' && !cited.some((c) => acs.has(c))) problems.push(`${r[0]}: an action that asks the person needs an acceptance criterion that tests the asking`);
+  }
+  for (const label of ['Hand-off', 'Degradation']) if (!nonEmpty(lineField(sec, label))) problems.push(`no "**${label}:**"`);
+  if (!/\d/.test(lineField(sec, 'Latency budget') || '')) problems.push('no "**Latency budget:**" with a number per turn');
+  const inj = subsection(sec, 'Injection surfaces');
+  if (inj === null) problems.push('no "### Injection surfaces": every input the model reads that someone else can write');
+  else {
+    const rows = rawRows(inj);
+    const ev = evalInfo(ctx);
+    const mustPass = new Set(ev.valid ? ev.mustPassIds : []);
+    if (!rows.length) problems.push('no injection surface listed: the person typing is one too');
+    for (const r of rows) {
+      if (!nonEmpty(r[2])) problems.push(`${r[0]}: no mitigation`);
+      const id = (r[3] || '').replace(/[`\s]/g, '');
+      if (!id) problems.push(`${r[0]}: no eval case`);
+      else if (!mustPass.has(id)) problems.push(`${r[0]}: eval case ${id} is not a must-pass case in the dataset`);
+    }
+  }
+  return { problems, detail: `${actions.length} actions with their autonomy, hand-off, degradation, latency budget, injection surfaces each with a must-pass case` };
+}
+
+// Gate 4.17 (product track): the first day is designed, from the first visit to the first useful outcome,
+// and the moment that counts as activated is a criterion and an event.
+function firstDayInfo(ctx) {
+  const flows = section(ctx.design || '', 'Flows');
+  const problems = [];
+  if (subsection(flows || '', 'First day') === null) problems.push('no "### First day" flow in DESIGN.md → ## Flows: from the first visit to the first useful outcome');
+  const act = field(ctx.artifact || '', 'Activation');
+  if (!nonEmpty(act)) problems.push('no "**Activation:**" in the spec: the acceptance criterion that marks the first useful outcome and the event that measures it');
+  else {
+    const acs = new Set(tableRows(section(ctx.artifact, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x)));
+    const events = tableRows(section(ctx.artifact, 'Tracking plan')).map((r) => r[0].replace(/`/g, '').trim()).filter(Boolean);
+    if (!(act.match(/\d+/g) || []).some((c) => acs.has(c))) problems.push('"**Activation:**" cites no acceptance criterion that exists');
+    if (!events.some((e) => act.includes(e))) problems.push('"**Activation:**" names no event from the tracking plan');
+  }
+  return { problems, detail: 'first day designed, activation is a criterion and a tracked event' };
 }
 
 // ---------- quality of what is built (gates 4.12, 4.13, 5.9, 5.10, 6.10, 6.11) ----------
@@ -382,12 +456,15 @@ function moneyBeforeBuild(spec) {
 // Gate 6.10: what a release needs, plus what the product needs at its stage, from TECH.md → Operations.
 function productionGaps(release, ctx) {
   const pr = section(release, 'Production readiness') || '';
-  const gaps = ['Errors seen by', 'Backup restored'].filter((k) => !nonEmpty(field(pr, k))).map((k) => `"## Production readiness" has no "**${k}:**"`);
+  const model = /\*\*Model output:\*\*\s*yes/i.test(ctx.spec || '');
+  // A model's mistakes are found in its traces: where they are kept and who reads them is part of being ready.
+  const gaps = ['Errors seen by', 'Backup restored', ...(model ? ['Agent traces'] : [])].filter((k) => !nonEmpty(field(pr, k))).map((k) => `"## Production readiness" has no "**${k}:**"`);
   const ops = section(read(path.join(ROOT, 'TECH.md')) || '', 'Operations');
   const stage = productStage(ctx.product);
   const need = ['Privacy'];
-  if (/\*\*Model output:\*\*\s*yes/i.test(ctx.spec || '')) need.push('AI disclosure');
+  if (model) need.push('AI disclosure');
   if (stage && !preScale(stage)) need.push('SLO', 'Incident response', 'Cost per active user');
+  if (model && stage && !preScale(stage)) need.push('Model degradation');
   const missing = need.filter((k) => !nonEmpty(field(ops || '', k)));
   if (missing.length) gaps.push(`TECH.md → "## Operations" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}${stage && !preScale(stage) ? ` (stage ${stage})` : ''}`);
   return { gaps, detail: `release ready for its first incident; TECH.md → Operations covers ${need.join(', ')}` };
@@ -455,13 +532,41 @@ function interfaceReview(plan, ctx) {
   if (sec === null) return { problems: ['no "## Interface review": each state of the primary flow rendered from the built product, compared with the chosen version and tokens'] };
   const rows = rawRows(sec);
   const problems = [];
-  for (const st of ['empty', 'error']) if (!rows.some((r) => new RegExp(st, 'i').test(r[0]))) problems.push(`no ${st} state reviewed`);
+  // A change touches one screen: its hard states are enough. New screens are seen in all six states, at two widths.
+  const full = ctx.track !== 'change';
+  const states = full ? STATES : ['empty', 'error'];
+  for (const st of states) if (!rows.some((r) => new RegExp(st, 'i').test(r[0]))) problems.push(`no ${st} state reviewed`);
+  const widths = (field(sec, 'Widths') || '').match(/\d{3,4}/g) || [];
+  if (full && new Set(widths).size < 2) problems.push('no "**Widths:**" naming two widths (the widest and the narrowest the ICP uses)');
   for (const r of rows) {
+    const na = /^not applicable\b/i.test(r[1] || '');
+    if (na) { if ((r[1] || '').replace(/^not applicable[\s,.:;—-]*/i, '').length <= 3) problems.push(`${r[0]}: "not applicable" needs its reason`); continue; }
     if (!nonEmpty(r[1])) problems.push(`${r[0]}: no screenshot or route`);
     else for (const f of (r[1].match(/[\w./-]+\.(png|jpe?g|webp|gif)/gi) || [])) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: ${f} not found`);
     if (!/^yes\b/i.test(r[2] || '')) problems.push(`${r[0]}: does not match the chosen direction (fix it, or record the deviation in DESIGN.md and say yes)`);
   }
-  return { problems, detail: `${rows.length} states reviewed against the chosen direction` };
+  return { problems, detail: `${rows.length} states reviewed against the chosen direction${full ? ` at ${widths.slice(0, 2).join(' and ')}` : ''}` };
+}
+
+// Gate 5.12: someone who did not build it looked at the craft, aspect by aspect, and every finding went somewhere.
+const STATES = ['empty', 'loading', 'partial', 'error', 'success', 'permission'];
+const CRAFT = [['hierarchy', /hierarch/i], ['spacing rhythm', /spacing|rhythm/i], ['typography', /typograph|type\b/i], ['copy against the voice', /copy|voice/i], ['focus states', /focus/i], ['motion and reduced motion', /motion/i]];
+function craftCritique(plan, ctx) {
+  const ir = interfaceReview(plan, ctx);
+  if (ir.skip) return { skip: ir.skip };
+  if (notApplicable(section(plan, 'Interface review'), '', 'Interface review')) return { skip: 'interface review not applicable' };
+  const sec = section(plan, 'Craft critique');
+  if (sec === null) return { problems: ['no "## Craft critique": a fresh-context review of hierarchy, spacing rhythm, typography, copy against the voice, focus states and motion'] };
+  const problems = [];
+  const by = field(sec, 'Run by');
+  if (!nonEmpty(by)) problems.push('no "**Run by:**": a separate agent or a person who did not build it, with what they were given');
+  const rows = rawRows(sec);
+  for (const [name, re] of CRAFT) {
+    const row = rows.find((r) => re.test(r[0]));
+    if (!row) problems.push(`no row for ${name}`);
+    else if (!nonEmpty(row[1]) || !nonEmpty(row[2])) problems.push(`${name}: a finding (or "none found") and what happened to it`);
+  }
+  return { problems, detail: `${rows.length} aspects reviewed by ${by}` };
 }
 
 // Gate 5.10: quality a machine can check runs every time, in the guardrail, not in someone's memory.
@@ -800,6 +905,10 @@ function gate(n, ctx) {
     const stage = productStage(ctx.product);
     if (preScale(stage)) judge('4.15', `stage ${stage}: is anything in this spec scale work (optimization, enterprise controls, infrastructure for load nobody has) that should wait for PMF?`);
     else skip('4.15', `stage ${stage || 'unknown'}: scale work is allowed`);
+    if (!modelOut) skip('4.16', 'no model output declared');
+    else { const ag = agentInfo(a, ctx); pass('4.16', ag.problems.length === 0, ag.problems.length ? ag.problems.join('; ') : ag.detail); }
+    if (ctx.track !== 'product') skip('4.17', `${ctx.track} track: the first day already exists`);
+    else { const fd = firstDayInfo(ctx); pass('4.17', fd.problems.length === 0, fd.problems.length ? fd.problems.join('; ') : fd.detail); }
     return R;
   }
 
@@ -825,6 +934,9 @@ function gate(n, ctx) {
     const ir = interfaceReview(a, ctx);
     if (ir.skip) skip('5.9', ir.skip);
     else pass('5.9', ir.problems.length === 0, ir.problems.length ? ir.problems.join('; ') : ir.detail);
+    const cc = craftCritique(a, ctx);
+    if (cc.skip) skip('5.12', cc.skip);
+    else pass('5.12', cc.problems.length === 0, cc.problems.length ? cc.problems.join('; ') : cc.detail);
     const qc = qualityChecks();
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
@@ -1093,11 +1205,15 @@ function runGate(which) {
   const evDirs = [path.join(dir, 'evidence'), path.join(BOS, 'evidence')];
   const missing = checkEvidence(artifact + (n === 4 ? '\n' + (ctx.design || '') : '') + (n === 'C' ? '\n' + (ctx.request || '') : ''), evDirs);
   results.push({ id: 'E.1', status: missing.length ? 'fail' : 'pass', detail: missing.length ? `unresolved: ${missing.slice(0, 5).join('; ')}${missing.length > 5 ? ` (+${missing.length - 5})` : ''}` : 'every tag resolves' });
+  // Work drafted ahead on a recommended option while a round waited is not a decision: the answer confirms or discards it.
+  const provisional = (stripFences(artifact + (n === 4 ? '\n' + (ctx.design || '') : '')).match(/\*\*Provisional:?\*\*/gi) || []).length;
+  results.push({ id: 'E.2', status: provisional ? 'fail' : 'pass', detail: provisional ? `${provisional} provisional block${provisional > 1 ? 's' : ''} still drafted on a recommendation: keep each one the person's answer confirmed (drop the marker), delete the rest` : 'no provisional work left' });
   results.push(...gate(n, ctx));
   const au = audit(artifact);
   const checked_by = { script: results.filter((r) => ['pass', 'fail', 'warn'].includes(r.status)).map((r) => r.id), model: results.filter((r) => r.status === 'judge').map((r) => r.id) };
+  const skipped = results.filter((r) => r.status === 'skip').map((r) => r.id);
   const failed = results.filter((r) => r.status === 'fail').map((r) => r.id);
-  const out = { gate: n, initiative: init ? init.slug : null, artifact: rel(file), mode: ctx.mode, results, failed, checked_by, audit: au };
+  const out = { gate: n, initiative: init ? init.slug : null, artifact: rel(file), mode: ctx.mode, bos_version: VERSION, results, failed, checked_by, skipped, audit: au };
   if (flag('--json')) console.log(JSON.stringify(out, null, 2));
   else {
     const mark = { pass: '✓', fail: '✗', judge: '?', warn: '!', skip: '–' };
@@ -1215,6 +1331,38 @@ function overrides(state) {
   return Object.keys(ph).filter((k) => ph[k] && ph[k].gate && ph[k].gate.overridden).map((k) => `${k} (${(ph[k].gate.failed_conditions || []).join(', ')})`);
 }
 
+// Conditions in force now that a passed gate never checked: a release added them after the gate ran.
+// Each passed phase is gated again on its artifact; what fails or waits for judgment now, and was not in the
+// record, is debt. It is shown, never retro-failed: the phase is not reopened.
+function gateDebt(init) {
+  const s = init.state, out = [];
+  for (const [k, ph] of Object.entries(s.phases || {})) {
+    if (!ph || ph.status !== 'passed' || !ph.gate || !ph.gate.passed || Number(k) >= (s.current_phase ?? 0) && s.status !== 'closed') continue;
+    if (!fs.existsSync(path.join(init.dir, ARTIFACTS[k]))) continue;
+    let j;
+    try { j = JSON.parse(spawnSyncSelf(['gate', k, '--json', '--initiative', init.slug]) || '{}'); } catch { continue; }
+    if (!j.results) continue;
+    const g = ph.gate;
+    const seen = new Set([...((g.checked_by || {}).script || []), ...((g.checked_by || {}).model || []), ...(g.skipped || [])]);
+    const owed = j.results.filter((r) => r.status !== 'pass' && r.status !== 'skip' && !seen.has(r.id));
+    if (owed.length) out.push({ phase: Number(k), version: g.bos_version || null, at: (g.checked_at || '').slice(0, 10), conditions: owed });
+  }
+  return out;
+}
+const debtLine = (init, debt) => {
+  const ids = debt.flatMap((d) => d.conditions.map((c) => c.id));
+  return `${init.state.title || init.slug}: ${ids.length} condition${ids.length > 1 ? 's' : ''} added since its gates passed ${ids.length > 1 ? 'are' : 'is'} not met yet (${ids.slice(0, 6).join(', ')}${ids.length > 6 ? ` and ${ids.length - 6} more` : ''}): debt, not a failure; meet ${ids.length > 1 ? 'them' : 'it'} when the work touches that phase again (\`bos.mjs doctor\` lists each)`;
+};
+
+const claimNote = (s) => (s.claim && s.claim.by ? `claimed by ${s.claim.by} since ${String(s.claim.at || '').slice(0, 10)}` : null);
+// The newest round still waiting for the person's answer, or null.
+function openRound(s) {
+  const h = Array.isArray(s.history) ? s.history : [];
+  const lastAsked = h.map((e, i) => [e, i]).filter(([e]) => e.event === 'round_asked').at(-1);
+  if (!lastAsked) return null;
+  return h.slice(lastAsked[1] + 1).some((e) => e.event === 'round_answered') ? null : lastAsked[0];
+}
+
 function roadmapPhases() {
   const rm = read(path.join(BOS, 'ROADMAP.md'));
   const m = new Map();
@@ -1253,14 +1401,16 @@ function brief() {
   } else {
     const s = active.state;
     const p = s.current_phase ?? 0;
-    lines.push(`${product} · ${s.title || active.slug} (${s.track || 'product'} track, cycle ${s.cycle || 1}): phase ${p} ${PHASES[p]}, ${lastGate(s)}.`);
+    lines.push(`${product} · ${s.title || active.slug} (${s.track || 'product'} track, cycle ${s.cycle || 1}): phase ${p} ${PHASES[p]}, ${lastGate(s)}${claimNote(s) ? `, ${claimNote(s)}` : ''}.`);
     const ov = overrides(s);
     lines.push(ov.length ? `Overrides in force: phase ${ov.join('; phase ')}.` : 'No overrides.');
     const dec = decisions();
     if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
     const coverage = p === 0 && ['feature', 'change'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
-    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
+    const round = openRound(s);
+    const waiting = round ? `the round asked ${round.at.slice(0, 16).replace('T', ' ')} waits for the person; meanwhile draft ahead on its recommended options, each block marked provisional (pressure-testing)` : null;
+    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : waiting || coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
     if (others.length) lines.push(`Also open: ${others.map((i) => `${i.state.title || i.slug} (phase ${i.state.current_phase ?? 0}, ${i.state.status || 'open'})`).join('; ')}.`);
   }
@@ -1271,6 +1421,8 @@ function brief() {
     if (s.review_due && Date.parse(s.review_due) < today && !((s.phases || {})[7] && ['passed'].includes(s.phases[7].status))) attention.push(`outcome review for ${s.title || i.slug} was due ${s.review_due}`);
     if ((s.status || 'open') === 'open' && s.updated_at && (today - Date.parse(s.updated_at)) / DAY > 30) attention.push(`${s.title || i.slug} unchanged since ${s.updated_at.slice(0, 10)}`);
     if (s.watch && validDate(s.watch.recheck) && Date.parse(s.watch.recheck) <= today) attention.push(`watch on ${s.title || i.slug} is due (${s.watch.metric}, recheck ${s.watch.recheck}): compare against its bands, and a breach starts a new initiative`);
+    if ((s.status || 'open') === 'open' && s.claim && s.claim.at && (today - Date.parse(s.claim.at)) / DAY > 14) attention.push(`${s.title || i.slug} is ${claimNote(s)}: still theirs, or release it (\`bos.mjs claim --release\`)`);
+    if ((s.status || 'open') !== 'closed' && !schemaProblems(i).length) { const debt = gateDebt(i); if (debt.length) attention.push(debtLine(i, debt)); }
   }
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
@@ -1471,7 +1623,7 @@ function cover() {
   const product = read(path.join(ROOT, 'PRODUCT.md'));
   const used = [...new Set(tags(section(product, 'The Problem') + '\n' + section(product, 'ICP')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
   for (const k of ['0', '1']) {
-    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, checked_by: { script: j.checked_by.script, model: ['C.4'] }, failed_conditions: [], overridden: false } };
+    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, bos_version: VERSION, checked_by: { script: j.checked_by.script, model: ['C.4'] }, failed_conditions: [], overridden: false } };
     s.history.push({ at: now, event: 'phase_covered', phase: Number(k), tags: used, c4 });
   }
   s.phases['2'] = { status: 'in_progress', artifact: null, gate: null };
@@ -1503,7 +1655,7 @@ function coverMandate(init) {
   }
   const used = [...new Set(tags(section(read(path.join(init.dir, REQUEST)), 'Request')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
   for (const k of ['0', '1', '2', '3']) {
-    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, checked_by: { script: j.checked_by.script, model: ['M.4'] }, failed_conditions: [], overridden: false } };
+    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, bos_version: VERSION, checked_by: { script: j.checked_by.script, model: ['M.4'] }, failed_conditions: [], overridden: false } };
     s.history.push({ at: now, event: 'phase_covered', phase: Number(k), tags: used, m4 });
   }
   s.phases['4'] = { status: 'in_progress', artifact: null, gate: null };
@@ -1592,7 +1744,7 @@ function record(which) {
   if (n === 6 && !closesAtShip && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
   if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();
-  const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, checked_by: j.checked_by, failed_conditions: failed, overridden: Boolean(override && failed.length) };
+  const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, bos_version: VERSION, checked_by: j.checked_by, skipped: j.skipped || [], failed_conditions: failed, overridden: Boolean(override && failed.length) };
   if (gateEntry.overridden) gateEntry.override_reason = override;
   if (gateEntry.passed && nonEmpty(acceptedBy)) { gateEntry.accepted_by = acceptedBy; gateEntry.accepted_at = now; }
   const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
@@ -1658,7 +1810,7 @@ function deferReview() {
   console.log(`REVIEW DEFERRED: ${init.slug} remains at phase 7; review ${due}. ${reason}`);
 }
 
-const HISTORY_EVENTS = ['track_set', 'phase_covered', 'track_upgraded', 'phase_jump', 'initiative_switched', 'paused', 'migrated', 'gate_passed', 'gate_failed', 'gate_overridden', 'review_deferred', 'cycle_started', 'closed', 'watch_checked', 'watch_breached'];
+const HISTORY_EVENTS = ['track_set', 'phase_covered', 'track_upgraded', 'phase_jump', 'initiative_switched', 'paused', 'migrated', 'gate_passed', 'gate_failed', 'gate_overridden', 'review_deferred', 'cycle_started', 'closed', 'watch_checked', 'watch_breached', 'claimed', 'claim_released', 'claim_taken', 'round_asked', 'round_answered'];
 
 function schemaProblems(i) {
   const s = i.state, p = [];
@@ -1673,6 +1825,7 @@ function schemaProblems(i) {
   if (!s.phases || typeof s.phases !== 'object' || Array.isArray(s.phases)) p.push('phases is not an object');
   if (s.review_due !== null && s.review_due !== undefined && !validDate(s.review_due)) p.push('review_due is not a date');
   if (s.watch !== undefined && s.watch !== null && (typeof s.watch !== 'object' || !validDate(s.watch.recheck))) p.push('watch has no valid recheck date');
+  if (s.claim !== undefined && s.claim !== null && (typeof s.claim !== 'object' || !nonEmpty(s.claim.by) || !validTimestamp(s.claim.at))) p.push('claim needs by and an at timestamp');
   for (const [k, v] of Object.entries(s.phases || {})) {
     if (!['pending', 'in_progress', 'passed', 'killed', 'covered', 'answered'].includes(v && v.status)) p.push(`phase ${k} status ${JSON.stringify(v && v.status)}`);
     if (!/^[0-7]$/.test(k)) p.push(`invalid phase key ${k}`);
@@ -1683,6 +1836,114 @@ function schemaProblems(i) {
   const unknown = [...new Set((Array.isArray(s.history) ? s.history : []).map((h) => h && h.event).filter((e) => !HISTORY_EVENTS.includes(e)))];
   if (unknown.length) p.push(`unknown history event ${unknown.slice(0, 3).join(', ')}`);
   return p;
+}
+
+// ---------- claim, rounds ----------
+
+// One owner per initiative at a time: two sessions writing one state.json is a merge conflict nobody resolves well.
+function claim() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative: pass --initiative <slug>');
+  const s = init.state;
+  const problems = schemaProblems(init);
+  if (problems.length) die(`invalid state: ${problems.join(', ')}`);
+  const by = opt('--by');
+  if (!nonEmpty(by)) die('claim needs --by "who": the person the session works for');
+  const now = new Date().toISOString();
+  const held = s.claim && s.claim.by;
+  if (flag('--release')) {
+    if (!held) die(`${init.slug} is not claimed`);
+    if (held !== by && !nonEmpty(opt('--reason'))) die(`${init.slug} is claimed by ${held}: releasing someone else's claim needs --reason`);
+    s.claim = null;
+    s.history.push({ at: now, event: 'claim_released', by, ...(held !== by ? { from: held, reason: opt('--reason') } : {}) });
+  } else if (held && held !== by) {
+    if (!flag('--take')) die(`${init.slug} is ${claimNote(s)}: ask them to release it, or take it over with --take --reason "..."`);
+    if (!nonEmpty(opt('--reason'))) die('--take needs --reason: why the work changes hands');
+    s.claim = { by, at: now };
+    s.history.push({ at: now, event: 'claim_taken', by, from: held, reason: opt('--reason') });
+  } else {
+    s.claim = { by, at: now };
+    s.history.push({ at: now, event: 'claimed', by });
+  }
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  console.log(s.claim ? `${init.slug} is claimed by ${by}. Commit and push state.json so the other sessions see it.` : `${init.slug} is free to claim.`);
+}
+
+// A round is asked when the questions reach the person and answered when the person replies.
+// The gap between the two is how long the work waited on a decision; pace reads it.
+function round() {
+  const init = resolveActive(loadInitiatives());
+  if (!init || init.state.status === 'closed') die('round needs an open initiative: pass --initiative <slug>');
+  const s = init.state;
+  const problems = schemaProblems(init);
+  if (problems.length) die(`invalid state: ${problems.join(', ')}`);
+  const now = new Date().toISOString();
+  const phase = s.current_phase ?? 0;
+  const asked = opt('--asked');
+  const answers = opt('--answered');
+  if (asked !== undefined) {
+    const q = Number(asked);
+    if (!Number.isInteger(q) || q < 1 || q > 4) die('--asked takes the number of questions in the round, 1 to 4');
+    if (openRound(s)) die('a round is already waiting for an answer: record it with --answered first');
+    s.history.push({ at: now, event: 'round_asked', phase, questions: q });
+  } else if (answers !== undefined) {
+    if (!nonEmpty(answers)) die('--answered needs the answer as the person gave it ("1B, 2A", "go with the recommendations")');
+    const by = opt('--by');
+    if (!nonEmpty(by) || AGENT_NAME.test(by)) die('--answered needs --by: the person who answered, never the agent');
+    const open = openRound(s);
+    s.history.push({ at: now, event: 'round_answered', phase, answers, by, ...(open ? { waited_hours: Math.round((Date.parse(now) - Date.parse(open.at)) / 36e5 * 10) / 10 } : {}) });
+  } else die('usage: round --asked N | --answered "1B, 2A" --by "who"');
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  console.log(asked !== undefined ? `Round of ${asked} recorded as asked at phase ${phase}. While it waits, draft ahead on the recommended options, each block marked **Provisional:**.` : `Answer recorded. Keep the provisional work the answer confirmed (drop its marker), delete the rest, then write the decisions with **Chosen by:**.`);
+}
+
+// ---------- doctor ----------
+
+// Whether this install and this project are in the shape BuilderOS expects, in one read.
+function doctor() {
+  const rows = [];
+  const add = (status, what, detail) => rows.push({ status, what, detail });
+  const major = Number(process.versions.node.split('.')[0]);
+  add(major >= 18 ? 'ok' : 'fail', 'Node.js', `${process.versions.node}${major >= 18 ? '' : ': BuilderOS needs 18 or later'}`);
+  const vendored = path.resolve(SELF) === path.resolve(VENDORED);
+  add('ok', 'Script', `${VERSION}, ${vendored ? 'the project copy' : `the installed plugin (${path.dirname(path.dirname(SELF))})`}`);
+  if (!vendored) {
+    const hooks = readJSONSafe(path.join(path.dirname(path.dirname(SELF)), 'hooks', 'hooks.json'));
+    const events = hooks && hooks.hooks ? Object.keys(hooks.hooks) : [];
+    const want = ['SessionStart', 'PreToolUse', 'UserPromptSubmit'];
+    const lacking = want.filter((e) => !events.includes(e));
+    add(lacking.length ? 'warn' : 'ok', 'Hooks', lacking.length ? `${hooks ? `missing ${lacking.join(', ')}` : 'no hooks/hooks.json next to the script'}: on a host without hooks, read using-builder-os first and run \`brief\`` : want.join(', '));
+  } else add('warn', 'Hooks', 'running the project copy: hooks come from the installed plugin, not checked from here');
+  if (!fs.existsSync(BOS)) {
+    add('warn', 'Project', 'no .builderos/ here: nothing to check beyond the install (initialize to start)');
+    return printDoctor(rows);
+  }
+  if (!vendored) add(!fs.existsSync(VENDORED) ? 'warn' : vendoredStale() ? 'warn' : 'ok', 'Project copy', !fs.existsSync(VENDORED) ? 'no .builderos/bin/bos.mjs: sessions without the plugin cannot brief or gate; run `bos.mjs vendor`' : vendoredStale() || `${rel(VENDORED)} matches this script`);
+  for (const f of ['PRODUCT.md', 'TECH.md', 'AGENTS.md']) add(fs.existsSync(path.join(ROOT, f)) ? 'ok' : f === 'AGENTS.md' ? 'warn' : 'fail', f, fs.existsSync(path.join(ROOT, f)) ? 'present' : f === 'AGENTS.md' ? 'missing: run agents-md so a new session finds the memory' : 'missing: project memory is incomplete');
+  const agents = read(path.join(ROOT, 'AGENTS.md')) || '';
+  if (agents) add(/builderos|\.builderos\//i.test(agents) ? 'ok' : 'warn', 'AGENTS.md block', /builderos|\.builderos\//i.test(agents) ? 'names BuilderOS' : 'no BuilderOS block: run agents-md');
+  if (read(path.join(BOS, 'state.json'))) add('fail', 'Schema', 'schema 1 state at .builderos/state.json: run `bos.mjs migrate`');
+  for (const i of loadInitiatives()) {
+    const name = `Initiative ${i.slug}`;
+    const pr = schemaProblems(i);
+    if (pr.length) { add('fail', name, `state.json does not follow the schema: ${pr.join(', ')}`); continue; }
+    const s = i.state;
+    add('ok', name, `${s.status}, phase ${s.current_phase} ${PHASES[s.current_phase]}${claimNote(s) ? `, ${claimNote(s)}` : ', unclaimed'}`);
+    if (s.status === 'closed') continue;
+    for (const d of gateDebt(i)) add('warn', `  phase ${d.phase} debt`, `gate passed ${d.at}${d.version ? ` under ${d.version}` : ' before gates recorded their version'}; now owed: ${d.conditions.map((c) => `${c.id} (${c.status === 'judge' ? 'to judge' : c.status}: ${String(c.detail).slice(0, 90)})`).join('; ')}`);
+  }
+  return printDoctor(rows);
+}
+function readJSONSafe(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; } }
+function printDoctor(rows) {
+  const mark = { ok: '✓', warn: '!', fail: '✗' };
+  console.log(`## BuilderOS doctor · ${VERSION}\n\n| | Check | Detail |\n|---|---|---|`);
+  for (const r of rows) console.log(`| ${mark[r.status]} | ${r.what} | ${String(r.detail).replace(/\|/g, '/')} |`);
+  const failed = rows.filter((r) => r.status === 'fail').length;
+  console.log(failed ? `\n**${failed} to fix.**` : '\n**Nothing to fix.** Warnings are debt or setup worth doing, not breakage.');
+  process.exit(failed ? 1 : 0);
 }
 
 // ---------- pace ----------
@@ -1705,6 +1966,9 @@ function pace() {
       since = e.at;
     }
     out.push(`## Pace · ${init.state.title || init.slug}`, '', '| Phase | Days | Failed gates before pass | Overridden | Accepted by |', '|-------|------|--------------------------|------------|-------------|', ...(rows.length ? rows : ['| none passed yet | | | | |']));
+    const waits = h.filter((e) => e.event === 'round_answered' && typeof e.waited_hours === 'number').map((e) => e.waited_hours).sort((x, y) => x - y);
+    const asked = h.filter((e) => e.event === 'round_asked').length;
+    out.push('', asked ? `**Rounds:** ${asked} asked, ${waits.length} answered with a recorded wait${waits.length ? `; median wait ${waits[Math.floor((waits.length - 1) / 2)]} h, longest ${waits.at(-1)} h` : ''}` : '**Rounds:** none recorded (`bos.mjs round --asked N` when a round reaches the person)');
     if (git('rev-parse', '--is-inside-work-tree') === 'true') {
       const relDir = path.relative(ROOT, init.dir);
       const firstPlan = git('log', '--reverse', '--format=%H', '--', path.join(relDir, ARTIFACTS[5]));
@@ -1870,6 +2134,7 @@ function context() {
   const nonGoals = listItems(section(read(path.join(ROOT, 'PRODUCT.md')) || '', 'Non-Goals'));
   const oos = tableRows(section(read(path.join(dir, '04-spec.md')) || '', 'Out of scope')).filter((r) => nonEmpty(r[0])).length;
   const bits = [`BuilderOS · ${s.title || active.slug}: phase ${p} ${PHASES[p]} (${s.track || 'product'} track), ${lastGate(s)}`];
+  if (claimNote(s)) bits.push(`${claimNote(s)}: work on it only as that person or with their release`);
   const accepted = p === 5 && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(field(section(read(path.join(dir, '05-build-plan.md')) || '', 'Plan') || '', 'Accepted') || '');
   if (accepted) bits.push('build plan accepted');
   else if (p <= 5) bits.push('no product code for this initiative until its build plan is accepted, even if asked to skip: offer to finish the gate, a change, or an override recorded with the person\'s reason');
@@ -1902,7 +2167,10 @@ else if (cmd === 'context') context();
 else if (cmd === 'evidence') evidenceAdd();
 else if (cmd === 'review') review();
 else if (cmd === 'map') map();
+else if (cmd === 'doctor') doctor();
+else if (cmd === 'claim') claim();
+else if (cmd === 'round') round();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }
