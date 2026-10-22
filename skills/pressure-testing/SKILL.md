@@ -1,36 +1,34 @@
 ---
 name: pressure-testing
-description: "Interrogates a decision before it is relied on: questions in rounds of at most four, each with options, consequences and a recommendation, until the reasoning has no open branch. Use when a decision, problem statement, opportunity or bet is about to pass a gate, when the user asks to be grilled, or when their reasoning has unresolved branches."
+description: "Grills a decision before it is relied on: rounds of up to four questions, each with options, consequences and a recommendation, until no branch is open. Use when a decision is about to pass a gate, the person asks to be grilled, or branches are open."
 ---
 
 # Pressure Testing
 
-An interview primitive any BuilderOS phase can call. The failure mode it guards against is not bad analysis: it is unchallenged premises elaborated into confident artifacts.
-
-Read [operating modes](../../references/operating-modes.md) first. Lifecycle artifact paths, gates and state writes below apply only to an explicitly selected initiative.
+An interview primitive any BuilderOS phase can call. It guards against unchallenged premises elaborated into confident artifacts. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); the ADRs and gate effects below belong to a lifecycle initiative.
 
 ## The Design Tree
 
 Interview relentlessly until you and the person share one understanding of the decision. Map it as a **design tree**: every decision branches into the decisions that hang off it. Keep the tree written in the conversation (or the artifact being shaped), each branch marked open, decided, deferred with its test, or out of scope, so you and the person can both see what is left.
 
-**Stop when the frontier is empty:** every branch visited, each decided by the person, accepted as a risk, or deferred with a named test and owner, and nothing silently assumed. Agreement is not a stop; an empty frontier is. Depth follows the tree, not a budget: a reversible detail is one branch, an irreversible bet grows many. Branches past the requested decision are out of scope: name them once and leave them. Do not act on the outcome until the person confirms the understanding is shared.
+**Stop when the frontier is empty:** every branch visited, each decided by the person, accepted as a risk, or deferred with a named test and owner, and nothing silently assumed. Agreement is not a stop; an empty frontier is. Depth follows the tree, not a budget: a reversible detail is one branch, an irreversible bet grows many. Branches past the requested decision are out of scope: name them once and leave them. Act on the outcome once the person confirms the understanding is shared.
 
 ## Method
 
-1. **Restate the claim in its strongest form.** Not a strawman, not the user's exact words. If you cannot state it better than they did, you do not understand it yet.
+1. **Restate the claim in its strongest form**, better than the person put it; until you can, you have not understood it yet.
 2. **Find the load-bearing assumption:** the single belief that, if false, collapses the whole thing.
-3. **Attack that one,** not the periphery. Peripheral objections feel productive and change nothing.
+3. **Attack that one.** Peripheral objections feel productive and change nothing.
 4. **Demand the falsifier.** "What would have to be true for this to be wrong?" If nothing could make it wrong, it is a preference: record it as such and move on.
 5. **Price the answer.** "What is the cheapest way to find out you are wrong?" Every unresolved branch exits with a test and a cost, or an explicit decision to proceed without one.
-6. **Log the deferrals.** An accepted risk is fine; an unnoticed one is not.
+6. **Log the deferrals.** An accepted risk is fine; an unnoticed one is the failure.
 
 ## Rounds
 
 Questions come in **rounds**. A round holds every open question whose answer does not depend on another question still open: the frontier of the reasoning. Ask the smallest material frontier, numbered, at most four questions per round; the rest wait for the next round, most load-bearing first.
 
-**Word each question so that "yes" accepts your recommendation.** **Every question carries options, a recommendation and its reason.** Never send a bare question. List the options the user could credibly pick, two to four, including the ones you would argue against (doing nothing, the cheaper version, the reversal). Each option gets one line on what happens if it is chosen. Then recommend one and say why: the reason names the deciding factor and, when it rests on a fact, its source tag. When no option clearly wins, say which fact would decide it and recommend the cheapest way to get that fact. Never treat the recommendation as a submitted answer.
+**Word each question so that "yes" accepts your recommendation.** **Every question carries options, a recommendation and its reason.** List the options the person could credibly pick, two to four, including the ones you would argue against (doing nothing, the cheaper version, the reversal). Each option gets one line on what happens if it is chosen. Then recommend one and say why: the reason names the deciding factor and, when it rests on a fact, its source tag. When no option clearly wins, say which fact would decide it and recommend the cheapest way to get that fact. The recommendation waits for the person's answer.
 
-**Answering costs one line.** Close every round with how to answer: "yes" to a question, question number plus option letter (`1B, 2A, 3 other: …`), or free text. "Go with the recommendations" is a valid answer only when the user says it: it accepts every recommended decision in the round, each recorded as the user's decision, and it never fills a factual gap (a fact still needs its source or becomes a recorded assumption). An answer that maps to no option, or that repeats your own sentence back with "do it" in front, is not a choice: when it decides something hard to undo or lifts a gate, condition or scope limit, restate what you understood as one option and ask for the letter; otherwise take the most conservative reading and say which. An accepted decision that is hard to reverse, surprising without context and the result of a real trade-off is written as an ADR in `decisions/` in lifecycle mode; the rest live in the resolution table.
+**Answering costs one line.** Close every round with how to answer: "yes" to a question, question number plus option letter (`1B, 2A, 3 other: …`), or free text. "Go with the recommendations", said by the person, accepts every recommended decision in the round, each recorded as their decision; a factual gap still needs its source or becomes a recorded assumption. An answer that maps to no option, or that repeats your own sentence back with "do it" in front, is not a choice: when it decides something hard to undo or lifts a gate, condition or scope limit, restate what you understood as one option and ask for the letter; otherwise take the most conservative reading and say which. An accepted decision that is hard to reverse, surprising without context and the result of a real trade-off is written as an ADR in `decisions/` in lifecycle mode; the rest live in the resolution table.
 
 ```markdown
 **Q1 — {short title}.** {The question.}
@@ -44,7 +42,7 @@ Questions come in **rounds**. A round holds every open question whose answer doe
 Answer like `1B, 2A`, or "go with the recommendations".
 ```
 
-**Factual questions get options too, but never candidate values.** When the session cannot retrieve a fact (a baseline, a budget, what a user said, a past result), do not list guessed numbers or quotes as options: that anchors the answer and invents evidence. The options are the ways to close the gap, and the recommendation picks one:
+**Factual questions get options too: the ways to close the gap.** When the session cannot retrieve a fact (a baseline, a budget, what a user said, a past result), the options are how to get it, and the recommendation picks one; guessed numbers or quotes as options would anchor the answer and invent evidence:
 
 ```markdown
 **Q3 — Weekly report open rate.** No analytics capability resolved in this session, so I need this from you.
@@ -56,11 +54,11 @@ Answer like `1B, 2A`, or "go with the recommendations".
 
 Each answered round reshapes the tree: settled decisions push the frontier outward and unblock what hung on them. Recompute the frontier, update the tree, ask the next round. A question whose answer depends on another question in the same round belongs to the next round. The attack on the load-bearing assumption (Method, steps 2 to 5) is a chain: each answer decides the next question, so that chain runs one question per round. Independent branches (who the ICP is, what changed, who solved it before) go together.
 
-**Facts are yours, decisions are theirs.** Before a question reaches the user, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Look it up without blocking the round: delegate the lookup where the host supports it, and while it runs ask the rest of the frontier; only the questions downstream of that fact wait. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Carry forward explicit decisions and authorization, and make routine reversible choices within delegated scope, stating important assumptions ([operating modes](../../references/operating-modes.md), Questions). Ask only when a material preference remains unresolved or the choice exceeds authorization.
+**Facts are yours, decisions are theirs.** Before a question reaches the person, check whether it asks for a fact the session can retrieve: a document, the repository, a search, a data query. If a capability that answers it resolved, get the answer yourself and state it with its tag. Look it up without blocking the round: delegate the lookup where the host supports it, and while it runs ask the rest of the frontier; only the questions downstream of that fact wait. Only when the ladder in `references/capability-map.md` is exhausted does a fact become a question, and then it says so ("no search resolved in this session, so I need this from you"). Carry forward explicit decisions and authorization, and make routine reversible choices within delegated scope, stating important assumptions (operating modes, Questions). Ask only when a material preference remains unresolved or the choice exceeds authorization.
 
 ## Tone and Question Banks
 
-Direct, not hostile: the target is the reasoning, never the person. Ask plainly; a softened question lets the premise survive. Follow the answer, not the script: load [phase question banks](references/question-banks.md) only when a deeper review needs examples, as a starting point, and follow whichever branch is load-bearing in this case.
+Direct, aimed at the reasoning, warm toward the person. Ask plainly; a softened question lets the premise survive. Follow the answer, not the script: load [phase question banks](references/question-banks.md) only when a deeper review needs examples, as a starting point, and follow whichever branch is load-bearing in this case.
 
 ## Output
 
@@ -74,15 +72,14 @@ Ends with the design tree as a resolution table, one row per branch:
 | Integration is the blocker | Unresolved | No test designed | — |
 ```
 
-Only unresolved branches named by the applicable gate block that gate. A deferred risk does not waive a mandatory condition; standalone work reports the limitation without creating an override.
+Only unresolved branches named by the applicable gate block that gate. A mandatory condition stays mandatory when its risk is deferred; standalone work reports the limitation and creates no override.
 
-## Common Mistakes
+## Watch for
 
-| Mistake | Why it fails | Correct |
-|---------|-------------|---------|
-| Stopping when the user agrees | Agreement is not resolution | Stop when branches are resolved or deferred with a test |
-| Applying recommendations the user never accepted | A suggestion becomes a decision nobody made | Only an explicit answer or "go with the recommendations" decides |
-| Guessed values as options for a factual question | Anchors the answer and invents evidence | Offer ways to close the gap (you know it, query it, proceed as an assumption) and recommend one |
-| Asking the user for a fact the session could retrieve | Wastes their turn and signals you did not look | Resolve the capability first; ask only when the ladder is exhausted |
-| Attacking peripheral details | Feels rigorous, changes nothing | Attack the load-bearing assumption |
-| Softening the question to be agreeable | The premise survives unexamined and gets elaborated | Ask it plainly |
+| Do | Instead of |
+|---|---|
+| Stop at an empty frontier | Stopping when the person agrees |
+| Decide on an explicit answer or "go with the recommendations" | Applying recommendations nobody accepted |
+| Offer ways to close a factual gap and recommend one | Guessed values as options |
+| Resolve the capability first; ask when the ladder is exhausted | Asking the person for a fact the session could retrieve |
+| Attack the load-bearing assumption, plainly | Peripheral details, softened questions |

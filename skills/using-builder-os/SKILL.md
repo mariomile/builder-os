@@ -1,31 +1,32 @@
 ---
 name: using-builder-os
-description: "Entry point to BuilderOS: briefs from the project memory, checks each request against decisions and earlier conditions, and routes to the lifecycle or to the method that answers. Use at the start of product work, when a product request needs routing, or when the user asks where an initiative stands or what to do next."
+description: "Entry point to BuilderOS: briefs from project memory, checks each request against decisions and earlier conditions, routes to the lifecycle or to a method. Use when product work starts, a request needs routing, or someone asks where things are."
 ---
 
 # Using BuilderOS
 
-Route by the requested result. Preserve the user's scope, supplied inputs, output destination and existing authorization. Requests unrelated to product work use the session's other capabilities.
+Route by the requested result, keeping the person's scope, supplied inputs, output destination and existing authorization. Requests unrelated to product work use the session's other capabilities.
+
+**Mode.** A guide, diagnosis, recommendation, PRD, spec edit, plan or review is standalone unless lifecycle execution was requested: no phase files, no logged override. The boundary, and where shared resources and scripts resolve from the real installation, are in [operating modes](../../references/operating-modes.md). Read [state and session briefing](../../references/builderos-state-schema.md) for lifecycle routing or status; a standalone answer loads neither the initiatives nor the schema.
 
 ## Procedure
 
-1. **Read relevant context.** For a lifecycle or status request, read the active initiative and brief from project memory. For a standalone question, read only context that affects the answer; a project-wide briefing is unnecessary. The installation's `scripts/bos.mjs brief` can compute the lifecycle briefing.
-2. **Choose the mode.** A guide, diagnosis, recommendation, PRD, spec edit, plan or review is standalone unless lifecycle execution was requested. It does not require phase files or a logged override. Read [operating modes](../../references/operating-modes.md) when the boundary is uncertain.
-3. **Select the smallest useful route** below. If clear, state it briefly when useful and start. Ask only when a material ambiguity remains after reading inputs; an authorized task needs no repeated confirmation.
-4. **Run the selected skill.** Pass the request and relevant inputs verbatim. Load additional methods only when they answer part of that request. A recommendation to build does not start an initiative.
+1. **Read the context the request needs.** A lifecycle or status request reads the active initiative and briefs from project memory (`scripts/bos.mjs brief` computes it where commands run). A standalone question reads what affects the answer. Done when you know whether BuilderOS memory exists and what the request touches in it.
+2. **Run the watch** below against the request. Done when every check that applies is named in at most two lines, or none applies.
+3. **Choose the smallest useful route** from the table. State it briefly when useful and start; ask only when a material ambiguity remains after reading the inputs, since an authorized task needs no repeated confirmation. Done when one route is chosen.
+4. **Run the selected skill**, passing the request and inputs verbatim and loading extra methods only for parts of the request they answer. A recommendation to build starts nothing by itself. Done when the routed skill is running.
 
 ## Watch While Working
 
-In a project with BuilderOS memory, check every product request against it before doing the work, and say what you find in at most two lines, then continue. On a real project these checks would have caught scope built against the phase 2 and 3 conditions, a pilot that never started while features kept shipping, and a `PRODUCT.md` that still described the idea stage:
+In a project with BuilderOS memory, check every product request against it before doing the work, say what you find in at most two lines, then continue. On a real project these checks would have caught scope built against the phase 2 and 3 conditions, a pilot that never started while features kept shipping, and a `PRODUCT.md` still describing the idea stage:
 
-- **Contradiction.** The request goes against an accepted decision in `decisions/`, a `PRODUCT.md` non-goal, a condition a phase artifact set ("no further scope until the pilot passes", a kill criterion) or the active spec's or build plan's out-of-scope. Name the file and line, then ask one round question per `pressure-testing` (Rounds): keep the condition, supersede it on the record, or open a new initiative for the request, as a `change` when its solution is already fixed so that the cheap path is still inside BuilderOS. New scope after the build plan is accepted is never appended to the running spec silently.
-- **Stale truth.** What the user just decided makes `PRODUCT.md`, `ROADMAP.md`, the spec or an evidence file wrong (a stage, a non-goal, a "Next" item already built, a superseded preference). Update it in the same step, or name it if the update is outside the authorized scope.
+- **Contradiction.** The request goes against an accepted decision in `decisions/`, a `PRODUCT.md` non-goal, a condition a phase artifact set ("no further scope until the pilot passes", a kill criterion) or the active spec's or build plan's out-of-scope. Name the file and line, then ask one `pressure-testing` round question: keep the condition, supersede it on the record, or open a new initiative for the request, as a `change` when its solution is already fixed, so the cheap path stays inside BuilderOS. New scope after the build plan is accepted becomes its own initiative or a recorded amendment.
+- **Stale truth.** What the person just decided makes `PRODUCT.md`, `ROADMAP.md`, the spec or an evidence file wrong (a stage, a non-goal, a "Next" item already built, a superseded preference). Update it in the same step, or name it when the update is outside the authorized scope.
 - **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
-- **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work on the same area. Say the measurement comes first, or why it can wait.
+- **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work in the same area. Say the measurement comes first, or why it can wait.
+- **Code before an accepted plan.** The request asks for product code in an initiative whose build plan is not accepted yet ("skip the rest, just write it"). This one is a gate: write no code. In one message name what the gate still needs and offer the paths, with a recommendation: finish it (often one short round), run the work as a `change` when the solution is already fixed, or record an override with the person's own reason through the script (`record {phase} --override "reason"`), visible in every briefing, then build. The person's decision to skip is a reason to log: code built past an unrecorded gate is how a project ends up with features its own phase 2 said not to build.
 
-- **Code before an accepted plan.** The request asks for product code in an initiative whose build plan is not accepted yet ("skip the rest, just write it"). This one is a gate, not a flag: write no code. In one message name what the gate still needs and offer the paths, with a recommendation: finish it (often one short round), run the work as a `change` when the solution is already fixed, or record an override with the person's own reason through the script (`record {phase} --override "reason"`), which stays visible in every briefing, and then build. The person deciding to skip is a reason to log, never a silent pass: code built past an unrecorded gate is how a project ends up with features its own phase 2 said not to build.
-
-The briefing's Attention line covers what the files decide mechanically; the first four need judgment. Never block the request on them and never repeat one the user has already answered in this session.
+The briefing's Attention line covers what the files decide mechanically; the first four need judgment. They inform the request without blocking it, and each is raised once per session.
 
 ## Routes
 
@@ -46,7 +47,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |
 | Draft or revise a specification from requirements | `spec-writing`, standalone; UX/tracking as needed |
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
-| Turn what was discussed into a spec, with no interview | `spec-writing`, Synthesis Procedure (`to-spec` by name) |
+| Turn what was discussed into a spec, with no interview | `spec-writing`, synthesis (`to-spec` by name) |
 | Break a plan or spec into tickets | `delivery-discipline`, [tickets](../delivery-discipline/references/tickets.md) (`to-tickets` by name) |
 | Write, update or prune a repository's `AGENTS.md` or `CLAUDE.md`; the agent keeps getting lost in the code | `agents-md`, standalone |
 | A retrospective on an agent session, or what to change so the agent works better here | [retro](../retro/SKILL.md) (`retro` by name) |
@@ -57,24 +58,22 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Experiment design or result | `experiment-methodology` |
 | Release notes, stakeholder update or other document | `pm-artifacts` |
 
-Evidence and gate skills support the selected work; they do not force a standalone answer into a pipeline. Load `pressure-testing` for a requested critique or a material unresolved assumption.
+Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` for a requested critique or a material unresolved assumption.
 
-## Capabilities and Resources
+## Capabilities
 
-`files.read` supplies context; when unavailable, use supplied material and name the gap. `shell.exec` can run the briefing; otherwise read relevant memory. Shared resources and scripts resolve from the real installation, per [resource paths](../../references/operating-modes.md#path-resolution).
+`files.read` supplies context; without it, work from supplied material and name the gap. `shell.exec` runs the briefing; without it, read the relevant memory directly.
 
-Read [state and session briefing](../../references/builderos-state-schema.md) for lifecycle routing or status. Standalone answers do not load all initiatives or this schema.
+## Watch for
+
+| Do | Instead of |
+|---|---|
+| A standalone PRD from requirements, assumptions labeled | Treating it as an overridden SHAPE phase |
+| Carry forward authorization and start | Asking again after an explicit phase request |
+| Load the method the calculation needs | Turning a calculation into a full product audit |
+| State the gap and ask when it blocks the result | A fabricated baseline for missing context |
+| Report readiness until exposure is observed | A release plan reported as shipped |
 
 ## Output Contract
 
-For an ambiguous request, state the route and reason, then resolve the blocking choice. An obvious route goes directly to its result. `## ROUTE CHOSEN` is an optional routing marker, not phase completion evidence.
-
-## Common Mistakes
-
-| Mistake | Correct |
-|---------|---------|
-| A standalone PRD treated as an overridden SHAPE phase | Use requirements and label assumptions; create no initiative |
-| Asking again after an explicit phase request | Carry forward authorization and start |
-| A calculation becoming a full product audit | Load only the needed method |
-| Missing context becoming a fabricated baseline | State the gap and ask if it blocks the result |
-| A release plan reported as shipped | Report readiness until observed exposure is verified |
+An ambiguous request gets the route and its reason, then the blocking choice; an obvious one goes straight to its result. `## ROUTE CHOSEN` is an optional routing marker, separate from phase completion evidence.

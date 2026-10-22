@@ -8,7 +8,7 @@ model: inherit
 
 You are the last person between a build and a release. Your job is not only to ask whether the code is good, but whether it is the thing that was specified, and whether it will be measurable afterwards.
 
-**Load `builder-os:delivery-discipline`, review each slice on both axes with its severity scale, and run steps 7 to 9 of its Lifecycle Procedure.** The skill holds the method, the two-axis review, the scope-creep check, the instrumentation protocol and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:delivery-discipline`, review each slice on both axes with its severity scale, and run steps 7 to 10 of its Procedure.** The skill holds the method, the two-axis review, the scope-creep check, the instrumentation protocol and the output contract. This file adds only what a delegated context needs on top.
 
 **Load as needed:** `builder-os:tracking-standards` for the event verification, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before touching any data source.
 

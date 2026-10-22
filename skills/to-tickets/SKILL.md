@@ -6,8 +6,13 @@ disable-model-invocation: true
 
 # To Tickets
 
-Run the method in [tickets](../delivery-discipline/references/tickets.md) on what the person passed (a spec, a build plan, an issue) or on the current conversation: vertical slices, blocking edges, the quiz until the person approves, then one ticket per file or per issue.
+Each ticket is a **tracer bullet**: a thin slice through every layer that runs end to end, so the first one proves the path and the rest widen it. Adapted from Pocock's `to-tickets` (MIT).
 
-Inside a BuilderOS initiative the slices are the build plan's, the quiz happens before the plan's acceptance, and the tickets go to `.builderos/initiatives/{initiative}/tickets/`. Outside one, they go to `.builderos/tickets/{slug}/` or the destination the person named. Adapted from Pocock's `to-tickets` (MIT).
+## Procedure
 
-Completion marker: `## TICKETS PUBLISHED` with where they went, the frontier (the tickets with no open blocker) and the critical path.
+1. **Slice and quiz.** Run the method in [tickets](../delivery-discipline/references/tickets.md) on what the person passed (a spec, a build plan, an issue) or on the current conversation. Done when the person approved the breakdown: the slices, their blocking edges and their order.
+2. **Publish.** Inside a BuilderOS initiative the slices are the build plan's, the quiz comes before the plan's acceptance, and the tickets go to `.builderos/initiatives/{initiative}/tickets/`. Elsewhere they go to `.builderos/tickets/{slug}/`, the tracker, or the destination the person named. Done when every approved slice exists as one ticket with its blockers written in it.
+
+## Output Contract
+
+`## TICKETS PUBLISHED` with where they went, the frontier (the tickets with no open blocker) and the critical path.

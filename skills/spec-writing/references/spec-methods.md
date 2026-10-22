@@ -115,6 +115,16 @@ The eval set is an actual file, not a prose case count. The spec names `**Datase
 
 The dataset lives in the initiative's `evals/` directory or the repository's existing location; the spec points at it. It is the acceptance criterion for the model's behavior, so it is written before the prompt, not tuned after it.
 
+## Real-User Session
+
+Product track, gate 4.13, before the build. One session with a person from the ICP walking the clickable version: does the problem land, does the concept make sense, where do they stick on the primary action. Write for the person running it:
+
+- **The recruiting message**: who, why them, how long, what they get.
+- **The script**: the problem first, in their words; then the prototype; then silence while they try. Questions about the last time it happened, never about what they would do.
+- **The note template**: what they did, where they stuck, what they said unprompted, what changed in the spec because of it.
+
+Notes come back pasted or as a file and are saved with `scripts/bos.mjs evidence add --class interview --id P{n}`. On a product for sale the same session shows the price (gate 4.14): a pre-order, a letter of intent or a click on a price is willingness to pay; praise is not. When nobody from the ICP can be reached this week, the spec says what the build is betting on without the session, and the person may override with that reason; the section records only sessions that happened.
+
 ## More Common Mistakes
 
 | Mistake | Why it fails | Correct |

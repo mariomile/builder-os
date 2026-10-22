@@ -1,83 +1,59 @@
 ---
 name: delivery-discipline
-description: "Plans and runs a build: seams and slices, a plan the owner accepts before code, a test baseline, red-green per acceptance criterion, review in a fresh context, guardrails and quality checks in CI, and a look at the built interface. Use when a spec needs breaking into buildable work, when implementation starts, or when built work needs reviewing against the spec."
+description: "Plans and runs a build: seams and tracer-bullet slices, a plan the owner accepts before code, a test baseline, red-green per criterion, fresh-context review, CI guardrails. Use when breaking a spec into work, implementing it, or reviewing built work."
 ---
 
 # Delivery Discipline
 
-Phase 5 turns a spec into working, tested, instrumented software and proves it: a plan a person accepts before any code changes, then a captured execution record the gate can resolve and judge against the criteria, the current change and the plan. An exit code alone cannot prove conformance.
+Phase 5 turns a spec into working, tested, instrumented software and proves it: a plan a person accepts before any code changes, then a **captured** execution record the gate can resolve and judge against the criteria, the current change and the plan. An exit code alone proves nothing about conformance.
 
-Read [operating modes](../../references/operating-modes.md) first. Load `tracking-standards` for requested instrumentation verification, `evidence-ledger` for lifecycle claims, `gate-checks` when completing a lifecycle build. Resolve [capabilities](../../references/capability-map.md) only for resources actually needed. Read [the build method](references/build-method.md) when filling `TECH.md` → Verify, grading a review finding, capturing a run, writing a status claim, or when you need a step's reasoning.
+**Mode.** Standalone decomposition produces the plan (step 3) from the supplied spec and stops there. A standalone implementation plans first and waits for acceptance unless the request already authorized going straight to code; a standalone review applies the two axes and the severity scale of step 5. The lifecycle runs every step and gate 5. Both per [operating modes](../../references/operating-modes.md).
 
-**Interop.** Where a plan-then-test-then-review toolchain is present in this session, delegate loop steps 1 to 4 to it and keep the criterion-to-test mapping, scope-creep check and instrumentation verification. Detect only what is present; never prompt an install.
+Read [the build method](references/build-method.md) when filling `TECH.md` → Verify, grading a review finding, capturing a run, writing a status claim, or when a step's reasoning is needed. Load `tracking-standards` for instrumentation checks and `gate-checks` when completing a lifecycle build. Where a plan-then-test-then-review toolchain is present in this session, it may run loop steps 1 to 4; keep the criterion-to-test mapping, the scope-creep check and the instrumentation verification here.
+
+## Procedure
+
+1. **Read `04-spec.md`, `DESIGN.md`, `TECH.md`.** The build uses the stack in the spec's `## Stack` and the tokens and kit in `DESIGN.md` → Visual direction. A layer the work needs that is still open, or a **structural** addition found later (a framework, a database, a hosted service, a paid API, a runtime), pauses the slice and returns to `stack-decisions` as a card for the person; plan and `TECH.md` are updated before it resumes. Utility libraries are the build's call, listed in the review with their reason. Done when the spec exists and every layer the work touches is decided.
+2. **Record the test baseline** before any code: run `TECH.md` → Verify through `run-check` and note passes, failures and duration. An already red suite belongs to someone else: list each failure under `## Pre-existing failures` and in `TECH.md` → Known failing, and gate 5.2 compares the final run against this baseline plus a separate green run of the mapped tests. An empty Verify gets filled first; several commands get wrapped in one target; no suite means slice one creates it. No guardrail (no CI job or pre-commit hook running Verify) means slice zero adds the cheapest one per [Guardrails](references/build-method.md#guardrails), with the accessibility, end-to-end, dependency and secret checks (gates 5.8 and 5.10); where the CI belongs to someone else, the plan asks them. Work on the branch the plan names; a slow suite uses `TECH.md` → Test (fast) per slice ([where the work lives](references/build-method.md#slow-suites-and-where-the-work-lives)). Done when the baseline capture exists and every failure in it is listed.
+3. **Write the plan, reading only:** spec, `TECH.md`, codebase, in the host's read-only planning mode where one exists; the baseline writes only evidence files. The plan holds the **seams** (each module this work creates or changes, its interface, what it hides, where its tests sit, per [the build method](references/build-method.md#seams)), with the central module designed twice; slices with files, criteria and blocking edges, per the [slice rules](references/build-method.md#slice-rules) and [tickets](references/tickets.md) (expand–contract for a wide refactor); the critical path; risks with mitigations; rejected alternatives with why each lost; a planned test for every numbered criterion. Slices are **tracer bullets**, each end to end, sized to one fresh session. Open it with `**In plain words:**`: what gets built, in what order, what the person can try after each slice, the riskiest step, and one line per seam a non-engineer can follow. Done when an engineer who never saw this conversation could build from it without asking which file, which order or which test.
+4. **Get the plan accepted.** Present `**In plain words:**` first. Quiz the person on the slices per [tickets](references/tickets.md), section 3 (granularity, blocking edges, merge or split, with your recommendation) until they approve the breakdown; then what breaks, the riskiest step, what was rejected and why. Record `**Accepted:** {who} · {ISO timestamp}` from the person's own words, or quote an earlier standing instruction that named the build, with its date. Code starts after that line. Publish one ticket per slice per [tickets](references/tickets.md), section 4, and name where under `**Tickets:**`. Done when the plan carries the person's acceptance and the tickets exist.
+5. **Run the loop per slice**, in order:
+   1. **Write the test first** from the criterion, by number, at a seam the plan names; a test that reaches into internals is rewritten at the seam. An untestable criterion returns to phase 4.
+   2. **Watch it fail.**
+   3. **Write the least code that passes it.**
+   4. **Refactor with the test green.**
+   5. **Verify the slice's instrumentation** fires in a real environment with the tracking plan's properties.
+   6. **Review on two axes**, tagging each finding **standards** (good code?) or **spec conformance** (the specified thing?): behavior against each criterion the slice claims, including phase 4's enumerated states, and the diff against the plan. The review runs in a fresh context holding spec, plan and diff and none of the build conversation; where the host cannot delegate, reread the diff from the start as someone else's. **Important** findings (break a criterion or enumerated state, expose data, violate a `TECH.md` constraint, weaken a test, add an undecided structural layer, depart from the chosen tokens or kit) are fixed now; list at most five **nits** and count the rest. A recurring mechanical finding becomes a check (Guardrails); one that needs judgment goes into `TECH.md` → Conventions.
+
+   A bug found on the way runs `bug-diagnosis`. **Fix the code, keep the test:** a test changes only when it encodes behavior the spec does not require, as its own visible step citing the spec line. Done when Verify, captured after the slice's last change, is green on every criterion the slice owns and no important finding is open.
+6. **Keep the plan true.** A deviation (an unnamed file, a split slice, a risk that turned real) updates the plan in the same change, with the reason. Done when the plan describes the diff as it is.
+7. **Check scope creep** (gate 5.4): the diff against the phase 4 out-of-scope list, item by item. Anything built from it is removed, or promoted deliberately as a logged, visible override. Done when every out-of-scope item has a verdict.
+8. **Verify instrumentation end to end** (gate 5.3): per tracking-plan event, trigger the action, confirm arrival with its properties at the destination, record the evidence tagged by source. With no analytics capability, the code path plus a local emission log, tagged as weaker. Done when every event in the tracking plan has its evidence.
+9. **Look at what was built** (gate 5.9). Open the built product and capture each state of the primary flow, at least empty and error, with `ui.capture`; compare each with the chosen version and the tokens in `DESIGN.md`. A difference is fixed, or recorded in `DESIGN.md` as a deviation with its reason. With no capture capability, give the person the routes and record what they saw; with no interface, `**Interface review:** not applicable, {reason}`. Done when `## Interface review` has an image or route per state.
+10. **Write, gate, and leave the code legible.** Complete `.builderos/initiatives/{initiative}/05-build-plan.md` per [the build-plan template](references/build-plan-template.md), headings, bold labels and tables exact, with every status claim backed by a `run-check` capture from the final change. Run gate 5 and record it (`scripts/bos.mjs record 5 --judged "{judge-id}=pass|fail,..."` where commands run). Update `TECH.md`: Map for every module, entry point or test location added, moved or removed (gate 5.11 checks every path in the map, `AGENTS.md` and `CLAUDE.md`), Verify, conventions, traps, recurring findings, and each must-always-hold rule under Technical constraints with its deterministic check. Move the initiative to phase 6 in `ROADMAP.md`. Then run [retro](../retro/SKILL.md) on the build sessions while they are fresh and list the changes under `**Environment:**`; a finding about `AGENTS.md` or `CLAUDE.md` runs `agents-md`. Done when gate 5 is recorded, `TECH.md` matches the code, and the retro's changes are listed.
+
+A planning-only run (`--plan-only`) is legitimate: it produces the accepted plan without the loop and leaves gate 5 for later.
+
+## Watch for
+
+| Do | Instead of |
+|---|---|
+| Capture the final run and have coverage judged | Pasting green output |
+| Test the criterion where its surface lives, or return it to phase 4 | Mapping it to "no test, reasoned exception" |
+| Fix a finding that biases the phase 2 metric or a guardrail now | Carrying it to phase 6 |
+| Plan reading only, get acceptance, then build | Code before the `**Accepted:**` line |
 
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `repo.read` | Codebase, tests, patterns | Phase 5 cannot run; say so rather than plan in the abstract |
-| `shell.exec` | Verify through `run-check` | No capture, so gate 5.2 cannot pass; deliver the plan and say what must run |
+| `repo.read` | Codebase, tests, patterns | Phase 5 needs it; say so and stop at the plan's questions |
+| `shell.exec` | Verify through `run-check` | Deliver the plan, say what must run; gate 5.2 waits for a capture |
 | `analytics.events` / `analytics.query` | Events arriving with properties | Emission log or code path, tagged weaker |
-| `ui.capture` | Screenshots of each state of the built interface (step 8b) | The user opens the routes and says what they see |
-| `subagent.dispatch` | Delegating the loop | Run it inline, slice by slice |
+| `ui.capture` | Screenshots of each state of the built interface (step 9) | The person opens the routes and says what they see |
+| `subagent.dispatch` | The fresh-context review, the loop | Run it inline, slice by slice |
 | `files.read` / `files.write` | Artifacts, state | Required |
 
-A planning-only run (`--plan-only`) is legitimate and produces the accepted plan without the loop; it does not pass gate 5.
+## Output Contract
 
-## Standalone Procedure
-
-For task decomposition, produce the plan (step 3) from the supplied spec; do not implement or run a lifecycle gate. For an authorized implementation, plan first and wait for acceptance unless the request already authorized going straight to code. For a review, apply the two axes and the severity scale (loop step 6). Use supplied requirements and project conventions without requiring phase filenames. Size tests to the changed behavior.
-
-## Lifecycle Procedure
-
-Run in order; delegate where the host allows, inline where it does not.
-
-**1. Read `04-spec.md`, `DESIGN.md`, `TECH.md`.** No `04-spec.md` means stop. The build uses the stack in the spec's `## Stack` and the tokens and kit in `DESIGN.md` → Visual direction; it chooses neither. A layer the work needs that is still open, or a **structural** addition found later (a framework, a database, a hosted service, a paid API, a runtime), stops the slice and goes back to `stack-decisions` as a card for the user; plan and `TECH.md` are updated before it resumes. Utility libraries are the build's call, listed in the review with their reason.
-
-**2. Record the test baseline** before any code: run `TECH.md` → Verify through `run-check`; note passes, failures and duration. A suite that is already red is not this initiative's to fix: list each failure under `## Pre-existing failures` and in `TECH.md` → Known failing, and gate 5.2 will compare the final run against this baseline (with a separate green run of the mapped tests) instead of demanding exit 0. Where Verify is empty, fill it first. Where verifying needs several commands and environment knowledge, slice one wraps them in a single target. No suite: say so; slice one creates it. No guardrail (`TECH.md` → Guardrail is "none", or no CI job or pre-commit hook runs Verify): slice zero adds the cheapest one per [Guardrails](references/build-method.md#guardrails), so every later slice is checked without anyone remembering to (gate 5.8), with the accessibility, end-to-end, dependency and secret checks in it (gate 5.10); where the CI belongs to someone else, it is their call, asked in the plan. Work on the branch the plan names; a slow suite uses `TECH.md` → Test (fast) per slice ([where the work lives](references/build-method.md#slow-suites-and-where-the-work-lives)).
-
-**3. Write the plan, reading only** (spec, `TECH.md`, codebase): change no code or test, and use the host's read-only planning mode where one exists; the baseline writes only evidence files. The plan holds the **seams**: the modules this work creates or changes, each with its interface (what callers can ask of it and what it promises), what it hides, and where its tests sit, chosen per [the build method](references/build-method.md#seams); slices with files, criteria and blocking edges; the critical path; risks with mitigations; rejected alternatives with why each lost; and a planned test for every numbered criterion (one without is the gate 5.1 failure, found now). Slices are tracer bullets, each end to end, sized to one fresh session and mapped to criteria by number; apply the slice rules in [the build method](references/build-method.md#slice-rules) and in [tickets](references/tickets.md) (including expand–contract for a wide refactor) while writing the plan.
-
-**Design the central module twice.** The module most slices depend on, or the one holding the domain rules, gets two or three radically different interfaces (the smallest, the most flexible, the one that makes the common case trivial), delegated in parallel where the host allows; compare them on how much each hides and where change would land, pick one, and put the others under rejected alternatives.
-
-**Explain it in plain words.** Open the plan with `**In plain words:**`: what gets built, in what order, what the user will be able to try after each slice, and the riskiest step. Every seam gets one line a non-engineer can follow ("one place decides whether a ticket may change state; every screen asks it"). The owner accepts what they understood, not a table.
-
-**Completeness test:** an engineer who never saw this conversation could build from the plan without asking which file, which order or which test.
-
-**4. Get the plan accepted.** Present `**In plain words:**` first. Quiz the person on the slices per [tickets](references/tickets.md), section 3: granularity, blocking edges, merge or split, with your recommendation, until they approve the breakdown. Interrogate the rest (what breaks, the riskiest step, what was rejected and why), then ask for acceptance. Record `**Accepted:** {who} · {ISO timestamp}` from the person's own words, or quote an earlier standing instruction ("proceed through the build without stopping") with its date. Never accept on their behalf. No code before that line. Then publish one ticket per slice per [tickets](references/tickets.md), section 4, and name where under `**Tickets:**`, so each slice can run in a fresh session.
-
-**5. Run the loop per slice**, in order:
-
-1. **Write the test first** from the criterion, by number, at a seam the plan names; a test that reaches past a seam into internals is rewritten at the seam. An untestable criterion goes back to phase 4.
-2. **Watch it fail.**
-3. **Write the least code that passes it.**
-4. **Refactor with the test green.**
-5. **Verify the slice's instrumentation** fires in a real environment with the tracking plan's properties.
-6. **Review** on two axes, tagging each finding with its axis, **standards** (good code?) or **spec conformance** (the specified thing?): behavior against each criterion the slice claims, including phase 4's enumerated states, and the diff against the plan. Review in a fresh context holding spec, plan and diff but not the build conversation; where the host cannot delegate, reread the diff from the start as someone else's. The context that wrote the code never approves it. **Important** findings (break a criterion or enumerated state, expose data, violate a `TECH.md` constraint, weaken a test, add a structural layer nobody decided, depart from the chosen tokens or kit) are fixed now or the gate fails; list at most five **nits** and count the rest. A recurring finding becomes a check when it is mechanical (a lint rule, a type, a hook, a CI step: see Guardrails) and goes into `TECH.md` → Conventions, which the reviewer reads, only when it needs judgment; a change that falsifies a `TECH.md` line updates it.
-
-Before reporting a slice finished, run Verify and show the output.
-
-**A bug:** run `bug-diagnosis`: a loop that goes red on this bug, captured (commit or `run-check`) before touching code, made minimal, the cause found by eliminating hypotheses one at a time, then made to pass without changing the loop.
-
-**Fix the code, keep the test.** Changing an assertion, skipping a case, loosening a match or deleting a test removes the check. A genuinely wrong test (encoding behavior the spec does not require) changes only as its own visible step, citing the spec line. Recommend, never require, a host or CI block on test edits during a fix.
-
-**6. Keep the plan true:** a deviation (unnamed file, split slice, a risk that turned real) updates the plan in the same change, with the reason.
-
-**7. Run the scope-creep check** (gate 5.4): the diff against the phase 4 out-of-scope list, item by item. Anything built from it is removed, or promoted deliberately as a logged, visible override.
-
-**8. Verify instrumentation end to end** (gate 5.3): per tracking-plan event, trigger the action, confirm arrival with its properties at the destination, record the evidence tagged by source. With no analytics capability, use the code path plus a local emission log, tagged and stated as weaker evidence.
-
-**8b. Look at what was built** (gate 5.9). Open the built product and capture each state of the primary flow, at least empty and error, with `ui.capture`; compare each with the chosen version and the tokens in `DESIGN.md`. A difference is fixed, or recorded in `DESIGN.md` as a deviation with its reason. Write `## Interface review` with the image or route per state. With no capture capability, give the user the routes and record what they saw. No interface: `**Interface review:** not applicable, {reason}`.
-
-**9. Write and gate.** Complete `.builderos/initiatives/{initiative}/05-build-plan.md` per [the build-plan template](references/build-plan-template.md), headings, bold labels and tables exact. Back every status claim with a `run-check` capture from the final change; a claim, or a delegated agent reporting one, is not evidence. Run gate 5 and record it (`scripts/bos.mjs record 5 --judged "{judge-id}=pass|fail,..."` where commands run), which advances to phase 6 on pass. Before reporting, update `TECH.md`: Map for every module, entry point or test location this build added, moved or removed (gate 5.11 checks that every path in the map, `AGENTS.md` and `CLAUDE.md` exists), Verify if changed, conventions, traps, recurring findings, and each must-always-hold rule (no edits to generated files, no change to a frozen package) under Technical constraints with its deterministic check (host hook or CI) when one exists. Move the initiative to phase 6 in `ROADMAP.md`. Then run the procedure in [retro](../retro/SKILL.md) on the build sessions while they are fresh, and list the changes made under `**Environment:**` in the plan; a finding about `AGENTS.md` or `CLAUDE.md` runs `agents-md`.
-
-Completion marker: `## BUILD VERIFIED` with the accepted plan, the mapping, the test output, the instrumentation evidence, the scope-creep result, the interface review and the gate result.
-
-## Common Mistakes
-
-| Mistake | Correct |
-|---------|---------|
-| Green output pasted with no captured run | Capture the final run; have coverage judged |
-| A criterion mapped to "no test, reasoned exception" | Test it where its surface lives, or return it to phase 4 |
-| A finding that biases the phase 2 metric or a guardrail carried to phase 6 | Fix it now, or fail gate 5.3 and say why |
-| Code before the plan is accepted | Plan reading only, get acceptance, then build |
+`## BUILD VERIFIED` with the accepted plan, the criterion-to-test mapping, the test output, the instrumentation evidence, the scope-creep result, the interface review and the gate result.

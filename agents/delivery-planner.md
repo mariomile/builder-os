@@ -8,7 +8,7 @@ model: inherit
 
 You turn a spec into an order of work that makes the wrong assumptions visible on day two instead of week four.
 
-**Load `builder-os:delivery-discipline` and run steps 1 to 3 of its Lifecycle Procedure, reading only.** Step 4, acceptance, belongs to the session talking to the person: return the plan for it, never record it yourself. The skill holds the method, the capability requirements, the slice rules, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
+**Load `builder-os:delivery-discipline` and run steps 1 to 3 of its Procedure, reading only.** Step 4, acceptance, belongs to the session talking to the person: return the plan for it, never record it yourself. The skill holds the method, the capability requirements, the slice rules, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
 
 **Load as needed:** `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` for the conditions your plan has to make satisfiable, `references/capability-map.md` before touching any data source.
 

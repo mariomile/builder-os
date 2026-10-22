@@ -1,21 +1,36 @@
 ---
 name: ideation-methods
-description: "Generates and narrows solutions: many raw ideas, then distinct options compared on impact, confidence and effort, a bet the user picks, its kill criteria and the cheapest test of its riskiest assumption. Use when a chosen problem needs solution options, when a team has one idea and needs alternatives, or when a bet needs kill criteria."
+description: "Generates and narrows solutions: eight raw ideas, distinct options scored on separate axes, a bet the person picks, kill criteria, the cheapest test. Use when a problem needs solution options, one idea needs rivals, or a bet needs kill criteria."
 ---
 
 # Ideation Methods
 
-Phase 2 chose what to attack. Phase 3 chooses how, and commits in advance to what would prove the choice wrong.
+Phase 2 chose what to attack. Phase 3 chooses how, by **diverging** wide before judging, **converging** into mechanically distinct options, and committing in advance to what would prove the choice wrong.
 
-## Mode and resources
+**Mode.** Standalone generates alternatives from the supplied opportunity, problem or requirements; an options-only request ends with the alternatives (step 4). The lifecycle runs every step, writes `03-solution-bet.md` and gate 3. Both per [operating modes](../../references/operating-modes.md). Load `pressure-testing` for the bet round, `experiment-methodology` when a test design is requested. Read the [ideation reference](references/ideation-reference.md) for worked examples, the scoring and kill-criteria tables, the test catalogue with cost bands, and the output template.
 
-Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** generate alternatives from the supplied opportunity, problem or requirements. An options-only request ends with the alternatives; do not force a selection, kill criteria or execution of an experiment.
+## Procedure
 
-**Lifecycle:** the phase prerequisites, artifact paths and gate recording below apply only when the user requests that phase or initiative. Missing prerequisites block that lifecycle transition, not a standalone artifact. Completion markers with gate verdicts claim lifecycle completion only after the gate passes.
+1. **Read the inputs.** Standalone uses the supplied problem or opportunity and constraints. Lifecycle reads `02-definition.md` and `00-frame.md`: the selected opportunity, the success metric with its baseline and target, the riskiest assumption; options with no chosen opportunity are a brainstorm, so a missing `02-definition.md` stops the phase. Done when you can state the opportunity, the metric and the riskiest assumption in a line each.
+2. **Diverge before judging.** Wide first, unscored: at least eight raw ideas (five in lite mode; gate 3.5), each one line in `## Divergence` with the prompt that produced it. Work the prompts in order: shift who acts (user, system, teammate, your team by hand); shift when it happens (prevention, intervention, recovery); remove rather than add; take the constraint away, then name the crude version that fits this quarter; borrow how another domain solves the same shape. In the first round ask the person for the ideas they already have and add them under their name: an idea they arrived with and never saw compared is the one they will quietly build anyway. Done when the count is met and every prompt produced at least one idea.
+3. **Converge into distinct options.** Cluster the raw ideas by primary user action, "the user {verb}s {object}"; two ideas with the same sentence are one option with two skins, merged under the stronger skin (gate 3.1). Keep at least three distinct options, a manual or human-powered one and a removal one among them; under three, diverge again. Done when every option has a unique action sentence.
+4. **Score on separate axes.** Impact, Confidence, Effort, Reversibility, each 1 to 5, shown side by side with no composite. Confidence comes from the tags in `01-discovery.md`: an option resting on `[assumption:unvalidated]` scores 1 or 2, and the score line says so. An options-only request ends here. Done when every option has four scores and each confidence score cites its tags.
+5. **Pressure-test and let the person choose.** For each contender, what would make it wrong, which evidence would change it, the cheapest way to find out. Then a `pressure-testing` round: the options with their scores and one line each on what choosing it means, a recommendation and its reason; **reversibility breaks ties, not impact**. Record `**Chosen by:**` with the person and their answer (gate 3.6); a standing instruction that named this scope counts, quoted with its date, and the recap still shows the alternatives so the choice can be reversed in a word. Write the rejections, each with a reason and a revisit condition. Done when the person's choice is recorded and every rejected option has its reason.
+6. **Write kill criteria** (gate 3.2), before the build: the metric (the phase 2 success metric or a named leading indicator), a threshold separating continue from stop, a date, and the action on failure, in a form someone outside the room can apply: "on {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differently}". Done when the criterion could fail on a real number by a real date.
+7. **Say how users arrive and who pays** (product track, gate 3.7). Under `## Business case`: the first 100 users (channel, message, who does the work, and for a self-serve product the loop that brings the next one), the cost per active user (infrastructure plus model, which decides an agent-native product's margin), and for a product for sale the price and the willingness-to-pay test that runs before the build. Read `PRODUCT.md` → Revenue model and Growth engine first; "not for sale" drops the money lines. Do the arithmetic aloud: price times the users the target implies, against the cost. Done when the arithmetic is written and says whether the bet can reach the product's ambition.
+8. **Design the cheapest test** of the assumption that collapses the bet, inherited from phase 0 and sharpened by phases 1 and 2. Before PMF (`PRODUCT.md` → Stage) prefer concierge and Wizard of Oz: doing the outcome by hand tests value, which is the open question, while building it to scale is the work gate 3.8 rejects. Pick the shape from the catalogue, estimate its cost in days and what that rests on, estimate the build in days, and compute the ratio. **Gate 3.4:** under 20% of the build, the test runs first, and building anyway is a logged override that phase 7 reads; over 20%, say so and proceed. Done when the test, both estimates and the ratio are written.
+9. **Deliver.** Standalone returns the alternatives, the proposed bet or the test design as requested. Lifecycle writes `.builderos/initiatives/{initiative}/03-solution-bet.md` per the [template](references/ideation-reference.md#output-template), runs gate 3 and records it (`scripts/bos.mjs record 3` where commands run). Done when the artifact exists and, in the lifecycle, gate 3 is recorded.
 
-Load `pressure-testing` for an unresolved material bet decision, `experiment-methodology` when a test design is requested, and `evidence-ledger`/`gate-checks` for lifecycle traceability and completion. Ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
+## Watch for
 
-Read [ideation reference](references/ideation-reference.md) when you need the worked examples, scoring and kill-criteria tables, test catalogue with cost bands, or the output template.
+| Do | Instead of |
+|---|---|
+| Diverge to eight raw ideas; three is the floor of the converged set | Three options and straight to scoring |
+| Present the round; the person chooses and is recorded | Picking the bet because it scored best |
+| Work the who-acts and removal prompts before scoring | A set with no manual or removal option |
+| Score confidence from tags | Scoring it on enthusiasm |
+| Metric, threshold, date: the number that would embarrass you | Kill criteria that cannot fail |
+| Run a test under 20% of the build, or log the override | Skipping it quietly |
 
 ## Capabilities
 
@@ -24,48 +39,11 @@ Read [ideation reference](references/ideation-reference.md) when you need the wo
 | `analytics.query` | Sizing an option's reachable population; the leading indicator behind a kill threshold | Use supplied sizing with uncertainty; a missing baseline stays unknown and needs measurement |
 | `repo.read` | What already exists, which changes the effort score materially | Ask the user what exists; score effort as a range |
 | `docs.search` | Prior attempts at this problem, and why they were dropped | Ask. A previously failed attempt is the highest-value input to this phase |
-| `web.search` | How others solved this shape of problem | Skip; the option set comes from the four prompts |
-| `files.read` / `files.write` | Supplied inputs and requested artifact; lifecycle state | No file write for inline alternatives; required for lifecycle writes |
+| `web.search` | How others solved this shape of problem | Skip; the option set comes from the prompts in step 2 |
+| `files.read` / `files.write` | Supplied inputs and requested artifact; lifecycle state | Inline alternatives need no write; lifecycle writes require it |
 
-**Option generation needs no connected data.** In lifecycle mode an unknown upstream baseline blocks the relevant gate until measured or explicitly overridden. A provisional test threshold may be a design choice, labeled as such, rather than a claimed observed value.
-
-## Procedure
-
-Apply only the steps needed for the requested artifact. Delegate when available and authorized; otherwise run inline.
-
-1. **Read the requested inputs.** Standalone ideation uses the supplied problem/opportunity and constraints. For lifecycle IDEATE, read `02-definition.md` and `00-frame.md`: the selected opportunity, the success metric with its baseline and target, and the riskiest assumption. No `02-definition.md` on disk means stop: options generated without a chosen opportunity are a brainstorm, not a phase.
-
-2. **Diverge before judging.** Generate wide first, with no scoring and no favourites: at least eight raw ideas (five in lite mode; gate 3.5), each one line, written into `## Divergence` with the prompt that produced it. Work the prompts in order: shift who acts (user, system, teammate, your team by hand); shift when it happens (prevention, intervention, recovery); remove rather than add; take the constraint away, then name the crude version that fits this quarter; borrow how another domain solves the same shape of problem. In the first round, ask the user for the ideas they already have and add them under their name: an idea they arrived with and never saw compared is the one they will quietly build anyway. Wild and crude ideas belong here; the list is cheap, a missed mechanism is not.
-
-2b. **Converge into mechanically distinct options.** Cluster the raw ideas by primary user action, written as "the user {verb}s {object}". Gate 3.1 is deterministic: two ideas producing the same sentence are one option with two skins; merge them and keep the strongest skin. Keep at least three distinct options, including a manual or human-powered option and a removal option. If merging drops the set below three, go back to diverging: gate 3.1 counts distinct mechanisms, not entries.
-
-3. **Score.** Impact, Confidence, Effort, Reversibility, each 1 to 5, shown separately; no composite score. Confidence is scored from tags in `01-discovery.md`, not enthusiasm: an option resting on `[assumption:unvalidated]` scores 1 or 2 however obvious it feels, and the score line says so.
-
-4. **Pressure-test a proposed bet when selection is requested.** Compare the separate axes and strategic constraints; there is no composite highest scorer. For material unresolved decisions ask what would make it wrong, which evidence would change it, and the cheapest way to find out. Record unresolved uncertainty with the test that addresses it; do not force another approval for decisions already delegated.
-
-5. **The user chooses the bet.** An options-only request stops after comparison. In lifecycle IDEATE the selection is a round per `pressure-testing`: the options with their scores and one line each on what choosing it means, a recommendation and its reason. Record `**Chosen by:**` with the person and their answer (gate 3.6); a standing instruction that named this scope ("proceed through the build") counts, quoted with its date, and the recap still shows the alternatives so it can be reversed in a word. The agent never selects the bet on its own. Write the rejections, each with a reason and a revisit condition, as phase 2 does. **Reversibility breaks ties, not impact.**
-
-6. **Write kill criteria (gate 3.2, not negotiable).** Before the build: metric (the phase 2 success metric or a named leading indicator), threshold (a number separating continue from stop) and date, all mandatory, plus the action on failure, in a form someone not in the room can apply: "on {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differently}." A criterion that cannot be failed is decoration.
-
-6b. **Say how users arrive and who pays** (product track, gate 3.7). Under `## Business case`: the first 100 users (channel, message, who does the work, and for a self-serve product the loop that brings the next user), the cost per active user (infrastructure plus model, the line that decides the margin of an agent-native product), and for a product for sale the price and the willingness-to-pay test that runs before the build. Read `PRODUCT.md` → Revenue model and Growth engine first; "not for sale" drops the money lines. Do the arithmetic aloud: price times the users the target implies, against the cost; a bet whose arithmetic cannot reach the product's ambition says so.
-
-7. **Design the cheapest test.** Before PMF (`PRODUCT.md` → Stage), prefer concierge and Wizard of Oz: doing the outcome by hand tests value, which is the open question, and building it to scale is the work gate 3.8 rejects. Name the riskiest assumption the bet rests on (inherited from phase 0, sharpened by phases 1 and 2) and test the one that collapses the bet, not the easiest one. Pick the test shape from the catalogue, estimate its cost in days for this team and say what the estimate rests on, estimate the build cost in days, compute the ratio and state what happens first. **Gate 3.4:** under 20% of the build, the test runs first; building anyway is an override with a reason, logged, which phase 7 reads when judging the outcome. Over 20%, say so and proceed to build.
-
-8. **Deliver.** Return standalone alternatives, a proposed bet or test design as requested without lifecycle gate claims. In lifecycle mode: write `.builderos/initiatives/{initiative}/03-solution-bet.md`, run gate 3 and record it (`scripts/bos.mjs record 3` where commands run), which advances to phase 4 on pass.
-
-Completion marker: `## BET SELECTED` with the raw ideas count, the option set, who chose the bet, the selection, the kill criteria, the test design and the gate result.
+**Option generation needs no connected data.** In the lifecycle an unknown upstream baseline holds the relevant gate until it is measured or explicitly overridden. A provisional test threshold may be a design choice, labeled as such, rather than a claimed observed value.
 
 ## Output Contract
 
-Standalone output follows the requested format and destination, adapting the template only where useful. Lifecycle output is `.builderos/initiatives/{initiative}/03-solution-bet.md`, following the [template](references/ideation-reference.md#output-template) exactly; gate 3 parses its headings and bold labels.
-
-## Common Mistakes
-
-| Mistake | Correct |
-|---------|---------|
-| Three options and straight to scoring | Diverge to eight raw ideas first; three is the floor of the converged set, not the size of the search |
-| The agent picks the bet because it scored best | Present the round; the person chooses and is recorded |
-| No manual or removal option in the set | Work prompts 1 and 3 before scoring |
-| Confidence scored on enthusiasm | Score from tags; unvalidated means 1 or 2 |
-| Kill criteria with no date, or a threshold that cannot be failed | Metric, threshold, date; write the number that would embarrass you |
-| Skipping a test that costs under 20% of the build | Run it, or override with a logged reason |
+`## BET SELECTED` with the raw ideas count, the option set, who chose the bet, the kill criteria, the test design and the gate result. Standalone output follows the requested format and destination; lifecycle output follows the [template](references/ideation-reference.md#output-template) exactly, since gate 3 parses its headings and bold labels.

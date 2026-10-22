@@ -1,0 +1,8 @@
+# Synthesis: a spec from what was already discussed
+
+Read this when the person asks to turn the conversation into a spec (by name, `to-spec`). The spec is written from the conversation and the code; the one question is the test seams.
+
+1. **Gather.** The conversation, every artifact and file it referenced, `TECH.md`, `DOMAIN.md` and the decisions in the area; explore the code the change touches where `repo.read` resolved. Use the product's terms from `PRODUCT.md` → Language. Done when every statement the spec will make has a place in the conversation or the code it came from.
+2. **Propose the test seams.** The highest points the behavior can be tested from, existing ones first, as few as possible. Check them with the person in one question; this is the only question. Done when they said yes or picked other seams.
+3. **Write** the [spec template](spec-template.md) sections the material supports: problem and solution from the user's side, a long list of user stories, scope and out of scope, numbered acceptance criteria, states, test seams, and the decisions made (modules, interfaces, schema, contracts) described without file paths or code. A gap goes under **Not yet specified** with who decides it. Done when every user story maps to a criterion and every gap is named.
+4. **Deliver** to the requested destination: a file, a document, or the person's tracker through `tickets.write`. In a lifecycle initiative it becomes `04-spec.md` and gate 4 runs on it like any spec: what the conversation never settled shows up as failed conditions, and the lifecycle steps in [spec-writing](../SKILL.md) close them. Done when the spec is at its destination.

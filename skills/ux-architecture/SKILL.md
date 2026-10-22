@@ -1,56 +1,46 @@
 ---
 name: ux-architecture
-description: "Designs how a feature works before it is built: information architecture, user flows, every state of each step, the component inventory and the accessibility floor. Use when a feature needs its flows, screens or states defined, or when a spec needs DESIGN.md."
+description: "Designs how a feature works before it is built: information architecture, user flows, every state of each step, components, the accessibility floor. Use when a feature needs its flows, screens or states defined, or a spec needs DESIGN.md."
 ---
 
 # UX Architecture
 
-The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look is chosen next, by the user, from several rendered versions: `design-direction` owns it.
+The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look comes next, chosen by the person from several rendered versions in `design-direction`.
 
-## Mode and resources
+**Mode.** Standalone designs the supplied feature or flow from the available product context and the existing design system. In the lifecycle it runs inside phase 4 for `spec-writing` and writes the initiative's `DESIGN.md`. Both per [operating modes](../../references/operating-modes.md). Read the section of [UX methods](references/ux-methods.md) behind steps 3 to 7.
 
-Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** design the supplied feature or flow using available product context and the existing design system, without a solution-bet file or spec-writing handoff. **Lifecycle:** phase prerequisites, artifact paths and gate recording below apply only when the user requests that phase or initiative; missing prerequisites block that transition, not a standalone artifact, and a completion marker with a gate verdict claims lifecycle completion only after the gate passes.
+## Procedure
 
-Load `evidence-ledger` when lifecycle user-behavior claims need tagging and [capability mapping](../../references/capability-map.md) when resolving an external capability. Do not load `spec-writing` to perform this design task. Ask what remains per the `pressure-testing` rounds: options, a recommendation and why; for a factual gap, ways to close it, never guessed values.
+1. **Read the feature inputs.** Standalone uses the supplied feature, goal and constraints. The lifecycle reads `03-solution-bet.md`: its primary user action is the flow this skill designs. Done when the primary action is stated in one line.
+2. **Map the current structure:** navigation, the area this touches, existing components; without `repo.read`, ask and mark the inventory unverified. Done when the touched area and its components are listed.
+3. **Place the feature** where the user expects it, or name the cost of the easy spot, with current and proposed structure side by side. Done when what moves is named.
+4. **Design the flows.** Every entry point, the steps (user action, system response), decision points, both exits, reversibility; a multi-step flow states its abandonment exit (discard, draft or resume). Done when every flow has its entries, steps and exits.
+5. **Cover the states:** empty (with the action that fills it), loading, partial, error, success, permission. The permission state follows the existing auth, tenancy and permission contract, inspected first; where it cannot be read, the assumption is labeled unverified. Error copy names what failed and the next action, where disclosure is permitted. Done when every step of every flow has its six states.
+6. **Inventory the components:** exists, extend (naming what else it affects), new (with its justification). Done when every component in the flows has one of the three.
+7. **State the accessibility floor:** the keyboard path with tab order for the primary flow, the contrast target as a ratio, focus behavior on open, close, error and completion. Done when all three are written.
+8. **Deliver the design** to the requested destination. In the lifecycle write `DESIGN.md` per the [design template](references/design-template.md), headings and labels exact, then hand the primary flow to `design-direction` and the flow list to the spec; gate 4.9 also needs the visual direction. Done when `DESIGN.md` holds the flows, states, inventory and floor.
 
-Read the relevant section of [UX methods](references/ux-methods.md) for the tables behind steps 3 to 7.
+## Watch for
+
+| Do | Instead of |
+|---|---|
+| Keep the actual auth contract, including a deliberate concealed-resource 404 | Replacing it with an access message that reveals the resource |
+| The existing pattern first | Four new components for one feature |
+| Supplied context and the requested destination for a standalone request | Creating initiative state for it |
+
+More in [UX methods](references/ux-methods.md).
 
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `repo.read` | Existing components, navigation and flows | Ask the user to describe them; mark the inventory as unverified |
+| `repo.read` | Existing components, navigation and flows | Ask the person to describe them; mark the inventory as unverified |
 | `docs.search` | Design system documentation, prior flow decisions | Ask |
-| `analytics.replay` | Where users actually stall in the current flow | Skip; design from structure rather than observation, and say so |
+| `analytics.replay` | Where users actually stall in the current flow | Design from structure rather than observation, and say so |
 | `files.read` / `files.write` | Supplied context, requested design and lifecycle artifacts | Inline design needs no file write; lifecycle writes require it |
 
-**No data capability is required.** The visual layer is never left uncovered: `design-direction` renders versions as files on any host, and uses a design toolchain where one resolved.
-
-## Procedure
-
-Apply only the steps needed for the requested artifact. Delegate when available and authorized; otherwise run inline.
-
-1. **Read the feature inputs.** Standalone design uses the supplied feature, goal and constraints. Lifecycle SHAPE reads `03-solution-bet.md`: the primary user action is the flow this skill designs.
-2. **Map the current structure:** navigation, the area this touches, existing components. Without `repo.read`, ask and mark the inventory unverified.
-3. **Place the feature** where the user expects it, or name the cost of the easy spot. Current and proposed structure side by side; name what moves.
-4. **Design the flows.** Every entry point, steps (user action, system response), decision points, both exits, reversibility. Any multi-step flow states its abandonment exit: discard, draft or resume.
-5. **Cover the relevant states:** empty (with the action that fills it), loading, partial, error, success, permission. Inspect existing auth, tenancy and permission behavior before defining the permission state, and preserve that contract; if unavailable, label the assumption unverified rather than choosing a disclosure policy. Error copy names what failed and the next action, where disclosure is permitted.
-6. **Inventory the components:** exists, extend (name what else it affects), new (justify it).
-7. **State the accessibility floor.** Keyboard path with tab order for the primary flow, contrast target as a ratio, focus behavior on open, close, error and completion.
-8. **Deliver the design** to the requested destination. In lifecycle SHAPE write the initiative's `DESIGN.md`, then hand the primary flow to `design-direction` for the visual direction and the flow list to the spec phase. A complete structure alone does not pass gate 4: 4.9 needs the visual direction too.
-
-Completion marker: `## DESIGN COMPLETE` with the flow list, the state matrix, the component inventory and the accessibility floor.
+**No data capability is required.** The visual layer is always covered: `design-direction` renders versions as files on any host, and uses a design toolchain where one resolved.
 
 ## Output Contract
 
-Lifecycle output is `DESIGN.md` in `.builderos/initiatives/{initiative}/`, written to the [design template](references/design-template.md) with its headings and labels kept exactly.
-
-## Common Mistakes
-
-| Mistake | Why it fails | Correct |
-|---------|-------------|---------|
-| Replacing a deliberate concealed-resource 404 with an access message | Can reveal a protected resource | Preserve the actual auth contract and verify permitted recovery behavior |
-| Four new components for one feature | The design system was ignored | Look for the existing pattern first |
-| Requiring initiative state for a standalone request | Expands the user's scope | Use supplied context and the requested destination; do not initialize or override a gate |
-
-More rows close UX methods.
+`## DESIGN COMPLETE` with the flow list, the state matrix, the component inventory and the accessibility floor. Lifecycle output is the initiative's `DESIGN.md` per the [design template](references/design-template.md).

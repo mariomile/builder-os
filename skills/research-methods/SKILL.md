@@ -1,58 +1,50 @@
 ---
 name: research-methods
-description: "Plans and runs user research: what to learn, who and how many to talk to, interview guides, mining existing sources, recruiting, and when research is finished. Use when planning interviews or a survey, writing an interview guide, deciding sample size, or judging whether discovery has enough evidence."
+description: "Plans and runs user research: what to learn, who and how many to talk to, interview guides, existing sources, a verdict on the riskiest assumption. Use when planning interviews or a survey, writing a guide, sizing a sample, or judging discovery."
 ---
 
 # Research Methods
 
-## Mode and resources
+Lifecycle discovery answers one question, **is the riskiest assumption from phase 0 true?**, with a **verdict**: validated, killed or reshaped. Research that cannot return KILLED is not research, so the sample reaches the people most likely to prove the frame wrong.
 
-Follow [operating modes and resource paths](../../references/operating-modes.md). **Standalone:** Use the supplied research goal, audience and constraints to produce the requested interview guide, questionnaire or research plan. Synthesize only when actual transcripts or evidence are supplied; a guide does not imply a discovery verdict. **Lifecycle:** The prerequisites, artifact paths and gate recording below apply only when the user requests this phase or initiative; a missing prerequisite blocks that transition, not a standalone artifact, and the completion marker with a gate verdict claims completion only after the gate passes.
+**Mode.** Standalone produces the requested interview guide, questionnaire or research plan from the supplied goal, audience and constraints, and synthesizes only when real transcripts or evidence are supplied. The lifecycle runs every step, writes `01-discovery.md` and gate 1. Both per [operating modes](../../references/operating-modes.md). Load `discovery-methods` when synthesizing real transcripts. Read [the research guide](references/research-guide.md) when sizing a sample, writing or auditing a guide, choosing sources to mine, or stating the disconfirming test; read [async questionnaire](references/async-questionnaire.md) when the knowledge sits with someone the person cannot get on a call, or when tagging a returned questionnaire.
 
-Load `evidence-ledger` for lifecycle tagging/counting and `discovery-methods` only when synthesizing real transcripts. Load `gate-checks` only for the lifecycle verdict. Retrieve facts before asking; ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
+## Procedure
 
-Read [the research guide](references/research-guide.md) when sizing a sample, writing or auditing a guide, choosing sources to mine, or stating the disconfirming test. Read [async questionnaire](references/async-questionnaire.md) when the knowledge sits with someone the user cannot get on a call, or when tagging a returned questionnaire.
+1. **Establish the research target**, write it at the top of the plan, and check every question against it. Standalone uses the supplied goal, audience and decisions. The lifecycle reads `.builderos/initiatives/{initiative}/00-frame.md`: the riskiest assumption and its falsifier become the target, the ICP's reachability shapes recruiting, and the prior-art classification shapes who to chase first ("solved, not adopted" means abandoners first). A missing frame on disk means phase 0 has not run, and the phase stops there. Done when the target is one sentence that a verdict can answer.
+2. **Mine what already exists.** Resolve the source capabilities and pull against the problem keywords before interviewing, tagging each finding with its real provider. A ticket in the user's words is primary; your summary of forty tickets is a `doc` about them. Done when every resolved source has been searched and its findings tagged.
+3. **Design the sample**: how many, which classes, from where. The four classes: people paying to solve the problem badly, people tolerating it, people who tried a solution and abandoned it (class 3), and ICP lookalikes without the problem (class 4, the boundary). Name how you will reach each. When class 3 or 4 is out of reach, ask who could reach them and offer that person an async questionnaire; when that fails too, state what the verdict therefore cannot conclude. State the saturation stop condition alongside the count. Done when every class has a recruiting route or a written limitation.
+4. **Write the guide and audit it in the open**, adapting the example sections and timing to the purpose: every question a polite person could answer "yes" to is rewritten as a request for a story; every question about the future becomes the last occurrence; solution framing that would bias observations is removed. Done when the guide is presented with its audit.
+5. **State the disconfirming test** (gate 1.5) before any interview happens, so it cannot be fitted to the results. Done when it is written and dated before the first interview.
+6. **Ingest and synthesize.** With transcripts in hand, run `discovery-methods` (delegated to a synthesis specialist where one is available) and build the evidence ledger: themes, every claim tagged, primary units and distinct sources counted. Done when every theme has its tagged units and source count.
+7. **Decide the verdict** when requested; the lifecycle requires one. Exactly one of: `VALIDATED` (the riskiest assumption held → phase 2); `KILLED` (it failed, or the problem is real but not worth solving for this ICP → the pipeline stops, and that is a win); `RESHAPED` (the problem is real but different: person, cost or trigger → amend `PRODUCT.md`, re-run phase 0 briefly, then phase 2, stating precisely what changed). Cite tags in the reasoning and write the verdict the evidence supports, a kill as a kill. Then put what happens next to the person as a round question (continue to phase 2, stop, reshape and re-frame), with the verdict as the recommendation, and record `**Chosen by:**` under `## Verdict` (gate 1.6). Continuing past KILLED is the person's override with their reason, and the verdict stays as written. Done when the verdict and the person's choice are both recorded.
+8. **Deliver.** Standalone returns the requested plan, guide or synthesis. The lifecycle writes `.builderos/initiatives/{initiative}/01-discovery.md` per [the discovery template](references/discovery-template.md), runs gate 1 and records it with the verdict (`scripts/bos.mjs record 1 --verdict validated|killed|reshaped` where commands run). `KILLED` closes the initiative; report it as a win and name what it saved. On the `spike` track the script closes the initiative after a passing gate 1; report the verdict as the answer and offer to reclassify, per `gate-checks`, Spike Stop. Done when the artifact exists and, in the lifecycle, gate 1 is recorded.
+
+**With no transcripts yet**, the phase ends after step 5 with the plan as the deliverable and the gate not yet runnable; say so. Phase 1 normally spans two sessions, and the state file carries the gap.
+
+## Watch for
+
+| Do | Instead of |
+|---|---|
+| Sample classes 2, 3 and 4 deliberately | Interviewing only reachable believers |
+| One person, one source | Five quotes from one person as five units |
+| Treat RESHAPED as the common honest outcome: amend the frame and continue | Reading it as failure |
 
 ## Capabilities
 
 | Capability | Used for | Floor if absent |
 |-----------|----------|-----------------|
-| `db.query` | Churn and cancellation reasons | Ask the user to export them; tag `[doc:user-{date}-{topic}]` |
+| `db.query` | Churn and cancellation reasons | Ask the person to export them; tag `[doc:user-{date}-{topic}]` |
 | `tickets.read` | Support tickets, bug reports in the user's words | Ask for a sample |
 | `docs.search` | Sales notes, prior research, earlier interviews | Search local notes, then ask |
-| `meetings.read` | Call transcripts | The user brings transcript files |
+| `meetings.read` | Call transcripts | The person brings transcript files |
 | `analytics.replay` | Where users stall, unprompted | Skip; note the gap |
 | `analytics.query` | Behavior that contradicts the story people tell | Skip; note the gap |
 | `research.search` | Prior art and framing from saved reading | `web.search`, then skip |
-| `files.write` | Requested file or lifecycle artifact/state | Not needed for an inline guide; required for lifecycle writes |
+| `files.write` | Requested file or lifecycle artifact/state | An inline guide needs no write; lifecycle writes require it |
 
-Gate 1 is fully satisfiable with five interviews and nothing else. Never tell a user to connect analytics to validate a problem whose product does not exist.
-
-## Procedure
-
-Apply only the steps the requested artifact needs. Delegate when available and authorized; otherwise run inline.
-
-1. **Establish the research target**, write it at the top of the plan, and check every question against it. For a standalone guide or plan, use the supplied goal, audience and decisions; no frame file is required. Lifecycle DISCOVER answers one question, **is the riskiest assumption from phase 0 true?**, with a verdict, not a summary. Read the frame: `.builderos/initiatives/{initiative}/00-frame.md`: the riskiest assumption and its falsifier become the research target; the ICP's reachability shapes recruiting; the prior-art classification shapes who to chase first ("solved, not adopted" means abandoners before anyone else). No frame on disk → stop and say phase 0 has not run. Never reconstruct it from conversation memory.
-2. **Mine what already exists.** Resolve the source capabilities above and pull against the problem keywords before interviewing. Tag each extracted finding with its real provider. A ticket in the user's words is primary; your summary of forty tickets is not.
-3. **Design the sample.** How many, which classes, from where. The four classes: people paying to solve the problem badly, people tolerating it, people who tried a solution and abandoned it (class 3), and ICP lookalikes without the problem (class 4, the boundary). Name explicitly how you will reach all four. If class 3 or class 4 is unreachable, first ask who could reach them and offer an async questionnaire to that person; if that fails too, say so and state what the verdict therefore cannot conclude. Never drop a class silently. State the saturation stop condition, not just a count.
-4. **Write the guide**, adapting the example sections and timing to the research purpose, then audit your own guide in the open: flag every question a polite person could answer "yes" to and rewrite it as a request for a story; flag every question about the future and rewrite it as the last occurrence; check that solution framing does not bias the observations. A guide presented without its audit has not been checked.
-5. **State the disconfirming test** before any interview happens. This is gate 1.5; a disconfirming test invented after the results is a rationalization.
-6. **Ingest and synthesize.** When transcripts exist, run thematic synthesis (delegate to a synthesis specialist where one is available, otherwise apply `discovery-methods` directly). Build the evidence ledger: group by theme, tag every claim, count primary units and distinct sources.
-7. **Decide a verdict when requested.** Lifecycle DISCOVER requires it; a standalone guide or descriptive synthesis does not. Exactly one of: `VALIDATED` (the riskiest assumption held → phase 2); `KILLED` (it failed, or the problem is real but not worth solving for this ICP → the pipeline stops, and that is a win); `RESHAPED` (the problem is real but different: person, cost or trigger → amend `PRODUCT.md`, re-run phase 0 briefly, then phase 2). Cite tags in the reasoning. Write the verdict the evidence supports, plainly, a kill as a kill; on reshape, state precisely what changed: the person, the cost, the trigger, or the scope. Then put what happens next to the person as a round question (continue to phase 2, stop, reshape and re-frame), with the verdict as the recommendation. Record `**Chosen by:**` under `## Verdict` with their answer (gate 1.6). A person who continues past a KILLED verdict does it as an override with their reason; the verdict itself stays as written.
-8. **Deliver.** For standalone work, return the requested plan, guide or synthesis without a gate verdict. For lifecycle work: Write `.builderos/initiatives/{initiative}/01-discovery.md`, run gate 1 and record it with the verdict (`scripts/bos.mjs record 1 --verdict validated|killed|reshaped` where commands run). On `KILLED`, the phase becomes killed and the initiative `closed`; stop the pipeline, reporting it as a win and naming what it saved. On the `spike` track, the script derives closure after a passing gate 1 from the track; keep the actual discovery verdict and do not advance: report the verdict as the answer and offer to reclassify, per `gate-checks`, section Spike Stop.
-
-**When no transcripts exist yet**, the phase ends after step 5 with the plan as the deliverable and the gate not yet runnable. Say that plainly. Phase 1 normally spans two sessions and the state file carries the gap.
-
-Completion marker: `## DISCOVERY COMPLETE` with the verdict, or `## RESEARCH PLAN READY` when only the plan was produced.
+Gate 1 is fully satisfiable with five interviews and nothing else; a problem whose product does not exist yet is validated by talking to people.
 
 ## Output Contract
 
-Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims. The lifecycle artifact `.builderos/initiatives/{initiative}/01-discovery.md` follows [the discovery template](references/discovery-template.md).
-
-## Common Mistakes
-
-| Mistake | Correct |
-|---------|---------|
-| Interviewing only reachable believers | Sample classes 2, 3 and 4 deliberately; research that cannot return KILLED is not research |
-| Counting five quotes from one person as five units | One source, one unit |
-| Treating RESHAPED as failure | It is the most common honest outcome; amend the frame and continue |
+`## DISCOVERY COMPLETE` with the verdict and who chose what happens next, or `## RESEARCH PLAN READY` when only the plan was produced. Standalone output follows the requested format and destination, with no gate claims.
