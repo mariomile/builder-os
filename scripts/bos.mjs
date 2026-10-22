@@ -315,6 +315,128 @@ function realUsersInfo(spec) {
   return t.length ? { problems: [], detail: `${t.length} real-user source${t.length > 1 ? 's' : ''}: ${t.map((x) => x.raw).join(', ')}` } : { problems: ['"## Real users" cites no interview, doc or data tag: a plan to talk to users is not a session'] };
 }
 
+// ---------- the product loop: stage, business, review (gates 2.7, 3.7, 3.8, 4.14, 4.15, 6.10, 6.12; review R.*) ----------
+
+const STAGES = ['idea', 'pre-PMF', 'emerging-PMF', 'scaling'];
+function productStage(product) {
+  const v = (field(product || '', 'Stage') || '').toLowerCase();
+  return STAGES.find((s) => v.startsWith(s.toLowerCase())) || null;
+}
+// Before PMF the work is learning whether there is a product; scale work waits.
+const preScale = (stage) => stage === 'idea' || stage === 'pre-PMF';
+function business(product) {
+  const sec = section(product, 'Business');
+  const revenue = field(sec || '', 'Revenue model');
+  const tree = subsection(sec || '', 'Metric tree');
+  const levers = rawRows(tree).map((r) => ({ name: r[0], metric: r[1] || '', current: r[2] || '', source: r[3] || '' }));
+  return { sec, revenue, notForSale: /^not for sale\b/i.test(revenue || ''), levers };
+}
+const UNAVAILABLE = /^unavailable\b.{6,}/i;
+function businessGaps(product) {
+  const b = business(product);
+  if (b.sec === null) return ['PRODUCT.md has no "## Business": stage exit, North Star, revenue model, growth engine and the metric tree'];
+  const gaps = [];
+  const stage = productStage(product);
+  if (!stage) gaps.push(`**Stage:** is not one of ${STAGES.join(', ')}`);
+  if (preScale(stage) && !nonEmpty(field(b.sec, 'Stage exit'))) gaps.push('no "**Stage exit:**": the thresholds that would say this product has left pre-PMF');
+  for (const k of ['North Star', 'Revenue model', 'Growth engine']) if (!nonEmpty(field(b.sec, k))) gaps.push(`no "**${k}:**"`);
+  if (b.levers.length < 3) gaps.push(`${b.levers.length} levers in "### Metric tree" (3 needed: how users arrive, activate, stay, pay)`);
+  const blind = b.levers.filter((l) => !hasTag(l.current + ' ' + l.source) && !UNAVAILABLE.test(l.current) && !UNAVAILABLE.test(l.source));
+  if (blind.length) gaps.push(`levers with neither a tagged value nor "unavailable" and the question that would fill it: ${blind.map((l) => l.name).join(', ')}`);
+  return gaps;
+}
+const leverOf = (text, levers) => levers.find((l) => { const t = (text || '').toLowerCase(); return t.includes(l.name.toLowerCase()) || (nonEmpty(l.metric) && t.includes(l.metric.toLowerCase())); });
+
+// Gate 3.7 (product track): how the first users arrive, what one costs, and who pays how much.
+function businessCase(bet, product) {
+  const b = business(product);
+  if (!nonEmpty(b.revenue)) return { problems: ['PRODUCT.md → ## Business has no "**Revenue model:**" (who pays, how much, how often; or "not for sale" with why)'] };
+  const sec = section(bet, 'Business case');
+  if (sec === null) return { problems: ['no "## Business case": first 100 users, cost per user' + (b.notForSale ? '' : ', price and the willingness-to-pay test')] };
+  const need = ['First 100 users', 'Cost per user', ...(b.notForSale ? [] : ['Price', 'Willingness to pay test'])];
+  const problems = need.filter((k) => !nonEmpty(field(sec, k))).map((k) => `no "**${k}:**"`);
+  return { problems, detail: b.notForSale ? 'not for sale: first users and cost per user stated' : `price ${field(sec, 'Price')}, test: ${field(sec, 'Willingness to pay test')}` };
+}
+
+// Gate 4.14 (product track, for sale): someone showed they would pay, and the stack can take the money.
+const PAYMENT_LAYER = /pay|billing|checkout|subscription|invoice|fattur/i;
+function moneyBeforeBuild(spec) {
+  const problems = [];
+  const wtp = field(spec, 'Willingness to pay');
+  if (!wtp) problems.push('no "**Willingness to pay:**": what a person from the ICP did when shown the price (pre-order, letter of intent, a click on a price, a price accepted in the session), tagged');
+  else if (!hasTag(wtp, ['interview', 'doc', 'data'])) problems.push('"**Willingness to pay:**" cites no interview, doc or data tag: an opinion about the price is not a test of it');
+  const pay = rawRows(section(spec, 'Stack')).find((r) => PAYMENT_LAYER.test(r[0]));
+  if (!pay) problems.push('no payments row in "## Stack": how the product takes money and who handles tax and invoices');
+  else if (!/^(inherited|decided)\b/i.test(pay[2] || '')) problems.push(`payments layer is "${pay[2] || ''}", not inherited or decided`);
+  return { problems, detail: `willingness to pay ${wtp ? 'evidenced' : 'missing'}, payments: ${pay ? pay[1] : 'missing'}` };
+}
+
+// Gate 6.10: what a release needs, plus what the product needs at its stage, from TECH.md → Operations.
+function productionGaps(release, ctx) {
+  const pr = section(release, 'Production readiness') || '';
+  const gaps = ['Errors seen by', 'Backup restored'].filter((k) => !nonEmpty(field(pr, k))).map((k) => `"## Production readiness" has no "**${k}:**"`);
+  const ops = section(read(path.join(ROOT, 'TECH.md')) || '', 'Operations');
+  const stage = productStage(ctx.product);
+  const need = ['Privacy'];
+  if (/\*\*Model output:\*\*\s*yes/i.test(ctx.spec || '')) need.push('AI disclosure');
+  if (stage && !preScale(stage)) need.push('SLO', 'Incident response', 'Cost per active user');
+  const missing = need.filter((k) => !nonEmpty(field(ops || '', k)));
+  if (missing.length) gaps.push(`TECH.md → "## Operations" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}${stage && !preScale(stage) ? ` (stage ${stage})` : ''}`);
+  return { gaps, detail: `release ready for its first incident; TECH.md → Operations covers ${need.join(', ')}` };
+}
+
+// The product review: a dated file in .builderos/reviews/, checked by `bos.mjs review`.
+const REVIEWS = path.join(BOS, 'reviews');
+function latestReview() {
+  if (!fs.existsSync(REVIEWS)) return null;
+  const f = fs.readdirSync(REVIEWS).filter((n) => /^\d{4}-\d{2}-\d{2}.*\.md$/.test(n) && validDate(n.slice(0, 10))).sort().at(-1);
+  return f ? { file: path.join(REVIEWS, f), date: f.slice(0, 10) } : null;
+}
+const reviewEvery = (stage) => (preScale(stage) || !stage ? 7 : 31);
+function reviewDue(product) {
+  const last = latestReview();
+  const stage = productStage(product);
+  if (!last) return section(product, 'Business') === null ? 'no product review yet: run one to set the stage, the North Star and the metric tree in PRODUCT.md → ## Business' : 'no product review yet';
+  const days = Math.floor((Date.now() - Date.parse(last.date)) / DAY);
+  return days > reviewEvery(stage) ? `product review is due: last on ${last.date}, every ${reviewEvery(stage)} days at stage ${stage || 'unknown'}` : null;
+}
+function reviewConditions(text, product) {
+  const R = [];
+  const pass = (id, ok, detail) => R.push({ id, status: ok ? 'pass' : 'fail', detail });
+  const judge = (id, detail) => R.push({ id, status: 'judge', detail });
+  const bg = businessGaps(product);
+  pass('R.1', bg.length === 0, bg.length ? bg.join('; ') : 'PRODUCT.md → ## Business complete');
+  const levers = business(product).levers;
+  const read_ = rawRows(section(text, 'Levers'));
+  const unread = levers.filter((l) => !read_.some((r) => r[0].toLowerCase() === l.name.toLowerCase() && (hasTag(r.slice(1).join(' ')) || r.slice(1).some((c) => UNAVAILABLE.test(c)))));
+  pass('R.2', levers.length > 0 && unread.length === 0, unread.length ? `levers not read this time (a tagged value, or "unavailable" with the question): ${unread.map((l) => l.name).join(', ')}` : `${levers.length} levers read`);
+  const props = rawRows(section(text, 'Proposed initiatives'));
+  const loose = props.filter((r) => !leverOf(r[1], levers));
+  pass('R.3', props.length >= 1 && props.length <= 3 && loose.length === 0, props.length < 1 || props.length > 3 ? `${props.length} proposed initiatives (1 to 3)` : loose.length ? `proposals naming no lever of the tree: ${loose.map((r) => r[0]).join(', ')}` : `${props.length} proposals, each on a lever`);
+  const by = field(text, 'Decided by');
+  pass('R.4', nonEmpty(by) && !NOBODY.test(by), by ? `decided by ${by}` : 'no "**Decided by:**": the person picks what goes into the roadmap');
+  judge('R.5', `stage ${productStage(product) || 'unknown'}: does the stage verdict follow the stage exit thresholds and the numbers read, rather than the mood?`);
+  return R;
+}
+function review() {
+  const product = read(path.join(ROOT, 'PRODUCT.md'));
+  if (!product) die('no PRODUCT.md: initialize the project first');
+  const f = opt('--file') ? path.resolve(ROOT, opt('--file')) : (latestReview() || {}).file;
+  if (!f || !read(f)) die('no review in .builderos/reviews/: write .builderos/reviews/YYYY-MM-DD.md first');
+  const results = reviewConditions(read(f), product);
+  const missing = checkEvidence(read(f), [path.join(BOS, 'evidence')]);
+  results.unshift({ id: 'E.1', status: missing.length ? 'fail' : 'pass', detail: missing.length ? `unresolved: ${missing.slice(0, 5).join('; ')}` : 'every tag resolves' });
+  const failed = results.filter((r) => r.status === 'fail').map((r) => r.id);
+  if (flag('--json')) console.log(JSON.stringify({ review: rel(f), results, failed }, null, 2));
+  else {
+    const mark = { pass: '✓', fail: '✗', judge: '?' };
+    console.log(`## PRODUCT REVIEW (script) · ${rel(f)}\n\n| # | Result | Detail |\n|---|--------|--------|`);
+    for (const r of results) console.log(`| ${r.id} | ${mark[r.status]} ${r.status} | ${String(r.detail).replace(/\|/g, '/')} |`);
+    console.log(failed.length ? `\n**Failed:** ${failed.join(', ')}` : '\n**No script-decided condition failed.** Judge R.5, then regenerate the roadmap.');
+  }
+  process.exit(failed.length ? 1 : 0);
+}
+
 // Gate 5.9: the built interface was looked at, state by state, against the direction the person chose.
 function interfaceReview(plan, ctx) {
   const vd = section(ctx.design || '', 'Visual direction');
@@ -579,8 +701,13 @@ function gate(n, ctx) {
     pass('2.3', nonEmpty(field(sm, 'Metric')) && base && (hasTag(base) || zero) && target && /\d/.test(target) && DATE_RE.test(target), 'metric, tagged baseline, target with a value and a date');
     if (zero && !hasTag(base, ['data', 'code', 'doc'])) judge('2.4', 'declared non-existent product and zero rationale; confirm this metric is necessarily zero before existence');
     else pass('2.4', base && hasTag(base, ['data', 'code', 'doc']), base ? `baseline tag: ${tags(base).map((t) => t.cls).join(', ') || 'none; unavailable is not zero'}` : 'no baseline');
-    judge('2.5', 'is the opportunity coherent with the PMF stage?');
+    const stage = productStage(ctx.product);
+    judge('2.5', `stage ${stage || 'unknown'}: is the opportunity coherent with it?${preScale(stage) ? ' Before PMF, scale work is rejected' : ''}`);
     judge('2.6', 'could shipping the change alone hit the target? then the metric is output, not outcome');
+    const levers = business(ctx.product).levers;
+    const moves = field(sm, 'Moves');
+    if (!levers.length) warn('2.7', false, 'PRODUCT.md has no metric tree: run a product review so each initiative names the lever it moves');
+    else pass('2.7', !!leverOf(moves, levers), moves ? (leverOf(moves, levers) ? `moves ${leverOf(moves, levers).name}` : `"${moves}" is not a lever of the metric tree (${levers.map((l) => l.name).join(', ')})`) : 'no "**Moves:**" under Success metric: which lever of the metric tree this initiative moves');
     return R;
   }
 
@@ -604,6 +731,11 @@ function gate(n, ctx) {
     pass('3.5', raw.length >= rawNeed, `${raw.length} raw ideas before convergence (${rawNeed} needed)`);
     const chosenBy = field(section(a, 'Selected') || '', 'Chosen by');
     pass('3.6', nonEmpty(chosenBy) && !/^(agent|model|claude|codex|ai|auto)/i.test(chosenBy), chosenBy ? `chosen by ${chosenBy}` : 'no "**Chosen by:**" under Selected: the person chooses the bet');
+    if (ctx.track !== 'product') skip('3.7', `${ctx.track} track: the product already reaches its users and is priced`);
+    else { const bc = businessCase(a, ctx.product); pass('3.7', bc.problems.length === 0, bc.problems.length ? bc.problems.join('; ') : bc.detail); }
+    const stage = productStage(ctx.product);
+    if (preScale(stage)) judge('3.8', `stage ${stage}: does the bet test whether there is a product, rather than scale, optimize or harden one nobody uses yet?`);
+    else skip('3.8', `stage ${stage || 'unknown'}: scale work is allowed`);
     return R;
   }
 
@@ -647,6 +779,13 @@ function gate(n, ctx) {
     pass('4.12', qb.problems.length === 0, qb.problems.length ? qb.problems.join('; ') : qb.detail);
     if (ctx.track !== 'product') skip('4.13', `${ctx.track} track: the product's users are already reachable through its evidence`);
     else { const ru = realUsersInfo(a); pass('4.13', ru.problems.length === 0, ru.problems.length ? ru.problems.join('; ') : ru.detail); }
+    const biz = business(ctx.product);
+    if (ctx.track !== 'product') skip('4.14', `${ctx.track} track: the product already takes money, or does not`);
+    else if (biz.notForSale) skip('4.14', `not for sale: ${biz.revenue}`);
+    else { const mb = moneyBeforeBuild(a); pass('4.14', mb.problems.length === 0, mb.problems.length ? mb.problems.join('; ') : mb.detail); }
+    const stage = productStage(ctx.product);
+    if (preScale(stage)) judge('4.15', `stage ${stage}: is anything in this spec scale work (optimization, enterprise controls, infrastructure for load nobody has) that should wait for PMF?`);
+    else skip('4.15', `stage ${stage || 'unknown'}: scale work is allowed`);
     return R;
   }
 
@@ -734,14 +873,21 @@ function gate(n, ctx) {
     pass('6.8', nonEmpty(field(exposure, 'Authorized by')), 'Exposure verification names who authorized exposure');
     const promo = promotionGaps(ctx);
     pass('6.9', promo.length === 0, promo.length ? promo.join('; ') : 'domain and design system promoted to project memory, or nothing to promote');
-    const pr = section(a, 'Production readiness') || '';
-    const prGaps = ['Errors seen by', 'Backup restored'].filter((k) => !nonEmpty(field(pr, k)));
-    pass('6.10', prGaps.length === 0, prGaps.length ? `"## Production readiness" missing: ${prGaps.join(', ')} (how an error is seen before a user reports it; a restore tested once, or "not applicable" with why)` : 'errors visible before users report them, restore tested or not applicable');
+    const prod = productionGaps(a, ctx);
+    pass('6.10', prod.gaps.length === 0, prod.gaps.length ? prod.gaps.join('; ') : prod.detail);
     if (ctx.track !== 'product') skip('6.11', `${ctx.track} track: exposure to existing users is the use`);
     else {
       const fu = section(a, 'First real use');
       const ok = fu !== null && hasTag(fu, ['data', 'doc']);
       pass('6.11', ok, ok ? 'a person outside the team did the primary action, with its source' : 'no "## First real use" with a data or doc tag: online is not in use; phase 7 starts when someone outside the team has done the primary action');
+    }
+    const biz = business(ctx.product);
+    if (ctx.track !== 'product') skip('6.12', `${ctx.track} track`);
+    else if (biz.notForSale) skip('6.12', `not for sale: ${biz.revenue}`);
+    else {
+      const fp = section(a, 'First payment');
+      const ok = fp !== null && hasTag(fp, ['data', 'doc']);
+      pass('6.12', ok, ok ? 'a customer outside the team paid, with its source' : 'no "## First payment" with a data or doc tag: a product for sale enters phase 7 when someone has paid for it');
     }
     return R;
   }
@@ -1090,6 +1236,8 @@ function brief() {
   const stackGap = techStackGap();
   const pastShape = all.filter((i) => (i.state.status || 'open') === 'open' && (i.state.current_phase ?? 0) >= 5);
   if (stackGap && pastShape.length) attention.push(`${pastShape.map((i) => i.state.title || i.slug).join(', ')} past phase 4 while TECH.md stack ${stackGap}: decide it with the user (stack-decisions)`);
+  const productText = read(path.join(ROOT, 'PRODUCT.md'));
+  if (productText) { const due = reviewDue(productText); if (due) attention.push(due); }
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
   console.log(lines.slice(0, 5).join('\n'));
@@ -1636,7 +1784,8 @@ else if (cmd === 'vendor') vendor();
 else if (cmd === 'guard') guard();
 else if (cmd === 'context') context();
 else if (cmd === 'evidence') evidenceAdd();
+else if (cmd === 'review') review();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

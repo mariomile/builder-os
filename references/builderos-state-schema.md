@@ -7,13 +7,15 @@ The project's memory. Created by `/bos-init`, read at the start of every session
 ```
 PRODUCT.md                what the product is: problem, ICP, non-goals, constraints, voice, language
 DOMAIN.md                 the product's things and their rules: entities, states, invariants, settled business rules
-TECH.md                   how it is built: stack, design system, verify commands, technical constraints, conventions, known traps
+TECH.md                   how it is built and run: stack, design system, verify commands, operations, technical constraints, conventions, known traps
 AGENTS.md                 the project's own agent instructions; /bos-init adds the pointer below
 CLAUDE.md                 the same pointer, for every Claude Code surface (cloud project threads load only this)
 .builderos/
   bin/bos.mjs             a copy of the BuilderOS script (`bos.mjs vendor`), for sessions without the plugin
   local.json              this checkout's active initiative; gitignored, never shared
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
+  reviews/
+    {YYYY-MM-DD}.md       one product review: levers read, stage verdict, 1-3 proposals, who decided (`skills/builder-os/references/product-review.md`)
   decisions/
     ADR-001-{slug}.md     one file per decision that is hard to reverse (shared across initiatives)
   evidence/               sources cited by PRODUCT.md, DOMAIN.md and TECH.md, same format as an initiative's
@@ -131,6 +133,7 @@ The files above only help if a new session reads them. Every session, on any hos
    - `PRODUCT.md` still carries `[assumption:unvalidated]` tags while an open initiative is past phase 1;
    - an open initiative is past phase 4 while `TECH.md` → Stack has no rows, or a layer still `open` or empty: the stack was never decided with the user;
    - an initiative folder exists on another branch and not on this checkout: its state is travelling with code nobody here is looking at.
+   - the product review is due: none in `.builderos/reviews/` yet, or the latest is older than 7 days before PMF (`idea`, `pre-PMF`) or 31 days after it.
 
 The model adds what needs judgment while it works, per `using-builder-os` (Watch While Working): a request that contradicts a decision or non-goal, work resting on an untested assumption, a shipped result nobody has read.
 
@@ -207,6 +210,13 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 **Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one; "declined by {person} ({why}), {date}" when the CI belongs to someone else who said no}
 **Quality checks:** {the automatic checks in the guardrail: accessibility (an axe-style scan on every route), end-to-end on the primary flow, dependency audit, secret scan; each named with its command or "n/a, {why}"; "declined by {person} ({why}), {date}" as for the guardrail}
 
+## Operations
+**Privacy:** {where the privacy notice lives; sub-processors (hosting, model provider, email, analytics) with their data processing agreements; how a person's data is deleted on request; data region; or "no personal data, {why}"}
+**AI disclosure:** {where people are told they are dealing with an AI system, when the product has model output; omit otherwise}
+**SLO:** {after PMF: one or two promises on the primary flow (availability, response time) and the alert when the error budget burns}
+**Incident response:** {after PMF: who is alerted and how, how users are told, and the postmortem that becomes an initiative}
+**Cost per active user:** {after PMF: infrastructure plus model cost per active user per month, with the budget alert}
+
 ## Technical constraints
 {Limits the code must respect: performance budgets, regulatory rules on data, supported platforms. Each with a source tag. A rule that must hold every time names the deterministic check that enforces it (a host hook, a CI check), or says none exists.}
 
@@ -217,7 +227,7 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 {What has bitten before, with the initiative or commit where it happened.}
 ```
 
-Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail and the Quality checks when there are none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
+Written at init from the repository when one is readable, otherwise from the user; left as the headings with "no code yet" for an idea with nothing built. A Stack layer nobody has decided is written `open`, never guessed: phase 4 decides it with the user (`stack-decisions`), and the briefing flags an open initiative past phase 4 whose `TECH.md` still has open or empty layers. Phase 5 fills Verify when it is empty, adds the Guardrail and the Quality checks when there are none, and adds the conventions, traps and recurring review findings it discovers; phase 6 adds anything the release taught and fills Operations as the stage requires (gate 6.10): Privacy, and AI disclosure when a model speaks, from the first release; SLO, Incident response and Cost per active user once `PRODUCT.md` says `emerging-PMF` or `scaling`. These are product facts, written once and kept true, not repeated per release. A trap is recorded the first time it costs time, not the second. Keep the file under a page: an agent reads all of it every session, so a line that is no longer true is cut, not kept for history. `Verified` moves when the file has been checked against the repository (manifests, lockfiles, config), not when a line is appended; a briefing flags it when dependencies changed after it.
 
 ## DOMAIN.md
 

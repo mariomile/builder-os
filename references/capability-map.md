@@ -27,6 +27,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
 | `shell.exec` | Run a command in the project: the BuilderOS script for gates and briefings, a test suite | any shell access |
+| `schedule.run` | Run a procedure on a schedule without anyone opening a session: the product review, a watch recheck | host routines or scheduled tasks, a cron job running a headless agent |
 
 `files.read` and `files.write` are the only capabilities BuilderOS assumes are always present. Everything in `.builderos/` depends on them. Every other capability is optional and every skill states what it does without one.
 
@@ -59,6 +60,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
+| `schedule.run` | a scheduled run of the product review | — | — | the briefing flags the review as due when someone next opens a session |
 
 The floor is always the same: state what could not be retrieved, ask for it, and tag whatever the user provides. The floor is never a plausible-sounding number.
 

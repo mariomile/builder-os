@@ -49,6 +49,7 @@ Apply these local signal bands only with complete four-signal coverage; incomple
 | **Metric** | One. Named precisely enough to be queried: "share of new accounts reaching first sent report within 7 days", not "activation". An outcome, not an output: if shipping the change is enough to hit the target ("alerts delivered within 24 hours"), it measures the build, not the bet (gate 2.6) |
 | **Baseline** | An observed value with definition, population, window, capture date and resolvable data/doc provenance; code defines measurement but alone does not prove the value |
 | **Target** | A number and a date. Reasoned from the baseline and a comparable, not from ambition |
+| **Moves** | The lever of `PRODUCT.md` → Metric tree this metric sits under (gate 2.7). No lever fits: either the tree is missing a branch, which a product review adds, or the initiative does not move the product |
 | **Measurement** | The query, event or dashboard that will produce the number in phase 6 |
 
 ## Output template
@@ -83,6 +84,7 @@ Lifecycle path: `.builderos/initiatives/{initiative}/02-definition.md`. Standalo
 **Metric:** {precise definition}
 **Baseline:** {observed value with definition, population, window, capture date and source; or unknown with capture plan, gate 2.4 blocked}
 **Target:** {value} by {date} — {reasoning}
+**Moves:** {the lever of the PRODUCT.md metric tree}
 **Measured by:** {query, event, or dashboard}
 **Connects to North Star:** {how, or 'North Star not yet selected'}
 ```

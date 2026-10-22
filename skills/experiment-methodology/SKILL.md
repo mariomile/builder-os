@@ -29,6 +29,8 @@ Design mode needs nothing connected. Analysis mode needs numbers, and a user pas
 
 A change not yet shipped is **design**; results in hand are **analysis**.
 
+**Stage.** Read `PRODUCT.md` → Stage. Before PMF (`idea`, `pre-PMF`) traffic is too small for significance to mean anything: write the thresholds before the test, accept a small sample and declare its size, judge the result qualitatively against those thresholds, and never call it significant. After PMF the full procedure below applies.
+
 ### Design mode
 
 1. **Resolve capabilities and establish the baseline:** the current output-metric rate, tagged. A guessed baseline gives a confidently wrong sample size.

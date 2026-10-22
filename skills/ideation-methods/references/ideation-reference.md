@@ -87,6 +87,13 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 ## Rejected
 | Option | Why not now | Revisit when |
 
+## Business case
+{product track, gate 3.7}
+**First 100 users:** {the channel, the message in one sentence, who does the work; for self-serve, what a user does that brings the next one}
+**Cost per user:** {infrastructure plus model cost per active user per month, and what it rests on}
+**Price:** {starting price and price metric; omit when PRODUCT.md says not for sale}
+**Willingness to pay test:** {how a person from the ICP will show they would pay before the build: pre-order, letter of intent, a click on a price, the price asked in the real-user session}
+
 ## Kill criteria
 On {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differently}.
 **Measured by:** {query, event or dashboard}

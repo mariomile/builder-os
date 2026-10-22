@@ -31,7 +31,7 @@ Apply only the steps the request needs. Delegate when available and authorized; 
 
 1. **Read the inputs.** `PRODUCT.md` constraints (budget, team, regulation, distribution), `TECH.md`, the bet's primary action, the flows and the domain model's data sketch in `DESIGN.md` (the shape of the data drives the data layer). Read the repository where `repo.read` resolved: a manifest is a fact, a memory of the stack is not.
 
-2. **List the layers this work touches**, from the catalogue in the method: only those it actually needs. Mark each **inherited** (exists and nothing in this work strains it), **open** (does not exist yet, or this work strains it) or **not needed** (with the reason). An inherited layer is kept unless a driver below breaks it; reopening one is itself an open question.
+2. **List the layers this work touches**, from the catalogue in the method: only those it actually needs; a product for sale always needs payments and tax (gate 4.14). Mark each **inherited** (exists and nothing in this work strains it), **open** (does not exist yet, or this work strains it) or **not needed** (with the reason). An inherited layer is kept unless a driver below breaks it; reopening one is itself an open question.
 
 3. **Name the decision drivers** before any option: three to five properties of this product that decide between technologies, each in plain words and traced to `PRODUCT.md`, `TECH.md`, the spec or the user ("one person maintains it", "data stays in the EU", "under €50 a month until 100 customers", "the pilot ships in two weeks"). A driver nothing supports is asked in the first round. Options are judged against drivers, never against taste or popularity.
 
