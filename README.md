@@ -286,7 +286,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 2.3.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 3.0.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|
@@ -298,7 +298,7 @@ Version 2.3.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 | Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05. On 2026-10-20 the two new cases for existing products (`live-product-first-feature`, `change-with-red-suite`) and both feature-track cases passed after three fixes they found; the other five were not rerun after the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
 | Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-89 Node tests pass (`pnpm test`). They prove the script and the adapters, not model compliance; that is what the scenarios are for.
+127 Node tests pass (`pnpm test`), including one that checks every skill against the writing standard. The eval suite in `evals/` (`claude plugin eval`) scored 1.0 with the plugin on all eleven cases that need no shell on 2026-10-22, one of them after the fix it found. They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
