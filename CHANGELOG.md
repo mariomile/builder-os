@@ -2,7 +2,9 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased]
+## [3.0.0] - 2026-10-22
+
+A major version because existing work changes under it (#16, #17, #18): six analysis skills and six agents are replaced by `product-analysis`, and frames, discoveries, definitions, specs, build plans and releases written before now fail new gates until they carry the new sections (see each Upgrading note). What it adds: hooks for the rules that must always hold, gates on the quality of what is built, the product loop from stage to payment, decisions recorded as the person's, `wayfinding`, `retro`, `to-spec`, `to-tickets`, `agents-md`, and every skill rewritten to one writing standard kept by a test.
 
 A deep pass against what a tier-1 product team would do, and against the Claude Code plugin guidance. Analysis and decisions (Q1 to Q7) in the project thread.
 
