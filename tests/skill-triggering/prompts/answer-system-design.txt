@@ -1,0 +1,2 @@
+# expects: skill=system-design (standalone)
+Stiamo per costruire il backend del nostro SaaS B2B: più aziende clienti nello stesso database, import di CSV e webhook da Stripe. Come lo progetto perché regga la crescita e nessun cliente veda i dati di un altro?

@@ -368,6 +368,109 @@ function firstDayInfo(ctx) {
   return { problems, detail: 'first day designed, activation is a criterion and a tracked event' };
 }
 
+// ---------- the system behind the interface (gates 4.18, 4.19, 5.13, 5.14) ----------
+
+const acNumbers = (spec) => new Set(tableRows(section(spec, 'Acceptance criteria')).map((r) => r[0]).filter((x) => /^\d+$/.test(x)));
+const naReason = (cell) => (/^not applicable\b/i.test(cell || '') ? (cell || '').replace(/^not applicable[\s,.:;—-]*/i, '') : null);
+
+// Gate 4.18: how the product fits together, fails and grows, written before the code.
+const SCALE_DEFAULTS = [['owner key on every row', /owner|tenant|workspace/i], ['paginated lists', /paginat/i], ['indexed queries', /index/i], ['idempotent writes', /idempot/i], ['slow work off the request', /slow|background|job/i], ['reversible migrations', /migration/i]];
+function architectureInfo(spec) {
+  const sec = section(spec, 'Architecture');
+  const na = notApplicable(sec, spec, 'Architecture');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason (no server, no stored data, no input from other people)'] };
+  if (sec === null) return { problems: ['no "## Architecture": components, contracts, external calls with timeouts, the six scale defaults and the capacity (system-design)'] };
+  const problems = [];
+  const comps = rawRows(subsection(sec, 'Components'));
+  if (!comps.length) problems.push('no "### Components" table: each component, what it owns and what it talks to');
+  for (const r of comps) if (!nonEmpty(r[1]) || !nonEmpty(r[3])) problems.push(`${r[0]}: a responsibility and what it talks to, by which mechanism`);
+  if (subsection(sec, 'Contracts') === null) problems.push('no "### Contracts": every interface this work exposes, with its errors and paging');
+  const ext = subsection(sec, 'External calls');
+  if (ext === null) problems.push('no "### External calls": every call that leaves the process, or "none: nothing leaves the process"');
+  else {
+    const calls = rawRows(ext);
+    if (!calls.length && !/\bnone\b/i.test(ext)) problems.push('"### External calls" lists no call and does not say none');
+    for (const r of calls) {
+      if (!/\d/.test(r[1] || '')) problems.push(`${r[0]}: no timeout in seconds`);
+      const missing = [['retry rule', r[2]], ['idempotency', r[3]], ['failure behavior', r[4]]].filter(([, v]) => !nonEmpty(v)).map(([n]) => n);
+      if (missing.length) problems.push(`${r[0]}: no ${missing.join(', ')}`);
+    }
+  }
+  const defaults = rawRows(subsection(sec, 'Scale defaults'));
+  for (const [name, re] of SCALE_DEFAULTS) {
+    const row = defaults.find((r) => re.test(r[0]));
+    if (!row) problems.push(`no scale default row for ${name}`);
+    else if (!nonEmpty(row[1]) && (!nonEmpty(row[2]) || row[2].length <= 3)) problems.push(`${name}: how this design does it, or why it does not apply`);
+  }
+  if (!/\d/.test(lineField(sec, 'Capacity') || '')) problems.push('no "**Capacity:**" with numbers: the expected load at this stage and the target at ten times it');
+  return { problems, detail: `${comps.length} components, external calls planned for failure, ${SCALE_DEFAULTS.length} scale defaults, capacity ${lineField(sec, 'Capacity')}` };
+}
+
+// Gate 4.19: who could break it, and the test that shows they cannot. Four threats always get a row.
+const STANDING_THREATS = [['another user\'s or customer\'s data', /another|other (user|customer|tenant|workspace|account)|cross|someone else|access/i], ['untrusted input', /input|inject|upload|payload|malformed|script/i], ['abuse', /abuse|rate|brute|stuffing|spam|flood|scrap/i], ['secrets', /secret|credential|api key|\bkeys?\b|token/i]];
+function threatInfo(spec) {
+  const sec = section(spec, 'Threat model');
+  const na = notApplicable(sec, spec, 'Threat model');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason (no server, no stored data, no input from other people)'] };
+  if (sec === null) return { problems: ['no "## Threat model": the trust boundaries and, per threat, a mitigation and the criterion that tests it (system-design)'] };
+  const problems = [];
+  if (!nonEmpty(lineField(sec, 'Boundaries'))) problems.push('no "**Boundaries:**": each trust boundary in one line');
+  const acs = acNumbers(spec);
+  const rows = rawRows(sec);
+  for (const [name, re] of STANDING_THREATS) if (!rows.some((r) => re.test(r[1] || ''))) problems.push(`no row for ${name}`);
+  for (const r of rows) {
+    const label = `${r[0]} / ${r[1] || ''}`;
+    if (!nonEmpty(r[2])) problems.push(`${label}: no mitigation`);
+    const why = naReason(r[3]);
+    if (why !== null) { if (why.length <= 3) problems.push(`${label}: "not applicable" needs its reason`); continue; }
+    const cited = (r[3] || '').match(/\d+/g) || [];
+    if (!cited.length) problems.push(`${label}: no acceptance criterion that tests the mitigation`);
+    else { const missing = cited.filter((c) => !acs.has(c)); if (missing.length) problems.push(`${label}: cites criteria that do not exist: ${missing.join(', ')}`); }
+  }
+  return { problems, detail: `${rows.length} threats, each mitigated and tested by a criterion` };
+}
+
+// Gate 5.13: someone who did not write the code read the diff against the threat model.
+const SECURITY_AREAS = [['access control', /access/i], ['input handling', /input/i], ['secrets and configuration', /secret|config/i], ['abuse limits', /abuse|rate/i], ['data exposure', /exposure|leak|log/i]];
+function securityReview(plan, ctx) {
+  const tm = section(ctx.spec || '', 'Threat model');
+  if (notApplicable(tm, ctx.spec, 'Threat model')) return { skip: 'threat model not applicable' };
+  const sec = section(plan, 'Security review');
+  if (sec === null) return { problems: ['no "## Security review": a fresh-context read of the diff against the threat model, for access control, input handling, secrets and configuration, abuse limits and data exposure'] };
+  const problems = [];
+  const by = field(sec, 'Run by');
+  if (!nonEmpty(by)) problems.push('no "**Run by:**": a separate agent given the diff, the threat model and TECH.md, or a person who did not build it');
+  const rows = rawRows(sec);
+  for (const [name, re] of SECURITY_AREAS) {
+    const row = rows.find((r) => re.test(r[0]));
+    if (!row) problems.push(`no row for ${name}`);
+    else if (!nonEmpty(row[1]) || !nonEmpty(row[2])) problems.push(`${name}: a finding (or "none found") and what happened to it`);
+  }
+  return { problems, detail: `${rows.length} areas reviewed by ${by}` };
+}
+
+// Gate 5.14: the performance budget from the spec, measured on what was built. With an interface, the page too.
+const WEB_VITALS = /LCP|INP|CLS|contentful|next paint|layout shift|web vitals/i;
+function performanceInfo(plan, ctx) {
+  const perf = rawRows(section(ctx.spec || '', 'Quality bar')).find((r) => /perform|latency|speed|budget/i.test(r[0]));
+  if (perf && !((perf[1] || '').match(/\d+/g) || []).length) return { skip: 'performance not applicable in the spec\'s quality bar' };
+  const sec = section(plan, 'Performance');
+  if (sec === null) return { problems: ['no "## Performance": the budget from the spec\'s quality bar, measured on the built product, with its evidence'] };
+  const problems = [];
+  const rows = rawRows(sec);
+  if (!rows.length) problems.push('no measurement rows');
+  for (const r of rows) {
+    if (!/\d/.test(r[1] || '') || !/\d/.test(r[2] || '')) problems.push(`${r[0]}: a budget and a measured value, both with numbers`);
+    if (!/^yes\b/i.test(r[3] || '')) problems.push(`${r[0]}: not within budget (fix it, or change the budget in the spec with the person)`);
+    const files = (r[4] || '').match(/[\w./-]+\.(json|log|txt|md|html)/gi) || [];
+    const found = files.some((f) => fs.existsSync(path.join(ctx.dir, f)) || fs.existsSync(path.join(ROOT, f)));
+    if (!found && !hasTag(r[4] || '', ['data', 'code'])) problems.push(`${r[0]}: no evidence (a captured run or a data tag)`);
+  }
+  const vd = section(ctx.design || '', 'Visual direction');
+  if (vd !== null && !notApplicable(vd, ctx.design, 'Visual direction') && !rows.some((r) => WEB_VITALS.test(r[0]))) problems.push('no page-load row (largest contentful paint, interaction to next paint or layout shift) for an interface');
+  return { problems, detail: `${rows.length} measures within budget, each with its evidence` };
+}
+
 // ---------- quality of what is built (gates 4.12, 4.13, 5.9, 5.10, 6.10, 6.11) ----------
 
 // Gate 4.12: what a machine cannot decide is written as numbered criteria, so gate 5.1 maps tests to it.
@@ -463,7 +566,7 @@ function productionGaps(release, ctx) {
   const stage = productStage(ctx.product);
   const need = ['Privacy'];
   if (model) need.push('AI disclosure');
-  if (stage && !preScale(stage)) need.push('SLO', 'Incident response', 'Cost per active user');
+  if (stage && !preScale(stage)) need.push('SLO', 'Incident response', 'Cost per active user', 'Load tested');
   if (model && stage && !preScale(stage)) need.push('Model degradation');
   const missing = need.filter((k) => !nonEmpty(field(ops || '', k)));
   if (missing.length) gaps.push(`TECH.md → "## Operations" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}${stage && !preScale(stage) ? ` (stage ${stage})` : ''}`);
@@ -550,13 +653,13 @@ function interfaceReview(plan, ctx) {
 
 // Gate 5.12: someone who did not build it looked at the craft, aspect by aspect, and every finding went somewhere.
 const STATES = ['empty', 'loading', 'partial', 'error', 'success', 'permission'];
-const CRAFT = [['hierarchy', /hierarch/i], ['spacing rhythm', /spacing|rhythm/i], ['typography', /typograph|type\b/i], ['copy against the voice', /copy|voice/i], ['focus states', /focus/i], ['motion and reduced motion', /motion/i]];
+const CRAFT = [['hierarchy', /hierarch/i], ['spacing rhythm', /spacing|rhythm/i], ['typography', /typograph|type\b/i], ['copy against the voice', /copy|voice/i], ['focus states', /focus/i], ['motion and reduced motion', /motion/i], ['interaction states', /interaction/i], ['next to the references', /reference/i]];
 function craftCritique(plan, ctx) {
   const ir = interfaceReview(plan, ctx);
   if (ir.skip) return { skip: ir.skip };
   if (notApplicable(section(plan, 'Interface review'), '', 'Interface review')) return { skip: 'interface review not applicable' };
   const sec = section(plan, 'Craft critique');
-  if (sec === null) return { problems: ['no "## Craft critique": a fresh-context review of hierarchy, spacing rhythm, typography, copy against the voice, focus states and motion'] };
+  if (sec === null) return { problems: ['no "## Craft critique": a fresh-context review of hierarchy, spacing rhythm, typography, copy against the voice, focus states, motion, interaction states, and the captures next to the references'] };
   const problems = [];
   const by = field(sec, 'Run by');
   if (!nonEmpty(by)) problems.push('no "**Run by:**": a separate agent or a person who did not build it, with what they were given');
@@ -570,12 +673,18 @@ function craftCritique(plan, ctx) {
 }
 
 // Gate 5.10: quality a machine can check runs every time, in the guardrail, not in someone's memory.
-const QUALITY_CHECKS = [['accessibility', /accessib|a11y|axe/i], ['end-to-end', /end-to-end|e2e|playwright|cypress/i], ['dependency audit', /dependenc|audit/i], ['secret scan', /secret/i]];
-function qualityChecks() {
-  const v = field(read(path.join(ROOT, 'TECH.md')) || '', 'Quality checks');
-  if (!nonEmpty(v)) return { problems: ['TECH.md names no "**Quality checks:**": accessibility, end-to-end, dependency audit and secret scan in the guardrail, each named or "n/a" with why'] };
+// With an interface, a token check keeps the chosen look in the code; once a look has shipped, visual regression keeps it.
+const QUALITY_CHECKS = [['accessibility', /accessib|a11y|axe/i], ['end-to-end', /end-to-end|e2e|playwright|cypress/i], ['dependency audit', /dependenc|audit/i], ['secret scan', /secret/i], ['static analysis', /static analysis|sast|semgrep|codeql/i]];
+function qualityChecks(ctx = {}) {
+  const tech = read(path.join(ROOT, 'TECH.md')) || '';
+  const v = field(tech, 'Quality checks');
+  if (!nonEmpty(v)) return { problems: ['TECH.md names no "**Quality checks:**": accessibility, end-to-end, dependency audit, secret scan and static analysis in the guardrail (plus a token check with an interface), each named or "n/a" with why'] };
   if (/^declined by\s+\S+.{6,}/i.test(v)) return { declined: v };
-  const missing = QUALITY_CHECKS.filter(([, re]) => !re.test(v)).map(([n]) => n);
+  const vd = section(ctx.design || '', 'Visual direction');
+  const ui = vd !== null && !notApplicable(vd, ctx.design, 'Visual direction');
+  const shipped = nonEmpty(field(section(tech, 'Design system') || '', 'Kit'));
+  const checks = [...QUALITY_CHECKS, ...(ui ? [['token check', /token/i]] : []), ...(ui && shipped ? [['visual regression', /visual regression|screenshot diff|snapshot/i]] : [])];
+  const missing = checks.filter(([, re]) => !re.test(v)).map(([n]) => n);
   return missing.length ? { problems: [`Quality checks does not cover: ${missing.join(', ')}`] } : { problems: [], detail: `quality checks: ${v}` };
 }
 
@@ -903,12 +1012,16 @@ function gate(n, ctx) {
     else if (biz.notForSale) skip('4.14', `not for sale: ${biz.revenue}`);
     else { const mb = moneyBeforeBuild(a); pass('4.14', mb.problems.length === 0, mb.problems.length ? mb.problems.join('; ') : mb.detail); }
     const stage = productStage(ctx.product);
-    if (preScale(stage)) judge('4.15', `stage ${stage}: is anything in this spec scale work (optimization, enterprise controls, infrastructure for load nobody has) that should wait for PMF?`);
+    if (preScale(stage)) judge('4.15', `stage ${stage}: is anything in this spec scale work (optimization, enterprise controls, infrastructure for load nobody has) that should wait for PMF? The six scale defaults in ## Architecture are not scale work.`);
     else skip('4.15', `stage ${stage || 'unknown'}: scale work is allowed`);
     if (!modelOut) skip('4.16', 'no model output declared');
     else { const ag = agentInfo(a, ctx); pass('4.16', ag.problems.length === 0, ag.problems.length ? ag.problems.join('; ') : ag.detail); }
     if (ctx.track !== 'product') skip('4.17', `${ctx.track} track: the first day already exists`);
     else { const fd = firstDayInfo(ctx); pass('4.17', fd.problems.length === 0, fd.problems.length ? fd.problems.join('; ') : fd.detail); }
+    const ar = architectureInfo(a);
+    pass('4.18', ar.problems.length === 0, ar.problems.length ? ar.problems.join('; ') : ar.detail);
+    const tm = threatInfo(a);
+    pass('4.19', tm.problems.length === 0, tm.problems.length ? tm.problems.join('; ') : tm.detail);
     return R;
   }
 
@@ -937,7 +1050,13 @@ function gate(n, ctx) {
     const cc = craftCritique(a, ctx);
     if (cc.skip) skip('5.12', cc.skip);
     else pass('5.12', cc.problems.length === 0, cc.problems.length ? cc.problems.join('; ') : cc.detail);
-    const qc = qualityChecks();
+    const sr = securityReview(a, ctx);
+    if (sr.skip) skip('5.13', sr.skip);
+    else pass('5.13', sr.problems.length === 0, sr.problems.length ? sr.problems.join('; ') : sr.detail);
+    const pf = performanceInfo(a, ctx);
+    if (pf.skip) skip('5.14', pf.skip);
+    else pass('5.14', pf.problems.length === 0, pf.problems.length ? pf.problems.join('; ') : pf.detail);
+    const qc = qualityChecks(ctx);
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
     const cp = contextPaths();

@@ -1,0 +1,2 @@
+# expects: skill=design-direction (standalone)
+L'interfaccia funziona ma sembra il solito template generato: bottoni senza stati, spaziature a caso, colori che cambiano da una pagina all'altra. Come la porto al livello di Linear e come evito che peggiori a ogni feature?

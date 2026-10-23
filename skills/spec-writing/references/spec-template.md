@@ -47,9 +47,40 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 | Layer | Choice | Status | Decided by | ADR |
 | {layer} | {choice} | inherited / decided / not needed | {person, or "—"} | {decisions/ADR-NNN-slug.md, or "—"} |
 
+## Architecture
+{written by system-design, gate 4.18; or **Architecture:** not applicable, {reason} when there is no server, no stored data and no input from other people}
+### Components
+| Component | Responsibility | Owns | Talks to |
+| {name} | {one line} | {entities} | {component: call / event / shared table} |
+
+### Contracts
+| Contract | Shapes | Errors | Lists |
+| {endpoint, webhook, event, export} | {input → output} | {codes} | {page size and cursor, or "not a list"} |
+
+### External calls
+| Call | Timeout | Retry | Idempotency | When it fails |
+| {provider: operation} | {seconds} | {attempts with backoff, or "none: not safe to repeat"} | {the key, or "read only"} | {what the user sees} |
+
+### Scale defaults
+| Default | How | Not applicable because |
+| Owner key on every row | {} | {} |
+| Paginated lists | {} | {} |
+| Indexed queries | {} | {} |
+| Idempotent writes | {} | {} |
+| Slow work off the request | {} | {} |
+| Reversible migrations | {} | {} |
+
+**Capacity:** {expected load at this stage, tagged} · designed for {ten times that}
+
+## Threat model
+{written by system-design, gate 4.19; or **Threat model:** not applicable, {reason}}
+**Boundaries:** {each trust boundary in one line}
+| Boundary | Threat | Mitigation | Criterion |
+| {boundary} | {another user's or customer's data / untrusted input / abuse / secrets, then the rest that apply} | {mitigation} | {acceptance criterion number, or "not applicable, {reason}"} |
+
 ## What we chose
 | Choice | What | Why | Set aside | Cost | We'd change it if |
-| {stack layer, visual direction or design kit} | {choice} | {one line} | {main alternative} | {money, time or upkeep} | {condition} |
+| {stack layer, architecture trade-off, visual direction or design kit} | {choice} | {one line} | {main alternative} | {money, time or upkeep} | {condition} |
 
 ## User stories
 1. As a {actor}, I want {capability}, so that {benefit}
@@ -69,8 +100,8 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 |------|----------|------------------------|
 | Permissions | {AC numbers: who can see and do what, and what a user outside the role gets} | {or why it does not apply} |
 | Personal data | {AC numbers: what is stored, who reads it, retention, deletion} | {} |
-| Performance | {AC numbers: the budget on the primary action, measured how} | {} |
-{Accessibility, end-to-end, dependencies and secrets are automatic checks in the guardrail (TECH.md → Quality checks), not criteria here.}
+| Performance | {AC numbers: the budget with a number on the primary action (and the page load with an interface), measured at gate 5.14} | {} |
+{Accessibility, end-to-end, dependencies, secrets, static analysis and the token check are automatic checks in the guardrail (TECH.md → Quality checks), not criteria here.}
 
 ## Real users
 {product track: the session where a person from the ICP walked the problem, the concept or the clickable prototype; what they did, where they stuck, what changed; each with its `[interview:Pn]`, `[doc:...]` or `[data:...]` tag. Other tracks: omit.}
