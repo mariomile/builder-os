@@ -17,6 +17,7 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 4. Identify the single blocking item: the failed condition of the current gate, or the next action if the gate has not been run.
 5. Surface every override ever recorded. Overrides do not expire.
 6. Show `covered` phases with the `PRODUCT.md` tags that covered them, and every `track_upgraded` event with its reason. A missing `track` reads as `product`.
+7. Show who holds the claim, a round still waiting for its answer, and the debt the briefing names: conditions added by a later release that a passed gate never checked.
 
 ## Output
 
@@ -51,3 +52,4 @@ Keep it to one screen. If everything passed and phase 7 is done, report the deci
 - `[--verbose]` — Include the full `history` log.
 - `[--overrides]` — Overrides only.
 - `[--initiative slug]` — Show another initiative without switching to it.
+- `[--doctor]` — Run `scripts/bos.mjs doctor` and relay it: the install, the hooks, the project copy, the memory files, each initiative's state, and the debt per phase.

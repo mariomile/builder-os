@@ -148,7 +148,15 @@ test('gate 6.10 asks more of operations after PMF than before, and AI disclosure
   write(root, '04-spec.md', '# Spec\n\n**Model output:** yes\n');
   assert.match(gate(root, 6).detail['6.10'], /"\*\*AI disclosure:\*\*"/);
   TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** the assistant panel says it is an AI, on first open and in its header\n');
+  assert.match(gate(root, 6).detail['6.10'], /"\*\*Agent traces:\*\*"/, 'a model in production keeps its traces');
+  write(root, '06-release.md', RELEASE('**Agent traces:** every turn with its tool calls in the trace store, Mario reads 20 a week\n'));
   assert.equal(gate(root, 6).by['6.10'], 'pass');
+  setProduct(root, { stage: 'emerging-PMF', business: '' });
+  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n');
+  assert.match(gate(root, 6).detail['6.10'], /"\*\*Model degradation:\*\*"/, 'after PMF the model is watched for drift');
+  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n**Model degradation:** the must-pass evals run weekly on sampled production turns, alert below 95%\n');
+  assert.equal(gate(root, 6).by['6.10'], 'pass');
+  setProduct(root, { stage: 'pre-PMF', business: '' });
   TECH(root, '## Operations\n');
   assert.match(gate(root, 6).detail['6.10'], /no "\*\*Privacy:\*\*"/);
 });

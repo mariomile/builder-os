@@ -1,6 +1,6 @@
 # Coverage Check (feature track)
 
-Read when initializing work classified as `feature`. E.1 applies too, against `PRODUCT.md` and `00-request.md`.
+Read when initializing work classified as `feature`. E.1 and E.2 apply too, against `PRODUCT.md` and `00-request.md`.
 
 Runs once, at initialization, when the work is classified as `feature`. It stands in for gates 0 and 1 by reading `PRODUCT.md` instead of a phase artifact, plus the initiative's `00-request.md`: the request verbatim, the sources behind it and who it concerns. The conditions are the load-bearing ones from those gates, applied to evidence that already exists. The product being evidenced does not make this request evidenced: C.5 asks for the request's own source.
 

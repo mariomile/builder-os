@@ -40,6 +40,7 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 
 ## Flows
 {reference to DESIGN.md, with the flow list and where each is specified}
+**Activation:** {product track: the acceptance criterion that marks the first useful outcome of the first day, and the tracking-plan event that measures it (gate 4.17)}
 
 ## Stack
 **Drivers:** {three to five, each with its source}
@@ -87,7 +88,22 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 **Dataset:** {project-relative existing eval file}
 **Threshold:** {percentage}
 **Judge:** {case or dataset scoring rubric}
-{only when model output is yes; actual cases carry must_pass flags; production sampling when relevant}
+{only when model output is yes; actual cases carry must_pass flags, one must-pass case per injection surface; production sampling when relevant}
+
+## Agent behavior
+{only when model output is yes; written by agent-design, gate 4.16}
+| Action | Autonomy | Why | Criterion |
+|--------|----------|-----|-----------|
+| {action} | does / proposes / asks / never | {reversibility, blast radius, the person's answer} | {AC number; required for asks} |
+
+**Hand-off:** {trigger, to whom, what context travels, what the user sees meanwhile}
+**Degradation:** {slow: …; down: …; wrong: …}
+**Latency budget:** {first token and complete answer at p95, per turn}
+
+### Injection surfaces
+| Surface | What could arrive | Mitigation | Eval case |
+|---------|-------------------|------------|-----------|
+| {input someone else can write} | {the attack} | {mitigations} | {must-pass case id in the dataset} |
 
 ## Tracking plan
 | Event | Trigger | Properties | Measures | New or existing |

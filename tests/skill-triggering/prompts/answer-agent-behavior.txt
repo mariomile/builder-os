@@ -1,0 +1,2 @@
+# expects: skill=agent-design (standalone)
+Il nostro assistente risponde ai ticket di supporto e può fare rimborsi. Cosa deve fare da solo e cosa deve chiedere prima all'operatore? E come lo proteggo da un cliente che scrive istruzioni nel ticket per fargli fare cose che non deve?

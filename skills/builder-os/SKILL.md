@@ -15,7 +15,7 @@ The hub walks one initiative through the gated phases: it routes to the phase sk
 | 1 DISCOVER | Evidence, synthesis, verdict | `research-methods`, `discovery-methods` | `01-discovery.md` |
 | 2 DEFINE | Opportunity and outcome metric | `opportunity-mapping`, strategy as needed | `02-definition.md` |
 | 3 IDEATE | Wide ideas, distinct options, the person's bet and test | `ideation-methods`, experiments as needed | `03-solution-bet.md` |
-| 4 SHAPE | Flows, then the rules, the look and the stack decided with the person, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `design-direction`, `stack-decisions`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
+| 4 SHAPE | Flows, then the rules, an agent's autonomy, the look and the stack decided with the person, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `agent-design` when a model acts, `design-direction`, `stack-decisions`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
 | 5 BUILD | Authorized implementation and verification | `delivery-discipline`, tracking as needed | `05-build-plan.md` |
 | 6 SHIP | Readiness, authorized exposure and verification | `release-ops`, writing as needed | `06-release.md` |
 | 7 LEARN | Compare outcomes, decide or defer | `outcome-review`, analysis as needed | `07-outcome.md` |
@@ -28,7 +28,7 @@ Initiatives answer whether one bet worked; the product review decides which bet 
 
 ## Procedure
 
-1. **Resolve the initiative.** Read the roadmap, its `state.json` and `PRODUCT.md`; `TECH.md` when code is involved. Initialization, migration, track classification and switching follow [lifecycle setup](../../references/lifecycle-setup.md), and only when requested. Done when you can name the initiative, its track, its phase and its gate mode.
+1. **Resolve the initiative.** Read the roadmap, its `state.json` and `PRODUCT.md`; `TECH.md` when code is involved. Initialization, migration, track classification and switching follow [lifecycle setup](../../references/lifecycle-setup.md), and only when requested. Claim it for the person you work for (`scripts/bos.mjs claim --by "{person}"`); a claim held by someone else is theirs to release, or a take-over with its reason. Done when you can name the initiative, its track, its phase, its gate mode and its owner.
 2. **Check the input.** Read the prior artifact and its gate. A covered feature phase uses the evidenced `PRODUCT.md` contract and the initiative's `00-request.md`; a change covered by its mandate enters phase 4 with `00-request.md` as its bet. A failed upstream gate holds progression until it is corrected or explicitly overridden. Settled facts in supplied context answer their own questions. Done when the upstream gate is passed or overridden, or the refusal names the failing condition.
 3. **Run the phase skill.** Pass the request verbatim, the authorized actions, the state, the prior artifact and the resolved capabilities. Load the supporting skills this phase needs: `evidence-ledger` when capturing claims, `pressure-testing` for a material open assumption or a requested critique. Done when the phase artifact is written and the skill reported its marker.
 4. **Verify the output.** The marker is a claim; the gate on the file is the evidence. Re-read the artifact and run the gate with the installation's `scripts/bos.mjs`, reading `gate-checks` before recording. A command that executes checks needs an explicit authorized invocation; a gate runs only its own checks. Done when every condition of the gate has a pass or fail with its reason.
@@ -40,6 +40,8 @@ Initiatives answer whether one bet worked; the product review decides which bet 
 - A change closes after phase 6 unless its release set an outcome review. Its mandate covers phases 0 to 3; a real choice between solutions found later upgrades it to feature.
 - A spike closes after phase 1 with its problem verdict. A KILLED problem stops the lifecycle; continuing takes an explicit track or new-cycle decision.
 - RELEASE READY means the preparation exists. SHIPPED takes observed, authorized exposure with its environment, version, actual timestamp and source-backed verification; a planned date stays in SHIP.
+- A round that waits on the person does not stop the work: draft ahead on the recommended options, marked provisional (`pressure-testing`, Working Ahead); gate E.2 keeps provisional work from passing.
+- Conditions a later release added to a gate already passed are debt the briefing names, met when the work next touches that phase; the phase stays passed.
 - The agent analyses and recommends; the person chooses. The assumption to test, the next step after a discovery verdict, the opportunity and target, the bet, the look, the stack, the rollout and keep/iterate/kill are each a round question, recorded as `**Chosen by:**` (`gate-checks`, Decisions).
 - A gate verdict is not an acceptance. The frame, the spec, the build plan and the release each wait for a person's yes; a standing instruction counts only when it named that scope.
 - KEEP closes the cycle and sets a watch; a breach of its bands starts a new initiative from the anomaly. ITERATE and KILL use a coherent re-entry point or an explicit close. An insufficient observation window defers the review with a date and a reason while phase 7 stays open.

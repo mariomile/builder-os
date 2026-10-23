@@ -1,6 +1,6 @@
 # Gate 3 — Ideate
 
-Read when running gate 3. E.1 and the procedure in `SKILL.md` apply too.
+Read when running gate 3. E.1, E.2 and the procedure in `SKILL.md` apply too.
 
 | # | Condition | Check |
 |---|-----------|-------|

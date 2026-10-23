@@ -18,6 +18,11 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 **Abandonment:** {what happens to partial work}
 **Reversible:** {which steps, how}
 
+### First day
+{product track: from the first visit (the link, the sign-up, the invitation) to the first useful outcome, with the empty states a new account meets filled by sample data, a guided first action or an import; the step that counts as activated is the spec's **Activation:** criterion}
+**Entry points:** {where a new user arrives from}
+| Step | User action | System response | Branches |
+
 ## States
 | Flow / step | Empty | Loading | Partial | Error | Success | Permission |
 
@@ -54,9 +59,10 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 {or, when nothing changes state or shape: **Domain model:** not applicable, {reason}}
 
 ## Visual direction
-| Version | Axis and direction | File | Verdict |
-|---------|--------------------|------|---------|
-| A | {axis: what it optimizes} | design/a-v1.html, or the route and branch | chosen / rejected: {why} / combined into {version} |
+**References:** {3 to 5 real screens the ICP knows, saved before the versions: design/refs/{name}.png, each with what it does well}
+| Version | Axis and direction | File | Avoids | Verdict |
+|---------|--------------------|------|--------|---------|
+| A | {axis: what it optimizes} | design/a-v1.html, or the route and branch | {the generic default this version steers away from} | chosen / rejected: {why} / combined into {version} |
 
 **Chosen:** {version and file}
 **Chosen by:** {person, from their answer}

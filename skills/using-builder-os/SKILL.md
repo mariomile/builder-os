@@ -24,9 +24,10 @@ In a project with BuilderOS memory, check every product request against it befor
 - **Stale truth.** What the person just decided makes `PRODUCT.md`, `ROADMAP.md`, the spec or an evidence file wrong (a stage, a non-goal, a "Next" item already built, a superseded preference). Update it in the same step, or name it when the update is outside the authorized scope.
 - **Shaky ground.** The request builds on an `[assumption:unvalidated]` or a deferred branch whose test never ran. Name it and the cheapest test.
 - **Unread result.** A shipped change whose outcome metric nobody has read, or a launch or pilot whose start conditions are still open, when the request is more work in the same area. Say the measurement comes first, or why it can wait.
+- **Someone else's initiative.** The briefing shows the active initiative claimed by another person. Say who and since when, and ask whether to work on it anyway: their release, or a take-over with the reason (`claim --take --reason`), keeps two sessions from writing one state. When you start lifecycle work on an unclaimed initiative where commands run, claim it for the person (`claim --by "{person}"`).
 - **Code before an accepted plan.** The request asks for product code in an initiative whose build plan is not accepted yet ("skip the rest, just write it"). This one is a gate: write no code. In one message name what the gate still needs and offer the paths, with a recommendation: finish it (often one short round), run the work as a `change` when the solution is already fixed, or record an override with the person's own reason through the script (`record {phase} --override "reason"`), visible in every briefing, then build. The person's decision to skip is a reason to log: code built past an unrecorded gate is how a project ends up with features its own phase 2 said not to build.
 
-The briefing's Attention line covers what the files decide mechanically; the first four need judgment. They inform the request without blocking it, and each is raised once per session.
+The briefing's Attention line covers what the files decide mechanically; the first five need judgment. They inform the request without blocking it, and each is raised once per session.
 
 ## Routes
 
@@ -35,6 +36,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | An idea or problem in one sentence ("I want to build X") | Lifecycle requested or project initialized: `builder-os`, starting with no setup questions per [lifecycle setup](../../references/lifecycle-setup.md). Otherwise `problem-framing`'s first round inline, then offer to keep it as an initiative |
 | Run or continue an initiative; explicitly request a spike | `builder-os`, lifecycle |
 | An effort too big or too foggy for one session; continue a map in `.builderos/maps/` | `wayfinding` |
+| Whether BuilderOS is installed and set up right, what an upgrade left owed | `scripts/bos.mjs doctor` where commands run, relayed; otherwise read the install and memory per [state and session briefing](../../references/builderos-state-schema.md) |
 | What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |

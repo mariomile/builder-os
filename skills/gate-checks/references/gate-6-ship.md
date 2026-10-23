@@ -1,6 +1,6 @@
 # Gate 6 — Ship
 
-Read when running gate 6. E.1 and the procedure in `SKILL.md` apply too. **Acceptance:** whoever can authorize exposure, recorded as `**Authorized by:**` in Exposure verification (gate 6.8), and `record 6 --accepted-by "who"` (`SKILL.md`, Acceptance).
+Read when running gate 6. E.1, E.2 and the procedure in `SKILL.md` apply too. **Acceptance:** whoever can authorize exposure, recorded as `**Authorized by:**` in Exposure verification (gate 6.8), and `record 6 --accepted-by "who"` (`SKILL.md`, Acceptance).
 
 | # | Condition | Check |
 |---|-----------|-------|
@@ -13,7 +13,7 @@ Read when running gate 6. E.1 and the procedure in `SKILL.md` apply too. **Accep
 | 6.7 | Exposure evidence proves availability | Model confirms intended behavior is available to users in the stated environment/version |
 | 6.8 | Exposure was authorized by a person | Exposure verification names `**Authorized by:**` with who and how (the message, the ticket, the approval) |
 | 6.9 | What it settled outlives the folder | Every entity in `DESIGN.md` → Domain model → Entities appears in the project's `DOMAIN.md`; a visual direction chosen here (not inherited, not "not applicable") is in `TECH.md` → `## Design system` with `**Kit:**` and `**Tokens:**` (where the tokens live in the code) |
-| 6.10 | Production is ready for its first incident, and for its stage | `## Production readiness` has `**Errors seen by:**` (how an error reaches the team before a user reports it) and `**Backup restored:**` (a restore tested once, with the date, or "not applicable" with why). `TECH.md` → `## Operations` has `**Privacy:**` always, `**AI disclosure:**` when the spec declares model output, and after PMF (`emerging-PMF`, `scaling`) `**SLO:**`, `**Incident response:**` and `**Cost per active user:**`. These are product facts written once, not per release |
+| 6.10 | Production is ready for its first incident, and for its stage | `## Production readiness` has `**Errors seen by:**` (how an error reaches the team before a user reports it) and `**Backup restored:**` (a restore tested once, with the date, or "not applicable" with why), and with model output `**Agent traces:**` (where every turn and tool call is kept, and who reads a sample how often). `TECH.md` → `## Operations` has `**Privacy:**` always, `**AI disclosure:**` when the spec declares model output, and after PMF (`emerging-PMF`, `scaling`) `**SLO:**`, `**Incident response:**` and `**Cost per active user:**`, plus `**Model degradation:**` with model output (the must-pass cases run on sampled production turns, how often, and the threshold that alerts). These are product facts written once, not per release |
 | 6.11 | Someone is using it (product track) | `## First real use` cites a `data` or `doc` tag: a person outside the team did the primary action. Online is not in use. Skipped on the other tracks, where exposure reaches existing users |
 | 6.12 | Someone paid (product track, for sale) | `## First payment` cites a `data` or `doc` tag: a customer outside the team paid. Skipped when `PRODUCT.md` says not for sale and on the other tracks |
 | 6.13 | A person chose the rollout | `**Chosen by:**` under `## Rollout` names who chose the strategy from the decision card; never the agent |

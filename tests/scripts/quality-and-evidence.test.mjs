@@ -1,4 +1,4 @@
-// Gates on the quality of what is built (4.12, 4.13, 5.9, 5.10, 6.10, 6.11), evidence imported
+// Gates on the quality of what is built (4.12, 4.13, 5.9, 5.10, 5.12, 6.10, 6.11), evidence imported
 // from outside the session, and the one-line context added to every message.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -56,25 +56,59 @@ test('gate 4.13 asks the product track for a real-user session and skips the oth
   assert.equal(gate(root, 4, '--initiative', slug).by['4.13'], 'pass');
 });
 
-const REVIEW = (rows) => `# Build\n\n## Interface review\n| State | Screenshot or route | Matches the chosen direction |\n|---|---|---|\n${rows}\n`;
+const REVIEW = (rows, widths = '**Widths:** 1280 and 390\n') => `# Build\n\n## Interface review\n${widths}| State | Screenshot or route | Matches the chosen direction |\n|---|---|---|\n${rows}\n`;
+const SIX = (error = '/reports?state=error | yes') => `| empty | review/empty.png | yes |\n| loading | /reports?state=loading | yes |\n| partial | /reports?state=partial | yes |\n| error | ${error} |\n| success | /reports | yes |\n| permission | not applicable, every manager sees the same report |`;
 
-test('gate 5.9 wants the empty and error states looked at, matching the chosen direction', () => {
+test('gate 5.9 wants all six states looked at, at two widths, matching the chosen direction', () => {
   const root = project();
   write(root, '05-build-plan.md', '# Build\n');
   assert.equal(gate(root, 5).by['5.9'], 'fail');
   write(root, '05-build-plan.md', REVIEW('| success | /reports | yes |'));
-  assert.match(gate(root, 5).detail['5.9'], /no empty state reviewed.*no error state reviewed/);
-  write(root, '05-build-plan.md', REVIEW('| empty | review/empty.png | yes |\n| error | /reports?state=error | no, spacing off |'));
+  assert.match(gate(root, 5).detail['5.9'], /no empty state reviewed.*no loading state reviewed.*no error state reviewed/);
+  write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | no, spacing off')));
   const g = gate(root, 5);
   assert.match(g.detail['5.9'], /review\/empty\.png not found/);
   assert.match(g.detail['5.9'], /error: does not match/);
   fs.mkdirSync(path.join(INIT(root), 'review'));
   fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), 'png');
-  write(root, '05-build-plan.md', REVIEW('| empty | review/empty.png | yes |\n| error | /reports?state=error | yes, deviation recorded in DESIGN.md |'));
+  write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md'), ''));
+  assert.match(gate(root, 5).detail['5.9'], /no "\*\*Widths:\*\*" naming two widths/);
+  write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md')));
   assert.equal(gate(root, 5).by['5.9'], 'pass');
+  write(root, '05-build-plan.md', REVIEW(SIX().replace('not applicable, every manager sees the same report', 'not applicable')));
+  assert.match(gate(root, 5).detail['5.9'], /permission: "not applicable" needs its reason/);
   write(root, '05-build-plan.md', '# Build\n');
   write(root, 'DESIGN.md', '# Design\n\n**Visual direction:** not applicable, a CSV endpoint with no interface\n');
   assert.equal(gate(root, 5).by['5.9'], 'skip');
+  assert.equal(gate(root, 5).by['5.12'], 'skip', 'no interface, no craft critique');
+});
+
+test('gate 5.9 on the change track looks at the hard states of the screen it touches', () => {
+  const root = project();
+  const state = path.join(INIT(root), 'state.json');
+  const s = JSON.parse(fs.readFileSync(state, 'utf8'));
+  fs.writeFileSync(state, JSON.stringify({ ...s, track: 'change' }));
+  write(root, '05-build-plan.md', REVIEW('| empty | /reports?state=empty | yes |\n| error | /reports?state=error | yes |', ''));
+  assert.equal(gate(root, 5).by['5.9'], 'pass');
+});
+
+const CRITIQUE = (rows, by = '**Run by:** a fresh agent given DESIGN.md, the voice and the routes, not the build conversation\n') => `\n## Craft critique\n${by}| Aspect | Finding | What happened |\n|---|---|---|\n${rows}\n`;
+const ASPECTS = ['Hierarchy', 'Spacing rhythm', 'Typography', 'Copy against the voice', 'Focus states', 'Motion and reduced motion'];
+
+test('gate 5.12 wants a fresh-context craft critique, aspect by aspect, each finding acted on', () => {
+  const root = project();
+  fs.mkdirSync(path.join(INIT(root), 'review'));
+  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), 'png');
+  write(root, '05-build-plan.md', REVIEW(SIX()));
+  assert.match(gate(root, 5).detail['5.12'], /no "## Craft critique"/);
+  write(root, '05-build-plan.md', REVIEW(SIX()) + CRITIQUE(ASPECTS.slice(0, 4).map((a) => `| ${a} | none found | — |`).join('\n'), ''));
+  const g = gate(root, 5);
+  assert.match(g.detail['5.12'], /no "\*\*Run by:\*\*"/);
+  assert.match(g.detail['5.12'], /no row for focus states.*no row for motion/);
+  write(root, '05-build-plan.md', REVIEW(SIX()) + CRITIQUE(ASPECTS.map((a, i) => `| ${a} | ${i ? 'none found' : 'two primary buttons compete'} | ${i ? '—' : ''} |`).join('\n')));
+  assert.match(gate(root, 5).detail['5.12'], /hierarchy: a finding/);
+  write(root, '05-build-plan.md', REVIEW(SIX()) + CRITIQUE(ASPECTS.map((a, i) => `| ${a} | ${i ? 'none found' : 'two primary buttons compete'} | ${i ? '—' : 'fixed: filters became secondary'} |`).join('\n')));
+  assert.equal(gate(root, 5).by['5.12'], 'pass');
 });
 
 test('gate 5.10 wants the four automatic checks in TECH.md, and a named decline is a warning', () => {
