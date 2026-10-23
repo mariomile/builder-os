@@ -47,7 +47,7 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 **Errors seen by:** {how an error reaches the team before a user reports it: the error tracker, the alert, who receives it}
 **Backup restored:** {date and what was restored, once; or "not applicable, {why}" when nothing is stored}
 **Agent traces:** {model output only: where every turn with its tool calls is kept, and who reads a sample how often}
-{Privacy, AI disclosure and, after PMF, SLO, incident response, cost per active user and model degradation live in TECH.md → Operations (gate 6.10), not here.}
+{Privacy, AI disclosure and, after PMF, SLO, incident response, cost per active user, load tested and model degradation live in TECH.md → Operations (gate 6.10), not here.}
 
 ## First real use
 {product track: the first person outside the team who did the primary action, when, with its `[data:...]` or `[doc:...]` tag. Online is not in use: phase 7 starts here. Other tracks: omit.}

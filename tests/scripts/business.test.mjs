@@ -142,7 +142,7 @@ test('gate 6.10 asks more of operations after PMF than before, and AI disclosure
   write(root, '06-release.md', RELEASE());
   assert.equal(gate(root, 6).by['6.10'], 'pass', 'the fixture covers emerging-PMF');
   TECH(root, '## Operations\n**Privacy:** policy at /privacy, sub-processors listed, deletion in 30 days\n');
-  assert.match(gate(root, 6).detail['6.10'], /"\*\*SLO:\*\*", "\*\*Incident response:\*\*", "\*\*Cost per active user:\*\*" \(stage emerging-PMF\)/);
+  assert.match(gate(root, 6).detail['6.10'], /"\*\*SLO:\*\*", "\*\*Incident response:\*\*", "\*\*Cost per active user:\*\*", "\*\*Load tested:\*\*" \(stage emerging-PMF\)/);
   setProduct(root, { stage: 'pre-PMF', business: '' });
   assert.equal(gate(root, 6).by['6.10'], 'pass', 'before PMF privacy is enough');
   write(root, '04-spec.md', '# Spec\n\n**Model output:** yes\n');
@@ -152,9 +152,9 @@ test('gate 6.10 asks more of operations after PMF than before, and AI disclosure
   write(root, '06-release.md', RELEASE('**Agent traces:** every turn with its tool calls in the trace store, Mario reads 20 a week\n'));
   assert.equal(gate(root, 6).by['6.10'], 'pass');
   setProduct(root, { stage: 'emerging-PMF', business: '' });
-  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n');
+  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n**Load tested:** 2026-10-01, ten times peak, p95 within the SLO\n');
   assert.match(gate(root, 6).detail['6.10'], /"\*\*Model degradation:\*\*"/, 'after PMF the model is watched for drift');
-  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n**Model degradation:** the must-pass evals run weekly on sampled production turns, alert below 95%\n');
+  TECH(root, '## Operations\n**Privacy:** none stored\n**AI disclosure:** in the header\n**SLO:** 99.5%\n**Incident response:** Mario, paged\n**Cost per active user:** €0.40\n**Load tested:** 2026-10-01, ten times peak, p95 within the SLO\n**Model degradation:** the must-pass evals run weekly on sampled production turns, alert below 95%\n');
   assert.equal(gate(root, 6).by['6.10'], 'pass');
   setProduct(root, { stage: 'pre-PMF', business: '' });
   TECH(root, '## Operations\n');

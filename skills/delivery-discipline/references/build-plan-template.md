@@ -69,7 +69,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 {A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. The change track reviews empty and error at one width. Without an interface: **Interface review:** not applicable, {reason}}
 
 ## Craft critique
-**Run by:** {a separate agent given only DESIGN.md, the voice adjectives and the captures; or a person who did not build it}
+**Run by:** {a separate agent given only DESIGN.md, the voice adjectives, the captures and the reference screens; or a person who did not build it}
 | Aspect | Finding | What happened |
 | Hierarchy | {what draws the eye first, and whether it should; or "none found"} | {fixed, or recorded in DESIGN.md} |
 | Spacing rhythm | {} | {} |
@@ -77,6 +77,24 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | Copy against the voice | {} | {} |
 | Focus states | {} | {} |
 | Motion and reduced motion | {} | {} |
+| Interaction states | {hover, pressed, focus-visible, disabled, loading on every control; feedback within 100 ms; per interface-details.md} | {} |
+| Next to the references | {per reference screen, where the built screen falls short on the detail it was chosen for} | {} |
+
+## Security review
+**Run by:** {a separate agent given the diff, the spec's threat model and TECH.md; or a person who did not build it}
+| Area | Finding | What happened |
+| Access control | {every endpoint that takes an id checks the owner; or "none found"} | {fixed, or recorded with the reason} |
+| Input handling | {} | {} |
+| Secrets and configuration | {} | {} |
+| Abuse limits | {} | {} |
+| Data exposure | {errors, logs and responses carrying personal data or internals} | {} |
+{Skipped when the spec's threat model is not applicable}
+
+## Performance
+| Measure | Budget | Measured | Within budget | Evidence |
+| {primary action, p95} | {from the spec's quality bar} | {number} | yes | {evidence/runs/*.json from run-check, or a data tag} |
+| {largest contentful paint at the narrowest width; with an interface} | {2.5 s} | {} | {} | {} |
+{Skipped when the spec's quality bar says performance does not apply}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |

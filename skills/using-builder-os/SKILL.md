@@ -44,6 +44,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Synthesize supplied research | `discovery-methods` |
 | Compare opportunities or solution alternatives | `opportunity-mapping` or `ideation-methods`, standalone |
 | Which stack, backend, database or hosting to use, and why | `stack-decisions`, standalone |
+| How the backend fits together, an API's contracts, timeouts and retries, whether it will scale, a security or threat-model review | `system-design`, standalone |
 | See design versions, choose a look or a design kit | `design-direction`, standalone |
 | Business rules, states and transitions, data model, what a term means | `domain-model`, standalone |
 | Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |

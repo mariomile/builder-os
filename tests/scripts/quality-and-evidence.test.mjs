@@ -93,7 +93,7 @@ test('gate 5.9 on the change track looks at the hard states of the screen it tou
 });
 
 const CRITIQUE = (rows, by = '**Run by:** a fresh agent given DESIGN.md, the voice and the routes, not the build conversation\n') => `\n## Craft critique\n${by}| Aspect | Finding | What happened |\n|---|---|---|\n${rows}\n`;
-const ASPECTS = ['Hierarchy', 'Spacing rhythm', 'Typography', 'Copy against the voice', 'Focus states', 'Motion and reduced motion'];
+const ASPECTS = ['Hierarchy', 'Spacing rhythm', 'Typography', 'Copy against the voice', 'Focus states', 'Motion and reduced motion', 'Interaction states', 'Next to the references'];
 
 test('gate 5.12 wants a fresh-context craft critique, aspect by aspect, each finding acted on', () => {
   const root = project();
