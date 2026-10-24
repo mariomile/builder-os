@@ -79,3 +79,10 @@ for (const [g, id, why, what] of HOLLOW) {
     assert.match(g[id].detail, why);
   });
 }
+
+test('the project page says what the current phase waits on from people, even before a gate is recorded', () => {
+  run(root, 'page');
+  const html = fs.readFileSync(path.join(root, '.builderos/index.html'), 'utf8');
+  assert.match(html, /phase 6 waits on a first payment \(6\.12\)/);
+  assert.doesNotMatch(html, /Waiting on you<\/h2><p class="sub">Nothing/);
+});

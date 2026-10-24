@@ -4,15 +4,20 @@
 //
 //   node bos.mjs brief                     session briefing, with the attention line
 //   node bos.mjs gate <0-7|C|M> [--json]   script-decided gate conditions; the rest listed as judge
+//   node bos.mjs init                      first run: .builderos/ folders, an empty ROADMAP.md, the .gitignore lines
 //   node bos.mjs new <slug> --title "..." --track spike|feature|change|product [--mode full|lite] [--reason "..."]
 //                                          create an initiative with a valid state.json and make it active
+//   node bos.mjs resume <slug> [--reason "..."]   make a paused initiative the active one again
+//   node bos.mjs reframe --reason "..."    a new cycle from phase 0, keeping the history
+//   node bos.mjs jump <0-7> --reason "..." a forced move: back reopens phases, forward records them overridden, not run
 //   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and 00-request.md and, if it
 //                                          passes, record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
 //   node bos.mjs cover --m4 "reason"       change track: run the mandate check on 00-request.md and, if it passes, record
 //                                          phases 0 to 3 as covered and start at phase 4; a failure moves the work to feature
 //   node bos.mjs upgrade --to feature|product --reason "..."
 //                                          the ratchet: move the active initiative to a heavier track and restart at phase 0
-//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason] [--review-due date] [--reenter N]
+//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason [--waive ids]] [--review-due date] [--reenter N]
+//   node bos.mjs record <0-6> --kill "reason"   end the initiative at the phase it is in, in the person's words
 //                                          write a gate result to state.json: the script's verdict plus the model's
 //                                          on the judge conditions; advances, closes, or keeps the phase open.
 //                                          Phases 0, 4 and 6 also need the person who accepted the artifact
@@ -1103,6 +1108,16 @@ function productionGaps(release, ctx) {
   return { gaps, detail: `release ready for its first incident; TECH.md → Operations covers ${need.join(', ')}` };
 }
 
+// What the current phase waits for from people outside the agent: acceptance, a session, a payment, a channel.
+const PERSON_WAITS = { '4.13': 'a session with someone from the ICP', '4.14': 'what someone did when shown the price', '4.22': 'the result of the test chosen before the build', '5.6': 'the person to accept the build plan', '5.17': 'the person to try what was built', '6.8': 'the person to authorize exposure', '6.11': 'someone outside the team using it', '6.12': 'a first payment', '6.13': 'the person to choose the rollout' };
+function personWaits(init) {
+  const p = init.state.current_phase ?? 0;
+  if (!fs.existsSync(path.join(init.dir, ARTIFACTS[p]))) return [];
+  let j;
+  try { j = JSON.parse(spawnSyncSelf(['gate', String(p), '--json', '--initiative', init.slug]) || '{}'); } catch { return []; }
+  return (j.failed || []).filter((id) => PERSON_WAITS[id]).map((id) => `phase ${p} waits on ${PERSON_WAITS[id]} (${id})`);
+}
+
 // The product review: a dated file in .builderos/reviews/, checked by `bos.mjs review`.
 const REVIEWS = path.join(BOS, 'reviews');
 function latestReview() {
@@ -1114,6 +1129,8 @@ const reviewEvery = (stage) => (preScale(stage) || !stage ? 7 : 31);
 function reviewDue(product) {
   const last = latestReview();
   const stage = productStage(product);
+  // An idea has no product to review yet: its Business section is drafted at initialization, the review starts with users.
+  if (!last && stage === 'idea') return null;
   if (!last) return section(product, 'Business') === null ? 'no product review yet: run one to set the stage, the North Star and the metric tree in PRODUCT.md → ## Business' : 'no product review yet';
   const days = Math.floor((Date.now() - Date.parse(last.date)) / DAY);
   return days > reviewEvery(stage) ? `product review is due: last on ${last.date}, every ${reviewEvery(stage)} days at stage ${stage || 'unknown'}` : null;
@@ -1559,6 +1576,7 @@ function writePage(quiet) {
     const round = openRound(s);
     if (round) waiting.push(`${s.title || i.slug}: ${round.questions || 'a'} question${round.questions === 1 ? '' : 's'} waiting since ${String(round.at).slice(0, 10)}`);
     if (g && !g.passed && (g.failed_conditions || []).length) waiting.push(`${s.title || i.slug}: gate ${ph} failed on ${g.failed_conditions.join(', ')}`);
+    else if ((s.status || 'open') === 'open') for (const w of personWaits(i)) waiting.push(`${s.title || i.slug}: ${w}`);
     const docs = [REQUEST, ...ARTIFACTS, 'DESIGN.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
     const visuals = listFiles(path.join(i.dir, 'design'), /\.(html?|png|jpe?g|webp|svg)$/i);
     const media = listFiles(path.join(BOS, 'media'), /\.(mp4|webm|mov|gif|png)$/i, 3).filter((p) => p.includes(i.slug));
@@ -2560,7 +2578,7 @@ function roadmap() {
 
 function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
-  if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
+  if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: run `bos.mjs init` first');
   const track = opt('--track');
   if (!TRACKS.includes(track)) die('new needs --track spike|feature|change|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
@@ -2568,13 +2586,7 @@ function newInitiative(slug) {
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
   fs.mkdirSync(path.join(dir, 'evidence'), { recursive: true });
   const now = new Date().toISOString();
-  for (const i of loadInitiatives()) {
-    if ((i.state.status || 'open') === 'open') {
-      i.state.status = 'paused';
-      i.state.history = [...(i.state.history || []), { at: now, event: 'paused', reason: `${slug} became active` }];
-      writeJSON(path.join(i.dir, 'state.json'), i.state);
-    }
-  }
+  pauseOthers(slug, now, `${slug} became active`);
   const phases = {};
   for (let k = 0; k < 8; k++) phases[k] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
   const state = {
@@ -2586,6 +2598,94 @@ function newInitiative(slug) {
   writeJSON(path.join(BOS, 'local.json'), { active: slug });
   roadmap();
   console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused.`);
+}
+
+// The project memory a first run needs, and nothing invented: the folders, an empty roadmap, the ignore lines.
+// PRODUCT.md and TECH.md are written with the person (references/lifecycle-setup.md, step 5); init never guesses them.
+function initProject() {
+  for (const d of ['decisions', 'evidence', 'initiatives']) fs.mkdirSync(path.join(BOS, d), { recursive: true });
+  const rm = path.join(BOS, 'ROADMAP.md');
+  if (!fs.existsSync(rm)) fs.writeFileSync(rm, `# ROADMAP\n\n**Verified:** ${new Date().toISOString().slice(0, 10)}\n\n## Direction\nWritten from PRODUCT.md once it exists.\n\n## Now\n| Initiative | Track | Phase | Bet in one line | Folder |\n|------------|-------|-------|-----------------|--------|\n\n## Done\n| Initiative | Outcome | Learning | Date |\n|------------|---------|----------|------|\n`);
+  const gi = path.join(ROOT, '.gitignore');
+  const have = read(gi) || '';
+  const add = ['.builderos/local.json', '.builderos/media/'].filter((l) => !have.split('\n').includes(l));
+  if (add.length) fs.writeFileSync(gi, have + (have && !have.endsWith('\n') ? '\n' : '') + add.join('\n') + '\n');
+  const missing = ['PRODUCT.md', 'TECH.md'].filter((f) => !fs.existsSync(path.join(ROOT, f)));
+  console.log(`BuilderOS memory ready in .builderos/.${missing.length ? ` Still to write with the person: ${missing.join(', ')} (references/lifecycle-setup.md, step 5).` : ''} Next: name the initiative with \`new {slug} --track ... --reason ...\`.`);
+}
+
+function pauseOthers(slug, now, why) {
+  for (const i of loadInitiatives()) {
+    if (i.slug === slug || (i.state.status || 'open') !== 'open') continue;
+    i.state.status = 'paused';
+    i.state.history = [...(i.state.history || []), { at: now, event: 'paused', reason: why }];
+    writeJSON(path.join(i.dir, 'state.json'), i.state);
+  }
+}
+
+// Back to a paused initiative: it becomes the open one on this checkout, the others pause.
+function resume(slug) {
+  const init = loadInitiatives().find((i) => i.slug === slug);
+  if (!init) die(`no initiative ${slug || '(none named)'}: resume takes the slug of a paused or open initiative`);
+  if (init.state.status === 'closed') die(`${slug} is closed: start a new initiative, or reframe it if the problem came back`);
+  const now = new Date().toISOString();
+  pauseOthers(slug, now, `${slug} resumed`);
+  const s = init.state;
+  s.status = 'open';
+  s.updated_at = now;
+  s.history.push({ at: now, event: 'initiative_switched', to: slug, reason: opt('--reason') || 'resumed' });
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  writeJSON(path.join(BOS, 'local.json'), { active: slug });
+  roadmap();
+  console.log(`${slug} is active again at phase ${s.current_phase} ${PHASES[s.current_phase]}; other open initiatives are paused.`);
+}
+
+// The frame was wrong (a reshaped discovery, a kill criterion that moved): a new cycle from phase 0. The
+// history stays; the artifacts of the old cycle stay on disk to be rewritten.
+function reframe() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const reason = opt('--reason');
+  if (!nonEmpty(reason)) die('reframe needs --reason: what made the frame wrong');
+  const s = init.state;
+  if (s.status === 'closed') die('a closed initiative is not reframed: start a new one');
+  const now = new Date().toISOString();
+  s.cycle = (s.cycle || 1) + 1;
+  for (let k = 0; k < 8; k++) s.phases[String(k)] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
+  s.history.push({ at: now, event: 'cycle_started', cycle: s.cycle, phase: 0, from: s.current_phase, reason });
+  s.current_phase = 0;
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`${init.slug} starts cycle ${s.cycle} at phase 0 FRAME: ${reason}. Rewrite ${ARTIFACTS[0]} first; later artifacts are rewritten as their phases come.`);
+}
+
+// A forced move. Back: the phases from the target on are reopened. Forward: the phases jumped are recorded as
+// overridden, not run, with the person's reason, and the briefing shows them until a later cycle runs them.
+function jump(which) {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const n = Number(which);
+  const s = init.state;
+  if (!Number.isInteger(n) || n < 0 || n > 7) die('jump takes a phase number 0-7');
+  if (s.status === 'closed') die('a closed initiative does not move');
+  if (n === s.current_phase) die(`${init.slug} is already at phase ${n}`);
+  const reason = opt('--reason');
+  if (!nonEmpty(reason)) die('jump needs --reason, in the person\'s words');
+  const w = personWords(reason, 'jump'); if (!w.ok) die(`--reason: ${w.problem}`);
+  const now = new Date().toISOString();
+  const from = s.current_phase;
+  if (n < from) for (let k = n; k <= 7; k++) s.phases[String(k)] = { ...(s.phases[String(k)] || {}), status: k === n ? 'in_progress' : 'pending', gate: null };
+  else {
+    for (let k = from; k < n; k++) s.phases[String(k)] = { ...(s.phases[String(k)] || { artifact: null }), status: 'passed', gate: { passed: true, checked_at: now, bos_version: VERSION, checked_by: { script: [], model: [] }, skipped: [], failed_conditions: ['not run'], overridden: true, override_reason: `jumped: ${reason}`, waived: ['not run'] } };
+    s.phases[String(n)] = { ...(s.phases[String(n)] || { artifact: null, gate: null }), status: 'in_progress' };
+  }
+  s.current_phase = n;
+  s.updated_at = now;
+  s.history.push({ at: now, event: 'phase_jump', from, to: n, reason });
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(n < from ? `${init.slug} back at phase ${n} ${PHASES[n]}; phases ${n} to 7 reopen.` : `${init.slug} jumped to phase ${n} ${PHASES[n]}; phases ${from} to ${n - 1} stand as overridden, not run, and the briefing shows them.`);
 }
 
 function cover() {
@@ -3197,6 +3297,10 @@ else if (cmd === 'run-check') runCheck();
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'page') writePage();
 else if (cmd === 'new') newInitiative(args[1]);
+else if (cmd === 'init') initProject();
+else if (cmd === 'resume') resume(args[1]);
+else if (cmd === 'reframe') reframe();
+else if (cmd === 'jump') jump(args[1]);
 else if (cmd === 'cover') cover();
 else if (cmd === 'upgrade') upgrade();
 else if (cmd === 'record') record(args[1]);
