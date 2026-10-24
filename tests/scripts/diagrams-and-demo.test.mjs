@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { png, webm } from './helpers/files.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(HERE, '../../scripts/bos.mjs');
@@ -36,7 +37,7 @@ const write = (root, file, body, slug = 'csv-export') => {
 const media = (root, name) => {
   const p = path.join(root, '.builderos/media/csv-export', name);
   fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, 'media fixture');
+  fs.writeFileSync(p, name.endsWith('.png') ? png(390, 844, name.length) : webm());
 };
 
 const FLOW_TABLE = '| Step | User action | System response | Branches |\n|---|---|---|---|\n| 1 | opens the report | shows the week | no deals: empty state |\n| 2 | clicks Export | builds the file | over 10,000 rows: emailed instead |\n';
@@ -97,8 +98,14 @@ test('gate 5.15 wants a recording of the end-to-end test from a passing run, or 
   assert.match(gate(root, 5).detail['5.15'], /no "## Demo"/);
   write(root, '05-build-plan.md', PLAN(demo()));
   assert.match(gate(root, 5).detail['5.15'], /not from a passing run/);
+  const other = bos(root, 'run-check', '--label', 'e2e-demo', '--', process.execPath, '--test', 'test/e2e/pass.mjs').stdout.trim();
+  write(root, '05-build-plan.md', PLAN(demo({ run: `${other}\n` })));
+  assert.match(gate(root, 5).detail['5.15'], /does not run test\/e2e\/export\.spec\.ts/, 'a passing run of another file is not the recording of this test');
+  const echo = bos(root, 'run-check', '--label', 'e2e-demo', '--', 'true').stdout.trim();
+  write(root, '05-build-plan.md', PLAN(demo({ run: `${echo}\n` })));
+  assert.match(gate(root, 5).detail['5.15'], /checks nothing/, 'a run of true records nothing');
   const run = bos(root, 'run-check', '--label', 'e2e-demo', '--', process.execPath, '--test', 'test/e2e/pass.mjs').stdout.trim();
-  write(root, '05-build-plan.md', PLAN(demo({ run: `${run}\n` })));
+  write(root, '05-build-plan.md', PLAN(demo({ run: `${run}\n`, test: 'test/e2e/pass.mjs' })));
   let g = gate(root, 5);
   assert.equal(g.by['5.15'], 'pass', g.detail['5.15']);
   assert.match(g.detail['5.15'], /1 flow recorded from a passing run/);
@@ -119,6 +126,9 @@ test('gate 5.15 checks every recording exists, accepts step screenshots as the f
   write(root, '05-build-plan.md', PLAN(demo({ by })));
   assert.match(gate(root, 5).detail['5.15'], /\.builderos\/media\/csv-export\/export-the-week.webm not found/);
   media(root, '1-report.png');
+  fs.writeFileSync(path.join(root, '.builderos/media/csv-export/2-downloaded.png'), '');
+  write(root, '05-build-plan.md', PLAN(demo({ by, rows: '| Export the week | .builderos/media/csv-export/1-report.png, .builderos/media/csv-export/2-downloaded.png | the report, then the file |' })));
+  assert.match(gate(root, 5).detail['5.15'], /2-downloaded\.png is empty/, 'an empty screenshot is not a step');
   media(root, '2-downloaded.png');
   write(root, '05-build-plan.md', PLAN(demo({ by, rows: '| Export the week | .builderos/media/csv-export/1-report.png, .builderos/media/csv-export/2-downloaded.png | the report, then the file |' })));
   let g = gate(root, 5);

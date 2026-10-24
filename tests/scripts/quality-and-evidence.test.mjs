@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { png } from './helpers/files.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(HERE, '../..');
@@ -70,7 +71,14 @@ test('gate 5.9 wants all six states looked at, at two widths, matching the chose
   assert.match(g.detail['5.9'], /review\/empty\.png not found/);
   assert.match(g.detail['5.9'], /error: does not match/);
   fs.mkdirSync(path.join(INIT(root), 'review'));
-  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), 'png');
+  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), '');
+  write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md')));
+  assert.match(gate(root, 5).detail['5.9'], /review\/empty\.png is empty/, 'an empty file is not a screenshot');
+  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), png(800, 600));
+  assert.match(gate(root, 5).detail['5.9'], /captures 800 pixels wide match none of the widths reviewed/, 'the width is read from the image');
+  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), png(1280, 800));
+  write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md').replace('| loading | /reports?state=loading |', '| loading | review/empty.png |')));
+  assert.match(gate(root, 5).detail['5.9'], /the same capture stands for empty, loading/, 'one capture is one state');
   write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md'), ''));
   assert.match(gate(root, 5).detail['5.9'], /no "\*\*Widths:\*\*" naming two widths/);
   write(root, '05-build-plan.md', REVIEW(SIX('/reports?state=error | yes, deviation recorded in DESIGN.md')));
@@ -98,7 +106,7 @@ const ASPECTS = ['Hierarchy', 'Spacing rhythm', 'Typography', 'Copy against the 
 test('gate 5.12 wants a fresh-context craft critique, aspect by aspect, each finding acted on', () => {
   const root = project();
   fs.mkdirSync(path.join(INIT(root), 'review'));
-  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), 'png');
+  fs.writeFileSync(path.join(INIT(root), 'review/empty.png'), png(1280, 800));
   write(root, '05-build-plan.md', REVIEW(SIX()));
   assert.match(gate(root, 5).detail['5.12'], /no "## Craft critique"/);
   write(root, '05-build-plan.md', REVIEW(SIX()) + CRITIQUE(ASPECTS.slice(0, 4).map((a) => `| ${a} | none found | — |`).join('\n'), ''));

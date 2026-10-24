@@ -51,7 +51,7 @@ test('mapped tests must exist and failing pasted output cannot pass', t => {
 });
 test('record derives spike stop from track and rejects contradictory discovery verdicts', t => {
   const p = project(t); p.write('01-discovery.md', discovery()); p.state({ track: 'spike', current_phase: 1 });
-  assert.equal(p.run('record', '1', '--judged', '1.5=pass', '--verdict', 'validated', '--override', 'source breadth incomplete').status, 0);
+  assert.equal(p.run('record', '1', '--judged', '1.5=pass', '--verdict', 'validated', '--override', 'source breadth incomplete', '--waive', '1.2,1.6').status, 0);
   assert.equal(p.state().status, 'closed'); assert.equal(p.state().current_phase, 1); assert.equal(p.state().phases['1'].verdict, 'validated');
   const q = project(t); q.write('01-discovery.md', discovery('KILLED')); q.state({ current_phase: 1 });
   assert.equal(q.run('record', '1', '--judged', '1.5=pass', '--verdict', 'validated', '--override', 'source breadth incomplete').status, 2);
