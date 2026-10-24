@@ -4,7 +4,7 @@ The tables, scenarios, prototype rules and example behind `domain-model`. Read t
 
 ## Tables
 
-```markdown
+````markdown
 ### Entities
 | Entity | Means | Lifecycle |
 |--------|-------|-----------|
@@ -17,6 +17,15 @@ The tables, scenarios, prototype rules and example behind `domain-model`. Read t
 | todo | in progress | assignee | it has an assignee | the assignee is notified once |
 | in review | done | reviewer, not the assignee | every checklist item is ticked | the reporter is notified; reopening needs a new ticket |
 
+```mermaid
+stateDiagram-v2
+  [*] --> todo
+  todo --> in_progress : assignee
+  in_progress --> in_review : assignee
+  in_review --> done : reviewer
+  done --> [*]
+```
+
 ### Invariants
 - A ticket has exactly one assignee or none.
 - A done ticket's fields are read-only.
@@ -25,7 +34,7 @@ The tables, scenarios, prototype rules and example behind `domain-model`. Read t
 | Entity | Key fields | Relations | Deleted with |
 |--------|-----------|-----------|--------------|
 | Ticket | title, state, assignee, reporter, team | many comments; one team | its team (soft delete) |
-```
+````
 
 ## Scenarios
 

@@ -13,6 +13,7 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
 .builderos/
   bin/bos.mjs             a copy of the BuilderOS script (`bos.mjs vendor`), for sessions without the plugin
   local.json              this checkout's active initiative; gitignored, never shared
+  media/{initiative}/     demo recordings (feature-demo); gitignored, shared by link
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
   maps/
     {slug}/MAP.md         a wayfinding map: destination, notes, decisions so far, the fog, out of scope (`skills/wayfinding`)
@@ -58,7 +59,7 @@ Which initiative a command acts on is a property of the person and the checkout,
 2. Otherwise, the only open initiative, if exactly one is open.
 3. Otherwise, ask which one, listing the open initiatives, and write the answer to `local.json`.
 
-`/bos-init` adds `.builderos/local.json` to `.gitignore`. Switching initiative rewrites `local.json` and is named to the user.
+`/bos-init` adds `.builderos/local.json` and `.builderos/media/` to `.gitignore`. Switching initiative rewrites `local.json` and is named to the user.
 
 ## Evidence Files
 
@@ -229,6 +230,7 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 **Known failing:** {tests already red before BuilderOS, by name, with the date; "none"}
 **Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one; "declined by {person} ({why}), {date}" when the CI belongs to someone else who said no}
 **Quality checks:** {the automatic checks in the guardrail: accessibility (an axe-style scan on every route), end-to-end on the primary flow, dependency audit, secret scan, static analysis; with an interface, a token check (raw colours and spacing outside the token file fail); once `## Design system` has a kit, visual regression on the primary flow; each named with its command or "n/a, {why}"; "declined by {person} ({why}), {date}" as for the guardrail}
+**Demo:** {with an interface: the one command that runs the end-to-end test of a flow with recording on, and where the video lands (`feature-demo`); written by the first build that records one}
 
 ## Operations
 **Privacy:** {where the privacy notice lives; sub-processors (hosting, model provider, email, analytics) with their data processing agreements; how a person's data is deleted on request; data region; or "no personal data, {why}"}

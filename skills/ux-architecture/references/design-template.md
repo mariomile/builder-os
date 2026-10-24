@@ -1,8 +1,8 @@
 # Design Template
 
-The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction and gate 4.10 its domain model; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
+The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction, gate 4.10 its domain model and gate 4.20 the diagrams of its flows and lifecycles; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
 
-```markdown
+````markdown
 # Design — {feature}
 
 ## Placement
@@ -15,6 +15,11 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 **Entry points:** {all of them}
 | Step | User action | System response | Branches |
 
+```mermaid
+flowchart TD
+  {entry([Entry]) --> step[User action] --> decision{Branch?} --> exit([Success]); the same steps and words as the table, per UX methods → Drawing the Flow}
+```
+
 **Abandonment:** {what happens to partial work}
 **Reversible:** {which steps, how}
 
@@ -22,6 +27,11 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 {product track: from the first visit (the link, the sign-up, the invitation) to the first useful outcome, with the empty states a new account meets filled by sample data, a guided first action or an import; the step that counts as activated is the spec's **Activation:** criterion}
 **Entry points:** {where a new user arrives from}
 | Step | User action | System response | Branches |
+
+```mermaid
+flowchart TD
+  {the first day, drawn like every flow}
+```
 
 ## States
 | Flow / step | Empty | Loading | Partial | Error | Success | Permission |
@@ -46,6 +56,11 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 | From | To | Who | Only if | Then |
 |------|----|-----|---------|------|
 | {state} | {state} | {role} | {guard} | {effect} |
+
+```mermaid
+stateDiagram-v2
+  {[*] --> first_state; one arrow per row of the table, labeled with who: draft --> sent : author; every state in the table appears here}
+```
 
 ### Invariants
 - {rule that holds whatever happens}
@@ -80,4 +95,4 @@ The lifecycle output contract for `DESIGN.md` in the active initiative's folder,
 
 **Composition:** {grid, density, where the primary action sits}
 {or, with no interface: **Visual direction:** not applicable, {reason}}
-```
+````

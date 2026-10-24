@@ -43,7 +43,7 @@ Review both axes with severity, complete 05-build-plan.md, run gate 5.
 ```
 
 9. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict. Re-read the artifact and rerun gate 5 per `gate-checks`; report failed conditions despite any marker.
-10. **Present** the plan, the mapping, the test output, the instrumentation evidence, the findings and the scope check.
+10. **Present** the plan, the mapping, the test output, the instrumentation evidence, the findings, the scope check, and the demo recording first (`feature-demo`, gate 5.15).
 
 ## Arguments
 

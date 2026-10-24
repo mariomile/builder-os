@@ -1,0 +1,2 @@
+# expects: skill=ux-architecture (standalone)
+Disegnami il flusso di onboarding di un nuovo utente, dall'invito alla prima automazione attiva, con i casi in cui si blocca.

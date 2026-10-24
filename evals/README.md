@@ -23,6 +23,7 @@ claude plugin eval . --scaffold --allow-tools Write Edit --runs 2 -j 4 --no-publ
 | `scale-work-before-pmf` | Enterprise features asked for at pre-PMF are named as scale work and questioned |
 | `big-effort-gets-a-map` | An effort too big for one session is charted as decisions to make, and the first ones are asked |
 | `agents-md-index` | "Write us an AGENTS.md" gives a short index that points at the code and the memory, with no invented commands |
+| `demo-video` | A video of a feature is recorded from a passing end-to-end test, kept out of the repository, with a floor when video is unavailable |
 | `agent-autonomy` | A helpdesk assistant that can refund gets autonomy per action, the ticket named as an injection surface with a mitigation beyond the prompt and a test, and a plan for slow, down or wrong |
 
 First measurements, 2026-10-21, Claude Code 2.1.306, one or two runs per arm: with the plugin every non-shell case scored 1.0; without it `idea-to-production`, `standalone-prd`, `refuses-to-skip-gates` and `state-written-by-script` scored 0.3 to 0.5. A full two-run pass costs about 2.6 USD at list price. Every failure found in a live run becomes a case.

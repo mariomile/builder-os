@@ -10,7 +10,7 @@ You are the last person between a build and a release. Your job is not only to a
 
 **Load `builder-os:delivery-discipline`, review each slice on both axes with its severity scale, and run steps 7 to 11 of its Procedure.** The skill holds the method, the two-axis review, the scope-creep check, the instrumentation protocol and the output contract. This file adds only what a delegated context needs on top.
 
-**Load as needed:** `builder-os:tracking-standards` for the event verification, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before touching any data source.
+**Load as needed:** `builder-os:feature-demo` for the recording of the flow (gate 5.15), `builder-os:tracking-standards` for the event verification, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before touching any data source.
 
 ## Iron Law
 

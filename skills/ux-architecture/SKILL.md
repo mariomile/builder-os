@@ -7,14 +7,14 @@ description: "Designs how a feature works before it is built: information archit
 
 The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look comes next, chosen by the person from several rendered versions in `design-direction`.
 
-**Mode.** Standalone designs the supplied feature or flow from the available product context and the existing design system. In the lifecycle it runs inside phase 4 for `spec-writing` and writes the initiative's `DESIGN.md`. Both per [operating modes](../../references/operating-modes.md). Read the section of [UX methods](references/ux-methods.md) behind steps 3 to 7.
+**Mode.** Standalone designs the supplied feature or flow from the available product context and the existing design system. In the lifecycle it runs inside phase 4 for `spec-writing` and writes the initiative's `DESIGN.md`. Both per [operating modes](../../references/operating-modes.md). Read the section of [UX methods](references/ux-methods.md) behind steps 3 to 7, and Drawing the Flow for step 4.
 
 ## Procedure
 
 1. **Read the feature inputs.** Standalone uses the supplied feature, goal and constraints. The lifecycle reads `03-solution-bet.md`: its primary user action is the flow this skill designs. Done when the primary action is stated in one line.
 2. **Map the current structure:** navigation, the area this touches, existing components; without `repo.read`, ask and mark the inventory unverified. Done when the touched area and its components are listed.
 3. **Place the feature** where the user expects it, or name the cost of the easy spot, with current and proposed structure side by side. Done when what moves is named.
-4. **Design the flows.** Every entry point, the steps (user action, system response), decision points, both exits, reversibility; a multi-step flow states its abandonment exit (discard, draft or resume). On a new product (product track) one flow is **the first day**: from the first visit to the first useful outcome, with the empty screens a new account meets filled by sample data, a guided first action or an import, and the step that counts as activated named for the spec's `**Activation:**` (gate 4.17). Done when every flow has its entries, steps and exits, and a new product has its first day.
+4. **Design the flows.** Every entry point, the steps (user action, system response), decision points, both exits, reversibility; a multi-step flow states its abandonment exit (discard, draft or resume). On a new product (product track) one flow is **the first day**: from the first visit to the first useful outcome, with the empty screens a new account meets filled by sample data, a guided first action or an import, and the step that counts as activated named for the spec's `**Activation:**` (gate 4.17). Then **draw each flow** under its table as a Mermaid flowchart (entries, steps, decisions with labeled exits, success and abandonment), in the same words, per [drawing the flow](references/ux-methods.md#drawing-the-flow); the person reads and edits the drawing in the page `bos.mjs flows` writes, the build reads the table (gate 4.20). Done when every flow has its entries, steps and exits, drawn and tabled, and a new product has its first day.
 5. **Cover the states:** empty (with the action that fills it), loading, partial, error, success, permission. The permission state follows the existing auth, tenancy and permission contract, inspected first; where it cannot be read, the assumption is labeled unverified. Error copy names what failed and the next action, where disclosure is permitted. Done when every step of every flow has its six states.
 6. **Inventory the components:** exists, extend (naming what else it affects), new (with its justification). Done when every component in the flows has one of the three.
 7. **State the accessibility floor:** the keyboard path with tab order for the primary flow, the contrast target as a ratio, focus behavior on open, close, error and completion. Done when all three are written.
@@ -37,10 +37,11 @@ More in [UX methods](references/ux-methods.md).
 | `repo.read` | Existing components, navigation and flows | Ask the person to describe them; mark the inventory as unverified |
 | `docs.search` | Design system documentation, prior flow decisions | Ask |
 | `analytics.replay` | Where users actually stall in the current flow | Design from structure rather than observation, and say so |
+| `diagram.render` | Laying a flow out on a canvas the person edits in a workshop | The page `bos.mjs flows` writes; without commands, the Mermaid block in `DESIGN.md`, which renders wherever Markdown does |
 | `files.read` / `files.write` | Supplied context, requested design and lifecycle artifacts | Inline design needs no file write; lifecycle writes require it |
 
 **No data capability is required.** The visual layer is always covered: `design-direction` renders versions as files on any host, and uses a design toolchain where one resolved.
 
 ## Output Contract
 
-`## DESIGN COMPLETE` with the flow list (the first day on a new product), the state matrix, the component inventory and the accessibility floor. Lifecycle output is the initiative's `DESIGN.md` per the [design template](references/design-template.md).
+`## DESIGN COMPLETE` with the flow list and a diagram per flow (the first day on a new product), the state matrix, the component inventory and the accessibility floor. Lifecycle output is the initiative's `DESIGN.md` per the [design template](references/design-template.md).

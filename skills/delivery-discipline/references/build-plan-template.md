@@ -80,6 +80,15 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | Interaction states | {hover, pressed, focus-visible, disabled, loading on every control; feedback within 100 ms; per interface-details.md} | {} |
 | Next to the references | {per reference screen, where the built screen falls short on the detail it was chosen for} | {} |
 
+## Demo
+**Test:** {the end-to-end test that walks the flow, a project-relative path}
+**Run:** {project-relative evidence/runs/e2e-demo-*.json from run-check: the run that was filmed, exiting 0}
+**Recorded by:** {only on the floor: the person who recorded the screen}
+| Flow | Recording | Shows |
+| {primary flow, as named in DESIGN.md} | {the https link where the person opens it (pull request, artifact); a local copy only under the git-ignored .builderos/media/{initiative}/} | {the steps and the outcome a viewer sees, with the length} |
+| First day | {product track} | {} |
+{With step screenshots instead of a video: the files in order, and why no video. Without an interface: **Demo:** not applicable, {reason}. Per feature-demo}
+
 ## Security review
 **Run by:** {a separate agent given the diff, the spec's threat model and TECH.md; or a person who did not build it}
 | Area | Finding | What happened |

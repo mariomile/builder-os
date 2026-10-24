@@ -33,6 +33,7 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 
 ## Release notes
 {the notes, written for users: what they can now do}
+**Demo:** {the recording from 05-build-plan.md → Demo, as a link the reader can open; omit when the build has none}
 **What changes for you:** {for people already using the product: what moved, what behaves differently, what was removed, what they need to do; "nothing" when the change only adds}
 
 ## Exposure verification

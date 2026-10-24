@@ -24,6 +24,8 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `logs.query` | Read production errors, traces and timings, including a model's turns with their tool calls, latency and cost | Sentry, Datadog, the hosting provider's logs, an LLM tracing tool (Langfuse, LangSmith, …) |
 | `ui.render` | Show the user a rendered interface: a design version, a prototype screen | host previews and artifacts, design tools (Figma, Claude Design, v0), a browser screenshot of a local page |
 | `ui.capture` | Open the built product and capture a state of a screen as an image | a browser the host drives, an end-to-end runner's screenshots, the host's preview |
+| `ui.record` | Record a video of the running product while a flow is walked | an end-to-end runner's video (Playwright, Cypress), a browser the host drives and records, a screen recorder |
+| `diagram.render` | Lay a flow or a lifecycle out on a canvas the person can edit | tldraw, Excalidraw, FigJam, a host's diagram view |
 | `repo.read` | Read source code, configs, git history | any file and shell access |
 | `files.read` / `files.write` | Read and write local files, including the pipeline's own artifacts | any file access |
 | `subagent.dispatch` | Delegate a bounded task to a separate agent context | runtime agent support, including Claude Code and Codex when exposed |
@@ -61,6 +63,8 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `logs.query` | live query | exported logs or error reports | — | ask the user for the error text, time and account, tag it and save the words in `evidence/` |
 | `ui.render` | host preview or design tool | self-contained HTML files the user opens from disk | — | text wireframes, only for a standalone answer kept in chat |
 | `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
+| `ui.record` | the end-to-end runner's video of the passing run | a browser the host drives, recorded | a screenshot per step from the same run | the person records the screen while the flow is walked; `**Recorded by:**` names them |
+| `diagram.render` | a canvas the person edits | the page `bos.mjs flows` writes: a hand-drawn canvas per flowchart and the text beside its drawing, edits applied back | the Mermaid block rendered by the host or the repository's Markdown view | the Mermaid text in `DESIGN.md`, which is the record in every case |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
 | `sessions.read` | the host's session history | a transcript the user exports | — | work from the current conversation and say which sessions were not read |
