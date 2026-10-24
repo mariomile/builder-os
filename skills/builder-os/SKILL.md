@@ -15,8 +15,8 @@ The hub walks one initiative through the gated phases: it routes to the phase sk
 | 1 DISCOVER | Evidence, synthesis, verdict | `research-methods`, `discovery-methods` | `01-discovery.md` |
 | 2 DEFINE | Opportunity and outcome metric | `opportunity-mapping`, strategy as needed | `02-definition.md` |
 | 3 IDEATE | Wide ideas, distinct options, the person's bet and test | `ideation-methods`, experiments as needed | `03-solution-bet.md` |
-| 4 SHAPE | Flows, then the rules, an agent's autonomy, the look and the stack decided with the person, the backend designed with its threat model, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `agent-design` when a model acts, `design-direction`, `stack-decisions`, `system-design`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
-| 5 BUILD | Authorized implementation and verification | `delivery-discipline`, tracking as needed | `05-build-plan.md` |
+| 4 SHAPE | Flows drawn and tabled, then the rules, an agent's autonomy, the look and the stack decided with the person, the backend designed with its threat model, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `agent-design` when a model acts, `design-direction`, `stack-decisions`, `system-design`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
+| 5 BUILD | Authorized implementation and verification, ending on a recording of the feature working | `delivery-discipline`, `feature-demo`, tracking as needed | `05-build-plan.md` |
 | 6 SHIP | Readiness, authorized exposure and verification | `release-ops`, writing as needed | `06-release.md` |
 | 7 LEARN | Compare outcomes, decide or defer | `outcome-review`, analysis as needed | `07-outcome.md` |
 

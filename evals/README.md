@@ -23,6 +23,7 @@ claude plugin eval . --scaffold --allow-tools Write Edit --runs 2 -j 4 --no-publ
 | `scale-work-before-pmf` | Enterprise features asked for at pre-PMF are named as scale work and questioned |
 | `big-effort-gets-a-map` | An effort too big for one session is charted as decisions to make, and the first ones are asked |
 | `agents-md-index` | "Write us an AGENTS.md" gives a short index that points at the code and the memory, with no invented commands |
+| `demo-video` | A video of a feature is recorded from a passing end-to-end test, kept out of the repository, with a floor when video is unavailable |
 | `agent-autonomy` | A helpdesk assistant that can refund gets autonomy per action, the ticket named as an injection surface with a mitigation beyond the prompt and a test, and a plan for slow, down or wrong |
 | `going-live` | A new product goes to production from the first slice behind a door, with the production checklist (domain, secrets, email sender, live keys, error tracker, legal pages in Italian) and a preview link per change |
 

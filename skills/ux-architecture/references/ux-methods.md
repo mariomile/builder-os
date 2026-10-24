@@ -28,6 +28,35 @@ A flow is the path from intent to outcome. Specify it as ordered steps, each wit
 
 The abandonment exit is the one that gets skipped. Every multi-step flow needs an answer to "they closed the tab at step 3": discard, save as draft, or resume. Silence here means the implementer picks, usually discard, usually wrong.
 
+## Drawing the Flow
+
+Each flow is drawn as well as tabled (gate 4.20). The drawing is where a missing exit or a branch that leads nowhere becomes visible at a glance, to the person accepting the spec as much as to the agent building it. It is written as Mermaid text inside `DESIGN.md`, next to its table: it needs no tool to write, renders on GitHub and in most editors and previews, and changes in a diff like any other line.
+
+```mermaid
+flowchart TD
+  entry([Report header]) --> report[Weekly report]
+  report --> any{Any deals this week?}
+  any -->|no| empty[Empty state: import deals]
+  any -->|yes| export[Click Export]
+  export --> big{Over 10,000 rows?}
+  big -->|yes| mail[File emailed when ready]
+  big -->|no| done([File downloads])
+  export -.->|closes the tab| draft[Export keeps running, link in notifications]
+```
+
+| Element | Drawn as |
+|---------|----------|
+| Entry point | a stadium node `([…])`, one per entry |
+| User action or system response | a box `[…]`, named in the product's words, the same words as the table |
+| Decision point | a diamond `{…?}`, its exits labeled with the answer |
+| Success exit | a stadium node at the end |
+| Abandonment | a dotted arrow `-.->` to what happens to partial work |
+| Error and empty | boxes off the decision that leads to them, named after their state in `## States` |
+
+The table and the drawing say the same thing; when they disagree, the table is fixed first, because the spec and the tests read it, and the drawing follows. **The person edits the drawing by hand.** `node scripts/bos.mjs flows` writes `design/flows.html` in the initiative, at no model cost: each flowchart opens on a hand-drawn canvas (Excalidraw, MIT, laid out by its Mermaid importer) where the person drags boxes, adds one, joins two with an arrow, renames by double-click and dashes an abandonment arrow; the page turns the drawing back into the flowchart as they go. A Text tab shows the same Mermaid beside its drawing (Pele, Mermaid to SVG), with parse errors in place; state diagrams are edited there. Libraries load pinned from a CDN; offline the text stays editable. They copy or save their changes, and `bos.mjs flows --apply flows-edited.md` writes only the edited blocks back into `DESIGN.md`; the agent then brings each table in line with its drawing, reading a few lines rather than the canvas. Open the page with the person when the flows are first drawn and whenever they want to change one. Another canvas (`diagram.render`: tldraw, FigJam, …) can serve a workshop the same way: what changes there comes back into the Mermaid block and the table, which stay the record.
+
+A lifecycle is drawn the same way, as a `stateDiagram-v2` under its transitions table in `## Domain model` (`domain-model`, step 2).
+
 ## State Coverage
 
 Six states per step. Gate 4.3 enforces two of them; the other four are how a feature stops feeling unfinished.
