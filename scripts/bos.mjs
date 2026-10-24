@@ -829,6 +829,179 @@ function businessCase(bet, product) {
   return { problems, detail: b.notForSale ? 'not for sale: first users and cost per user stated' : `price ${field(sec, 'Price')}, test: ${field(sec, 'Willingness to pay test')}` };
 }
 
+// ---------- deciding what to build: value, the test worth running, go-to-market, the stake (gates 3.4, 3.9-3.15, 4.22, 6.14, 7.8) ----------
+
+// Money as written in a business case: "about €1.1M", "€300K", "0,4 M€", "€47,000". Returns euros, or null.
+function money(text) {
+  const m = String(text || '').replace(/\s/g, '').match(/(-?\d+(?:[.,]\d+)*)(k|m|mln|mio)?/i);
+  if (!m) return null;
+  let n = m[1];
+  // A lone separator followed by one or two digits is a decimal; groups of three are thousands.
+  n = /^-?\d+[.,]\d{1,2}$/.test(n) ? n.replace(',', '.') : n.replace(/[.,](?=\d{3}\b)/g, '').replace(',', '.');
+  const v = Number(n);
+  if (!Number.isFinite(v)) return null;
+  const mult = /^k$/i.test(m[2] || '') ? 1e3 : /^(m|mln|mio)$/i.test(m[2] || '') ? 1e6 : 1;
+  return v * mult;
+}
+// Significant digits of each number in a line: "1.123.200€" has five, which is precision the estimate does not have.
+const falsePrecision = (line) => (String(line || '').match(/\d[\d.,]*/g) || [])
+  .filter((n) => !/^(19|20)\d{2}$/.test(n.replace(/[.,]$/, '')))
+  .map((n) => n.replace(/[.,]/g, '').replace(/^0+/, '').replace(/0+$/, ''))
+  .filter((d) => d.length > 3);
+
+const KINDS = ['data', 'analogy', 'estimate', 'decision'];
+// Gate 3.9: every number of the chosen bet has a kind, a source and three scenarios, and the result is money over two years.
+function valueInfo(bet, ctx, lite) {
+  const sec = section(bet, 'Value');
+  if (sec === null) return { problems: ['no "## Value": the quick estimate of each option and the full table of the chosen one (business-case)'] };
+  const judgment = field(sec, 'Judgment');
+  if (nonEmpty(judgment) && judgment.length >= 40) return { judgment, problems: [] };
+  const problems = [];
+  const opts = tableRows(section(bet, 'Options')).length;
+  const quick = rawRows(subsection(sec, 'Quick estimates')).filter((r) => nonEmpty(r[r.length - 1]));
+  const quickNeed = Math.min(lite ? 2 : 4, Math.max(opts, lite ? 2 : 3));
+  if (quick.length < quickNeed) problems.push(`${quick.length} options with a quick estimate in "### Quick estimates" (${quickNeed} needed): a formula, the assumption it rests on and a two-year value each`);
+  const rows = rawRows(subsection(sec, 'Assumptions'));
+  if (rows.length < 3) problems.push(`${rows.length} rows in "### Assumptions" (3 needed): every number the value is built from`);
+  const badKind = rows.filter((r) => !KINDS.includes((r[2] || '').toLowerCase()));
+  if (badKind.length) problems.push(`kind is not one of ${KINDS.join(', ')}: ${badKind.map((r) => r[0]).join(', ')}`);
+  const unsourced = rows.filter((r) => ['data', 'analogy'].includes((r[2] || '').toLowerCase()) && !hasTag(r[3] || '', ['data', 'doc', 'code', 'interview']));
+  if (unsourced.length) problems.push(`data or analogy without a data, doc, code or interview tag: ${unsourced.map((r) => r[0]).join(', ')}`);
+  const noRange = rows.filter((r) => [4, 5, 6].some((i) => !nonEmpty(r[i])));
+  if (noRange.length) problems.push(`no P14, P50 and P86 for: ${noRange.map((r) => r[0]).join(', ')}`);
+  const noPop = rows.filter((r) => /%/.test(r.slice(4, 7).join(' ')) && !nonEmpty(r[1]));
+  if (noPop.length) problems.push(`a percentage with no population (the denominator): ${noPop.map((r) => r[0]).join(', ')}`);
+  const result = field(sec, 'Two-year value') || '';
+  const scen = ['P14', 'P50', 'P86'].filter((p) => new RegExp(`${p}\\b[^·;|]*\\d`, 'i').test(result));
+  if (scen.length < 3) problems.push(`"**Two-year value:**" needs P14, P50 and P86 in money (has ${scen.join(', ') || 'none'})`);
+  const precise = falsePrecision(result);
+  if (precise.length) problems.push(`false precision in "**Two-year value:**" (${precise.join(', ')} significant digits): round to what the estimates carry, "about €1.1M"`);
+  if (!nonEmpty(field(sec, 'Costs'))) problems.push('no "**Costs:**": modeled when over 10% of revenue (build, upkeep, model and infrastructure per use), or "under 10%" with why');
+  return { rows, problems, detail: `${rows.length} numbers (${KINDS.map((k) => `${rows.filter((r) => (r[2] || '').toLowerCase() === k).length} ${k}`).join(', ')}), ${result}` };
+}
+
+// Gate 3.10: the assumption that moves the result most is named, and the test aims at it.
+function sensitivityInfo(bet, value) {
+  const sec = section(bet, 'Value') || '';
+  const rows = rawRows(subsection(sec, 'Sensitivity'));
+  const problems = [];
+  if (rows.length < 2) return { problems: [`${rows.length} rows in "### Sensitivity" (2 needed): each assumption swung alone from P14 to P86, the rest held at P50`] };
+  const lb = field(sec, 'Load-bearing') || '';
+  if (!nonEmpty(lb)) return { problems: ['no "**Load-bearing:**": the assumption at the top of the sensitivity, the one the test measures'] };
+  const swing = rows.map((r) => ({ name: r[0], lo: money(r[2]), hi: money(r[3]) })).map((r) => ({ ...r, swing: r.lo !== null && r.hi !== null ? Math.abs(r.hi - r.lo) : null }));
+  const named = swing.find((r) => lb.toLowerCase().includes(r.name.toLowerCase()));
+  if (!named) problems.push(`"**Load-bearing:**" names none of the sensitivity rows (${rows.map((r) => r[0]).join(', ')})`);
+  else if (swing.every((r) => r.swing !== null)) {
+    const top = swing.reduce((a, b) => (b.swing > a.swing ? b : a));
+    if (top.name !== named.name) problems.push(`"${named.name}" is named load-bearing, but "${top.name}" swings the result most`);
+  }
+  if (named) {
+    const kind = ((value.rows || []).find((r) => r[0].toLowerCase() === named.name.toLowerCase()) || [])[2] || rows.find((r) => r[0] === named.name)[1] || '';
+    const ct = section(bet, 'Cheapest test') || '';
+    if (/^(estimate|analogy)$/i.test(kind) && !(field(ct, 'Assumption') || '').toLowerCase().includes(named.name.toLowerCase()) && !/^build first/i.test(field(ct, 'Order') || '')) problems.push(`the load-bearing "${named.name}" is ${kind.toLowerCase()}: "## Cheapest test" → "**Assumption:**" should name it`);
+    if (/^data$/i.test(kind) && !nonEmpty(field(sec, 'What it counts'))) problems.push(`the load-bearing "${named.name}" is data: "**What it counts:**" says whether it counts visits or people, all users or a part`);
+  }
+  return { problems, detail: named ? `load-bearing: ${named.name}${named.swing !== null ? `, swing about ${Math.round(named.swing).toLocaleString('en')}` : ''}` : '' };
+}
+
+// Gate 3.11: the five questions asked before approving a business case, each answered.
+function fiveQuestions(bet) {
+  const sec = subsection(section(bet, 'Value') || '', 'Five questions');
+  const answers = (sec || '').split('\n').filter((l) => /^\s*\d\.\s+\S/.test(l) && l.replace(/^\s*\d\.\s+/, '').split(/[?:]/).slice(1).join('').trim().length > 3);
+  return { ok: answers.length >= 5, detail: `${answers.length} of the five questions answered (source, new or moved revenue, denominator, five times smaller, what was killed)` };
+}
+
+// Gate 3.4: a test runs when its result can change the decision; skipping it names why.
+const SKIP_REASONS = /cheap and reversible|reversible and cheap|pessimistic (case )?(still )?proceeds|P14 (still )?proceeds|strong precedent|precedents?|unreliable (measure|measurement)|override/i;
+function testWorth(bet) {
+  const ct = section(bet, 'Cheapest test') || '';
+  const order = field(ct, 'Order') || '';
+  const tc = (ct.match(/\*\*Test cost:\*\*\s*([\d.]+)/i) || [])[1];
+  const bc = (ct.match(/\*\*Build cost:\*\*\s*([\d.]+)/i) || [])[1];
+  const ratio = tc !== undefined && bc !== undefined && Number(bc) > 0 ? ` (test ${Math.round((Number(tc) / Number(bc)) * 100)}% of the build)` : '';
+  if (/^test first/i.test(order)) {
+    const why = field(ct, 'Changes the decision');
+    return { first: true, ok: nonEmpty(why), detail: nonEmpty(why) ? `test first: ${why}${ratio}` : `test first, but no "**Changes the decision:**": which result would flip the bet, and why the decision is not already made${ratio}` };
+  }
+  const skip = field(ct, 'Skip because') || '';
+  const ok = SKIP_REASONS.test(skip) || /override/i.test(order);
+  return { first: false, ok, detail: ok ? `build first: ${skip || order}${ratio}` : `build first without "**Skip because:**" naming why the test could not change the decision (cheap and reversible, the pessimistic case still proceeds, strong precedent, unreliable measure) or a logged override${ratio}` };
+}
+
+// Gate 3.12: the experiment is a decision written before the data.
+function experimentCard(bet) {
+  const ct = section(bet, 'Cheapest test') || '';
+  const problems = [];
+  const digit = (k) => /\d/.test(field(ct, k) || '');
+  if (!digit('Question')) problems.push('"**Question:**" written as a number to beat');
+  if (!nonEmpty(field(ct, 'Event'))) problems.push('"**Event:**" the exact event counted, on whom, over how long');
+  if (!digit('Stop below')) problems.push('"**Stop below:**" a number');
+  if (!digit('Build above')) problems.push('"**Build above:**" a number');
+  if (!nonEmpty(field(ct, 'Second idea'))) problems.push('"**Second idea:**" the runner-up and its value, which sets the build threshold');
+  if (!digit('Sample')) problems.push('"**Sample:**" people per group, or the declared small sample before PMF');
+  const lo = money(field(ct, 'Stop below')), hi = money(field(ct, 'Build above'));
+  if (lo !== null && hi !== null && lo > hi) problems.push(`"Stop below" (${field(ct, 'Stop below')}) is above "Build above" (${field(ct, 'Build above')})`);
+  return { problems: problems.length ? [`the card is missing: ${problems.join('; ')}`] : [], detail: `stop below ${field(ct, 'Stop below')}, build above ${field(ct, 'Build above')}, against ${field(ct, 'Second idea')}` };
+}
+
+// Gate 3.13: go-to-market before the build. The product track finds its market; a feature reaches the users it already has.
+function gtmBefore(bet, track) {
+  const sec = section(bet, 'Go-to-market');
+  const need = track === 'product' ? ['Trigger', 'Positioning', 'Motion', 'Channel', 'Channel test'] : ['Audience', 'Message', 'Where'];
+  if (sec === null) return { problems: [`no "## Go-to-market": ${need.join(', ')}`] };
+  const missing = need.filter((k) => !nonEmpty(field(sec, k)));
+  return { problems: missing.length ? [`"## Go-to-market" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}`] : [], detail: track === 'product' ? `motion: ${field(sec, 'Motion')}; channel: ${field(sec, 'Channel')}` : `audience: ${field(sec, 'Audience')}; where: ${field(sec, 'Where')}` };
+}
+
+// Gate 3.14: the stake is declared and the build fits inside it.
+function betSize(bet) {
+  const sec = section(bet, 'Bet size');
+  if (sec === null) return { problems: ['no "## Bet size": door, confidence, appetite and what we lose if wrong'] };
+  const problems = [];
+  const door = field(sec, 'Door') || '';
+  if (!/^(one-way|two-way)\b/i.test(door)) problems.push('"**Door:**" one-way (hard to undo) or two-way (undone in days), with why');
+  if (!/\d+\s*%/.test(field(sec, 'Confidence') || '')) problems.push('"**Confidence:**" a percentage, with what it rests on');
+  const app = Number(((field(sec, 'Appetite') || '').match(/[\d.]+/) || [])[0]);
+  if (!(app > 0)) problems.push('"**Appetite:**" the most days this bet is worth');
+  if (!nonEmpty(field(sec, 'If wrong'))) problems.push('"**If wrong:**" what we lose, in days and money, and how we undo it');
+  const ct = section(bet, 'Cheapest test') || '';
+  const build = Number(((ct.match(/\*\*Build cost:\*\*\s*([\d.]+)/i) || [])[1]));
+  if (app > 0 && build > app) problems.push(`the build (${build} days) is over the appetite (${app} days): cut the scope to fit, or put a bigger stake to the person`);
+  if (/^one-way/i.test(door) && /cheap and reversible|reversible and cheap/i.test(field(ct, 'Skip because') || '')) problems.push('a one-way door skips its test as "cheap and reversible"');
+  return { door, problems, detail: `${door.split(/[,.;]/)[0]} door, confidence ${field(sec, 'Confidence')}, appetite ${app} days` };
+}
+
+// Gate 4.22 (product track): the channel answered before the build, as willingness to pay did (4.14).
+function channelAnswered(spec) {
+  const r = field(spec, 'Channel result');
+  if (!r) return { problems: ['no "**Channel result:**": what the channel test of phase 3 returned, against its thresholds, tagged'] };
+  if (!hasTag(r, ['interview', 'doc', 'data'])) return { problems: ['"**Channel result:**" cites no interview, doc or data tag: a plan for the channel is not its result'] };
+  return { problems: [], detail: r.replace(TAG_RE, '').trim().slice(0, 80) };
+}
+
+// Gate 6.14: the launch is planned like the release: who hears first, what they hear, where, when, and how it is counted.
+function launchPlan(release) {
+  const sec = section(release, 'Launch');
+  const need = ['Who hears first', 'Message', 'Channels', 'When', 'Measured by'];
+  if (sec === null) return { problems: [`no "## Launch": ${need.join(', ')}`] };
+  const missing = need.filter((k) => !nonEmpty(field(sec, k)));
+  return { problems: missing.length ? [`"## Launch" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}`] : [], detail: `${field(sec, 'Who hears first')} via ${field(sec, 'Channels')}, ${field(sec, 'When')}` };
+}
+
+// Gate 7.8: the outcome reads the go-to-market too: each channel with its result, and for a product the stage of its market.
+const GTM_STAGES = /\b(signal|resonance|orbit)\b/i;
+function gtmRead(outcome, track) {
+  const sec = section(outcome, 'Go-to-market read');
+  if (sec === null) return { problems: ['no "## Go-to-market read": each channel, what it reached and converted, tagged, and what happens to it next'] };
+  const rows = rawRows(sec);
+  const problems = [];
+  if (!rows.length) problems.push('no channel rows');
+  const blind = rows.filter((r) => !hasTag(r.join(' ')) && !/unavailable/i.test(r.join(' ')));
+  if (blind.length) problems.push(`channels with neither a tagged result nor "unavailable" and its question: ${blind.map((r) => r[0]).join(', ')}`);
+  if (track === 'product' && !GTM_STAGES.test(field(sec, 'GTM stage') || '')) problems.push('"**GTM stage:**" Signal, Resonance or Orbit, with the exit condition it meets or misses');
+  return { problems, detail: `${rows.length} channel${rows.length === 1 ? '' : 's'} read${track === 'product' ? `, stage ${field(sec, 'GTM stage')}` : ''}` };
+}
+
 // Gate 4.14 (product track, for sale): someone showed they would pay, and the stack can take the money.
 const PAYMENT_LAYER = /pay|billing|checkout|subscription|invoice|fattur/i;
 function moneyBeforeBuild(spec) {
@@ -1382,13 +1555,9 @@ function gate(n, ctx) {
     pass('3.2', DATE_RE.test(kc) && /\d/.test(kc.replace(DATE_RE, '')) && nonEmpty(field(kc, 'Measured by')), 'metric, threshold, date and measurement');
     const ct = section(a, 'Cheapest test') || '';
     const tc = (ct.match(/\*\*Test cost:\*\*\s*([\d.]+)/i) || [])[1];
-    const bc = (ct.match(/\*\*Build cost:\*\*\s*([\d.]+)/i) || [])[1];
     pass('3.3', tc !== undefined, tc !== undefined ? `test costs ${tc} days` : 'no test cost in days');
-    if (tc !== undefined && bc !== undefined && Number(bc) > 0) {
-      const ratio = Number(tc) / Number(bc);
-      const order = field(ct, 'Order') || '';
-      pass('3.4', ratio >= 0.2 || /test first|override/i.test(order), `ratio ${Math.round(ratio * 100)}%, order: ${order || 'missing'}`);
-    } else pass('3.4', false, 'test cost or build cost missing');
+    const tw = testWorth(a);
+    pass('3.4', tw.ok, tw.detail);
     const raw = tableRows(section(a, 'Divergence')).filter((r) => nonEmpty(r[1]));
     const rawNeed = lite ? 5 : 8;
     pass('3.5', raw.length >= rawNeed, `${raw.length} raw ideas before convergence (${rawNeed} needed)`);
@@ -1399,6 +1568,24 @@ function gate(n, ctx) {
     const stage = productStage(ctx.product);
     if (preScale(stage)) judge('3.8', `stage ${stage}: does the bet test whether there is a product, rather than scale, optimize or harden one nobody uses yet?`);
     else skip('3.8', `stage ${stage || 'unknown'}: scale work is allowed`);
+    // Deciding what to build (business-case, go-to-market): the value in money, the assumption that carries it, the stake.
+    const val = valueInfo(a, ctx, lite);
+    if (val.judgment) judge('3.9', `value declared as a judgment, not a number: does it rest on what resists a number (trust, defensibility, brand), and is the reasoning explicit? "${val.judgment.slice(0, 120)}"`);
+    else pass('3.9', val.problems.length === 0, val.problems.length ? val.problems.join('; ') : val.detail);
+    if (val.judgment) { skip('3.10', 'value declared as a judgment'); skip('3.11', 'value declared as a judgment'); }
+    else {
+      const sens = sensitivityInfo(a, val);
+      pass('3.10', sens.problems.length === 0, sens.problems.length ? sens.problems.join('; ') : sens.detail);
+      const fq = fiveQuestions(a);
+      pass('3.11', fq.ok, fq.detail);
+    }
+    if (!tw.first) skip('3.12', 'no test runs before the build');
+    else { const card = experimentCard(a); pass('3.12', card.problems.length === 0, card.problems.length ? card.problems.join('; ') : card.detail); }
+    const gtm = gtmBefore(a, ctx.track);
+    pass('3.13', gtm.problems.length === 0, gtm.problems.length ? gtm.problems.join('; ') : gtm.detail);
+    const size = betSize(a);
+    pass('3.14', size.problems.length === 0, size.problems.length ? size.problems.join('; ') : size.detail);
+    judge('3.15', `stage ${stage || 'unknown'}, ${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the evidence behind the bet meet the bar for this stage and door (business-case, Evidence bar)? A judgment call is declared with its reasoning and a revisit date`);
     return R;
   }
 
@@ -1461,6 +1648,8 @@ function gate(n, ctx) {
     (lite ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
     const ms = messagesInfo(ctx);
     pass('4.21', ms.problems.length === 0, ms.problems.length ? ms.problems.join('; ') : ms.detail);
+    if (ctx.track !== 'product') skip('4.22', `${ctx.track} track: the channel is the product's own`);
+    else { const ch = channelAnswered(a); pass('4.22', ch.problems.length === 0, ch.problems.length ? ch.problems.join('; ') : ch.detail); }
     return R;
   }
 
@@ -1585,6 +1774,8 @@ function gate(n, ctx) {
     }
     const roll = chosenBy(section(a, 'Rollout'), 'the rollout strategy');
     pass('6.13', roll.ok, roll.detail);
+    if (ctx.track === 'change' || ctx.track === 'spike') skip('6.14', `${ctx.track} track: nothing new to announce`);
+    else { const lp = launchPlan(a); pass('6.14', lp.problems.length === 0, lp.problems.length ? lp.problems.join('; ') : lp.detail); }
     return R;
   }
 
@@ -1611,6 +1802,8 @@ function gate(n, ctx) {
     pass('7.6', nonEmpty(cleanup) && !bareNone, !cleanup ? 'no "**Cleanup:**" under the decision: the flag and old path after KEEP, the shipped code after KILL, with an owner and a date, or "none" with the reason' : bareNone ? '"none" needs its reason' : `cleanup: ${cleanup}`);
     const verdict = chosenBy(section(a, 'Decision'), 'keep, iterate or kill');
     pass('7.7', verdict.ok, verdict.detail);
+    if (ctx.track === 'change' || ctx.track === 'spike') skip('7.8', `${ctx.track} track: no launch to read`);
+    else { const gr = gtmRead(a, ctx.track); pass('7.8', gr.problems.length === 0, gr.problems.length ? gr.problems.join('; ') : gr.detail); }
     return R;
   }
   die(`unknown gate ${n}`);

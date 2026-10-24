@@ -5,7 +5,7 @@ description: "Designs and reads experiments: hypotheses, sample sizes and durati
 
 # Experiment Methodology
 
-An experiment is a decision written down before the data arrives: the baseline, the effect worth detecting, the guardrails, and what ships or kills it. A change not yet shipped is **design**; results in hand are **analysis**. Run the steps the question needs: a sample-size request is answered by design steps 1 and 5.
+An experiment is a decision written down before the data arrives: the baseline, the effect worth detecting, the guardrails, and what ships or kills it. A change not yet shipped is **design**; results in hand are **analysis**. Run the steps the question needs: a sample-size request is answered by design steps 1 and 5. An experiment is worth its cost only when its result can change the decision; `business-case` (step 7) decides that, and its card is the short form of this design.
 
 **Mode.** Standalone or as part of phases 3, 6 and 7, per [operating modes](../../references/operating-modes.md); design and analysis apply in both. Load `evidence-ledger` when recording claims and the shapes in `references/analytics-contract.md` when querying. Skill-local resources:
 
@@ -24,7 +24,7 @@ An experiment is a decision written down before the data arrives: the baseline, 
 3. **Define the metrics triad:** one preregistered primary (output) outcome, an input indicator when useful, and the guardrails that catch a win breaking something else. Done when each metric has its definition and population.
 4. **Verify the metrics are emitted.** An unemitted output metric makes the experiment unreadable; that finding goes to `tracking-standards` before anything ships. Done when each metric is confirmed emitted, or the gap is handed over.
 5. **Calculate sample size and runtime** from the baseline, the minimum detectable effect and the traffic. Done when the first read has a calendar date.
-6. **Pre-register** before the experiment starts: what ships it, what kills it, whether a preregistered sequential or blinded extension is permitted, its maximum sample and duration, and who decides. Done when the pre-registration is written and dated before the first exposure.
+6. **Pre-register** before the experiment starts: what ships it (the build line, set where the second option in the list becomes the better bet), what kills it (the stop line), what the band between them triggers, whether a preregistered sequential or blinded extension is permitted, its maximum sample and duration, and who decides. Done when the pre-registration is written and dated before the first exposure.
 
 ### Analysis
 

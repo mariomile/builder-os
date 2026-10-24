@@ -1,0 +1,2 @@
+# expects: skill=business-case (standalone)
+Abbiamo 400.000 account attivi sul nostro gestionale di fatturazione e vogliamo aggiungere i solleciti automatici per le fatture scadute, a pagamento. L'AI dice che vale 3 milioni in due anni. Quanto vale davvero, e quale numero dovremmo testare prima di costruirli?

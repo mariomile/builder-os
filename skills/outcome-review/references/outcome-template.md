@@ -34,6 +34,15 @@ Read when writing the phase 7 artifact. `scripts/bos.mjs` parses its headings an
 **Cleanup:** {KEEP: the flag and the old code path to remove, with owner and date; KILL: the shipped code to remove, as a change initiative, with owner and date; ITERATE: what stays until the next cycle decides; or "none, {reason}"}
 **Next:** {the specific thing that happens now}
 
+## Go-to-market read
+{feature and product tracks, gate 7.8, per go-to-market}
+| Channel | Reached | Converted | Source | Next |
+|---|---|---|---|---|
+| {channel} | {n} | {n} | `[tag]` or "unavailable: {question}" | double down / fix / stop |
+
+**GTM stage:** {product track: Signal, Resonance or Orbit, with the exit condition met or missed}
+**Objections:** {the top three, and the change that would remove the first}
+
 ## Learning
 {one sentence that is true when the feature is gone}
 

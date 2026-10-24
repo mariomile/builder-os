@@ -38,7 +38,7 @@ An option whose confidence rests only on an unvalidated assumption is precisely 
 | Part | Requirement | Bad | Good |
 |------|-------------|-----|------|
 | **Metric** | The phase 2 success metric, or a named leading indicator of it | "engagement" | "share of new workspaces with ≥1 imported record" |
-| **Threshold** | A number that separates continue from stop | "if adoption is low" | "below 15%" |
+| **Thresholds** | A stop line and a keep line; between them, iterate. The keep line sits where the second option would have been the better bet | "if adoption is low" | "below 15% we stop, above 25% we keep" |
 | **Date** | When it gets checked | "after a while" | "28 days after 50% rollout" |
 
 The threshold is the hard part, because a number written before launch can embarrass someone afterwards. That embarrassment is the mechanism. A kill criterion that cannot be failed is decoration, and phase 7 will have nothing to evaluate.
@@ -87,6 +87,12 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 ## Rejected
 | Option | Why not now | Revisit when |
 
+## Value
+{business-case, gates 3.9 to 3.11: quick estimates, the assumptions table with kind, source and P14 / P50 / P86, the two-year value, costs, the sensitivity, the load-bearing assumption, the five questions; or a declared judgment. Template in skills/business-case/references/business-case-method.md}
+
+## Go-to-market
+{go-to-market, gate 3.13: Audience, Message, Where for a feature; Trigger, Positioning, Motion, Channel, Channel test, Message for a product. Template in skills/go-to-market/references/gtm-method.md}
+
 ## Business case
 {product track, gate 3.7}
 **First 100 users:** {the channel, the message in one sentence, who does the work; for self-serve, what a user does that brings the next one}
@@ -95,16 +101,32 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 **Willingness to pay test:** {how a person from the ICP will show they would pay before the build: pre-order, letter of intent, a click on a price, the price asked in the real-user session}
 
 ## Kill criteria
-On {date}, if {metric} is below {threshold}, we {stop / revert / rebuild differently}.
+On {date}, below {stop} we {stop / revert / rebuild differently}; between {stop} and {keep} we iterate; above {keep} we keep.
 **Measured by:** {query, event or dashboard}
 
 ## Riskiest assumption
-{falsifiable sentence, inherited from phase 0 and sharpened here}
+{falsifiable sentence, inherited from phase 0, sharpened here, and the load-bearing assumption of ## Value when it is an estimate}
 
 ## Cheapest test
+**Assumption:** {the load-bearing assumption}
 **Shape:** {smoke / fake door / concierge / Wizard of Oz / prototype / instrumented slice}
 **Design:** {what runs, with whom, measuring what}
-**Test cost:** {n} days · **Build cost:** {n} days · **Ratio:** {n}%
-**Order:** {test first / build first, with the reason or the logged override}
+**Test cost:** {n} days · **Build cost:** {n} days
+**Order:** {test first / build first}
+**Changes the decision:** {test first: which result would flip the bet, and why the decision is not already made}
+**Skip because:** {build first: cheap and reversible / the pessimistic case still proceeds / strong precedent / unreliable measure, or the logged override}
+**Question:** {the assumption as a number to beat}
+**Event:** {the exact event, on whom, over how long}
+**Stop below:** {n} · **Build above:** {n}
+**Second idea:** {the runner-up and its value}
+**Sample:** {people per group, or the declared small sample before PMF}
 **Falsified if:** {the observation that would kill the assumption}
+
+## Bet size
+{business-case, gates 3.14 and 3.15}
+**Door:** {one-way / two-way, and why}
+**Confidence:** {n}%, {what it rests on}
+**Appetite:** {n} days
+**If wrong:** {what we lose and how we undo it}
+**Evidence bar:** {met for this stage and door, or a judgment call by {person} with the reasoning and a revisit date}
 ```

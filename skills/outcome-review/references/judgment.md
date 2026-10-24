@@ -75,7 +75,7 @@ A bet that failed after three overridden gates learned something different from 
 | Pattern | What it suggests |
 |---------|-----------------|
 | Failed, gate 1 overridden | The problem may never have been validated. The bet was not the failure; the evidence was |
-| Failed, gate 3.4 overridden (test skipped) | The cheap test would probably have caught it. That is the learning, and it is about process |
+| Failed, test skipped (gate 3.4) with a reason that did not hold | The cheap test would probably have caught it. That is the learning, and it is about process |
 | Failed, no overrides | An honest miss. The most valuable kind, and the one worth generalizing |
 | Succeeded, several overrides | Got away with it. Worth naming, because the next one may not |
 
