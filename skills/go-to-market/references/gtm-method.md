@@ -99,9 +99,9 @@ A weekly report tool for ops leads, €12 per seat per month (about €430 a yea
 {phase 3, gate 3.13}
 **Trigger:** {product: the moment, the gap, who presses, by when; anti-ICP}
 **Positioning:** {product: why this and not today's alternative, one sentence}
-**Motion:** {product: the motion and the price that pays for it}
+**Motion:** {product: the motion the `PRODUCT.md` price can pay for (the price itself lives there)}
 **Channel:** {product: the one channel first, and why the others wait}
-**Channel test:** {product: what runs, the event, stop below, build above, the window, the cost}
+**Channel test:** {product: what runs, the event, stop below, build above, the window, the cost; its result goes to `04-spec.md` → Channel result (gate 4.22)}
 **Audience:** {feature: who among existing users meets the problem, how many, tagged}
 **Message:** {the one line, in their words, with its source}
 **Where:** {feature: where they will meet it: placement, email, changelog, account manager}

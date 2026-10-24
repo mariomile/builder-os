@@ -169,6 +169,7 @@ How much evidence a bet needs depends on the stage (`PRODUCT.md` → Stage) and 
 ## Cheapest test
 **Assumption:** {the load-bearing assumption}
 **Shape:** {smoke / fake door / concierge / Wizard of Oz / prototype / instrumented slice}
+**Design:** {what runs, with whom, measuring what}
 **Test cost:** {n} days · **Build cost:** {n} days
 **Order:** {test first / build first}
 **Changes the decision:** {when test first: which result would flip the bet, and why the decision is not already made}
@@ -179,6 +180,7 @@ How much evidence a bet needs depends on the stage (`PRODUCT.md` → Stage) and 
 **Second idea:** {the runner-up and its value}
 **Sample:** {people per group, or the declared small sample before PMF}
 **Still to prove:** {what this test leaves open}
+**Result:** {when it returns: the number against Stop below and Build above, with its tag; below the stop line the build waits for a kill, a new bet or a waiver (gate 4.22)}
 
 ## Bet size
 **Door:** {one-way / two-way, and why}
