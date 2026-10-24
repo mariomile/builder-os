@@ -53,3 +53,4 @@ Keep it to one screen. If everything passed and phase 7 is done, report the deci
 - `[--overrides]` — Overrides only.
 - `[--initiative slug]` — Show another initiative without switching to it.
 - `[--doctor]` — Run `scripts/bos.mjs doctor` and relay it: the install, the hooks, the project copy, the memory files, each initiative's state, and the debt per phase.
+- `[--page]` — Run `scripts/bos.mjs page` and give the path of `.builderos/index.html`: the project on one page (initiatives, what waits on a person, links to every document, design, demo and preview) to open or send.

@@ -192,6 +192,8 @@ You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decisio
 
 **The look, the stack and the bet are yours to pick.** Phase 3 lists at least eight raw ideas before converging, and you choose the bet. Phase 4 models the domain rules with you, shows at least three visual directions as pages you can open (two layout versions inside an existing design system), and turns every open stack layer into a decision card with cost, lock-in and the boring default among the options. The build then sticks to what was decided: a new framework or paid service mid-build stops the slice and comes back to you.
 
+**You see it, click it and can send it.** Every message the product will send (the welcome email, the reminder, the WhatsApp reply) is designed with its real text and a preview before the build. The first slice puts the product online behind a password, so launch day is opening a door, not a first deploy; every change after that has a link you open and try, and the build is not done until you have. `.builderos/index.html` shows the whole project on one page: each initiative and its phase, what waits on you, and links to every document, design, prototype, demo and preview.
+
 **Every phase report opens with a plain recap.** Five lines at most, for someone who did not follow the work: what was decided, what changed, what is still unknown. Condition ids and file names come after.
 
 ---
@@ -235,7 +237,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**30 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), four cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`, `wayfinding` for work too big for one session), `agents-md` (keeps the repository's `AGENTS.md` and `CLAUDE.md` a short index the coding agent can trust), three you call by name (`retro`, `to-spec`, `to-tickets`, adapted from Matt Pocock's skills and costing no context until called), the rest split between the eight phases and the specialists that answer standalone questions, among them `product-analysis`, one skill for metrics, growth, revenue, strategy, OKRs and competitors. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
+**31 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), four cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`, `wayfinding` for work too big for one session), `agents-md` (keeps the repository's `AGENTS.md` and `CLAUDE.md` a short index the coding agent can trust), `production-setup` (production from the first slice, a preview link for every change), three you call by name (`retro`, `to-spec`, `to-tickets`, adapted from Matt Pocock's skills and costing no context until called), the rest split between the eight phases and the specialists that answer standalone questions, among them `product-analysis`, one skill for metrics, growth, revenue, strategy, OKRs and competitors. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
 
 **14 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
@@ -245,7 +247,7 @@ A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEA
 
 **Three hooks on Claude Code.** At session start a short briefing (under 3,000 characters inside a project, two lines outside one); before each file write, a refusal to hand-write `state.json`; with each message, one line naming the active phase and what to check the request against.
 
-**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, evidence import, the product review check, roadmap regeneration and migration. `bos.mjs vendor` copies it into the project (`.builderos/bin/bos.mjs`) so a session without the plugin still runs the gates.
+**One script.** `scripts/bos.mjs`, Node built-ins only: briefing, gates, captured check runs, state recording with acceptance, process pace, initiative management, evidence import, the product review check, roadmap regeneration, the project page and migration. `bos.mjs vendor` copies it into the project (`.builderos/bin/bos.mjs`) so a session without the plugin still runs the gates.
 
 **An eval suite.** `evals/` runs with `claude plugin eval .`, each case with and without the plugin. Optional everywhere; where it cannot run, the model applies the same rules and the state says so.
 
@@ -254,9 +256,10 @@ A release plan ends with `## RELEASE READY`. `## SHIPPED` and advancement to LEA
 ```
 PRODUCT.md                what the product is: ICP, problem, non-goals, constraints, voice, language, and the business: stage, North Star, metric tree, revenue model
 DOMAIN.md                 the product's things and their rules: entities, states, invariants, business rules
-TECH.md                   how it is built and run: stack, design system, verify commands, operations, technical constraints, conventions, known traps
+TECH.md                   how it is built and run: stack, design system, verify and run commands, environments, operations, technical constraints, conventions, known traps
 AGENTS.md                 gets a BuilderOS block telling every new session to read the files below first
 .builderos/
+  index.html              the project on one page, to open or send (generated by bos.mjs page with the roadmap)
   ROADMAP.md              the master plan: direction, now / next / later, done and dropped
   decisions/              ADRs, shared across initiatives
   reviews/                product reviews: levers read, stage, what to build next
@@ -298,7 +301,7 @@ Version 3.0.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 | Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05. On 2026-10-20 the two new cases for existing products (`live-product-first-feature`, `change-with-red-suite`) and both feature-track cases passed after three fixes they found; the other five were not rerun after the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
 | Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-127 Node tests pass (`pnpm test`), including one that checks every skill against the writing standard. The eval suite in `evals/` (`claude plugin eval`) scored 1.0 with the plugin on all eleven cases that need no shell on 2026-10-22, one of them after the fix it found. They prove the script and the adapters, not model compliance; that is what the scenarios are for.
+149 Node tests pass (`pnpm test`), including one that checks every skill against the writing standard. The eval suite in `evals/` (`claude plugin eval`) scored 1.0 with the plugin on all eleven cases that need no shell on 2026-10-22, one of them after the fix it found. They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 

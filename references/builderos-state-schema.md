@@ -221,6 +221,7 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 ## Verify
 | Check | Command | Healthy output |
 |-------|---------|----------------|
+| Run | {the one command that starts the product locally (gate 5.17)} | {the ready line, e.g. "Ready on http://localhost:3000"} |
 | Build | {one command, exits non-zero on failure} | {what success prints} |
 | Test | {one command} | {e.g. "N passed, 0 failed"} |
 | Test (fast) | {optional: the command that runs only the tests for a path or a pattern, used per slice when the full suite is slow} | {} |
@@ -229,6 +230,21 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 **Known failing:** {tests already red before BuilderOS, by name, with the date; "none"}
 **Guardrail:** {where Verify runs without anyone asking: a CI job, a pre-commit hook, or both, with the file that defines it; "none" until phase 5 adds one; "declined by {person} ({why}), {date}" when the CI belongs to someone else who said no}
 **Quality checks:** {the automatic checks in the guardrail: accessibility (an axe-style scan on every route), end-to-end on the primary flow, dependency audit, secret scan, static analysis; with an interface, a token check (raw colours and spacing outside the token file fail); once `## Design system` has a kit, visual regression on the primary flow; each named with its command or "n/a, {why}"; "declined by {person} ({why}), {date}" as for the guardrail}
+
+## Environments
+| Environment | URL | Deploys from | Who can see it |
+|-------------|-----|--------------|----------------|
+| production | {https:// address} | {branch and the CI job that deploys it} | {the team behind a password or flag, until the rollout; then everyone} |
+| preview | {the per-change URL pattern, or staging} | {each pull request} | {the team} |
+
+**Domain:** {domain, who registered it, HTTPS on}
+**Secrets:** {where production secrets live, who can read them; development uses other values, out of git}
+**Email sender:** {the sending domain with SPF, DKIM and DMARC verified and the date, or "sends no email"}
+**Live keys:** {payment and provider keys in live mode, production only; or "not applicable, {why}"}
+**Legal pages:** {terms, privacy notice, cookie consent before analytics; URLs, in each language of PRODUCT.md → Markets}
+**Production check:** {`**Run:**` path of a captured request to the production URL, or the person's observation with its `[doc:...]` tag}
+
+{Set up by `production-setup` from the first slice of a new product (gate 5.16, all lines on the product track); on a product that already runs, written from its deploy configuration at init.}
 
 ## Operations
 **Privacy:** {where the privacy notice lives; sub-processors (hosting, model provider, email, analytics) with their data processing agreements; how a person's data is deleted on request; data region; or "no personal data, {why}"}

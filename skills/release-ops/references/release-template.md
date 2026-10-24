@@ -34,6 +34,7 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 ## Release notes
 {the notes, written for users: what they can now do}
 **What changes for you:** {for people already using the product: what moved, what behaves differently, what was removed, what they need to do; "nothing" when the change only adds}
+**Help:** {where users find answers about this (the help page, in-product help, the FAQ) and what changed there, in each language the product speaks; or "nothing to change, {why}"}
 
 ## Exposure verification
 **Authorized by:** {who authorized exposure, and how: the message, the ticket, the approval}

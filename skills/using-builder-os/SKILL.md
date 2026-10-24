@@ -54,6 +54,8 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Break a plan or spec into tickets | `delivery-discipline`, [tickets](../delivery-discipline/references/tickets.md) (`to-tickets` by name) |
 | Write, update or prune a repository's `AGENTS.md` or `CLAUDE.md`; the agent keeps getting lost in the code | `agents-md`, standalone |
 | A retrospective on an agent session, or what to change so the agent works better here | [retro](../retro/SKILL.md) (`retro` by name) |
+| Deploy, go live, set up hosting, a domain, email sending or a preview link | `production-setup`, standalone |
+| See the whole project on one page, or send it to someone | `scripts/bos.mjs page` where commands run: `.builderos/index.html` |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
 | Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |

@@ -7,7 +7,7 @@ Read when running gate 6. E.1, E.2 and the procedure in `SKILL.md` apply too. **
 | 6.1 | Rollback path documented | Named mechanism, named owner, tested once |
 | 6.2 | Baseline captured before exposure | Capture timestamp precedes the actual `Exposed at` timestamp, never a planned rollout date |
 | 6.3 | Measurement exists | Dashboard or saved query for the success metric |
-| 6.4 | Release notes written for the audience | Addressed to users or buyers, not a commit list |
+| 6.4 | Release notes written for the audience | Addressed to users or buyers, not a commit list; `**Help:**` says where users find answers and what changed there |
 | 6.5 | Outcome review scheduled | Owner and date; `--review-due` matches the artifact |
 | 6.6 | Exposure observed | Exposure verification has `Status: verified`, non-future ISO `Exposed at`, `Environment`, `Version`, and an observed `Verification` result with resolving data/doc evidence |
 | 6.7 | Exposure evidence proves availability | Model confirms intended behavior is available to users in the stated environment/version |
