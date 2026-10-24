@@ -59,7 +59,7 @@ Cheap shapes: a landing page with the price and a pre-order; twenty personal mes
 
 ## The stages of a market
 
-Read signals, not revenue: a company at €500k ARR whose customers all came through warm introductions is earlier than one at €200k with word of mouth.
+Read signals, not revenue: a company at €500k ARR whose customers all came through warm introductions is earlier than one at €200k with word of mouth. These are the go-to-market names of the one stage model in `PRODUCT.md` → `**Stage:**`: Signal is `idea` and `pre-PMF`, Resonance is `emerging-PMF`, Orbit is `scaling`. Their exits below are candidates for `**Stage exit:**`, which the person chooses.
 
 **Signal** (who really has this problem and would pay?). You are here if the ICP cannot be said in one situational sentence, every deal looks different, the price is negotiated case by case, and under 20% of customers came without a personal relationship. Exit when all four hold: the ICP fits one situational sentence; five paying customers you did not know before; the last five bought for the same reason; a price that worked five times without heavy negotiation.
 
@@ -128,6 +128,6 @@ A weekly report tool for ops leads, €12 per seat per month (about €430 a yea
 |---|---|---|---|---|
 | {channel} | {n} | {n} | `[tag]` or "unavailable: {question}" | double down / fix / stop |
 
-**GTM stage:** {product: Signal, Resonance or Orbit, with the exit condition met or missed}
+**Stage:** {product: the `PRODUCT.md` stage, with the Stage exit met or missed}
 **Objections:** {the top three, and the change that would remove the first}
 ```

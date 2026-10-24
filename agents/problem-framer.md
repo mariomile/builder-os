@@ -26,6 +26,8 @@ If `.builderos/` is absent, stop and say initialization has not run. Do not scaf
 
 ## Reporting
 
+Without the person's choice of the riskiest assumption in your prompt, end with the draft and its round per `builder-os:pressure-testing`, and no marker: you never fill `**Chosen by:**`. With it, quote their words there.
+
 End with `## FRAME COMPLETE` as specified in `builder-os:problem-framing`: the problem, the ICP, the riskiest assumption, the gate 0 verdict, and the specific research target phase 1 inherits.
 
 On gate failure, emit the refusal format from `builder-os:gate-checks` and do not advance.

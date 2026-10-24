@@ -211,5 +211,7 @@ test('gate 6.14 wants a launch plan on features and products, and 7.8 reads each
   write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| in-app banner | 1,200 | 140 | `[data:banner]` | keep |\n');
   assert.equal(gate(root, 7).by['7.8'], 'pass');
   write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| gallery | 900 | 70 | `[data:banner]` | double down |\n', PRODUCT_SLUG);
-  assert.match(gate(root, 7, '--initiative', PRODUCT_SLUG).detail['7.8'], /GTM stage/);
+  assert.match(gate(root, 7, '--initiative', PRODUCT_SLUG).detail['7.8'], /"\*\*Stage:\*\*" the PRODUCT.md stage/);
+  write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| gallery | 900 | 70 | `[data:banner]` | double down |\n\n**Stage:** pre-PMF, the exit misses on retention\n', PRODUCT_SLUG);
+  assert.equal(gate(root, 7, '--initiative', PRODUCT_SLUG).by['7.8'], 'pass');
 });

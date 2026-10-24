@@ -11,13 +11,15 @@ Read when running gate 6. E.1, E.2 and the procedure in `SKILL.md` apply too. **
 | 6.5 | Outcome review scheduled | Owner and date; `--review-due` matches the artifact |
 | 6.6 | Exposure observed | Exposure verification has `Status: verified`, non-future ISO `Exposed at`, `Environment`, `Version`, and an observed `Verification` result with resolving data/doc evidence |
 | 6.7 | Exposure evidence proves availability | Model confirms intended behavior is available to users in the stated environment/version |
-| 6.8 | Exposure was authorized by a person | Exposure verification names `**Authorized by:**` with who and how (the message, the ticket, the approval) |
+| 6.8 | Exposure was authorized by a person | Exposure verification names `**Authorized by:**` with who and how (the message, the ticket, the approval), quoting the person's words where the person log exists |
 | 6.9 | What it settled outlives the folder | Every entity in `DESIGN.md` → Domain model → Entities appears in the project's `DOMAIN.md`; a visual direction chosen here (not inherited, not "not applicable") is in `TECH.md` → `## Design system` with `**Kit:**` and `**Tokens:**` (where the tokens live in the code) |
 | 6.10 | Production is ready for its first incident, and for its stage | `## Production readiness` has `**Errors seen by:**` (how an error reaches the team before a user reports it) and `**Backup restored:**` (a restore tested once, with the date, or "not applicable" with why), and with model output `**Agent traces:**` (where every turn and tool call is kept, and who reads a sample how often). `TECH.md` → `## Operations` has `**Privacy:**` always, `**AI disclosure:**` when the spec declares model output, and after PMF (`emerging-PMF`, `scaling`) `**SLO:**`, `**Incident response:**`, `**Cost per active user:**` and `**Load tested:**` (the date, the load at ten times the expected peak from the architecture's capacity, and the result), plus `**Model degradation:**` with model output (the must-pass cases run on sampled production turns, how often, and the threshold that alerts). These are product facts written once, not per release |
 | 6.11 | Someone is using it (product track) | `## First real use` cites a `data` or `doc` tag: a person outside the team did the primary action. Online is not in use. Skipped on the other tracks, where exposure reaches existing users |
 | 6.12 | Someone paid (product track, for sale) | `## First payment` cites a `data` or `doc` tag: a customer outside the team paid. Skipped when `PRODUCT.md` says not for sale and on the other tracks |
 | 6.13 | A person chose the rollout | `**Chosen by:**` under `## Rollout` names who chose the strategy from the decision card; never the agent |
 | 6.14 | The launch is planned (feature and product tracks) | `## Launch` (`go-to-market`) has `**Who hears first:**`, `**Message:**`, `**Channels:**`, `**When:**` and `**Measured by:**`, the event that tells arrivals from each channel apart. Skipped on the change track |
+
+Attested (the script checks the citation and its file, not the event): 6.11, 6.12. Without a first payment, the honest outcomes are `record 6 --kill`, or an override that waives 6.12 alone (`--waive 6.12`) with the person's reason.
 
 Script-decided: 6.2, 6.3, 6.5, 6.6, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13, 6.14. Model-judged: 6.1, 6.4, 6.7.
 

@@ -33,7 +33,7 @@ Where commands run: `scripts/bos.mjs gate M` first (it only reads), fix drafting
 
 Fail: the work is a `feature`, still at phase 0, and runs the feature coverage check next. Not a penalty: a change that needs a choice between solutions needs phase 2 and 3 to make it.
 
-**What a change still owes.** Phase 4 writes scope, acceptance criteria, states, the impact on what exists (4.11), the quality bar (4.12), the stack only where it is touched and the domain only where something changes state. Phase 4.4 is skipped (no phase 2 metric) and the look may be `inherited` with its reason when no screen changes composition. Phase 5 is unchanged. Phase 6 skips baseline, measurement and outcome review when the release declares none, and the initiative closes there; a change that sets an outcome review goes to phase 7 like any other.
+**What a change still owes.** Six things, whatever it touches: scope with `**Touches:**` (4.2), testable criteria (4.1), the impact on what it touches (4.11), the criteria mapped to tests (5.1) green against the baseline (5.2), the scope check (5.4), and a release with its rollback (6.1). The accepted plan (5.6, 5.7) holds as on every track. What it touches calls in the rest, listed in [gate 4](gate-4-shape.md) and [gate 5](gate-5-build.md), Change track: a label rename owes one page per phase, a data migration owes the domain and the architecture. Phase 6 skips baseline, measurement and outcome review when the release declares none, and the initiative closes there; a change that sets an outcome review goes to phase 7 like any other.
 
 | Mistake | Why it fails | Correct |
 |---------|-------------|---------|

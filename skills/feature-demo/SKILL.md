@@ -7,7 +7,7 @@ description: "Records a video of a feature working: an end-to-end test walks the
 
 A green test suite tells an engineer the feature works; a video shows everyone else. This skill turns the end-to-end test of a flow into a recording of it: the test walks the flow the way the user does, checks what the user sees at every step, and the run that passes is the one that is filmed. A video only exists of a walk that worked, so the person accepting the build, the reviewer of the pull request and the reader of the release notes all see the same proof.
 
-**Mode.** Standalone records the flow the person names on the running product and hands over the file. In the lifecycle it runs in phase 5 after the interface review (`delivery-discipline`, step 9), writes `05-build-plan.md` → `## Demo`, and gate 5.15 checks it; phase 6 shows the same recording to whoever authorizes exposure and links it in the release notes. Both per [operating modes](../../references/operating-modes.md). Read the [demo method](references/demo-method.md) for the test shape, the recording settings with examples per runner, captions, the ladder in detail and a worked example.
+**Mode.** Standalone records the flow the person names on the running product and hands over the file. In the lifecycle it runs in phase 5 after the person has tried the build (`delivery-discipline`, step 10c), writes `05-build-plan.md` → `## Demo`, and gate 5.15 checks it; phase 6 shows the same recording to whoever authorizes exposure and links it in the release notes. Both per [operating modes](../../references/operating-modes.md). Read the [demo method](references/demo-method.md) for the test shape, the recording settings with examples per runner, captions, the ladder in detail and a worked example.
 
 ## Procedure
 

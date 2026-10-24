@@ -40,7 +40,7 @@ Read when writing the phase 7 artifact. `scripts/bos.mjs` parses its headings an
 |---|---|---|---|---|
 | {channel} | {n} | {n} | `[tag]` or "unavailable: {question}" | double down / fix / stop |
 
-**GTM stage:** {product track: Signal, Resonance or Orbit, with the exit condition met or missed}
+**Stage:** {product track: the `PRODUCT.md` stage, with the Stage exit met or missed}
 **Objections:** {the top three, and the change that would remove the first}
 
 ## Learning

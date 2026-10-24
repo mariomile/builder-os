@@ -12,7 +12,7 @@ Dispatch the `builder-os:problem-framer` agent to run BuilderOS phase 0.
 ## Steps
 
 1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). If missing, offer `/builder-os:bos-init` and stop. If `current_phase` is past 0, say so and ask whether to re-frame (a re-frame starts a new cycle, it does not overwrite).
-2. **Read `PRODUCT.md`** (fallback `PM-CONTEXT.md`, then nothing — phase 0 works with nothing).
+2. **Read `PRODUCT.md`** (fallback `PM-CONTEXT.md`, then nothing: phase 0 works with nothing).
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -32,13 +32,14 @@ User request:
 Write .builderos/initiatives/{initiative}/00-frame.md and run gate 0 before declaring completion.
 ```
 
-5. **Verify completion:** look for `## FRAME COMPLETE` and a gate 0 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 0 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
-6. **Present** the frame and ask the person to accept it. Phase 0 advances only through `record 0 --accepted-by "who"` with their answer (`gate-checks`, Acceptance); never accept on their behalf. Then the next command, or the failed condition.
+5. **The person chooses** which assumption phase 1 tests (0.5): the dispatch returns its round instead of a `**Chosen by:**`. Ask it, then dispatch again with `Chosen by: [person, their words quoted]`.
+6. **Verify completion:** look for `## FRAME COMPLETE` and a gate 0 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 0 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
+7. **Present** the frame and ask the person to accept it. Phase 0 advances only through `record 0 --accepted-by "who"` with their answer (`gate-checks`, Acceptance); never accept on their behalf. Then the next command, or the failed condition.
 
 ## Arguments
 
-- `[idea]` — The idea, problem or complaint. If absent, the agent asks.
-- `[--reframe]` — Start a new cycle from phase 0, preserving prior artifacts under `.builderos/initiatives/{initiative}/cycle-N/`.
+- `[idea]`: the idea, problem or complaint. If absent, the agent asks.
+- `[--reframe]`: `bos.mjs reframe --reason "..."` starts a new cycle at phase 0, history kept; git keeps the old artifacts.
 
 ## Notes
 

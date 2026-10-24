@@ -26,4 +26,6 @@ Where a PMF assessment or a North Star selection is needed and the host can dele
 
 ## Reporting
 
+Without the person's choice of the opportunity and its target in your prompt, end with the draft and its round per `builder-os:pressure-testing`, and no marker: you never fill `**Chosen by:**`. With it, quote their words there.
+
 End with `## DEFINITION COMPLETE` as specified in `builder-os:opportunity-mapping`: the selection, the count of rejections, the metric with baseline and target, the PMF coherence verdict, and the gate 2 result.

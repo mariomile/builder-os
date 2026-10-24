@@ -28,6 +28,8 @@ No `05-build-plan.md` means stop. Shipping unverified work is precisely what gat
 
 ## Reporting
 
+Without the person's choice of the rollout and of who authorizes exposure in your prompt, end with the draft and its round per `builder-os:pressure-testing`, and no marker: you never fill `**Chosen by:**`. With it, quote their words there.
+
 End with `## RELEASE READY` for preparation, keeping phase 6 open. Use `## SHIPPED` only after authorized release and verified actual exposure per gate 6.6. Follow `builder-os:release-ops`: the rollout plan with numeric conditions between steps, the rollback with its test record and its answer to the data question, the timestamped baseline with its method, the named measurement, the release notes and the scheduled review.
 
 On gate failure, emit the refusal format from `builder-os:gate-checks` and do not advance. Where the change is genuinely irreversible, say so as a fact before shipping rather than describing a rollback that does not exist.

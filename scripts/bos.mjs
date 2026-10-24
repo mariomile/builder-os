@@ -1061,8 +1061,9 @@ function launchPlan(release) {
   return { problems: missing.length ? [`"## Launch" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}`] : [], detail: `${field(sec, 'Who hears first')} via ${field(sec, 'Channels')}, ${field(sec, 'When')}` };
 }
 
-// Gate 7.8: the outcome reads the go-to-market too: each channel with its result, and for a product the stage of its market.
-const GTM_STAGES = /\b(signal|resonance|orbit)\b/i;
+// Gate 7.8: the outcome reads the go-to-market too: each channel with its result, and for a product its stage.
+// One stage model: PRODUCT.md's Stage. Signal, Resonance and Orbit are the go-to-market names for the same stages.
+const GTM_STAGES = /\b(idea|pre-PMF|emerging-PMF|scaling|signal|resonance|orbit)\b/i;
 function gtmRead(outcome, track) {
   const sec = section(outcome, 'Go-to-market read');
   if (sec === null) return { problems: ['no "## Go-to-market read": each channel, what it reached and converted, tagged, and what happens to it next'] };
@@ -1071,8 +1072,9 @@ function gtmRead(outcome, track) {
   if (!rows.length) problems.push('no channel rows');
   const blind = rows.filter((r) => !hasTag(r.join(' ')) && !/unavailable/i.test(r.join(' ')));
   if (blind.length) problems.push(`channels with neither a tagged result nor "unavailable" and its question: ${blind.map((r) => r[0]).join(', ')}`);
-  if (track === 'product' && !GTM_STAGES.test(field(sec, 'GTM stage') || '')) problems.push('"**GTM stage:**" Signal, Resonance or Orbit, with the exit condition it meets or misses');
-  return { problems, detail: `${rows.length} channel${rows.length === 1 ? '' : 's'} read${track === 'product' ? `, stage ${field(sec, 'GTM stage')}` : ''}` };
+  const stage = field(sec, 'Stage') || field(sec, 'GTM stage') || '';
+  if (track === 'product' && !GTM_STAGES.test(stage)) problems.push('"**Stage:**" the PRODUCT.md stage (idea, pre-PMF, emerging-PMF, scaling), with the Stage exit it meets or misses');
+  return { problems, detail: `${rows.length} channel${rows.length === 1 ? '' : 's'} read${track === 'product' ? `, stage ${stage}` : ''}` };
 }
 
 // Gate 4.14 (product track, for sale): someone showed they would pay, and the stack can take the money.

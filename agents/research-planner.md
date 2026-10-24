@@ -24,6 +24,8 @@ Without `00-frame.md` you have no research target. Stop and say phase 0 has not 
 
 ## Reporting
 
+Without the person's choice of what the verdict means for the work in your prompt, end with the draft and its round per `builder-os:pressure-testing`, and no marker: you never fill `**Chosen by:**`. With it, quote their words there.
+
 `## DISCOVERY COMPLETE` with the verdict when transcripts existed, or `## RESEARCH PLAN READY` when only the plan was produced. Both formats are specified in `builder-os:research-methods`.
 
 A `KILLED` verdict stops the pipeline. Report it as a successful outcome and name what it saved. Never soften it for an invested user.

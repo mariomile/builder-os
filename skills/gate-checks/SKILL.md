@@ -29,11 +29,13 @@ A gate checked by the model that wrote the artifact is a gate checked on trust, 
 
 Where commands cannot run, the model checks every condition and records all of them under `model`: same conditions, weaker provenance, and the record says so. E.1 and E.2 are script-decided; each conditions file states its own split, and the emitted `checked_by` split is authoritative.
 
+- **Attested** conditions rest on a fact outside the repository: a session with a user, a payment, a person who tried the build. The script checks the citation and its file, never the event. Each conditions file lists them; say so when relaying them.
+
 **Recording the result.** Where commands run, the result reaches `state.json` only through `node scripts/bos.mjs record {N} --judged "{id}=pass|fail,..."`: the script re-runs its own conditions, takes the model's verdict on the `judge` ones, and writes the phase status, `checked_at`, `checked_by`, the failed conditions and the history event, then advances, closes or holds the phase and regenerates the roadmap. A gate result written into `state.json` by hand where the script can run is a claim, not a record, exactly like a completion marker. Phases 1, 6 and 7 take phase-specific flags (verdict, review date, re-entry), stated in their conditions files. The record also stores the script's version and the skipped conditions, so a later release can tell "not applicable then" from "not there yet". Verdict/enum contradictions cannot be overridden.
 
 ## Debt After a Release
 
-Each record carries the BuilderOS version that wrote it (`gate.bos_version`) and the conditions it skipped as not applicable. A release that adds conditions leaves earlier passed gates passed: the briefing lists, per initiative, the conditions in force now that the record did not check and the artifact does not meet yet, and `bos.mjs doctor` lists them per phase with their detail. That list is debt. Meet it when the work next touches that phase (a new cycle, a change to the artifact), or name it at phase 7 when it bears on the outcome. The phase stays passed.
+Each record carries the BuilderOS version that wrote it and the conditions it skipped. A release that adds conditions leaves earlier passed gates passed; the briefing and `bos.mjs doctor` list the conditions in force now that the record did not check and the artifact does not meet. That is debt: meet it when the work next touches that phase, or name it at phase 7. The phase stays passed.
 
 ## Acceptance
 
@@ -41,11 +43,13 @@ A gate says an artifact is complete, not that a person has read it and agrees. B
 
 Phases 0, 4 and 6 each need a person's acceptance, and the build plan inside phase 5 needs its owner's `**Accepted:**` line before any code. Who accepts and where it is recorded is in that gate's conditions file.
 
-**Rules.** Acceptance comes from the person's own words in the conversation: ask, then record what they said. A standing instruction counts when it named the scope ("proceed through the build without stopping"): quote it with its date as the acceptance. A solo builder accepts their own artifacts; it costs a sentence and leaves a record of what was actually read. The script refuses to pass phases 0, 4 and 6 without `--accepted-by`; a failed gate records no acceptance, and a failed condition still needs an override with its reason.
+**Rules.** Acceptance comes from the person's own words: ask, then record what they said, quoted. A standing instruction counts when it named the scope ("proceed through the build without stopping"), quoted with its date. The script refuses to pass phases 0, 4 and 6 without `--accepted-by`; a failed gate records no acceptance.
 
 ## Decisions
 
 The choices a phase turns on belong to a person, and each gate checks a `**Chosen by:**` naming the person who chose, from their answer: the assumption phase 1 tests (0.5), what a discovery verdict means for the work (1.6), the opportunity and its target (2.8), the bet (3.6), the look (4.9), the rollout (6.13), and keep, iterate or kill (7.7). The agent does the analysis and recommends in a `pressure-testing` round; "go with the recommendations" is a valid answer and is quoted as such. A standing instruction that named the scope counts, quoted with its date, exactly as for acceptance.
+
+**The person's words.** Where the host runs the BuilderOS message hook, each message the person writes is appended to `.builderos/person-log.jsonl`, which only the hook writes. Every person field (Chosen by, Accepted, Tried by, Rules decided by, Authorized by, `--accepted-by`, a kill, jump or override reason) quotes their words in quotation marks; a quote they never wrote fails. Without the log the field passes, marked unverified.
 
 ## Refusal Protocol
 
@@ -62,17 +66,13 @@ When a condition fails, the agent produces exactly this and holds the phase:
 Remaining conditions: {passed}/{total}
 ```
 
-A phase advances on a pass or a logged override, nothing in between. When the person is in a hurry, offer the override: honest, logged and visible.
+A phase advances on a pass or a logged override, nothing in between. When a test came back under its stop line, the honest outcome may be to stop: offer the kill next to the override.
 
-## Override Protocol
+## Override and Kill
 
-Overrides exist; undocumented bypasses are worse than documented ones.
+An override waives conditions by name, each with the person's reason: `record {N} --judged ... --override "reason"` waives a single failure; several need `--waive 4.22,5.8`, and conditions left unnamed still fail. The record keeps `overridden`, the reason, the failed and waived conditions; the briefing shows them until a later cycle meets them, and phase 7 reads them. The coverage and mandate checks cannot be overridden.
 
-```
-/bos-gate --override "reason"
-```
-
-Where commands run, `record {N} --judged ... --override "reason"`. Writes to `state.json`: `gate.overridden: true`, `gate.override_reason`, `gate.failed_conditions[]`, timestamp. Every subsequent `/bos-status` shows the phase as `PASSED (overridden)` with the reason. Phase 7 reads the override log when judging the outcome. An override stays in the record for good: it is provenance, not shame. The coverage and mandate checks cannot be overridden.
+`record {N} --kill "reason"` ends the initiative at phases 0 to 6, with the person's words; phase 7 kills through its verdict. Moves the process asks for have their commands: `resume {slug}`, `reframe --reason` (a new cycle from phase 0), `jump {N} --reason` (back reopens phases; forward records the jumped phases as overridden).
 
 ## Coverage Check (feature track)
 
