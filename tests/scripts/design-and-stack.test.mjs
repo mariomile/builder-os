@@ -7,6 +7,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { png, html } from './helpers/files.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(HERE, '../../scripts/bos.mjs');
@@ -92,9 +93,14 @@ test('gate 4.9 needs rendered versions, a person who chose, the kit and the toke
   assert.match(gate(root, 4).detail['4.9'], /version files not found/);
   write(root, 'design/a-v1.html', '<!doctype html><title>A</title>');
   write(root, 'design/b-v1.html', '<!doctype html><title>B</title>');
+  assert.match(gate(root, 4).detail['4.9'], /hold no design: design\/a-v1\.html has no visible text/, 'a page with nothing on it is not a version');
+  write(root, 'design/a-v1.html', html('Version A: the table first'));
+  write(root, 'design/b-v1.html', html('Version B: the chart first'));
   assert.match(gate(root, 4).detail['4.9'], /0 reference screens found/, 'real screens are studied before versions');
   fs.mkdirSync(path.join(INIT(root), 'design/refs'), { recursive: true });
   for (const r of REFS) write(root, r, 'png');
+  assert.match(gate(root, 4).detail['4.9'], /reference screens that are not screens: design\/refs\/linear-list\.png is not an image/);
+  for (const r of REFS) write(root, r, png(1280, 800));
   assert.equal(gate(root, 4).by['4.9'], 'pass', 'feature track in lite mode needs two');
   write(root, 'DESIGN.md', VISUAL(['design/a-v1.html', 'design/b-v1.html'], { avoids: false }));
   assert.match(gate(root, 4).detail['4.9'], /no "Avoids" column/);
@@ -125,7 +131,9 @@ test('gate 4.10 needs entities, transitions with who, invariants, data and a per
   assert.match(gate(root, 4).detail['4.10'], /no "## Domain model"/);
   write(root, 'DESIGN.md', DOMAIN());
   assert.match(gate(root, 4).detail['4.10'], /prototype design\/domain-prototype\.html not found/);
-  write(root, 'design/domain-prototype.html', '<!doctype html><title>rules</title>');
+  write(root, 'design/domain-prototype.html', '');
+  assert.match(gate(root, 4).detail['4.10'], /prototype design\/domain-prototype\.html is empty/);
+  write(root, 'design/domain-prototype.html', html('Export rules', 'Request an export, then mark it ready: the buttons follow the transitions table.'));
   assert.equal(gate(root, 4).by['4.10'], 'pass');
   write(root, 'DESIGN.md', DOMAIN({ who: '' }));
   assert.match(gate(root, 4).detail['4.10'], /nobody allowed/);

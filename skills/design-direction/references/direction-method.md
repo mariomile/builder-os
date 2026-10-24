@@ -35,6 +35,18 @@ Pick one axis per version and say it. Two versions on the same axis at opposite 
 
 Tie each version to the voice adjectives in `PRODUCT.md`. A version that contradicts a counter-example ("calm, not sleepy") is dropped before the user sees it.
 
+## Clickable Prototype
+
+What a person from the ICP walks in the real-user session (gate 4.13), before the look, the stack or the architecture cost anything. It tests the concept, so it carries no visual decisions that would draw comments away from it.
+
+- **One file, every screen.** `design/prototype.html`, inline styles only, each step of the primary flow a `<section id="step-n">` and each action a link to the next step; a hash router of three lines is enough. The first day comes first on a new product.
+- **Real words.** Labels, empty states, errors and the one message the flow sends, in the voice from `PRODUCT.md`; sample data labelled as sample, at realistic volume.
+- **The hard states.** At least the empty screen and one error, reachable by a link, because that is where people stick.
+- **Neutral look.** System fonts, greys, one accent for the primary action. A person who comments on colour is telling you the concept passed.
+- **What it does not do.** No backend, no saved state beyond the page, no login. The price is shown where it will be, so the session can record what the person did with it (gate 4.14).
+
+Example, a no-show reminder for a physio clinic: welcome (connect your calendar) → today's list (sample patients, one flagged at risk) → a reminder preview with the WhatsApp text → sent, with the empty list for a day with no bookings and the error for a calendar that refused access.
+
 ## Version Files
 
 - **In the real app** when the product exists and runs: the versions render inside the existing page behind a `?variant=` URL parameter, with a small switcher bar (previous, label, next, arrow keys) that never ships to production; the variant code lives on a throwaway branch named for the initiative, and the main branch keeps only the chosen direction, rebuilt properly. The File column records the route (`/reports?variant=b`) and the branch.

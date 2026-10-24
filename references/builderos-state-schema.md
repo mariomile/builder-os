@@ -13,6 +13,7 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
 .builderos/
   bin/bos.mjs             a copy of the BuilderOS script (`bos.mjs vendor`), for sessions without the plugin
   local.json              this checkout's active initiative; gitignored, never shared
+  person-log.jsonl        what the person wrote, one JSON line per message ({at, text}), appended by the message hook and by nothing else; person fields quote it
   media/{initiative}/     demo recordings (feature-demo); gitignored, shared by link
   ROADMAP.md              the master plan: direction, initiatives now / next / later / dropped
   maps/
@@ -59,7 +60,7 @@ Which initiative a command acts on is a property of the person and the checkout,
 2. Otherwise, the only open initiative, if exactly one is open.
 3. Otherwise, ask which one, listing the open initiatives, and write the answer to `local.json`.
 
-`/bos-init` adds `.builderos/local.json` and `.builderos/media/` to `.gitignore`. Switching initiative rewrites `local.json` and is named to the user.
+`/bos-init` (`bos.mjs init` where commands run) adds `.builderos/local.json` and `.builderos/media/` to `.gitignore`. Switching initiative rewrites `local.json` and is named to the user.
 
 ## Evidence Files
 
@@ -296,7 +297,7 @@ Written at init from the repository when it holds schemas, migrations or status 
 BuilderOS state is files, so in a git repository it lives on a branch. Rules that keep it findable:
 
 - **Before code, on the default branch.** Phases 0 to 4 (or the request and the spec on a `change`) change only `.builderos/`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`; commit them where everyone reads them, directly or through a small pull request, as the team works.
-- **From the build, with the code.** Phase 5 opens a branch for the initiative and names it in `05-build-plan.md` → `**Branch:**`. The initiative's folder changes on that branch and reaches the default branch with the pull request. The pull request description links the initiative folder.
+- **From the build, with the code, a slice at a time.** Each slice is a short branch and a small pull request to the default branch, behind a flag while the feature is incomplete; `05-build-plan.md` → `**Branch:**` names the pattern. The initiative's folder changes with each slice and reaches the default branch with it, so the trunk always holds the plan as built. Each pull request description links the initiative folder and names its slice.
 - **An abandoned branch is a decision.** A branch closed without merging means the initiative is killed or paused: merge its folder back on its own with that event recorded, so the reasoning survives the code.
 - **The briefing looks at other branches.** Where git is available it names initiatives that exist only on another branch.
 - **`ROADMAP.md` conflicts are regenerated**, never merged by hand.
@@ -379,15 +380,16 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 | `track` | `spike` \| `change` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
 | `current_phase` | `0`–`7` | Where the pipeline stands |
 | `cycle` | `1`+ | Increments when phase 7 explicitly re-enters any integer phase 0–6 |
-| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline: the problem did not survive. `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check, or the `change` track skipped because its mandate passed the mandate check. `answered` ends a `spike` at phase 1 |
+| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline at the phase it is in (`record N --kill`, or a phase 1 KILLED verdict). `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check, or the `change` track skipped because its mandate passed the mandate check. `answered` ends a `spike` at phase 1 |
 | `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
-| `gate.failed_conditions` | condition ids | Populated even when overridden — this is the audit trail |
+| `gate.failed_conditions` | condition ids | Populated even when overridden: this is the audit trail |
+| `gate.waived` | condition ids | The conditions an override waived by name; a jumped phase records `not run` |
 | `gate.checked_by` | `{ script: [ids], model: [ids] }` | Which conditions the gate script decided and which the model judged. With no command execution, every id is under `model` |
 | `gate.bos_version`, `gate.skipped` | version, condition ids | The BuilderOS release whose script recorded the gate, and the conditions it skipped as not applicable. Together with `checked_by` they tell a later release which of its conditions this record never saw. Absent on records written before gates carried them; the briefing then treats every condition missing from `checked_by` as unseen |
 | `claim` | `{ by, at }`, `null` or absent | Who is working on the initiative, from `bos.mjs claim --by`. One owner at a time: a second claim is refused unless taken over with `--take --reason`. Commit it so other sessions and checkouts see it |
 | `gate.accepted_by`, `gate.accepted_at` | name, ISO timestamp | The person who accepted the artifact, from their own words, and when. Required to pass phases 0, 4 and 6; see `gate-checks`, Acceptance. Absent on a failed gate |
 | `watch` | `{ metric, bands, owner, recheck }` or absent | Set when phase 7 closes with KEEP (gate 7.5). The briefing raises it once `recheck` has passed. `bos.mjs watch` rolls `recheck` after a check without breach (`watch_checked`) or sets it to `null` when a breach became a new initiative (`watch_breached`) |
-| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, or a phase 1 kill or answer). Routing events: `phase_jump` (a forced phase, with from, to and the reason), `initiative_switched`, `paused`, `migrated`. Cycle and watch events: `cycle_started`, `watch_checked`, `watch_breached`. Ownership events: `claimed`, `claim_released`, `claim_taken` (with `from` and the reason). Round events: `round_asked` (phase, number of questions), `round_answered` (phase, the answer as given, who gave it, `waited_hours` since the round was asked). No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase and time waiting on rounds |
+| `history` | append-only | Never rewritten. Phase 7 reads it to judge how the bet was actually run. Track events: `track_set` (at init, with the reason), `phase_covered` (per skipped phase, with the tags that covered it), `track_upgraded` (from, to, and the observation that forced it). Review event: `review_deferred` (new review_due and observed reason, no verdict). Gate events: `gate_passed`, `gate_failed`, `gate_overridden` (with the failed conditions and the reason, and `accepted_by` when a person accepted), `closed` (phase 7, a phase 1 kill or answer, or `verdict: killed` with the reason from `record N --kill`). Routing events: `phase_jump` (`bos.mjs jump`, with from, to and the reason), `initiative_switched` (`bos.mjs resume`), `paused`, `migrated`. Cycle and watch events: `cycle_started` (phase 7 re-entry, or `bos.mjs reframe` with from and the reason), `watch_checked`, `watch_breached`. Ownership events: `claimed`, `claim_released`, `claim_taken` (with `from` and the reason). Round events: `round_asked` (phase, number of questions), `round_answered` (phase, the answer as given, who gave it, `waited_hours` since the round was asked). No other event exists: shipped slices, reviews and notes belong in the phase artifacts, and the briefing flags any other event name. `bos.mjs pace` reads these events for time per phase and time waiting on rounds |
 
 ## Rules
 
@@ -396,7 +398,7 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
 3. **A phase owns its artifact and gate result.** Only the lifecycle recorder sets the next phase in progress, or resets phase entries when a new cycle starts. Agents never rewrite another phase's artifact.
-4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check and the `change` track's mandate check are gates too: they are how a phase becomes `covered`. A `change` with no outcome review closes at phase 6. There is no other path.
+4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check and the `change` track's mandate check are gates too: they are how a phase becomes `covered`. A `change` with no outcome review closes at phase 6. A forced move goes through `jump`, which records the jumped phases as overridden, not run, and through `reframe`, which starts a new cycle.
 5. **A `killed` phase stops the pipeline.** `/bos` reports the kill and offers to start a new cycle from phase 0 with the learning carried forward.
 6. **A track only goes up.** `change` → `feature` → `product`; an answered `spike` starts a new initiative instead. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
 7. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.

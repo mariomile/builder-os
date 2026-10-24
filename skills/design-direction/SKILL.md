@@ -9,6 +9,8 @@ description: "Lets the person choose a product's look by seeing it: rendered ver
 
 **Mode.** Standalone produces the versions and the comparison for the supplied screen or product, in the requested destination. In the lifecycle it runs inside phase 4 after `ux-architecture` has written the flows, writes `DESIGN.md` → `## Visual direction`, and gate 4.9 checks it; the kit is chosen after `stack-decisions` has settled the interface layer. Both per [operating modes](../../references/operating-modes.md). Read the [direction method](references/direction-method.md) for the axes of difference, the version file rules, the kit card and the token list.
 
+**The clickable prototype comes first** (phase 4, `spec-writing` step 5.2, before any version): one self-contained file, `.builderos/initiatives/{initiative}/design/prototype.html`, that walks the primary flow screen by screen with links between steps, the voice's real words, the empty and error screens, and no visual decisions yet. It answers whether the concept lands with a person from the ICP; the versions answer how it looks. Build it per the [direction method](references/direction-method.md#clickable-prototype). Done when the person can click from the first screen to the outcome of the primary action.
+
 ## Procedure
 
 1. **Read the inputs.** `PRODUCT.md` voice adjectives and their counter-examples, the ICP and where they work, the primary flow in `DESIGN.md`, and the existing design system: `TECH.md` → Design system first, then the tokens and kit in the code. Done when you can say whether a design system exists and which screen the person will see most.

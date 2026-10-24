@@ -1,0 +1,266 @@
+{
+  "schema": 2,
+  "slug": "no-show",
+  "title": "Fewer no-shows for physio clinics",
+  "mode": "full",
+  "track": "product",
+  "status": "open",
+  "current_phase": 6,
+  "cycle": 1,
+  "created_at": "2026-10-24T15:58:09.006Z",
+  "updated_at": "2026-10-24T16:04:24.275Z",
+  "review_due": null,
+  "phases": {
+    "0": {
+      "status": "passed",
+      "artifact": "00-frame.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T15:58:37.902Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "0.1",
+            "0.2",
+            "0.5"
+          ],
+          "model": [
+            "0.3",
+            "0.4"
+          ]
+        },
+        "skipped": [],
+        "failed_conditions": [],
+        "overridden": false,
+        "accepted_by": "Mario",
+        "accepted_at": "2026-10-24T15:58:37.902Z"
+      }
+    },
+    "1": {
+      "status": "passed",
+      "artifact": "01-discovery.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T15:59:20.615Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4",
+            "1.6"
+          ],
+          "model": [
+            "1.5"
+          ]
+        },
+        "skipped": [],
+        "failed_conditions": [],
+        "overridden": false
+      },
+      "verdict": "validated"
+    },
+    "2": {
+      "status": "passed",
+      "artifact": "02-definition.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T16:00:06.156Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "2.1",
+            "2.2",
+            "2.3",
+            "2.7",
+            "2.8"
+          ],
+          "model": [
+            "2.4",
+            "2.5",
+            "2.6"
+          ]
+        },
+        "skipped": [],
+        "failed_conditions": [],
+        "overridden": false
+      }
+    },
+    "3": {
+      "status": "passed",
+      "artifact": "03-solution-bet.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T16:01:13.826Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "3.2",
+            "3.3",
+            "3.4",
+            "3.5",
+            "3.6",
+            "3.7",
+            "3.9",
+            "3.10",
+            "3.11",
+            "3.12",
+            "3.13",
+            "3.14"
+          ],
+          "model": [
+            "3.1",
+            "3.8",
+            "3.15"
+          ]
+        },
+        "skipped": [],
+        "failed_conditions": [],
+        "overridden": false
+      }
+    },
+    "4": {
+      "status": "passed",
+      "artifact": "04-spec.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T16:02:55.921Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "4.2",
+            "4.3",
+            "4.5",
+            "4.7",
+            "4.8",
+            "4.9",
+            "4.10",
+            "4.11",
+            "4.12",
+            "4.13",
+            "4.14",
+            "4.17",
+            "4.18",
+            "4.19",
+            "4.20",
+            "4.21",
+            "4.22"
+          ],
+          "model": [
+            "4.1",
+            "4.4",
+            "4.15"
+          ]
+        },
+        "skipped": [
+          "4.6",
+          "4.16"
+        ],
+        "failed_conditions": [],
+        "overridden": false,
+        "accepted_by": "Mario",
+        "accepted_at": "2026-10-24T16:02:55.921Z"
+      }
+    },
+    "5": {
+      "status": "passed",
+      "artifact": "05-build-plan.md",
+      "gate": {
+        "passed": true,
+        "checked_at": "2026-10-24T16:04:24.275Z",
+        "bos_version": "3.0.0",
+        "checked_by": {
+          "script": [
+            "E.1",
+            "E.2",
+            "5.6",
+            "5.8",
+            "5.9",
+            "5.12",
+            "5.13",
+            "5.14",
+            "5.15",
+            "5.16",
+            "5.17",
+            "5.10",
+            "5.11",
+            "5.1",
+            "5.3",
+            "5.4"
+          ],
+          "model": [
+            "5.7",
+            "5.2"
+          ]
+        },
+        "skipped": [
+          "5.5"
+        ],
+        "failed_conditions": [],
+        "overridden": false
+      }
+    },
+    "6": {
+      "status": "in_progress",
+      "artifact": null,
+      "gate": null
+    },
+    "7": {
+      "status": "pending",
+      "artifact": null,
+      "gate": null
+    }
+  },
+  "history": [
+    {
+      "at": "2026-10-24T15:58:09.006Z",
+      "event": "track_set",
+      "track": "product",
+      "reason": "new product, problem never evidenced"
+    },
+    {
+      "at": "2026-10-24T15:58:37.902Z",
+      "event": "gate_passed",
+      "phase": 0,
+      "accepted_by": "Mario"
+    },
+    {
+      "at": "2026-10-24T15:59:20.615Z",
+      "event": "gate_passed",
+      "phase": 1,
+      "verdict": "validated"
+    },
+    {
+      "at": "2026-10-24T16:00:06.156Z",
+      "event": "gate_passed",
+      "phase": 2
+    },
+    {
+      "at": "2026-10-24T16:01:13.826Z",
+      "event": "gate_passed",
+      "phase": 3
+    },
+    {
+      "at": "2026-10-24T16:02:55.921Z",
+      "event": "gate_passed",
+      "phase": 4,
+      "accepted_by": "Mario"
+    },
+    {
+      "at": "2026-10-24T16:04:24.275Z",
+      "event": "gate_passed",
+      "phase": 5
+    }
+  ]
+}

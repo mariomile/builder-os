@@ -95,9 +95,9 @@ Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standa
 
 ## Business case
 {product track, gate 3.7}
-**First 100 users:** {the channel, the message in one sentence, who does the work; for self-serve, what a user does that brings the next one}
+**First 100 users:** {the arithmetic on the `## Go-to-market` channel, which is written once there: how many it reaches, how many convert, who does the work; for self-serve, what a user does that brings the next one}
 **Cost per user:** {infrastructure plus model cost per active user per month, and what it rests on}
-**Price:** {starting price and price metric; omit when PRODUCT.md says not for sale}
+**Price:** {the price in `PRODUCT.md` → Revenue model, which is written once there, or the change this bet proposes to it (amended in PRODUCT.md when chosen); omit when not for sale}
 **Willingness to pay test:** {how a person from the ICP will show they would pay before the build: pre-order, letter of intent, a click on a price, the price asked in the real-user session}
 
 ## Kill criteria
@@ -105,22 +105,10 @@ On {date}, below {stop} we {stop / revert / rebuild differently}; between {stop}
 **Measured by:** {query, event or dashboard}
 
 ## Riskiest assumption
-{falsifiable sentence, inherited from phase 0, sharpened here, and the load-bearing assumption of ## Value when it is an estimate}
+{falsifiable sentence. When the phase 0 assumption and the load-bearing assumption of ## Value differ, the load-bearing one is what the cheapest test measures, and the phase 0 one stays here with whether phase 1 settled it}
 
 ## Cheapest test
-**Assumption:** {the load-bearing assumption}
-**Shape:** {smoke / fake door / concierge / Wizard of Oz / prototype / instrumented slice}
-**Design:** {what runs, with whom, measuring what}
-**Test cost:** {n} days · **Build cost:** {n} days
-**Order:** {test first / build first}
-**Changes the decision:** {test first: which result would flip the bet, and why the decision is not already made}
-**Skip because:** {build first: cheap and reversible / the pessimistic case still proceeds / strong precedent / unreliable measure, or the logged override}
-**Question:** {the assumption as a number to beat}
-**Event:** {the exact event, on whom, over how long}
-**Stop below:** {n} · **Build above:** {n}
-**Second idea:** {the runner-up and its value}
-**Sample:** {people per group, or the declared small sample before PMF}
-**Falsified if:** {the observation that would kill the assumption}
+{business-case: one card, the template in [business-case method](../../business-case/references/business-case-method.md#cheapest-test), with its `**Result:**` once the test returns}
 
 ## Bet size
 {business-case, gates 3.14 and 3.15}

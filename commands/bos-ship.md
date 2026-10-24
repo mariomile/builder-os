@@ -27,16 +27,16 @@ PRODUCT.md:
 [content]
 
 02-definition.md:
-[content — the success metric with its definition, baseline and target]
+[content: the success metric, baseline, target]
 
 03-solution-bet.md:
-[content — the kill criteria, including the review date]
+[content: kill criteria, review date]
 
 04-spec.md:
-[content — the tracking plan and the guardrail metrics]
+[content: tracking plan, guardrails]
 
 05-build-plan.md:
-[content — the instrumentation evidence]
+[content: instrumentation evidence]
 
 User request:
 [what the user asked]
@@ -45,19 +45,20 @@ Write .builderos/initiatives/{initiative}/06-release.md and run gate 6 before de
 Capture the baseline before exposure. Do not deploy without authorization. For SHIPPED, add `## Exposure verification`: Authorized by (who, how), Status verified, actual Exposed at, Environment, Version, and Verification with an observed result and resolvable data/doc source. Planning stays RELEASE READY.
 ```
 
-5. **Verify completion:** `## RELEASE READY` means preparation only and keeps phase 6 open. `## SHIPPED` requires gate 6 plus actual verified exposure (6.6). Re-read the artifact and rerun gate 6 per `gate-checks`; report missing artifacts or failed conditions despite any marker.
-6. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review. Record phase 6 with `--accepted-by` from the person who authorized exposure (6.8).
+5. **The person chooses** the rollout and who authorizes exposure (6.13, 6.8): the dispatch returns its round instead of a `**Chosen by:**`. Ask it, then dispatch again with `Chosen by: [person, their words quoted]`.
+6. **Verify completion:** `## RELEASE READY` means preparation only and keeps phase 6 open. `## SHIPPED` requires gate 6 plus actual verified exposure (6.6). Re-read the artifact and rerun gate 6 per `gate-checks`; report missing artifacts or failed conditions despite any marker.
+7. **Present** the rollout plan, the rollback and its test, the captured baseline and the scheduled review. Record phase 6 with `--accepted-by` from the person who authorized exposure (6.8).
 
 ## Arguments
 
-- `[--baseline-only]` — Capture and timestamp the baseline, stop before the rollout plan.
-- `[--notes-only]` — Write release notes against an existing release plan.
+- `[--baseline-only]`: capture the baseline, stop before the rollout.
+- `[--notes-only]`: release notes for an existing plan.
 
 ## Notes
 
 Gate 6.2 compares two timestamps. A baseline captured after exposure fails: after exposure the effect of the change cannot be told apart from what would have happened anyway.
 
-Gate 6.1 wants the rollback tested, not described. The related question that gets skipped is what happens to data written while the feature was live: answer it even when the answer is that nothing is written.
+Gate 6.1 wants the rollback tested, not described, and says what happens to data written while the feature was live.
 
 Without analytics, retain an unknown baseline or use a dated user-provided source. Zero requires evidence appropriate to the metric; unavailable data does not imply zero.
 

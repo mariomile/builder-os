@@ -1,0 +1,1 @@
+{"name":"promemoria","type":"module","scripts":{"test":"node --test tests/"}}

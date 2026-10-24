@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Retro
 
-A retrospective on the agent's **environment**, not on the product: what made a session slower or wronger than it needed to be, each turned into a change so the next session does not repeat it. Invoked by name at the end of any session; the build (phase 5, step 10) and the outcome review (phase 7, step 6b) run this same procedure. Adapted from Pocock's `retro` (MIT).
+A retrospective on the agent's **environment**, not on the product: what made a session slower or wronger than it needed to be, each turned into a change so the next session does not repeat it. Invoked by name at the end of any session; the build (phase 5, step 11) and the outcome review (phase 7, step 6b) run this same procedure. Adapted from Pocock's `retro` (MIT).
 
 ## Procedure
 

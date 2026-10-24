@@ -111,6 +111,8 @@ test('gate 5.16 reads a captured request to the production host', () => {
   const prod = capture('https://reports.acme.example/login');
   tech(root, (t) => t.replace(/\*\*Production check:\*\*.*\n/, `**Production check:** ${prod}\n`));
   assert.equal(gate(root, 5).by['5.16'], 'pass');
+  tech(root, (t) => t.replace(/\*\*Production check:\*\*.*\n/, `**Production check:** **Run:** ${prod}\n`));
+  assert.equal(gate(root, 5).by['5.16'], 'pass', 'the shape production-setup documents');
   tech(root, (t) => t.replace('https://reports.acme.example |', 'http://reports.acme.example |'));
   assert.match(gate(root, 5).detail['5.16'], /not an https/);
 });

@@ -50,7 +50,7 @@ Gate 5.8 checks that `TECH.md` names a guardrail. An override is legitimate wher
 
 On a large codebase the full suite takes minutes. Per slice, run `TECH.md` → Verify → Test (fast) on the files the slice touches; run the full Verify before reporting a slice finished only when it is cheap, and always before the final capture for gate 5.2. Record the fast command in `TECH.md` once you find it.
 
-The build happens on its own branch, named in the plan (`**Branch:**`), and reaches the default branch through a pull request that links the initiative folder; the folder's changes travel with it ([Where the work lives](../../../references/builderos-state-schema.md#where-the-work-lives)). Opening the pull request is within an authorized build; merging it is the owner's call unless they delegated it.
+Each slice is a small pull request to the default branch, behind a flag until the feature is complete, named by the plan's `**Branch:**` pattern and linking the initiative folder; the folder's changes travel with each one. A pull request per initiative is large, slow to review and hard to reverse ([Where the work lives](../../../references/builderos-state-schema.md#where-the-work-lives)). Opening the pull request is within an authorized build; merging it is the owner's call unless they delegated it.
 
 ## Tracer Bullets
 

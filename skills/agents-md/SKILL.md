@@ -29,7 +29,7 @@ A **pointer** is one line: what the material is, and when to read it, with the t
 4. **Draft the homes.** `TECH.md` → Map from the repository (on a BuilderOS project; elsewhere a `docs/` file or the README section the index points at), and each moved line in its new place. Done when every line marked move in step 2 has a home and every pointer in the index lands on one.
 5. **Show the diff, then write.** Lines they wrote are moved or cut only with their yes, one round per `pressure-testing` for the moves and cuts that are not obviously dead; new lines and fixes to dead paths need no question. Done when the files are written and every path they name exists (`scripts/bos.mjs gate 5` checks it as 5.11 on a BuilderOS project).
 
-On a BuilderOS project this runs at initialization, at the end of each build (phase 5, step 10) and when `retro` or the briefing flags a dead pointer or a file over 150 lines.
+On a BuilderOS project this runs at initialization, at the end of each build (phase 5, step 11) and when `retro` or the briefing flags a dead pointer or a file over 150 lines.
 
 ## Capabilities
 

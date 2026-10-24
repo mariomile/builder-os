@@ -31,9 +31,9 @@ Stateful entry point. Reads where the project stands and routes to the next phas
 
 ## Arguments
 
-- `[intent]` — Optional. What the user wants. Matched against the phase routing table.
-- `[--phase N]` — Force a phase. Logs a `phase_jump` event in `history`.
-- `[--initiative slug]` — Switch the active initiative, then route. The switch is logged and named to the user.
+- `[intent]`: optional. What the user wants, matched against the phase routing table.
+- `[--phase N]`: force a phase with `bos.mjs jump N --reason "..."` (the person's words); back reopens phases, forward records them overridden.
+- `[--initiative slug]`: switch with `bos.mjs resume {slug}`, then route; named to the user.
 
 ## Output
 

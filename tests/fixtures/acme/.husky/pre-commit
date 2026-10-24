@@ -1,0 +1,9 @@
+#!/bin/sh
+# Verify on every commit (TECH.md → Verify), then the automatic quality checks.
+npm test
+npx playwright test e2e/primary.spec.ts
+npx axe http://localhost:3000 --exit
+npm audit --audit-level=high
+npx gitleaks protect --staged   # secret scan
+npx codeql database analyze --format=sarif-latest
+npx stylelint "src/**/*.css"   # token check: no colour or spacing outside tokens.css

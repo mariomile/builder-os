@@ -11,7 +11,7 @@ Read when running gate 7. E.1, E.2 and the procedure in `SKILL.md` apply too. Re
 | 7.6 | Cleanup is scheduled | `**Cleanup:**` under the decision: after KEEP, the flag and the old code path to remove; after KILL, the shipped code to remove (as a `change` initiative); with an owner and a date. `none` only with its reason |
 | 7.5 | A closing KEEP sets a watch | When the decision is KEEP with `Re-enters at: none`, `## Watch` names the metric, the bands, the owner and a valid recheck date. Skipped for ITERATE, KILL and a KEEP that re-enters |
 | 7.7 | A person made the decision | `**Chosen by:**` under the decision names who chose keep, iterate or kill, from their answer; the agent compares and recommends |
-| 7.8 | The go-to-market is read (feature and product tracks) | `## Go-to-market read` (`go-to-market`): a row per channel with a tagged result, or "unavailable" with its question; on the product track `**GTM stage:**` Signal, Resonance or Orbit. Skipped on the change track |
+| 7.8 | The go-to-market is read (feature and product tracks) | `## Go-to-market read` (`go-to-market`): a row per channel with a tagged result, or "unavailable" with its question; on the product track `**Stage:**`, the `PRODUCT.md` stage with the Stage exit met or missed (Signal, Resonance and Orbit name the same stages). Skipped on the change track |
 
 Script-decided: 7.1, 7.2, 7.3, 7.5, 7.6, 7.7, 7.8. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
 

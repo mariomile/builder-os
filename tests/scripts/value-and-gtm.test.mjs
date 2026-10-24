@@ -67,13 +67,13 @@ ${SENSITIVITY}
 ### Five questions
 ${five}
 `;
-const TEST = ({ order = 'test first', card = true, assumption = 'Adoption', build = 20 } = {}) => `
+const TEST = ({ order = 'test first', card = true, assumption = 'Adoption', build = 20, result = '' } = {}) => `
 ## Cheapest test
 **Assumption:** ${assumption}
 **Shape:** a reminders offer with its price for half the accounts with an overdue invoice
 **Test cost:** 3 days · **Build cost:** ${build} days · **Ratio:** 15%
 **Order:** ${order}
-${order.startsWith('test') ? '**Changes the decision:** the build threshold (+4%) falls between the pessimistic and the optimistic adoption\n' : '**Skip because:** cheap and reversible, behind a flag for a week\n'}${card ? '**Question:** do at least 4% of accounts with an overdue invoice turn reminders on?\n**Event:** reminders turned on, accounts with an overdue invoice, four weeks\n**Stop below:** +2%\n**Build above:** +4%\n**Second idea:** client portal, about €0.4M\n**Sample:** 15,000 per group\n' : ''}`;
+${order.startsWith('test') ? '**Changes the decision:** the build threshold (+4%) falls between the pessimistic and the optimistic adoption\n' : '**Skip because:** cheap and reversible, behind a flag for a week\n'}${card ? '**Question:** do at least 4% of accounts with an overdue invoice turn reminders on?\n**Event:** reminders turned on, accounts with an overdue invoice, four weeks\n**Stop below:** +2%\n**Build above:** +4%\n**Second idea:** client portal, about €0.4M\n**Sample:** 15,000 per group\n' : ''}${result ? `**Result:** ${result}\n` : ''}`;
 const GTM_FEATURE = '\n## Go-to-market\n**Audience:** accounts with an invoice overdue more than 30 days\n**Message:** "Get paid without chasing"\n**Where:** a card on the invoice list, and the monthly summary email\n';
 const GTM_PRODUCT = '\n## Go-to-market\n**Trigger:** an ops lead just missed a Monday report for the board\n**Positioning:** the weekly report your board reads, without a BI team\n**Motion:** self-serve, because €12 per seat per month is under €1k a year\n**Channel:** a template gallery where ops leads already look\n**Channel test:** a listing for two weeks; stop below 20 visits, build above 60 signups\n';
 const SIZE = (door = 'two-way, behind a flag and removed in a day', appetite = 25) => `\n## Bet size\n**Door:** ${door}\n**Confidence:** 40%, two of five numbers are estimates\n**Appetite:** ${appetite} days\n**If wrong:** 20 days of two people and the slot of the second idea; the flag goes off\n`;
@@ -127,6 +127,10 @@ test('gate 3.11 wants the five questions answered', () => {
   assert.equal(gate(root, 3).by['3.11'], 'fail');
   write(root, '03-solution-bet.md', BET([VALUE(), TEST(), GTM_FEATURE, SIZE()]));
   assert.equal(gate(root, 3).by['3.11'], 'pass');
+  write(root, '03-solution-bet.md', BET([VALUE({ five: FIVE.replace(/New: a paid add-on nobody pays for today\./, 'new') }), TEST(), GTM_FEATURE, SIZE()]));
+  assert.equal(gate(root, 3).by['3.11'], 'pass', '"new" is an answer');
+  write(root, '03-solution-bet.md', BET([VALUE({ five: FIVE.replace(/New: a paid add-on nobody pays for today\./, '{answer}') }), TEST(), GTM_FEATURE, SIZE()]));
+  assert.equal(gate(root, 3).by['3.11'], 'fail', 'the template placeholder is not');
 });
 
 test('gate 3.4 runs a test only when it can change the decision, and 3.12 writes the decision before the data', () => {
@@ -159,6 +163,9 @@ test('gate 3.13 asks a feature how its users will hear of it, and a product how 
   assert.match(gate(root, 3, '--initiative', PRODUCT_SLUG).detail['3.13'], /"\*\*Trigger:\*\*", "\*\*Positioning:\*\*", "\*\*Motion:\*\*", "\*\*Channel:\*\*", "\*\*Channel test:\*\*"/);
   write(root, '03-solution-bet.md', BET([TEST(), GTM_PRODUCT]), PRODUCT_SLUG);
   assert.equal(gate(root, 3, '--initiative', PRODUCT_SLUG).by['3.13'], 'pass');
+  evidence(root, 'mau');
+  const READ = TEST({ result: '+3.1% turned reminders on in four weeks `[data:mau]`' });
+  write(root, '03-solution-bet.md', BET([READ, GTM_PRODUCT]), PRODUCT_SLUG);
   const spec = (r) => `# Spec\n\n**Willingness to pay:** 4 of 10 teams pre-ordered \`[data:mau]\`\n${r}`;
   write(root, '04-spec.md', spec(''), PRODUCT_SLUG);
   assert.equal(gate(root, 4, '--initiative', PRODUCT_SLUG).by['4.22'], 'fail');
@@ -167,8 +174,18 @@ test('gate 3.13 asks a feature how its users will hear of it, and a product how 
   evidence(root, 'gallery');
   write(root, '04-spec.md', spec('**Channel result:** the listing brought 70 signups in two weeks, above 60 `[data:gallery]`\n'), PRODUCT_SLUG);
   assert.equal(gate(root, 4, '--initiative', PRODUCT_SLUG).by['4.22'], 'pass');
+  write(root, '04-spec.md', spec('**Channel result:** 12 visits in two weeks `[data:gallery]`\n'), PRODUCT_SLUG);
+  assert.match(gate(root, 4, '--initiative', PRODUCT_SLUG).detail['4.22'], /returned 12, below its stop line of 20/);
+  // A test chosen before the build is read before the build, on any track.
   write(root, '04-spec.md', spec(''));
-  assert.equal(gate(root, 4).by['4.22'], 'skip', 'feature track');
+  write(root, '03-solution-bet.md', BET([TEST(), GTM_FEATURE]));
+  assert.match(gate(root, 4).detail['4.22'], /no "\*\*Result:\*\*"/);
+  write(root, '03-solution-bet.md', BET([TEST({ result: '+1.2% turned reminders on `[data:mau]`' }), GTM_FEATURE]));
+  assert.match(gate(root, 4).detail['4.22'], /returned 1.2, below its stop line of 2/);
+  write(root, '03-solution-bet.md', BET([READ, GTM_FEATURE]));
+  assert.equal(gate(root, 4).by['4.22'], 'pass');
+  write(root, '03-solution-bet.md', BET([TEST({ order: 'build first' }), GTM_FEATURE]));
+  assert.equal(gate(root, 4).by['4.22'], 'skip', 'feature track, nothing tested first');
 });
 
 test('gate 3.14 declares the stake and keeps the build inside it; 3.15 is judged', () => {
@@ -198,5 +215,7 @@ test('gate 6.14 wants a launch plan on features and products, and 7.8 reads each
   write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| in-app banner | 1,200 | 140 | `[data:banner]` | keep |\n');
   assert.equal(gate(root, 7).by['7.8'], 'pass');
   write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| gallery | 900 | 70 | `[data:banner]` | double down |\n', PRODUCT_SLUG);
-  assert.match(gate(root, 7, '--initiative', PRODUCT_SLUG).detail['7.8'], /GTM stage/);
+  assert.match(gate(root, 7, '--initiative', PRODUCT_SLUG).detail['7.8'], /"\*\*Stage:\*\*" the PRODUCT.md stage/);
+  write(root, '07-outcome.md', '# Outcome\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| gallery | 900 | 70 | `[data:banner]` | double down |\n\n**Stage:** pre-PMF, the exit misses on retention\n', PRODUCT_SLUG);
+  assert.equal(gate(root, 7, '--initiative', PRODUCT_SLUG).by['7.8'], 'pass');
 });

@@ -39,17 +39,17 @@ TECH.md, 04-spec.md (criteria, out of scope), DESIGN.md (states),
 05-build-plan.md (accepted plan): [content]
 Diff under review: [the changes]
 
-Review both axes with severity, complete 05-build-plan.md, run gate 5.
+Review both axes with severity; run delivery-discipline steps 7-8.
 ```
 
-9. **Verify completion:** `## BUILD VERIFIED` with a gate 5 verdict. Re-read the artifact and rerun gate 5 per `gate-checks`; report failed conditions despite any marker.
-10. **Present** the plan, the mapping, the test output, the instrumentation evidence, the findings, the scope check, and the demo recording first (`feature-demo`, gate 5.15).
+9. **Verify** `## REVIEW COMPLETE`, then run steps 9 to 11 here: interface review, craft critique and security review each dispatched fresh with only their inputs, performance, the person tries it, the demo, write and gate 5. Rerun gate 5 per `gate-checks` on the written artifact.
+10. **Present** the demo first, then the mapping, test output, instrumentation, findings and scope check.
 
 ## Arguments
 
 - `[--plan-only]`: write the plan and get it accepted, stop before the loop. Does not pass gate 5.
-- `[--review-only]` — Review an existing diff against the spec.
-- `[--slice N]` — Run the loop for one slice.
+- `[--review-only]`: review an existing diff against the spec.
+- `[--slice N]`: run the loop for one slice.
 
 ## Notes
 

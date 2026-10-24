@@ -38,8 +38,9 @@ User request:
 Write .builderos/initiatives/{initiative}/02-definition.md and run gate 2 before declaring completion.
 ```
 
-5. **Verify completion:** `## DEFINITION COMPLETE` with a gate 2 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 2 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
-6. **Present** the tree, the selection with its rejections, and the success metric.
+5. **The person chooses** the opportunity and its target (2.8): the dispatch returns its round instead of a `**Chosen by:**`. Ask it, then dispatch again with `Chosen by: [person, their words quoted]`.
+6. **Verify completion:** `## DEFINITION COMPLETE` with a gate 2 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 2 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
+7. **Present** the tree, the selection with its rejections, and the success metric.
 
 ## Arguments
 

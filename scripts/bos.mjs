@@ -4,15 +4,20 @@
 //
 //   node bos.mjs brief                     session briefing, with the attention line
 //   node bos.mjs gate <0-7|C|M> [--json]   script-decided gate conditions; the rest listed as judge
+//   node bos.mjs init                      first run: .builderos/ folders, an empty ROADMAP.md, the .gitignore lines
 //   node bos.mjs new <slug> --title "..." --track spike|feature|change|product [--mode full|lite] [--reason "..."]
 //                                          create an initiative with a valid state.json and make it active
+//   node bos.mjs resume <slug> [--reason "..."]   make a paused initiative the active one again
+//   node bos.mjs reframe --reason "..."    a new cycle from phase 0, keeping the history
+//   node bos.mjs jump <0-7> --reason "..." a forced move: back reopens phases, forward records them overridden, not run
 //   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and 00-request.md and, if it
 //                                          passes, record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
 //   node bos.mjs cover --m4 "reason"       change track: run the mandate check on 00-request.md and, if it passes, record
 //                                          phases 0 to 3 as covered and start at phase 4; a failure moves the work to feature
 //   node bos.mjs upgrade --to feature|product --reason "..."
 //                                          the ratchet: move the active initiative to a heavier track and restart at phase 0
-//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason] [--review-due date] [--reenter N]
+//   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason [--waive ids]] [--review-due date] [--reenter N]
+//   node bos.mjs record <0-6> --kill "reason"   end the initiative at the phase it is in, in the person's words
 //                                          write a gate result to state.json: the script's verdict plus the model's
 //                                          on the judge conditions; advances, closes, or keeps the phase open.
 //                                          Phases 0, 4 and 6 also need the person who accepted the artifact
@@ -166,7 +171,29 @@ const nonEmpty = (v) => v !== null && v !== undefined && String(v).trim() !== ''
 const AGENT_NAME = /^(agent|model|claude|codex|ai|auto)\b/i;
 function chosenBy(sec, what) {
   const by = field(sec || '', 'Chosen by');
-  return { ok: nonEmpty(by) && !AGENT_NAME.test(by), detail: by ? (AGENT_NAME.test(by) ? `"${by}" is the agent: the person chooses ${what}` : `chosen by ${by}`) : `no "**Chosen by:**": the person chooses ${what}` };
+  if (!nonEmpty(by) || AGENT_NAME.test(by)) return { ok: false, detail: by ? `"${by}" is the agent: the person chooses ${what}` : `no "**Chosen by:**": the person chooses ${what}` };
+  const w = personWords(by, 'Chosen by');
+  return { ok: w.ok, detail: w.ok ? `chosen by ${by}${w.note}` : w.problem };
+}
+
+// The person's messages, appended by the UserPromptSubmit hook (`context`) and by nothing else: the guard
+// denies hand edits. A field that says a person decided must quote one of them. Where the host runs no
+// hook there is no log, and the field passes marked unverified.
+const PERSON_LOG = path.join(BOS, 'person-log.jsonl');
+const normWords = (t) => String(t).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function personLog() {
+  if (!fs.existsSync(PERSON_LOG)) return null;
+  return fs.readFileSync(PERSON_LOG, 'utf8').split('\n').map((l) => { try { return normWords(JSON.parse(l).text || ''); } catch { return ''; } }).filter(Boolean);
+}
+const QUOTED = /["“«]([^"”»]{2,})["”»]/g;
+function personWords(value, label) {
+  const log = personLog();
+  if (!log) return { ok: true, note: ' (not verified: no person log on this host)' };
+  const quotes = [...String(value || '').matchAll(QUOTED)].map((m) => m[1]).filter((q) => normWords(q));
+  if (!quotes.length) return { ok: false, problem: `"**${label}:** ${value}" quotes no message of the person: copy their words, in quotes, from what they wrote` };
+  const unheard = quotes.filter((q) => !log.some((m) => m.includes(normWords(q))));
+  if (unheard.length) return { ok: false, problem: `"**${label}:**" quotes words the person never wrote in this project: ${unheard.map((q) => `"${q}"`).join(', ')}` };
+  return { ok: true, note: `, in their words` };
 }
 
 // ---------- evidence ----------
@@ -282,10 +309,16 @@ function visualInfo(ctx, need, inheritable = false) {
   const unlocated = versions.filter((r) => !nonEmpty(r[2]));
   if (unlocated.length) problems.push(`versions with no file or route: ${unlocated.map((r) => r[0]).join(', ')}`);
   if (missing.length) problems.push(`version files not found: ${missing.join(', ')}`);
+  const hollowVersions = versions.map((r) => (r[2] || '').replace(/[`\[\]]/g, '').replace(/\(.*\)/, '').trim())
+    .filter((f) => /\.(html?|png|jpe?g|svg|pdf)$/i.test(f) && !missing.includes(f)).map((f) => [f, whyNot(f, ctx)]).filter(([, why]) => why);
+  if (hollowVersions.length) problems.push(`version files that hold no design: ${hollowVersions.map(([f, why]) => `${f} ${why}`).join(', ')}`);
   // Craft: real screens studied before rendering, and each version naming the generic default it steers away from.
   if (need >= 2) {
     const refs = field(sec, 'References') || '';
-    const files = (refs.match(/[\w./-]+\.(png|jpe?g|webp|gif|svg|html?|pdf)/gi) || []).filter((f) => fs.existsSync(path.join(ctx.dir, f)) || fs.existsSync(path.join(ROOT, f)));
+    const named = (refs.match(/[\w./-]+\.(png|jpe?g|webp|gif|svg|html?|pdf)/gi) || []).filter((f) => located(f, ctx));
+    const files = named.filter((f) => !whyNot(f, ctx));
+    const hollowRefs = named.filter((f) => whyNot(f, ctx));
+    if (hollowRefs.length) problems.push(`reference screens that are not screens: ${hollowRefs.map((f) => `${f} ${whyNot(f, ctx)}`).join(', ')}`);
     const found = new Set([...files, ...tags(refs).filter((t) => t.cls === 'doc').map((t) => t.raw)]).size;
     const want = ctx.track === 'product' && ctx.mode !== 'lite' ? 3 : 2;
     if (found < want) problems.push(`${found} reference screens found under "**References:**" (${want} needed): real products the ICP knows, saved before the versions`);
@@ -297,25 +330,30 @@ function visualInfo(ctx, need, inheritable = false) {
   for (const label of ['Chosen', 'Chosen by', 'Design kit']) if (!nonEmpty(field(sec, label))) problems.push(`no "**${label}:**"`);
   const by = field(sec, 'Chosen by');
   if (by && NOBODY.test(by)) problems.push('the look was not chosen by a person');
+  else if (nonEmpty(by)) { const w = personWords(by, 'Chosen by'); if (!w.ok) problems.push(w.problem); }
   if (!/\*\*Tokens:?\*\*/i.test(sec) || !rawRows(sec.split(/\*\*Tokens:?\*\*/i)[1] || '').some((r) => nonEmpty(r[1]))) problems.push('no tokens extracted from the chosen version');
   return { problems, detail: `${versions.length} versions, chosen by ${by}, kit: ${field(sec, 'Design kit')}` };
 }
 
 // Gate 4.11: what the change does to what already exists. Five areas, each with how it is handled.
 const IMPACT_AREAS = [['existing data', /data|record|row/i], ['contracts', /contract|api|webhook|export|integration/i], ['tracking events', /event|tracking|analytics/i], ['permissions', /permission|role|access|plan/i], ['current users', /user|customer|account/i]];
-function impactInfo(spec) {
+function impactInfo(spec, track) {
   const sec = section(spec, 'Impact on what exists');
+  // A change answers only for what it touches, and for the users who meet it.
+  const kinds = track === 'change' ? touches(spec) : null;
+  const tracked = tableRows(section(spec, 'Tracking plan')).filter(realEvent).length > 0;
+  const areas = kinds ? IMPACT_AREAS.filter(([name]) => name === 'current users' || (name === 'existing data' && kinds.some((k) => /data/.test(k))) || (name === 'contracts' && kinds.includes('contracts')) || (name === 'permissions' && kinds.includes('permissions')) || (name === 'tracking events' && tracked)) : IMPACT_AREAS;
   const na = notApplicable(sec, '', 'Impact on what exists');
   if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason (nothing exists yet)'] };
   if (sec === null) return { problems: ['no "## Impact on what exists": existing data, contracts, tracking events, permissions and current users, each with how it is handled'] };
   const rows = rawRows(sec);
   const problems = [];
-  for (const [name, re] of IMPACT_AREAS) {
+  for (const [name, re] of areas) {
     const row = rows.find((r) => re.test(r[0]));
     if (!row) problems.push(`no row for ${name}`);
     else if (!nonEmpty(row[3])) problems.push(`${name}: no handling (write "nothing to do" with the reason when nothing changes)`);
   }
-  return { problems, detail: `${rows.length} areas, each with its handling` };
+  return { problems, detail: `${rows.length} areas, each with its handling${kinds ? ` (the change answers for ${areas.map(([n]) => n).join(', ')})` : ''}` };
 }
 
 // ---------- agent behavior and the first day (gates 4.16, 4.17) ----------
@@ -626,7 +664,10 @@ function demoInfo(plan, ctx) {
   const test = field(sec, 'Test');
   if (!nonEmpty(test)) problems.push('no "**Test:**": the end-to-end test that walks the flow');
   else if (!mappedTestFile(test)) problems.push(`**Test:** ${test} is not a file in the project`);
+  else if (fileProblem(mappedTestFile(test))) problems.push(`**Test:** ${test} ${fileProblem(mappedTestFile(test))}`);
   const run = runEvidence(sec, ctx);
+  // The recording is the run of that test: a passing run of something else proves nothing about the flow.
+  if (run.valid && nonEmpty(test) && mappedTestFile(test) && !run.record.command.some((c) => c.includes(path.basename(mappedTestFile(test))) || /playwright|cypress|test/i.test(path.basename(c)) && run.output.includes(path.basename(mappedTestFile(test))))) problems.push(`the recorded run (${run.record.command.join(' ')}) does not run ${test}`);
   const by = field(sec, 'Recorded by');
   if (!run.valid && !(nonEmpty(by) && !AGENT_NAME.test(by))) problems.push(`the recording is not from a passing run: ${run.detail}; or "**Recorded by:**" the person who recorded the screen`);
   const where = (f) => [path.join(ctx.dir, f), path.join(ROOT, f)].find((p) => fs.existsSync(p));
@@ -644,7 +685,9 @@ function demoInfo(plan, ctx) {
     const lost = [...videos, ...images].filter((f) => !exists(f));
     const tracked = [...videos, ...images].filter((f) => exists(f) && !ignored(f));
     if (tracked.length) problems.push(`${r[0]}: ${tracked.join(', ')} would go into the codebase; keep recordings in a git-ignored folder (.builderos/media/) or where the person opens them, and link them`);
+    const hollowMedia = [...videos, ...images].filter((f) => exists(f) && fileProblem(where(f)));
     if (lost.length) problems.push(`${r[0]}: ${lost.join(', ')} not found`);
+    else if (hollowMedia.length) problems.push(`${r[0]}: ${hollowMedia.map((f) => `${f} ${fileProblem(where(f))}`).join(', ')}`);
     else if (videos.length || /https:\/\/\S+/.test(cell)) { /* a video, in the project or where the person opens it */ }
     else if (images.length >= 2) stills++;
     else problems.push(`${r[0]}: no video file or link, nor a sequence of step screenshots from the run`);
@@ -732,6 +775,7 @@ function securityReview(plan, ctx) {
     if (!row) problems.push(`no row for ${name}`);
     else if (!nonEmpty(row[1]) || !nonEmpty(row[2])) problems.push(`${name}: a finding (or "none found") and what happened to it`);
   }
+  if (blankReview(rows)) problems.push('every area says "none found" and nothing about what was looked at: write the findings, or "none: {what was checked}" for an area that really had none');
   return { problems, detail: `${rows.length} areas reviewed by ${by}` };
 }
 
@@ -748,9 +792,14 @@ function performanceInfo(plan, ctx) {
   for (const r of rows) {
     if (!/\d/.test(r[1] || '') || !/\d/.test(r[2] || '')) problems.push(`${r[0]}: a budget and a measured value, both with numbers`);
     if (!/^yes\b/i.test(r[3] || '')) problems.push(`${r[0]}: not within budget (fix it, or change the budget in the spec with the person)`);
-    const files = (r[4] || '').match(/[\w./-]+\.(json|log|txt|md|html)/gi) || [];
-    const found = files.some((f) => fs.existsSync(path.join(ctx.dir, f)) || fs.existsSync(path.join(ROOT, f)));
-    if (!found && !hasTag(r[4] || '', ['data', 'code'])) problems.push(`${r[0]}: no evidence (a captured run or a data tag)`);
+    // A measurement is a captured run whose output holds the measured number, or a data tag; a line of code is not one.
+    const record = ((r[4] || '').match(/[\w./-]+\.json/gi) || [])[0];
+    if (record) {
+      const ev = runEvidence(`**Run:** ${record}`, ctx);
+      const value = firstNumber(r[2]);
+      if (!ev.valid) problems.push(`${r[0]}: ${ev.detail}`);
+      else if (value !== null && !(ev.output.match(/\d+(?:[.,]\d+)?/g) || []).some((x) => Math.abs(Number(x.replace(',', '.')) - value) < 1e-9)) problems.push(`${r[0]}: the measured ${r[2]} does not appear in the run's output`);
+    } else if (!hasTag(r[4] || '', ['data'])) problems.push(`${r[0]}: no evidence (a captured run of the measurement, or a data tag)`);
   }
   const vd = section(ctx.design || '', 'Visual direction');
   if (vd !== null && !notApplicable(vd, ctx.design, 'Visual direction') && !rows.some((r) => WEB_VITALS.test(r[0]))) problems.push('no page-load row (largest contentful paint, interaction to next paint or layout shift) for an interface');
@@ -782,7 +831,9 @@ function qualityInfo(spec) {
 function realUsersInfo(spec) {
   const sec = section(spec, 'Real users');
   if (sec === null) return { problems: ['no "## Real users": at least one session with a person from the ICP before the build, tagged to its evidence file (or an override with the reason)'] };
-  const t = tags(sec).filter((x) => ['interview', 'doc', 'data'].includes(x.cls));
+  // The price and channel lines live in this section too; their tags say nothing about a session with a user.
+  const session = sec.split('\n').filter((l) => !/^\s*\*\*[^*]+:\*\*/.test(l)).join('\n');
+  const t = tags(session).filter((x) => ['interview', 'doc', 'data'].includes(x.cls));
   return t.length ? { problems: [], detail: `${t.length} real-user source${t.length > 1 ? 's' : ''}: ${t.map((x) => x.raw).join(', ')}` } : { problems: ['"## Real users" cites no interview, doc or data tag: a plan to talk to users is not a session'] };
 }
 
@@ -907,7 +958,8 @@ function sensitivityInfo(bet, value) {
 // Gate 3.11: the five questions asked before approving a business case, each answered.
 function fiveQuestions(bet) {
   const sec = subsection(section(bet, 'Value') || '', 'Five questions');
-  const answers = (sec || '').split('\n').filter((l) => /^\s*\d\.\s+\S/.test(l) && l.replace(/^\s*\d\.\s+/, '').split(/[?:]/).slice(1).join('').trim().length > 3);
+  // "New" and "no" are answers; an empty line or the template's {answer} is not.
+  const answers = (sec || '').split('\n').filter((l) => { const a = l.replace(/^\s*\d\.\s+/, '').split(/[?:]/).slice(1).join('').trim(); return /^\s*\d\.\s+\S/.test(l) && a.length >= 2 && nonEmpty(a); });
   return { ok: answers.length >= 5, detail: `${answers.length} of the five questions answered (source, new or moved revenue, denominator, five times smaller, what was killed)` };
 }
 
@@ -971,15 +1023,37 @@ function betSize(bet) {
   return { door, problems, detail: `${door.split(/[,.;]/)[0]} door, confidence ${field(sec, 'Confidence')}, appetite ${app} days` };
 }
 
-// Gate 4.22 (product track): the channel answered before the build, as willingness to pay did (4.14).
-function channelAnswered(spec) {
-  const r = field(spec, 'Channel result');
-  if (!r) return { problems: ['no "**Channel result:**": what the channel test of phase 3 returned, against its thresholds, tagged'] };
-  if (!hasTag(r, ['interview', 'doc', 'data'])) return { problems: ['"**Channel result:**" cites no interview, doc or data tag: a plan for the channel is not its result'] };
-  return { problems: [], detail: r.replace(TAG_RE, '').trim().slice(0, 80) };
+// Gate 4.22: the tests phase 3 wrote down came back, and their results are read against the lines written before
+// the data. A result under its stop line is a decision to make (kill, change the bet, or a waiver with a reason),
+// not a number to file.
+const firstNumber = (t) => { const m = String(t || '').replace(TAG_RE, '').match(/-?\d+(?:[.,]\d+)?/); return m ? Number(m[0].replace(',', '.')) : null; };
+function testsRead(ctx) {
+  const problems = [], seen = [];
+  const bet = ctx.bet || '';
+  if (ctx.track === 'product') {
+    const r = field(ctx.artifact, 'Channel result');
+    if (!r) problems.push('no "**Channel result:**": what the channel test of phase 3 returned, against its thresholds, tagged');
+    else if (!hasTag(r, ['interview', 'doc', 'data'])) problems.push('"**Channel result:**" cites no interview, doc or data tag: a plan for the channel is not its result');
+    else {
+      const stop = firstNumber((field(section(bet, 'Go-to-market') || '', 'Channel test') || '').match(/stop below\s*[^;,.]*/i)?.[0]);
+      const got = firstNumber(r);
+      if (stop !== null && got !== null && got < stop) problems.push(`the channel test returned ${got}, below its stop line of ${stop}: kill the initiative (record --kill), change the bet, or waive 4.22 with the person's reason`);
+      else seen.push(`channel ${r.replace(TAG_RE, '').trim().slice(0, 60)}`);
+    }
+  }
+  const tw = testWorth(bet);
+  if (tw.first) {
+    const ct = section(bet, 'Cheapest test') || '';
+    const res = field(ct, 'Result');
+    const stop = firstNumber(field(ct, 'Stop below'));
+    if (!res) problems.push('the bet chose "test first" and 03-solution-bet.md → Cheapest test has no "**Result:**": run the test and write what it returned, as a number with its tag, before the build');
+    else if (!hasTag(res, ['interview', 'doc', 'data'])) problems.push('the cheapest test "**Result:**" cites no interview, doc or data tag');
+    else if (stop !== null && firstNumber(res) !== null && firstNumber(res) < stop) problems.push(`the cheapest test returned ${firstNumber(res)}, below its stop line of ${stop}: kill the initiative (record --kill), change the bet, or waive 4.22 with the person's reason`);
+    else seen.push(`cheapest test ${res.replace(TAG_RE, '').trim().slice(0, 60)}`);
+  }
+  if (!problems.length && !seen.length) return { skip: `${ctx.track} track with no test before the build` };
+  return { problems, detail: `read against their lines: ${seen.join('; ')}` };
 }
-
-// Gate 6.14: the launch is planned like the release: who hears first, what they hear, where, when, and how it is counted.
 function launchPlan(release) {
   const sec = section(release, 'Launch');
   const need = ['Who hears first', 'Message', 'Channels', 'When', 'Measured by'];
@@ -988,8 +1062,9 @@ function launchPlan(release) {
   return { problems: missing.length ? [`"## Launch" has no ${missing.map((k) => `"**${k}:**"`).join(', ')}`] : [], detail: `${field(sec, 'Who hears first')} via ${field(sec, 'Channels')}, ${field(sec, 'When')}` };
 }
 
-// Gate 7.8: the outcome reads the go-to-market too: each channel with its result, and for a product the stage of its market.
-const GTM_STAGES = /\b(signal|resonance|orbit)\b/i;
+// Gate 7.8: the outcome reads the go-to-market too: each channel with its result, and for a product its stage.
+// One stage model: PRODUCT.md's Stage. Signal, Resonance and Orbit are the go-to-market names for the same stages.
+const GTM_STAGES = /\b(idea|pre-PMF|emerging-PMF|scaling|signal|resonance|orbit)\b/i;
 function gtmRead(outcome, track) {
   const sec = section(outcome, 'Go-to-market read');
   if (sec === null) return { problems: ['no "## Go-to-market read": each channel, what it reached and converted, tagged, and what happens to it next'] };
@@ -998,17 +1073,21 @@ function gtmRead(outcome, track) {
   if (!rows.length) problems.push('no channel rows');
   const blind = rows.filter((r) => !hasTag(r.join(' ')) && !/unavailable/i.test(r.join(' ')));
   if (blind.length) problems.push(`channels with neither a tagged result nor "unavailable" and its question: ${blind.map((r) => r[0]).join(', ')}`);
-  if (track === 'product' && !GTM_STAGES.test(field(sec, 'GTM stage') || '')) problems.push('"**GTM stage:**" Signal, Resonance or Orbit, with the exit condition it meets or misses');
-  return { problems, detail: `${rows.length} channel${rows.length === 1 ? '' : 's'} read${track === 'product' ? `, stage ${field(sec, 'GTM stage')}` : ''}` };
+  const stage = field(sec, 'Stage') || field(sec, 'GTM stage') || '';
+  if (track === 'product' && !GTM_STAGES.test(stage)) problems.push('"**Stage:**" the PRODUCT.md stage (idea, pre-PMF, emerging-PMF, scaling), with the Stage exit it meets or misses');
+  return { problems, detail: `${rows.length} channel${rows.length === 1 ? '' : 's'} read${track === 'product' ? `, stage ${stage}` : ''}` };
 }
 
 // Gate 4.14 (product track, for sale): someone showed they would pay, and the stack can take the money.
+// What a person did with the price, as opposed to what they said they would do.
+const PAID_ACT = /pre-?order|pre-?ordin|paid|pays\b|payment|deposit|letter of intent|\bLOI\b|signed|clicked|accepted|bought|purchased|subscribed|card\b|invoice|checkout|bonifico|pagat|acquist|firmat|accettat|preordin/i;
 const PAYMENT_LAYER = /pay|billing|checkout|subscription|invoice|fattur/i;
 function moneyBeforeBuild(spec) {
   const problems = [];
   const wtp = field(spec, 'Willingness to pay');
   if (!wtp) problems.push('no "**Willingness to pay:**": what a person from the ICP did when shown the price (pre-order, letter of intent, a click on a price, a price accepted in the session), tagged');
   else if (!hasTag(wtp, ['interview', 'doc', 'data'])) problems.push('"**Willingness to pay:**" cites no interview, doc or data tag: an opinion about the price is not a test of it');
+  else if (!PAID_ACT.test(wtp.replace(TAG_RE, ''))) problems.push('"**Willingness to pay:**" reports an opinion, not what someone did: a pre-order, a deposit, a letter of intent, a click on a price, a price accepted in the session');
   const pay = rawRows(section(spec, 'Stack')).find((r) => PAYMENT_LAYER.test(r[0]));
   if (!pay) problems.push('no payments row in "## Stack": how the product takes money and who handles tax and invoices');
   else if (!/^(inherited|decided)\b/i.test(pay[2] || '')) problems.push(`payments layer is "${pay[2] || ''}", not inherited or decided`);
@@ -1032,6 +1111,16 @@ function productionGaps(release, ctx) {
   return { gaps, detail: `release ready for its first incident; TECH.md → Operations covers ${need.join(', ')}` };
 }
 
+// What the current phase waits for from people outside the agent: acceptance, a session, a payment, a channel.
+const PERSON_WAITS = { '4.13': 'a session with someone from the ICP', '4.14': 'what someone did when shown the price', '4.22': 'the result of the test chosen before the build', '5.6': 'the person to accept the build plan', '5.17': 'the person to try what was built', '6.8': 'the person to authorize exposure', '6.11': 'someone outside the team using it', '6.12': 'a first payment', '6.13': 'the person to choose the rollout' };
+function personWaits(init) {
+  const p = init.state.current_phase ?? 0;
+  if (!fs.existsSync(path.join(init.dir, ARTIFACTS[p]))) return [];
+  let j;
+  try { j = JSON.parse(spawnSyncSelf(['gate', String(p), '--json', '--initiative', init.slug]) || '{}'); } catch { return []; }
+  return (j.failed || []).filter((id) => PERSON_WAITS[id]).map((id) => `phase ${p} waits on ${PERSON_WAITS[id]} (${id})`);
+}
+
 // The product review: a dated file in .builderos/reviews/, checked by `bos.mjs review`.
 const REVIEWS = path.join(BOS, 'reviews');
 function latestReview() {
@@ -1043,6 +1132,8 @@ const reviewEvery = (stage) => (preScale(stage) || !stage ? 7 : 31);
 function reviewDue(product) {
   const last = latestReview();
   const stage = productStage(product);
+  // An idea has no product to review yet: its Business section is drafted at initialization, the review starts with users.
+  if (!last && stage === 'idea') return null;
   if (!last) return section(product, 'Business') === null ? 'no product review yet: run one to set the stage, the North Star and the metric tree in PRODUCT.md → ## Business' : 'no product review yet';
   const days = Math.floor((Date.now() - Date.parse(last.date)) / DAY);
   return days > reviewEvery(stage) ? `product review is due: last on ${last.date}, every ${reviewEvery(stage)} days at stage ${stage || 'unknown'}` : null;
@@ -1097,6 +1188,7 @@ function interfaceReview(plan, ctx) {
   // A change touches one screen: its hard states are enough. New screens are seen in all six states, at two widths.
   const full = ctx.track !== 'change';
   const states = full ? STATES : ['empty', 'error'];
+  const shots = new Map(), captured = new Set();
   for (const st of states) if (!rows.some((r) => new RegExp(st, 'i').test(r[0]))) problems.push(`no ${st} state reviewed`);
   const widths = (field(sec, 'Widths') || '').match(/\d{3,4}/g) || [];
   if (full && new Set(widths).size < 2) problems.push('no "**Widths:**" naming two widths (the widest and the narrowest the ICP uses)');
@@ -1104,13 +1196,30 @@ function interfaceReview(plan, ctx) {
     const na = /^not applicable\b/i.test(r[1] || '');
     if (na) { if ((r[1] || '').replace(/^not applicable[\s,.:;—-]*/i, '').length <= 3) problems.push(`${r[0]}: "not applicable" needs its reason`); continue; }
     if (!nonEmpty(r[1])) problems.push(`${r[0]}: no screenshot or route`);
-    else for (const f of (r[1].match(/[\w./-]+\.(png|jpe?g|webp|gif)/gi) || [])) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: ${f} not found`);
+    else for (const f of (r[1].match(/[\w./-]+\.(png|jpe?g|webp|gif)/gi) || [])) {
+      if (whyNot(f, ctx)) { problems.push(`${r[0]}: ${f} ${whyNot(f, ctx)}`); continue; }
+      const buf = fs.readFileSync(located(f, ctx));
+      const key = digest(buf.toString('latin1'));
+      shots.set(key, [...(shots.get(key) || []), r[0]]);
+      const size = imageSize(buf);
+      if (size) captured.add(size.w);
+    }
     if (!/^yes\b/i.test(r[2] || '')) problems.push(`${r[0]}: does not match the chosen direction (fix it, or record the deviation in DESIGN.md and say yes)`);
   }
+  // One capture standing for several states is one state seen; widths are read from the images themselves.
+  for (const states of shots.values()) if (new Set(states).size > 1) problems.push(`the same capture stands for ${[...new Set(states)].join(', ')}`);
+  const declared = [...new Set(widths.map(Number))];
+  const stray = declared.length ? [...captured].filter((c) => !declared.some((w) => c === w || c === 2 * w || c === 3 * w)) : [];
+  if (stray.length) problems.push(`captures ${stray.join(', ')} pixels wide match none of the widths reviewed (${declared.join(', ')})`);
   // Messages are seen as received, from the built product, not as designed.
   if (designedMessages(ctx).length && !nonEmpty(field(sec, 'Messages received'))) problems.push('no "**Messages received:**": each message in DESIGN.md → Messages, sent by the built product to a test inbox or phone, with its capture');
   return { problems, detail: `${rows.length} states reviewed against the chosen direction${full ? ` at ${widths.slice(0, 2).join(' and ')}` : ''}` };
 }
+
+// A review whose every row is a bare "none found" cannot be told apart from one that never happened. A row that
+// found nothing says what was looked at: "none: tab order checked on the six states".
+const BARE_NONE = /^\W*(none|none found|nothing( found)?|no (findings?|issues?)|n\/?a|ok|fine|nessun[oa]?)\W*$/i;
+const blankReview = (rows) => rows.length > 0 && rows.every((r) => BARE_NONE.test(r[1] || ''));
 
 // Gate 5.12: someone who did not build it looked at the craft, aspect by aspect, and every finding went somewhere.
 const STATES = ['empty', 'loading', 'partial', 'error', 'success', 'permission'];
@@ -1130,7 +1239,28 @@ function craftCritique(plan, ctx) {
     if (!row) problems.push(`no row for ${name}`);
     else if (!nonEmpty(row[1]) || !nonEmpty(row[2])) problems.push(`${name}: a finding (or "none found") and what happened to it`);
   }
+  if (blankReview(rows)) problems.push('every aspect says "none found" and nothing about what was looked at: write the findings, or "none: {what was checked}" for an aspect that really had none');
   return { problems, detail: `${rows.length} aspects reviewed by ${by}` };
+}
+
+// Gate 5.8: a guardrail is a file that exists and runs the Verify commands: a CI workflow or a pre-commit hook.
+const GUARD_FILE = /(?:\.github\/workflows\/[\w.-]+\.ya?ml|\.gitlab-ci\.ya?ml|\.circleci\/[\w.-]+|\.husky\/[\w.-]+|\.git\/hooks\/[\w.-]+|\.pre-commit-config\.ya?ml|lefthook\.ya?ml|bitbucket-pipelines\.ya?ml|azure-pipelines\.ya?ml|Jenkinsfile|[\w./-]+\.(?:ya?ml|sh|toml))/g;
+function guardrailFile() {
+  const guard = field(read(path.join(ROOT, 'TECH.md')) || '', 'Guardrail') || '';
+  const names = [...new Set(guard.replace(/`/g, '').match(GUARD_FILE) || [])];
+  const found = names.map((n) => path.join(ROOT, n)).find((p) => fs.existsSync(p) && fs.statSync(p).isFile());
+  return { guard, names, file: found || null, text: found ? read(found) : '' };
+}
+const verifyCommands = () => rawRows(section(read(path.join(ROOT, 'TECH.md')) || '', 'Verify')).filter((r) => !/^run\b/i.test(r[0]) && nonEmpty(r[1])).map((r) => r[1].replace(/`/g, '').trim());
+function guardrailInfo(guard) {
+  if (!nonEmpty(guard) || /^(none|no|n\/?a|—|-)\b/i.test(guard)) return { problems: ['TECH.md names no "**Guardrail:**" running Verify on every change'] };
+  const g = guardrailFile();
+  if (!g.names.length) return { problems: [`"**Guardrail:** ${guard}" names no file: the CI workflow or the hook that defines it (.github/workflows/ci.yml, .husky/pre-commit)`] };
+  if (!g.file) return { problems: [`the guardrail file does not exist: ${g.names.join(', ')}`] };
+  const cmds = verifyCommands();
+  const runs = cmds.filter((c) => g.text.includes(c) || g.text.includes(c.split(/\s+/).slice(0, 2).join(' ')));
+  if (cmds.length && !runs.length) return { problems: [`${rel(g.file)} does not run any Verify command (${cmds.join('; ')})`] };
+  return { problems: [], detail: `${rel(g.file)} runs ${runs.length ? runs.join('; ') : 'the checks'}` };
 }
 
 // Gate 5.10: quality a machine can check runs every time, in the guardrail, not in someone's memory.
@@ -1146,7 +1276,18 @@ function qualityChecks(ctx = {}) {
   const shipped = nonEmpty(field(section(tech, 'Design system') || '', 'Kit'));
   const checks = [...QUALITY_CHECKS, ...(ui ? [['token check', /token/i]] : []), ...(ui && shipped ? [['visual regression', /visual regression|screenshot diff|snapshot/i]] : [])];
   const missing = checks.filter(([, re]) => !re.test(v)).map(([n]) => n);
-  return missing.length ? { problems: [`Quality checks does not cover: ${missing.join(', ')}`] } : { problems: [], detail: `quality checks: ${v}` };
+  if (missing.length) return { problems: [`Quality checks does not cover: ${missing.join(', ')}`] };
+  // Named is not running: each tool must appear in the guardrail file that runs on every change.
+  const g = guardrailFile();
+  if (!g.file) return { problems: [`the quality checks run in the guardrail, and the guardrail file ${g.names.length ? `does not exist (${g.names.join(', ')})` : 'is not named in TECH.md'}`] };
+  const segments = v.split(/\s*[·;,]\s*(?![^(]*\))/);
+  const absent = checks.filter(([name, re]) => {
+    const seg = segments.find((x) => re.test(x)) || '';
+    if (/\bn\/?a\b|not applicable/i.test(seg)) return false;
+    const tools = (seg.split(/[:(]/)[1] || '').match(/[A-Za-z][\w@.-]{2,}/g) || [];
+    return !re.test(g.text) && !tools.some((t) => g.text.toLowerCase().includes(t.toLowerCase()));
+  });
+  return absent.length ? { problems: [`named in Quality checks but not run by ${rel(g.file)}: ${absent.map(([n]) => n).join(', ')}`] } : { problems: [], detail: `quality checks run by ${rel(g.file)}: ${v}` };
 }
 
 // A tracking-plan row that names an event, not a "none" placeholder (in any wording: none, nessuno, n/a, a dash,
@@ -1222,10 +1363,59 @@ function domainInfo(ctx) {
   if (!rawRows(subsection(sec, 'Data')).length) problems.push('no data sketch');
   const by = field(sec, 'Rules decided by');
   if (!nonEmpty(by) || NOBODY.test(by)) problems.push('no person under "**Rules decided by:**"');
+  else { const w = personWords(by, 'Rules decided by'); if (!w.ok) problems.push(w.problem); }
   const proto = (field(sec, 'Prototype') || '').replace(/[`\[\]]/g, '').trim();
-  if (/\.html?$/i.test(proto) && !fs.existsSync(path.join(ctx.dir, proto)) && !fs.existsSync(path.join(ROOT, proto))) problems.push(`prototype ${proto} not found`);
+  if (/\.html?$/i.test(proto) && whyNot(proto, ctx)) problems.push(`prototype ${proto} ${whyNot(proto, ctx)}`);
   return { problems, detail: `${entities.length} entities, rules decided by ${by}` };
 }
+
+// ---------- what a file holds (gates check the thing, not its name) ----------
+
+// A file a gate counts must hold what its extension promises: an image that decodes to a size, a page with words
+// on it, a recording that is a video. A 0-byte file, or a page with no visible text, is a name without the thing.
+const TRIVIAL = new Set(['echo', 'true', 'false', 'printf', ':', 'cat', 'yes', 'sleep', 'exit', 'test', 'touch']);
+function imageSize(buf) {
+  if (buf.length >= 24 && buf.readUInt32BE(0) === 0x89504e47 && buf.toString('latin1', 12, 16) === 'IHDR') return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  if (buf.length >= 10 && buf.toString('latin1', 0, 4) === 'GIF8') return { w: buf.readUInt16LE(6), h: buf.readUInt16LE(8) };
+  if (buf.length >= 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    for (let i = 2; i + 9 < buf.length;) {
+      if (buf[i] !== 0xff) { i++; continue; }
+      const m = buf[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return { w: buf.readUInt16BE(i + 7), h: buf.readUInt16BE(i + 5) };
+      i += 2 + buf.readUInt16BE(i + 2);
+    }
+    return null;
+  }
+  if (buf.length >= 30 && buf.toString('latin1', 0, 4) === 'RIFF' && buf.toString('latin1', 8, 12) === 'WEBP') {
+    const kind = buf.toString('latin1', 12, 16);
+    if (kind === 'VP8X') return { w: 1 + buf.readUIntLE(24, 3), h: 1 + buf.readUIntLE(27, 3) };
+    if (kind === 'VP8 ') return { w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff };
+    if (kind === 'VP8L') { const b = buf.readUInt32LE(21); return { w: 1 + (b & 0x3fff), h: 1 + ((b >> 14) & 0x3fff) }; }
+  }
+  return null;
+}
+const visibleText = (html) => html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+// Why the file at p does not hold what its name promises, or null when it does.
+function fileProblem(p) {
+  if (!p || !fs.existsSync(p)) return 'not found';
+  const buf = fs.readFileSync(p);
+  if (!buf.length) return 'is empty';
+  const ext = path.extname(p).toLowerCase();
+  if (/^\.(png|jpe?g|gif|webp)$/.test(ext)) { const size = imageSize(buf); return size && size.w > 0 && size.h > 0 ? null : 'is not an image'; }
+  if (ext === '.svg') return /<svg[\s>]/i.test(buf.toString('utf8')) ? null : 'is not an SVG';
+  if (/^\.html?$/.test(ext)) return visibleText(buf.toString('utf8')).length >= 20 ? null : 'has no visible text';
+  if (/^\.(md|txt)$/.test(ext)) return buf.toString('utf8').replace(/\s+/g, '').length >= 20 ? null : 'holds almost nothing';
+  if (ext === '.webm') return buf.length > 1024 && buf.readUInt32BE(0) === 0x1a45dfa3 ? null : 'is not a WebM video';
+  if (/^\.(mp4|mov|m4v)$/.test(ext)) return buf.length > 1024 && buf.toString('latin1', 4, 8) === 'ftyp' ? null : 'is not an MP4 or MOV video';
+  if (ext === '.pdf') return buf.toString('latin1', 0, 4) === '%PDF' ? null : 'is not a PDF';
+  if (/^\.(m?[jt]sx?|py|rb|go|rs|java|kt|swift|php|cs)$/.test(ext)) return buf.toString('utf8').replace(/\s+/g, '').length >= 20 ? null : 'holds almost no code';
+  return null;
+}
+// The first of the project or initiative paths a name resolves to.
+const located = (name, ctx) => [path.join(ctx.dir || ROOT, name), path.join(ROOT, name)].find((p) => fs.existsSync(p)) || null;
+const whyNot = (name, ctx) => { const p = located(name, ctx); return p ? fileProblem(p) : 'not found'; };
+// A run of echo, true or printf records that a string was printed, not that anything was checked.
+const trivialRun = (record) => TRIVIAL.has(path.basename(String((record && record.command && record.command[0]) || '')));
 
 // ---------- gates ----------
 
@@ -1303,7 +1493,7 @@ function messagesInfo(ctx) {
     const empty = MESSAGE_PARTS.slice(1).filter((_, i) => !nonEmpty(r[i + 1]));
     if (empty.length) problems.push(`${r[0]}: no ${empty.join(', ')}`);
     if (nonEmpty(r[4]) && (FILLER.test(r[4]) || r[4].replace(/[`"*]/g, '').trim().length < 12)) problems.push(`${r[0]}: the text is a placeholder; write what the person will read`);
-    for (const f of (r[6] || '').match(/[\w./-]+\.(html?|md|txt|png|jpe?g|webp)/gi) || []) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: preview ${f} not found`);
+    for (const f of (r[6] || '').match(/[\w./-]+\.(html?|md|txt|png|jpe?g|webp)/gi) || []) if (whyNot(f, ctx)) problems.push(`${r[0]}: preview ${f} ${whyNot(f, ctx)}`);
   }
   return { problems, detail: `${rows.length} message${rows.length > 1 ? 's' : ''} designed with trigger, recipient, channel, text, opt-out and preview` };
 }
@@ -1336,7 +1526,7 @@ function productionInfo(ctx) {
   let host = null;
   try { host = env.url ? new URL(env.url).host : null; } catch { problems.push('the production URL does not parse'); }
   if (run.valid) { if (host && !run.record.command.join(' ').includes(host)) problems.push(`the production check did not call ${host}`); }
-  else if (!(check && hasTag(check, ['data', 'doc']))) problems.push(`no "**Production check:**": a captured request to the production URL (run-check) or the person's observation with its tag (${run.detail})`);
+  else if (!(check && hasTag(check, ['data', 'doc']))) problems.push(check ? `"**Production check:**" is not a captured request to production nor a tagged observation: ${run.detail}` : `no "**Production check:**": a captured request to the production URL (run-check) or the person's observation with its tag`);
   return { problems, warnOnly: !full, detail: `production at ${env.url}${env.preview ? ', with previews' : ''}, checked ${run.valid ? run.detail : 'by a person'}` };
 }
 
@@ -1355,6 +1545,7 @@ function triedInfo(plan, ctx) {
   const by = field(sec, 'Tried by') || '';
   if (!nonEmpty(by) || AGENT_NAME.test(by)) problems.push(by ? `"${by}" is the agent: a person tries it` : 'no "**Tried by:**": who tried it, and when');
   else if (!DATE_RE.test(by)) problems.push('"**Tried by:**" needs the date');
+  else { const w = personWords(by, 'Tried by'); if (!w.ok) problems.push(w.problem); }
   const rows = rawRows(sec);
   if (!rows.length) problems.push('no rows (What they tried / What they found / What happened)');
   for (const r of rows) if (!nonEmpty(r[1]) || !nonEmpty(r[2])) problems.push(`${r[0]}: what they found and what happened to it`);
@@ -1388,6 +1579,7 @@ function writePage(quiet) {
     const round = openRound(s);
     if (round) waiting.push(`${s.title || i.slug}: ${round.questions || 'a'} question${round.questions === 1 ? '' : 's'} waiting since ${String(round.at).slice(0, 10)}`);
     if (g && !g.passed && (g.failed_conditions || []).length) waiting.push(`${s.title || i.slug}: gate ${ph} failed on ${g.failed_conditions.join(', ')}`);
+    else if ((s.status || 'open') === 'open') for (const w of personWaits(i)) waiting.push(`${s.title || i.slug}: ${w}`);
     const docs = [REQUEST, ...ARTIFACTS, 'DESIGN.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
     const visuals = listFiles(path.join(i.dir, 'design'), /\.(html?|png|jpe?g|webp|svg)$/i);
     const media = listFiles(path.join(BOS, 'media'), /\.(mp4|webm|mov|gif|png)$/i, 3).filter((p) => p.includes(i.slug));
@@ -1429,7 +1621,55 @@ ul{padding-left:18px;margin:0}.warn li{color:var(--warn)}footer{color:var(--mute
   if (!quiet) console.log(`Wrote ${rel(out)}: ${all.length} initiative${all.length === 1 ? '' : 's'}, ${waiting.length} waiting on a person.`);
 }
 
+// The change track owes six things: scope, criteria with their tests, the impact on what it touches, tests
+// green against the baseline, the scope check, a release with its rollback (gate 6). Everything else in
+// gates 4 and 5 applies when 04-spec.md → **Touches:** names what calls for it. Undeclared, everything runs.
+const TOUCH_KINDS = [
+  ['interface', /^(interface|screens?|ui|pages?|layout|components?)\b/, ['4.3', '4.5', '4.9', '4.20', '5.9', '5.12', '5.15', '5.17']],
+  ['copy', /^(copy|labels?|wording|text)\b/, ['5.17']],
+  ['data', /^(data|schema|migrations?|records?)\b/, ['4.10', '4.18']],
+  ['personal data', /^(personal data|pii)\b/, ['4.12', '4.19', '5.13']],
+  ['permissions', /^(permissions?|roles?|access)\b/, ['4.12', '4.19', '5.13']],
+  ['money', /^(money|payments?|pricing|prices?|billing|invoices?|checkout)\b/, ['4.7', '4.12', '4.19', '5.13']],
+  ['messages', /^(messages?|emails?|notifications?|sms)\b/, ['4.21']],
+  ['contracts', /^(contracts?|apis?|webhooks?|integrations?)\b/, ['4.18']],
+  ['stack', /^(stack|dependenc(y|ies)|librar(y|ies)|frameworks?)\b/, ['4.8']],
+];
+const CHANGE_SLIM = { 4: ['4.3', '4.5', '4.7', '4.8', '4.9', '4.10', '4.12', '4.15', '4.18', '4.19', '4.20', '4.21'], 5: ['5.8', '5.9', '5.10', '5.11', '5.12', '5.13', '5.14', '5.15', '5.16', '5.17'] };
+const UI_FILE = /\.(tsx|jsx|vue|svelte|css|scss|html?)\b/i;
+const DATA_FILE = /migrat|schema|\.sql\b|prisma/i;
+// "**Touches:** copy (the export button label), personal data": kinds separated by commas, each explained in parentheses.
+function touches(spec) {
+  const t = field(spec || '', 'Touches');
+  if (!nonEmpty(t)) return null;
+  const items = t.replace(/\([^)]*\)/g, '').toLowerCase().split(/[,;]|\band\b/).map((x) => x.trim()).filter(Boolean);
+  return TOUCH_KINDS.filter(([, re]) => items.some((i) => re.test(i))).map(([k]) => k);
+}
 function gate(n, ctx) {
+  const R = gateConditions(n, ctx);
+  if (ctx.track !== 'change' || !CHANGE_SLIM[n]) return R;
+  const spec = ctx.spec || (n === 4 ? ctx.artifact : '');
+  const kinds = touches(spec);
+  if (!kinds) {
+    if (n === 4) { const r = R.find((x) => x.id === '4.2'); if (r) Object.assign(r, { status: 'fail', detail: `${r.detail}; change track: no "**Touches:**" naming what the change touches (interface, data, personal data, permissions, money, messages, contracts, stack) or "none of these"` }); }
+    return R;
+  }
+  const due = new Set(TOUCH_KINDS.filter(([k]) => kinds.includes(k)).flatMap(([, , ids]) => ids));
+  for (const r of R) {
+    if (!CHANGE_SLIM[n].includes(r.id) || due.has(r.id)) continue;
+    const by = TOUCH_KINDS.filter(([, , ids]) => ids.includes(r.id)).map(([k]) => k);
+    Object.assign(r, { status: 'skip', detail: `change track touching ${kinds.join(', ') || 'none of the listed kinds'}${by.length ? `: applies when it touches ${by.join(' or ')}` : ''}` });
+  }
+  if (n === 5) {
+    const files = rawRows(section(ctx.artifact, 'Slices')).flat().join(' ').split(/[\s,`]+/).filter((f) => /\.\w+$|\//.test(f));
+    const hidden = [['interface', UI_FILE], ['data', DATA_FILE]].filter(([k, re]) => !kinds.includes(k) && files.some((f) => re.test(f))).map(([k, re]) => `${k} (${files.filter((f) => re.test(f)).slice(0, 3).join(', ')})`);
+    const r = R.find((x) => x.id === '5.4');
+    if (r && hidden.length) Object.assign(r, { status: 'fail', detail: `the slices touch ${hidden.join('; ')}, which 04-spec.md → **Touches:** does not declare: declare it and meet what it calls for` });
+  }
+  return R;
+}
+
+function gateConditions(n, ctx) {
   const R = [];
   const pass = (id, ok, detail) => R.push({ id, status: ok ? 'pass' : 'fail', detail });
   const judge = (id, detail) => R.push({ id, status: 'judge', detail });
@@ -1623,7 +1863,7 @@ function gate(n, ctx) {
     pass('4.9', vd.problems.length === 0, vd.problems.length ? vd.problems.join('; ') : vd.detail);
     const dm = domainInfo(ctx);
     pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
-    const im = impactInfo(a);
+    const im = impactInfo(a, ctx.track);
     pass('4.11', im.problems.length === 0, im.problems.length ? im.problems.join('; ') : im.detail);
     const qb = qualityInfo(a);
     pass('4.12', qb.problems.length === 0, qb.problems.length ? qb.problems.join('; ') : qb.detail);
@@ -1648,8 +1888,9 @@ function gate(n, ctx) {
     (lite ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
     const ms = messagesInfo(ctx);
     pass('4.21', ms.problems.length === 0, ms.problems.length ? ms.problems.join('; ') : ms.detail);
-    if (ctx.track !== 'product') skip('4.22', `${ctx.track} track: the channel is the product's own`);
-    else { const ch = channelAnswered(a); pass('4.22', ch.problems.length === 0, ch.problems.length ? ch.problems.join('; ') : ch.detail); }
+    const tr = testsRead(ctx);
+    if (tr.skip) skip('4.22', tr.skip);
+    else pass('4.22', tr.problems.length === 0, tr.problems.length ? tr.problems.join('; ') : tr.detail);
     return R;
   }
 
@@ -1661,6 +1902,7 @@ function gate(n, ctx) {
     const risks = tableRows(section(a, 'Risks')).filter((r) => nonEmpty(r[0]));
     const planGaps = [
       !(validTimestamp(acceptedAt) && Date.parse(acceptedAt) <= Date.now() && accepted.replace(acceptedAt, '').replace(/[·\s]/g, '').length > 1) && 'Accepted needs who and an actual ISO timestamp',
+      acceptedAt && !personWords(accepted, 'Accepted').ok && personWords(accepted, 'Accepted').problem,
       !/\|\s*files?\b/i.test(sliceHeader) && 'the Slices table has no Files column',
       !risks.length && 'no Risks rows',
       !nonEmpty(field(plan, 'In plain words')) && 'no "**In plain words:**" summary for the owner',
@@ -1671,7 +1913,7 @@ function gate(n, ctx) {
     const guard = field(read(path.join(ROOT, 'TECH.md')) || '', 'Guardrail');
     // On a repository whose CI belongs to someone else, adding it is their call: a named refusal is visible, not a pass.
     if (guard && /^declined by\s+\S+.{6,}/i.test(guard)) warn('5.8', false, `no guardrail, ${guard}`);
-    else pass('5.8', nonEmpty(guard) && !/^(none|no|n\/?a|—|-)\b/i.test(guard), guard ? `guardrail: ${guard}` : 'TECH.md names no "**Guardrail:**" running Verify on every change');
+    else { const gi = guardrailInfo(guard); pass('5.8', gi.problems.length === 0, gi.problems.length ? gi.problems.join('; ') : gi.detail); }
     const ir = interfaceReview(a, ctx);
     if (ir.skip) skip('5.9', ir.skip);
     else pass('5.9', ir.problems.length === 0, ir.problems.length ? ir.problems.join('; ') : ir.detail);
@@ -1713,9 +1955,10 @@ function gate(n, ctx) {
     else if (!run.valid) pass('5.2', false, run.detail);
     else judge('5.2', `${run.detail}; confirm the recorded command/output covers every mapped test and the current implementation`);
     const inst = tableRows(section(a, 'Instrumentation'));
-    const unverified = inst.filter((r) => !/^yes/i.test(r[2] || '') || !hasTag(r[4] || '', ['data', 'code']));
+    // An event seen arriving is data from a real environment; a line of code shows the call exists, not that it fired.
+  const unverified = inst.filter((r) => !/^yes/i.test(r[2] || '') || !(hasTag(r[4] || '', ['data']) || runEvidence(`**Run:** ${(r[4] || '').match(/[\w./-]+\.json/)?.[0] || ''}`, ctx).valid));
     if (ctx.track === 'change' && !tableRows(section(ctx.spec, 'Tracking plan')).filter(realEvent).length) skip('5.3', 'change track with no tracking plan in the spec: nothing to instrument');
-    else pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `unverified: ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
+    else pass('5.3', inst.length > 0 && unverified.length === 0, inst.length === 0 ? 'no instrumentation rows' : unverified.length ? `not seen arriving in a real environment (a data tag or a captured run): ${unverified.map((r) => r[0]).join(', ')}` : `${inst.length} events verified`);
     const scope = tableRows(section(a, 'Scope check'));
     const oos = tableRows(section(ctx.spec, 'Out of scope')).filter((r) => nonEmpty(r[0]));
     const built = scope.filter((r) => !/^no\b/i.test(r[1] || ''));
@@ -1753,7 +1996,9 @@ function gate(n, ctx) {
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
     if (unmeasured) skip('6.5', 'change track with no outcome review: the initiative closes here');
     else pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
-    pass('6.8', nonEmpty(field(exposure, 'Authorized by')), 'Exposure verification names who authorized exposure');
+    const authorized = field(exposure, 'Authorized by');
+    const authWords = nonEmpty(authorized) ? personWords(authorized, 'Authorized by') : { ok: false, problem: 'Exposure verification names nobody under "**Authorized by:**"' };
+    pass('6.8', authWords.ok, authWords.ok ? `exposure authorized by ${authorized}${authWords.note}` : authWords.problem);
     const promo = promotionGaps(ctx);
     pass('6.9', promo.length === 0, promo.length ? promo.join('; ') : 'domain and design system promoted to project memory, or nothing to promote');
     const prod = productionGaps(a, ctx);
@@ -1837,7 +2082,8 @@ function mappedTestFile(cell) {
 }
 function runEvidence(sec, ctx, label = 'Run') {
   const fail = (detail, extra = {}) => ({ valid: false, detail, ...extra });
-  const p = resourceFile(field(sec, label), ctx);
+  // The documented shape `**Production check:** **Run:** {path}` and the bare path both resolve.
+  const p = resourceFile((field(sec, label) || '').replace(/^\*\*Run:\*\*\s*/, ''), ctx);
   if (!p) return fail(`no existing **${label}:** JSON record; pasted runner text is not execution evidence`);
   let r;
   try { r = JSON.parse(read(p)); } catch { return fail('invalid run record JSON'); }
@@ -1850,6 +2096,7 @@ function runEvidence(sec, ctx, label = 'Run') {
   // A red run is still a valid record of what happened: the baseline comparison in gate 5.2 reads it.
   const red = { red: true, record: r, output };
   if (r.exit_code !== 0) return fail(`recorded command exited ${r.exit_code}`, red);
+  if (trivialRun(r)) return fail(`the recorded command (${r.command.join(' ')}) prints text and checks nothing: run the real test, measurement or request`);
   // Catch common failed runner summaries even when wrappers incorrectly return zero. Never infer pass from prose.
   if (/\b[1-9]\d*\s+(?:failed|failing)\b|^# fail [1-9]\d*|^not ok\b|^FAIL\b/im.test(output)) return fail('recorded runner output contains failures', red);
   return { valid: true, detail: `recorded exit 0 at ${r.finished_at} (${r.command.join(' ')})`, record: r, output };
@@ -1957,6 +2204,7 @@ function runGate(which) {
     product: read(path.join(ROOT, 'PRODUCT.md')),
     discovery: read(path.join(dir, ARTIFACTS[1])),
     spec: read(path.join(dir, ARTIFACTS[4])),
+    bet: read(path.join(dir, ARTIFACTS[3])),
     design: read(path.join(dir, 'DESIGN.md')),
     request: init ? read(path.join(dir, REQUEST)) : null,
   };
@@ -2163,6 +2411,8 @@ function brief() {
     lines.push(`${product} · ${s.title || active.slug} (${s.track || 'product'} track, cycle ${s.cycle || 1}): phase ${p} ${PHASES[p]}, ${lastGate(s)}${claimNote(s) ? `, ${claimNote(s)}` : ''}.`);
     const ov = overrides(s);
     lines.push(ov.length ? `Overrides in force: phase ${ov.join('; phase ')}.` : 'No overrides.');
+    const ap = appetite(active);
+    if (ap) lines.push(`${ap.line}.`);
     const dec = decisions();
     if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
     const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
@@ -2301,7 +2551,8 @@ function roadmap() {
     ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bet(i)} | \`initiatives/${i.slug}/\` |`; })];
   const outcome = (s) => {
     const ph = s.phases || {};
-    if (ph[1] && ph[1].status === 'killed') return 'killed at phase 1';
+    const killedAt = Object.keys(ph).find((k) => ph[k] && ph[k].status === 'killed');
+    if (killedAt !== undefined) return `killed at phase ${killedAt}`;
     if (ph[1] && ph[1].status === 'answered') return `answered: ${ph[1].verdict || 'see 01-discovery.md'}`;
     return (ph[7] && ph[7].verdict) || 'closed';
   };
@@ -2331,7 +2582,7 @@ function roadmap() {
 
 function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
-  if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: initialize the project first');
+  if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: run `bos.mjs init` first');
   const track = opt('--track');
   if (!TRACKS.includes(track)) die('new needs --track spike|feature|change|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
@@ -2339,13 +2590,7 @@ function newInitiative(slug) {
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
   fs.mkdirSync(path.join(dir, 'evidence'), { recursive: true });
   const now = new Date().toISOString();
-  for (const i of loadInitiatives()) {
-    if ((i.state.status || 'open') === 'open') {
-      i.state.status = 'paused';
-      i.state.history = [...(i.state.history || []), { at: now, event: 'paused', reason: `${slug} became active` }];
-      writeJSON(path.join(i.dir, 'state.json'), i.state);
-    }
-  }
+  pauseOthers(slug, now, `${slug} became active`);
   const phases = {};
   for (let k = 0; k < 8; k++) phases[k] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
   const state = {
@@ -2357,6 +2602,94 @@ function newInitiative(slug) {
   writeJSON(path.join(BOS, 'local.json'), { active: slug });
   roadmap();
   console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused.`);
+}
+
+// The project memory a first run needs, and nothing invented: the folders, an empty roadmap, the ignore lines.
+// PRODUCT.md and TECH.md are written with the person (references/lifecycle-setup.md, step 5); init never guesses them.
+function initProject() {
+  for (const d of ['decisions', 'evidence', 'initiatives']) fs.mkdirSync(path.join(BOS, d), { recursive: true });
+  const rm = path.join(BOS, 'ROADMAP.md');
+  if (!fs.existsSync(rm)) fs.writeFileSync(rm, `# ROADMAP\n\n**Verified:** ${new Date().toISOString().slice(0, 10)}\n\n## Direction\nWritten from PRODUCT.md once it exists.\n\n## Now\n| Initiative | Track | Phase | Bet in one line | Folder |\n|------------|-------|-------|-----------------|--------|\n\n## Done\n| Initiative | Outcome | Learning | Date |\n|------------|---------|----------|------|\n`);
+  const gi = path.join(ROOT, '.gitignore');
+  const have = read(gi) || '';
+  const add = ['.builderos/local.json', '.builderos/media/'].filter((l) => !have.split('\n').includes(l));
+  if (add.length) fs.writeFileSync(gi, have + (have && !have.endsWith('\n') ? '\n' : '') + add.join('\n') + '\n');
+  const missing = ['PRODUCT.md', 'TECH.md'].filter((f) => !fs.existsSync(path.join(ROOT, f)));
+  console.log(`BuilderOS memory ready in .builderos/.${missing.length ? ` Still to write with the person: ${missing.join(', ')} (references/lifecycle-setup.md, step 5).` : ''} Next: name the initiative with \`new {slug} --track ... --reason ...\`.`);
+}
+
+function pauseOthers(slug, now, why) {
+  for (const i of loadInitiatives()) {
+    if (i.slug === slug || (i.state.status || 'open') !== 'open') continue;
+    i.state.status = 'paused';
+    i.state.history = [...(i.state.history || []), { at: now, event: 'paused', reason: why }];
+    writeJSON(path.join(i.dir, 'state.json'), i.state);
+  }
+}
+
+// Back to a paused initiative: it becomes the open one on this checkout, the others pause.
+function resume(slug) {
+  const init = loadInitiatives().find((i) => i.slug === slug);
+  if (!init) die(`no initiative ${slug || '(none named)'}: resume takes the slug of a paused or open initiative`);
+  if (init.state.status === 'closed') die(`${slug} is closed: start a new initiative, or reframe it if the problem came back`);
+  const now = new Date().toISOString();
+  pauseOthers(slug, now, `${slug} resumed`);
+  const s = init.state;
+  s.status = 'open';
+  s.updated_at = now;
+  s.history.push({ at: now, event: 'initiative_switched', to: slug, reason: opt('--reason') || 'resumed' });
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  writeJSON(path.join(BOS, 'local.json'), { active: slug });
+  roadmap();
+  console.log(`${slug} is active again at phase ${s.current_phase} ${PHASES[s.current_phase]}; other open initiatives are paused.`);
+}
+
+// The frame was wrong (a reshaped discovery, a kill criterion that moved): a new cycle from phase 0. The
+// history stays; the artifacts of the old cycle stay on disk to be rewritten.
+function reframe() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const reason = opt('--reason');
+  if (!nonEmpty(reason)) die('reframe needs --reason: what made the frame wrong');
+  const s = init.state;
+  if (s.status === 'closed') die('a closed initiative is not reframed: start a new one');
+  const now = new Date().toISOString();
+  s.cycle = (s.cycle || 1) + 1;
+  for (let k = 0; k < 8; k++) s.phases[String(k)] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
+  s.history.push({ at: now, event: 'cycle_started', cycle: s.cycle, phase: 0, from: s.current_phase, reason });
+  s.current_phase = 0;
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`${init.slug} starts cycle ${s.cycle} at phase 0 FRAME: ${reason}. Rewrite ${ARTIFACTS[0]} first; later artifacts are rewritten as their phases come.`);
+}
+
+// A forced move. Back: the phases from the target on are reopened. Forward: the phases jumped are recorded as
+// overridden, not run, with the person's reason, and the briefing shows them until a later cycle runs them.
+function jump(which) {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative');
+  const n = Number(which);
+  const s = init.state;
+  if (!Number.isInteger(n) || n < 0 || n > 7) die('jump takes a phase number 0-7');
+  if (s.status === 'closed') die('a closed initiative does not move');
+  if (n === s.current_phase) die(`${init.slug} is already at phase ${n}`);
+  const reason = opt('--reason');
+  if (!nonEmpty(reason)) die('jump needs --reason, in the person\'s words');
+  const w = personWords(reason, 'jump'); if (!w.ok) die(`--reason: ${w.problem}`);
+  const now = new Date().toISOString();
+  const from = s.current_phase;
+  if (n < from) for (let k = n; k <= 7; k++) s.phases[String(k)] = { ...(s.phases[String(k)] || {}), status: k === n ? 'in_progress' : 'pending', gate: null };
+  else {
+    for (let k = from; k < n; k++) s.phases[String(k)] = { ...(s.phases[String(k)] || { artifact: null }), status: 'passed', gate: { passed: true, checked_at: now, bos_version: VERSION, checked_by: { script: [], model: [] }, skipped: [], failed_conditions: ['not run'], overridden: true, override_reason: `jumped: ${reason}`, waived: ['not run'] } };
+    s.phases[String(n)] = { ...(s.phases[String(n)] || { artifact: null, gate: null }), status: 'in_progress' };
+  }
+  s.current_phase = n;
+  s.updated_at = now;
+  s.history.push({ at: now, event: 'phase_jump', from, to: n, reason });
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(n < from ? `${init.slug} back at phase ${n} ${PHASES[n]}; phases ${n} to 7 reopen.` : `${init.slug} jumped to phase ${n} ${PHASES[n]}; phases ${from} to ${n - 1} stand as overridden, not run, and the briefing shows them.`);
 }
 
 function cover() {
@@ -2453,6 +2786,7 @@ function upgrade() {
 // Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
 // conditions, so the author never writes its own pass. Refuses when a judge condition has no verdict.
 function record(which) {
+  if (nonEmpty(opt('--accepted-by'))) { const w = personWords(opt('--accepted-by'), 'accepted by'); if (!w.ok) die(`--accepted-by: ${w.problem}`); }
   const init = resolveActive(loadInitiatives());
   if (!init) die('no active initiative');
   const n = Number(which);
@@ -2462,6 +2796,7 @@ function record(which) {
   const problems = schemaProblems(init);
   if (problems.length) die(`invalid state: ${problems.join(', ')}`);
   if (n !== s.current_phase) die(`${init.slug} is at phase ${s.current_phase}; record ${s.current_phase}, or pass --initiative`);
+  if (flag('--kill')) return kill(init, n);
   const j = JSON.parse(spawnSyncSelf(['gate', String(n), '--json', '--initiative', init.slug]) || '{}');
   if (!j.results) die(`gate ${n} could not run: does ${ARTIFACTS[n]} exist?`);
   const judged = Object.fromEntries((opt('--judged') || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => x.split('=').map((y) => y.trim())));
@@ -2473,10 +2808,23 @@ function record(which) {
   const failed = [...j.failed, ...j.checked_by.model.filter((id) => judged[id] === 'fail' && !soft.includes(id))];
   const override = opt('--override');
   if (flag('--override') && !nonEmpty(override)) die('--override needs a non-empty reason');
+  const waive = (opt('--waive') || '').split(',').map((x) => x.trim()).filter(Boolean);
+  if (flag('--waive') && !override) die('--waive needs --override "the person\'s reason"');
+  // An override waives conditions by name: one failure is named by itself, several need --waive, so a
+  // reason given for one condition never carries the others with it.
+  let waived = [];
+  if (override && failed.length) {
+    waived = waive.length ? waive : failed.length === 1 ? failed : [];
+    if (!waived.length) die(`${failed.length} conditions failed (${failed.join(', ')}): an override waives each by name, --waive ${failed.join(',')}, with the person's reason for each`);
+    const stray = waived.filter((id) => !failed.includes(id));
+    if (stray.length) die(`--waive names conditions that did not fail: ${stray.join(', ')}`);
+    const w = personWords(override, 'override'); if (!w.ok) die(`--override: ${w.problem}`);
+  }
+  const unwaived = failed.filter((id) => !waived.includes(id));
   const acceptedBy = opt('--accepted-by');
   if (flag('--accepted-by') && !nonEmpty(acceptedBy)) die('--accepted-by needs the name of the person who accepted');
   if (flag('--accepted-by') && !ACCEPTANCE_PHASES.includes(n)) die(`--accepted-by applies to phases ${ACCEPTANCE_PHASES.join(', ')}; the phase 5 plan is accepted in 05-build-plan.md`);
-  const passing = failed.length === 0 || Boolean(override);
+  const passing = unwaived.length === 0;
   if (passing && ACCEPTANCE_PHASES.includes(n) && !nonEmpty(acceptedBy)) die(`phase ${n} advances only when a person accepts ${ARTIFACTS[n]}: ask, then pass --accepted-by "who" (never on their behalf)`);
   let verdict = opt('--verdict');
   const rawReentry = opt('--reenter');
@@ -2504,8 +2852,8 @@ function record(which) {
   if (n === 6 && !closesAtShip && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
   if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();
-  const gateEntry = { passed: failed.length === 0 || Boolean(override), checked_at: now, bos_version: VERSION, checked_by: j.checked_by, skipped: j.skipped || [], failed_conditions: failed, overridden: Boolean(override && failed.length) };
-  if (gateEntry.overridden) gateEntry.override_reason = override;
+  const gateEntry = { passed: passing, checked_at: now, bos_version: VERSION, checked_by: j.checked_by, skipped: j.skipped || [], failed_conditions: failed, overridden: Boolean(passing && failed.length) };
+  if (gateEntry.overridden) { gateEntry.override_reason = override; gateEntry.waived = waived; }
   if (gateEntry.passed && nonEmpty(acceptedBy)) { gateEntry.accepted_by = acceptedBy; gateEntry.accepted_at = now; }
   const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
   s.history = s.history || [];
@@ -2514,7 +2862,7 @@ function record(which) {
     ph.status = 'in_progress';
     s.history.push({ at: now, event: 'gate_failed', phase: n, failed_conditions: failed });
     writeJSON(path.join(init.dir, 'state.json'), s);
-    console.log(`Gate ${n} failed on ${failed.join(', ')}: ${init.slug} stays at phase ${n}.`);
+    console.log(`Gate ${n} failed on ${unwaived.join(', ')}${waived.length ? ` (waived: ${waived.join(', ')})` : ''}: ${init.slug} stays at phase ${n}.`);
     process.exit(1);
   }
   if (verdict) ph.verdict = verdict;
@@ -2552,6 +2900,36 @@ function spawnSyncSelf(a) {
 }
 
 const validDate = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v;
+// A test that came back under its stop line, an appetite spent, a person who says stop: the initiative ends
+// at the phase it is in, with the reason in the person's words. Phase 7 decides through --verdict kill.
+function kill(init, n) {
+  const s = init.state;
+  const reason = opt('--kill');
+  if (!nonEmpty(reason)) die('--kill needs the reason, as the person gave it');
+  if (n === 7) die('phase 7 decides with --verdict kill');
+  const w = personWords(reason, 'kill'); if (!w.ok) die(`--kill: ${w.problem}`);
+  const now = new Date().toISOString();
+  s.phases[String(n)] = { ...(s.phases[String(n)] || { artifact: null, gate: null }), status: 'killed' };
+  s.status = 'closed';
+  s.updated_at = now;
+  s.history = [...(s.history || []), { at: now, event: 'closed', phase: n, verdict: 'killed', reason }];
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`${init.slug} killed at phase ${n} ${PHASES[n]}: ${reason}. Write what it taught in ROADMAP.md → Done.`);
+}
+
+// The appetite the bet declared, against the days since phase 3 passed. Past it, the work stops for a decision.
+function appetite(init) {
+  const s = init.state;
+  const p = s.current_phase ?? 0;
+  if ((s.status || 'open') !== 'open' || p < 4 || p > 6) return null;
+  const days = firstNumber(field(section(read(path.join(init.dir, ARTIFACTS[3])) || '', 'Bet size') || '', 'Appetite'));
+  const start = [...(s.history || [])].reverse().find((e) => e.phase === 3 && ['gate_passed', 'gate_overridden', 'phase_covered'].includes(e.event));
+  if (!days || !start || !validTimestamp(start.at)) return null;
+  const spent = Math.floor((Date.now() - Date.parse(start.at)) / DAY);
+  return { days, spent, over: spent > days, line: spent > days ? `Appetite spent: ${spent} days since the bet against ${days} declared. Stop and put the choice to the person: cut scope to what fits, a new bet with a new appetite, or record --kill` : `Appetite: ${spent} of ${days} days spent since the bet` };
+}
+
 function deferReview() {
   const init = resolveActive(loadInitiatives());
   if (!init || init.state.status === 'closed' || init.state.current_phase !== 7) die('defer-review requires an open initiative at phase 7');
@@ -2877,13 +3255,19 @@ function guard() {
     decide('deny', 'BuilderOS state is written by its script, never by hand: use bos.mjs new, cover, upgrade, record, defer-review or watch from the project root (the BuilderOS script line at session start, or node .builderos/bin/bos.mjs). The script writes the history events and gate results the schema requires.');
     return;
   }
+  if (PERSON_LOG_PATH.test(abs)) decide('deny', 'The person log holds what the person wrote, appended by the BuilderOS hook at each message and by nothing else. Quote their words from it; ask them when the words are not there.');
 }
+const PERSON_LOG_PATH = /(^|[\\/])\.builderos[\\/]person-log\.jsonl$/;
 
 // UserPromptSubmit hook: one line per message, so the check against standing conditions happens
 // at every request and not only when the session starts. Silent outside an active initiative.
 function context() {
-  try { fs.readFileSync(0, 'utf8'); } catch { /* the prompt itself is not needed */ }
+  let input = {};
+  try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { /* no payload: nothing to log */ }
   if (!fs.existsSync(INIT_DIR)) return;
+  if (typeof input.prompt === 'string' && input.prompt.trim()) {
+    try { fs.appendFileSync(PERSON_LOG, JSON.stringify({ at: new Date().toISOString(), text: input.prompt.slice(0, 4000) }) + '\n'); } catch { /* logging never blocks the message */ }
+  }
   let active;
   try { active = resolveActive(loadInitiatives()); } catch { return; }
   if (!active || (active.state.status || 'open') !== 'open') return;
@@ -2900,6 +3284,8 @@ function context() {
   else if (p <= 5) bits.push('no product code for this initiative until its build plan is accepted, even if asked to skip: offer to finish the gate, a change, or an override recorded with the person\'s reason');
   const ov = overrides(s);
   if (ov.length) bits.push(`overrides in force: phase ${ov.join('; phase ')}`);
+  const ap = appetite(active);
+  if (ap && ap.over) bits.push(ap.line);
   const against = ['decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];
   if (oos) against.push(`the spec's out-of-scope (${oos} items)`);
   bits.push(`If this message asks for product work, check it against ${against.join(', ')}; name a collision in at most two lines, then continue`);
@@ -2915,6 +3301,10 @@ else if (cmd === 'run-check') runCheck();
 else if (cmd === 'roadmap') roadmap();
 else if (cmd === 'page') writePage();
 else if (cmd === 'new') newInitiative(args[1]);
+else if (cmd === 'init') initProject();
+else if (cmd === 'resume') resume(args[1]);
+else if (cmd === 'reframe') reframe();
+else if (cmd === 'jump') jump(args[1]);
 else if (cmd === 'cover') cover();
 else if (cmd === 'upgrade') upgrade();
 else if (cmd === 'record') record(args[1]);

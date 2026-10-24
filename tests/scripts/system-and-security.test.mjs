@@ -119,8 +119,9 @@ test('gate 5.13 wants a fresh-context security review of the diff, area by area,
 
 test('gate 5.14 measures the spec\'s performance budget, with a page-load row when there is an interface', () => {
   const root = project();
-  fs.mkdirSync(path.join(root, '.builderos/initiatives/csv-export/evidence/runs'), { recursive: true });
-  fs.writeFileSync(path.join(root, '.builderos/initiatives/csv-export/evidence/runs/perf-1.json'), '{}');
+  const measure = (label, ...argv) => spawnSync(process.execPath, [SCRIPT, 'run-check', '--label', label, '--initiative', 'csv-export', '--root', root, '--', ...argv], { encoding: 'utf8' }).stdout.match(/\*\*Run:\*\*\s*(\S+)/)[1];
+  const perf = measure('perf', process.execPath, '-e', "console.log('export of 500 deals: p95 0.8 s over 200 requests')");
+  const echo = measure('perf', 'echo', 'p95', '0.8s');
   write(root, '04-spec.md', SPEC(QUALITY(' | a weekly CSV of a few hundred rows')));
   write(root, '05-build-plan.md', '# Build\n');
   assert.equal(gate(root, 5).by['5.14'], 'skip', 'performance not applicable in the spec');
@@ -131,11 +132,18 @@ test('gate 5.14 measures the spec\'s performance budget, with a page-load row wh
   assert.match(d, /export p95: a budget and a measured value, both with numbers/);
   assert.match(d, /not within budget/);
   assert.match(d, /no evidence/);
-  write(root, '05-build-plan.md', '# Build\n' + PERF('| export p95 | 2 s | 0.8 s | yes | evidence/runs/perf-1.json |'));
+  write(root, '05-build-plan.md', '# Build\n' + PERF(`| export p95 | 2 s | 0.8 s | yes | ${echo} |`));
+  assert.match(gate(root, 5).detail['5.14'], /checks nothing/, 'a run of echo is not a measurement');
+  write(root, '05-build-plan.md', '# Build\n' + PERF(`| export p95 | 2 s | 0.6 s | yes | ${perf} |`));
+  assert.match(gate(root, 5).detail['5.14'], /the measured 0\.6 s does not appear in the run's output/);
+  write(root, '05-build-plan.md', '# Build\n' + PERF(`| export p95 | 2 s | 0.8 s | yes | ${perf} |`));
   assert.equal(gate(root, 5).by['5.14'], 'pass');
   write(root, 'DESIGN.md', '# Design\n\n## Visual direction\n**Chosen:** A\n');
   assert.match(gate(root, 5).detail['5.14'], /no page-load row/);
-  write(root, '05-build-plan.md', '# Build\n' + PERF('| export p95 | 2 s | 0.8 s | yes | evidence/runs/perf-1.json |\n| Largest contentful paint, 390 px | 2.5 s | 1.7 s | yes | `[code:src/export.ts:1]` |'));
+  const lcp = measure('lcp', process.execPath, '-e', "console.log('largest contentful paint at 390 px: 1.7 s')");
+  write(root, '05-build-plan.md', '# Build\n' + PERF(`| export p95 | 2 s | 0.8 s | yes | ${perf} |\n| Largest contentful paint, 390 px | 2.5 s | 1.7 s | yes | \`[code:src/export.ts:1]\` |`));
+  assert.match(gate(root, 5).detail['5.14'], /Largest contentful paint, 390 px: no evidence/, 'a line of code is not a measurement');
+  write(root, '05-build-plan.md', '# Build\n' + PERF(`| export p95 | 2 s | 0.8 s | yes | ${perf} |\n| Largest contentful paint, 390 px | 2.5 s | 1.7 s | yes | ${lcp} |`));
   assert.equal(gate(root, 5).by['5.14'], 'pass');
 });
 
