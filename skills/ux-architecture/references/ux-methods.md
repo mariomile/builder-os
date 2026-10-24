@@ -72,6 +72,20 @@ Six states per step. Gate 4.3 enforces two of them; the other four are how a fea
 
 Error copy is part of the architecture, not a polish task. "Something went wrong" tells a user nothing and generates a support ticket. Name what failed, and what they can do.
 
+## Messages
+
+What the product sends when the person is not looking at it is read more often than most screens: the welcome, the password reset, the reminder, the weekly summary, the failed payment, the reply of an agent on WhatsApp. Design each one like a screen.
+
+**Find them from the flows.** Walk every flow and every transition in the domain model and ask what leaves the product: an email, a push, an in-app notification, a chat message, a text. Scheduled ones (digests, reminders, renewals) come from the business rules, not the flows; check both.
+
+**One row each**, in `DESIGN.md` → `## Messages`: what triggers it, who receives it, the channel, its real text in the voice from `PRODUCT.md`, how the person stops it (transactional messages say so), and the preview.
+
+**Previews a person opens.** An email is an HTML file in `design/messages/` with the subject, the sender name, the preheader and the body, readable at 390 px and with images off. A chat or text message is the bubble as it will look, with its length within the channel's limit and its buttons or quick replies. A push is its title and line as the lock screen cuts them. Each language in `PRODUCT.md` → Markets has its version; the preview shows the longest.
+
+**Channel rules worth knowing.** Business messaging platforms (WhatsApp and similar) require pre-approved templates for messages that open a conversation, and limit free text to a window after the person last wrote: the template text is part of the design and needs approval time in the plan. Email needs an authenticated sender (`production-setup`) and an unsubscribe link on anything that is not transactional.
+
+**Seen as received.** In phase 5 each message is sent by the built product to a test inbox or phone and captured (`**Messages received:**`, gate 5.9), because what a template renders and what a mail client shows differ.
+
 ## Component Inventory
 
 What this feature needs, split three ways:

@@ -1,6 +1,6 @@
 # Design Template
 
-The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction, gate 4.10 its domain model and gate 4.20 the diagrams of its flows and lifecycles; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
+The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction, gate 4.10 its domain model, gate 4.20 the diagrams of its flows and lifecycles and gate 4.21 its messages; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
 
 ````markdown
 # Design — {feature}
@@ -37,6 +37,14 @@ flowchart TD
 | Flow / step | Empty | Loading | Partial | Error | Success | Permission |
 
 **Error copy:** {actual strings, per error case}
+
+## Messages
+| Message | Trigger | Recipient | Channel | Text | Opt-out | Preview |
+|---------|---------|-----------|---------|------|---------|---------|
+| {welcome, reset password, weekly summary, reminder, failed payment} | {the event or schedule that sends it} | {who, by role} | {email / push / in-app / WhatsApp / SMS} | {the subject or first line, real words in the product's voice} | {how to stop it, or "transactional: none needed"} | {design/messages/{name}.html or .md} |
+
+**Languages:** {when PRODUCT.md → Markets has more than one: each message exists in each, and the preview shows the longest}
+{or, when the product sends nothing outside its screens: **Messages:** none, {reason}}
 
 ## Components
 | Component | Exists / Extend / New | Affects | Justification (new only) |

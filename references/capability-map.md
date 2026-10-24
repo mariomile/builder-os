@@ -22,6 +22,7 @@ This exists because a hardcoded tool name is wrong three ways at once: it breaks
 | `web.search` | Search the open web | any web search tool |
 | `web.fetch` | Fetch and read a URL | any fetch tool |
 | `logs.query` | Read production errors, traces and timings, including a model's turns with their tool calls, latency and cost | Sentry, Datadog, the hosting provider's logs, an LLM tracing tool (Langfuse, LangSmith, …) |
+| `deploy.run` | Deploy the product to an environment (production, a preview) and read back its URL | the hosting provider's tool or CLI, a git push to a connected host, the CI deploy job |
 | `ui.render` | Show the user a rendered interface: a design version, a prototype screen | host previews and artifacts, design tools (Figma, Claude Design, v0), a browser screenshot of a local page |
 | `ui.capture` | Open the built product and capture a state of a screen as an image | a browser the host drives, an end-to-end runner's screenshots, the host's preview |
 | `ui.record` | Record a video of the running product while a flow is walked | an end-to-end runner's video (Playwright, Cypress), a browser the host drives and records, a screen recorder |
@@ -61,6 +62,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `research.search` | connected library | local notes | `web.search` | skip, note the gap |
 | `web.search` | live search | — | — | skip, note the gap |
 | `logs.query` | live query | exported logs or error reports | — | ask the user for the error text, time and account, tag it and save the words in `evidence/` |
+| `deploy.run` | the host's deploy tool | the CI deploy job on push | — | write the steps for the person, who deploys and pastes back the URL; the production check then runs on that URL |
 | `ui.render` | host preview or design tool | self-contained HTML files the user opens from disk | — | text wireframes, only for a standalone answer kept in chat |
 | `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
 | `ui.record` | the end-to-end runner's video of the passing run | a browser the host drives, recorded | a screenshot per step from the same run | the person records the screen while the flow is walked; `**Recorded by:**` names them |

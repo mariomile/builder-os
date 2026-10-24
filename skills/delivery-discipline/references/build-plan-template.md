@@ -66,6 +66,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | error | {} | {} |
 | success | {} | {} |
 | permission | {or "not applicable, {why}" when the flow has no such state} | {} |
+**Messages received:** {when DESIGN.md → Messages has rows: each message sent by the built product to a test inbox or phone, with its capture file; omit otherwise}
 {A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. The change track reviews empty and error at one width. Without an interface: **Interface review:** not applicable, {reason}}
 
 ## Craft critique
@@ -104,6 +105,15 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | {primary action, p95} | {from the spec's quality bar} | {number} | yes | {evidence/runs/*.json from run-check, or a data tag} |
 | {largest contentful paint at the narrowest width; with an interface} | {2.5 s} | {} | {} | {} |
 {Skipped when the spec's quality bar says performance does not apply}
+
+## Tried
+**Link:** {the preview URL, or the `Run` command from TECH.md → Verify}
+**Tried by:** {the person who will accept the work, and the date; never the agent}
+| What they tried | What they found | What happened |
+|---|---|---|
+| {the primary flow; the first day on a new product; the edge this build touched} | {what they said, in their words} | {fixed, or recorded in DESIGN.md with why} |
+
+{Gate 5.17. Skipped with the interface review when there is no interface. Production itself is in TECH.md → Environments (gate 5.16, `production-setup`).}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |

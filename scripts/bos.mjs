@@ -25,7 +25,9 @@
 //                                          explicitly execute an authorized check and record its command, exit and output
 //   node bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."
 //                                          defer phase 7 without inventing an outcome verdict
-//   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md
+//   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md, and the project page
+//   node bos.mjs page                      write .builderos/index.html: initiatives, what waits on a person, links to every
+//                                          document, design, prototype, demo and preview; the roadmap regenerates it
 //   node bos.mjs map [slug]                a wayfinding map's destination, decisions so far, frontier, claimed and blocked
 //                                          tickets and the fog (.builderos/maps/{slug}/); every open map without a slug
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
@@ -932,6 +934,8 @@ function interfaceReview(plan, ctx) {
     else for (const f of (r[1].match(/[\w./-]+\.(png|jpe?g|webp|gif)/gi) || [])) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: ${f} not found`);
     if (!/^yes\b/i.test(r[2] || '')) problems.push(`${r[0]}: does not match the chosen direction (fix it, or record the deviation in DESIGN.md and say yes)`);
   }
+  // Messages are seen as received, from the built product, not as designed.
+  if (designedMessages(ctx).length && !nonEmpty(field(sec, 'Messages received'))) problems.push('no "**Messages received:**": each message in DESIGN.md → Messages, sent by the built product to a test inbox or phone, with its capture');
   return { problems, detail: `${rows.length} states reviewed against the chosen direction${full ? ` at ${widths.slice(0, 2).join(' and ')}` : ''}` };
 }
 
@@ -1103,6 +1107,153 @@ function staleEvidence(text, ctx) {
 
 function firstParagraph(text) {
   return (text || '').split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith('**')) || '';
+}
+
+// ---------- what people open, click and receive (gates 4.21, 5.16, 5.17; bos.mjs page) ----------
+
+// Gate 4.21: every message the product sends outside its screens (email, notification, chat, text) is designed
+// like a screen: what triggers it, who gets it, on which channel, its real text, how to stop it, and a preview.
+const MESSAGE_PARTS = ['message', 'trigger', 'recipient', 'channel', 'text', 'opt-out', 'preview'];
+const FILLER = /\b(lorem|ipsum|tbd|todo|placeholder|xxx)\b/i;
+function messagesInfo(ctx) {
+  const design = ctx.design || '';
+  const sec = section(design, 'Messages');
+  const none = field(sec === null ? design : sec, 'Messages');
+  if (none && /^none\b/i.test(none)) {
+    return none.replace(/^none[\s,.:;—-]*/i, '').length > 3 ? { problems: [], detail: `sends no messages: ${none}` } : { problems: ['"**Messages:** none" needs its reason'] };
+  }
+  if (sec === null) return { problems: ['no "## Messages" in DESIGN.md: every email, notification, chat or text message the product sends (trigger, recipient, channel, real text, opt-out, preview), or "**Messages:** none, {reason}"'] };
+  const rows = rawRows(sec);
+  if (!rows.length) return { problems: ['"## Messages" has no rows (Message / Trigger / Recipient / Channel / Text / Opt-out / Preview)'] };
+  const problems = [];
+  for (const r of rows) {
+    const empty = MESSAGE_PARTS.slice(1).filter((_, i) => !nonEmpty(r[i + 1]));
+    if (empty.length) problems.push(`${r[0]}: no ${empty.join(', ')}`);
+    if (nonEmpty(r[4]) && (FILLER.test(r[4]) || r[4].replace(/[`"*]/g, '').trim().length < 12)) problems.push(`${r[0]}: the text is a placeholder; write what the person will read`);
+    for (const f of (r[6] || '').match(/[\w./-]+\.(html?|md|txt|png|jpe?g|webp)/gi) || []) if (!fs.existsSync(path.join(ctx.dir, f)) && !fs.existsSync(path.join(ROOT, f))) problems.push(`${r[0]}: preview ${f} not found`);
+  }
+  return { problems, detail: `${rows.length} message${rows.length > 1 ? 's' : ''} designed with trigger, recipient, channel, text, opt-out and preview` };
+}
+const designedMessages = (ctx) => rawRows(section(ctx.design || '', 'Messages'));
+
+// Gate 5.16: production exists before the release, set up by the build from its first slice, so going live is
+// opening a door rather than a first deploy. TECH.md → Environments is the record.
+const PROD_FIELDS = ['Domain', 'Secrets', 'Email sender', 'Live keys', 'Legal pages'];
+function environments() {
+  const sec = section(read(path.join(ROOT, 'TECH.md')) || '', 'Environments');
+  const rows = rawRows(sec);
+  const prod = rows.find((r) => /^prod/i.test(r[0])) || null;
+  const preview = rows.find((r) => /^preview/i.test(r[0])) || null;
+  return { sec, rows, prod, preview, url: prod && ((prod[1] || '').match(/https?:\/\/[^\s|)`]+/) || [])[0] };
+}
+function productionInfo(ctx) {
+  const env = environments();
+  const full = ctx.track === 'product';
+  if (env.sec === null) return { warnOnly: !full, problems: ['TECH.md has no "## Environments": production with its URL, how it deploys and who can see it, set up from the first slice (production-setup)'] };
+  const problems = [];
+  if (!env.prod) problems.push('"## Environments" has no production row (Environment / URL / Deploys from / Who can see it)');
+  else {
+    if (!/^https:\/\//i.test(env.url || '')) problems.push('the production URL is not an https:// address');
+    if (!nonEmpty(env.prod[2])) problems.push('production: how it deploys (the branch and the job)');
+    if (!nonEmpty(env.prod[3])) problems.push('production: who can see it now (behind a password, a flag, or everyone)');
+  }
+  if (full) for (const k of PROD_FIELDS) if (!nonEmpty(field(env.sec, k))) problems.push(`no "**${k}:**"`);
+  const check = field(env.sec, 'Production check');
+  const run = runEvidence(env.sec, ctx, 'Production check');
+  let host = null;
+  try { host = env.url ? new URL(env.url).host : null; } catch { problems.push('the production URL does not parse'); }
+  if (run.valid) { if (host && !run.record.command.join(' ').includes(host)) problems.push(`the production check did not call ${host}`); }
+  else if (!(check && hasTag(check, ['data', 'doc']))) problems.push(`no "**Production check:**": a captured request to the production URL (run-check) or the person's observation with its tag (${run.detail})`);
+  return { problems, warnOnly: !full, detail: `production at ${env.url}${env.preview ? ', with previews' : ''}, checked ${run.valid ? run.detail : 'by a person'}` };
+}
+
+// Gate 5.17: a person opened what was built and used it, before anyone authorizes exposure. The video shows that it
+// works; trying it shows whether it is right.
+function triedInfo(plan, ctx) {
+  const ir = interfaceReview(plan, ctx);
+  if (ir.skip) return { skip: ir.skip };
+  const problems = [];
+  const verify = rawRows(section(read(path.join(ROOT, 'TECH.md')) || '', 'Verify'));
+  if (!verify.some((r) => /^run\b/i.test(r[0]) && nonEmpty(r[1]))) problems.push('TECH.md → Verify has no "Run" row: the one command that starts the product locally');
+  const sec = section(plan, 'Tried');
+  if (sec === null) return { problems: [...problems, 'no "## Tried": the person opened the preview link (or ran the product) and said what they found'] };
+  const link = field(sec, 'Link');
+  if (!nonEmpty(link) || !(/https?:\/\//.test(link) || /`[^`]+`/.test(link))) problems.push('no "**Link:**": the preview URL, or the Run command in backticks');
+  const by = field(sec, 'Tried by') || '';
+  if (!nonEmpty(by) || AGENT_NAME.test(by)) problems.push(by ? `"${by}" is the agent: a person tries it` : 'no "**Tried by:**": who tried it, and when');
+  else if (!DATE_RE.test(by)) problems.push('"**Tried by:**" needs the date');
+  const rows = rawRows(sec);
+  if (!rows.length) problems.push('no rows (What they tried / What they found / What happened)');
+  for (const r of rows) if (!nonEmpty(r[1]) || !nonEmpty(r[2])) problems.push(`${r[0]}: what they found and what happened to it`);
+  return { problems, detail: `tried by ${by.replace(DATE_RE, '').replace(/[·,\s]+$/, '').trim()} on ${link}, ${rows.length} finding${rows.length === 1 ? '' : 's'} handled` };
+}
+
+// `bos.mjs page`: one HTML file a person opens or sends, regenerated with the roadmap. Written by the script, so it costs
+// no model tokens; it links to the files, it never copies them.
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+function listFiles(dir, re, depth = 2) {
+  if (!fs.existsSync(dir) || depth < 0) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    return d.isDirectory() ? listFiles(p, re, depth - 1) : re.test(d.name) ? [p] : [];
+  }).sort();
+}
+function writePage(quiet) {
+  if (!fs.existsSync(BOS)) { if (quiet) return; die('no .builderos/ here'); }
+  const out = path.join(BOS, 'index.html');
+  const link = (p, label) => `<a href="${esc(path.relative(BOS, p).split(path.sep).join('/'))}">${esc(label || path.basename(p))}</a>`;
+  const product = read(path.join(ROOT, 'PRODUCT.md')) || '';
+  const name = ((product.match(/^#\s+(.+)$/m) || [])[1] || path.basename(ROOT)).replace(/^PRODUCT\.md\s*[—-]\s*/, '');
+  const env = environments();
+  const stage = productStage(product);
+  const all = loadInitiatives().sort((a, b) => String(b.state.updated_at || '').localeCompare(String(a.state.updated_at || '')));
+  const waiting = [];
+  const cards = all.map((i) => {
+    const s = i.state;
+    const ph = s.current_phase ?? 0;
+    const g = (s.phases && s.phases[String(ph)] && s.phases[String(ph)].gate) || null;
+    const round = openRound(s);
+    if (round) waiting.push(`${s.title || i.slug}: ${round.questions || 'a'} question${round.questions === 1 ? '' : 's'} waiting since ${String(round.at).slice(0, 10)}`);
+    if (g && !g.passed && (g.failed_conditions || []).length) waiting.push(`${s.title || i.slug}: gate ${ph} failed on ${g.failed_conditions.join(', ')}`);
+    const docs = [REQUEST, ...ARTIFACTS, 'DESIGN.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
+    const visuals = listFiles(path.join(i.dir, 'design'), /\.(html?|png|jpe?g|webp|svg)$/i);
+    const media = listFiles(path.join(BOS, 'media'), /\.(mp4|webm|mov|gif|png)$/i, 3).filter((p) => p.includes(i.slug));
+    const tried = section(read(path.join(i.dir, ARTIFACTS[5])) || '', 'Tried');
+    const preview = tried && field(tried, 'Link');
+    const row = (label, items) => (items.length ? `<dt>${label}</dt><dd>${items.join(' · ')}</dd>` : '');
+    return `<article><header><h3>${esc(s.title || i.slug)}</h3><span class="pill">${esc(s.track || 'product')}</span><span class="pill ${s.status === 'closed' ? 'done' : ''}">${s.status === 'closed' ? 'closed' : `phase ${ph} ${esc(PHASES[ph])}`}</span></header>
+<ol class="phases">${PHASES.map((p, k) => { const st = (s.phases && s.phases[String(k)] && s.phases[String(k)].status) || 'pending'; return `<li class="${esc(st)}${k === ph && s.status !== 'closed' ? ' now' : ''}" title="${esc(st)}">${k}</li>`; }).join('')}</ol>
+<dl>${row('Documents', docs.map((p) => link(p)))}${row('Designs and prototypes', visuals.map((p) => link(p)))}${row('Demo', media.map((p) => link(p)))}${preview ? row('Try it', [/https?:\/\//.test(preview) ? `<a href="${esc((preview.match(/https?:\/\/[^\s)`]+/) || [])[0])}">${esc(preview)}</a>` : esc(preview)]) : ''}${claimNote(s) ? row('Owner', [esc(claimNote(s))]) : ''}</dl></article>`;
+  });
+  const decisions = listFiles(path.join(BOS, 'decisions'), /\.md$/i, 0);
+  const reviews = listFiles(path.join(BOS, 'reviews'), /\.md$/i, 0);
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(name)}: BuilderOS</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1b1b1a;--muted:#6b6b66;--line:#e4e3df;--card:#fff;--accent:#2f5bd3;--ok:#2e7d4f;--warn:#b26a00}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#a3a29b;--line:#2c2c2a;--card:#1c1c1b;--accent:#8aa7ff;--ok:#6fcf97;--warn:#f2b54b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}
+main{max-width:960px;margin:0 auto;padding:32px 16px 64px}h1{font-size:28px;margin:0}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:36px 0 12px}
+h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0}
+article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 12px}
+article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}.pill.done{color:var(--ok)}
+.phases{display:flex;gap:4px;list-style:none;padding:0;margin:12px 0}.phases li{flex:1;text-align:center;font-size:12px;border-radius:4px;padding:3px 0;background:var(--line);color:var(--muted)}
+.phases li.passed,.phases li.answered{background:var(--ok);color:var(--card)}.phases li.covered{background:transparent;border:1px dashed var(--muted)}.phases li.now{outline:2px solid var(--accent);color:var(--fg)}.phases li.killed{background:var(--warn);color:var(--card)}
+dl{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 16px;margin:0}dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+ul{padding-left:18px;margin:0}.warn li{color:var(--warn)}footer{color:var(--muted);font-size:13px;margin-top:40px}
+@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}}
+</style></head><body><main>
+<h1>${esc(name)}</h1>
+<p class="sub">${stage ? `Stage ${esc(stage)} · ` : ''}${env.url ? `<a href="${esc(env.url)}">${esc(env.url)}</a>` : 'not in production yet'}${env.preview ? ` · previews: ${esc(env.preview[1] || '')}` : ''}</p>
+<h2>Waiting on you</h2>${waiting.length ? `<ul class="warn">${waiting.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : '<p class="sub">Nothing.</p>'}
+<h2>Initiatives</h2>${cards.join('\n') || '<p class="sub">None yet.</p>'}
+<h2>Project memory</h2><dl>${['PRODUCT.md', 'DOMAIN.md', 'TECH.md'].map((f) => path.join(ROOT, f)).filter((p) => fs.existsSync(p)).map((p) => `<dt>${esc(path.basename(p))}</dt><dd>${link(p, 'open')}</dd>`).join('')}${fs.existsSync(path.join(BOS, 'ROADMAP.md')) ? `<dt>Roadmap</dt><dd>${link(path.join(BOS, 'ROADMAP.md'), 'ROADMAP.md')}</dd>` : ''}${decisions.length ? `<dt>Decisions</dt><dd>${decisions.map((p) => link(p)).join(' · ')}</dd>` : ''}${reviews.length ? `<dt>Product reviews</dt><dd>${reviews.map((p) => link(p)).join(' · ')}</dd>` : ''}</dl>
+<footer>Generated by BuilderOS ${VERSION} on ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC. Regenerated with the roadmap; edit the files, not this page.</footer>
+</main></body></html>
+`;
+  fs.writeFileSync(out, html);
+  if (!quiet) console.log(`Wrote ${rel(out)}: ${all.length} initiative${all.length === 1 ? '' : 's'}, ${waiting.length} waiting on a person.`);
 }
 
 function gate(n, ctx) {
@@ -1308,6 +1459,8 @@ function gate(n, ctx) {
     pass('4.19', tm.problems.length === 0, tm.problems.length ? tm.problems.join('; ') : tm.detail);
     const dg = diagramInfo(ctx);
     (lite ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
+    const ms = messagesInfo(ctx);
+    pass('4.21', ms.problems.length === 0, ms.problems.length ? ms.problems.join('; ') : ms.detail);
     return R;
   }
 
@@ -1345,6 +1498,11 @@ function gate(n, ctx) {
     const dd = demoInfo(a, ctx);
     if (dd.skip) skip('5.15', dd.skip);
     else pass('5.15', dd.problems.length === 0, dd.problems.length ? dd.problems.join('; ') : dd.detail);
+    const pr = productionInfo(ctx);
+    (pr.warnOnly ? warn : pass)('5.16', pr.problems.length === 0, pr.problems.length ? pr.problems.join('; ') : pr.detail);
+    const tr = triedInfo(a, ctx);
+    if (tr.skip) skip('5.17', tr.skip);
+    else pass('5.17', tr.problems.length === 0, tr.problems.length ? tr.problems.join('; ') : tr.detail);
     const qc = qualityChecks(ctx);
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
@@ -1401,7 +1559,7 @@ function gate(n, ctx) {
     judge('6.7', 'does the exposure evidence demonstrate the intended behavior available to users in the stated environment/version?');
     if (unmeasured) skip('6.3', 'change track with no outcome to measure');
     else pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
-    judge('6.4', `are the release notes written for users, not a commit list?${lite ? ' (lite: a fail is a warning)' : ''}`);
+    judge('6.4', `are the release notes written for users, not a commit list, and does **Help:** say where users find answers and what changed there?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
     if (unmeasured) skip('6.5', 'change track with no outcome review: the initiative closes here');
@@ -1973,6 +2131,7 @@ function roadmap() {
   out = replaceTable(out, 'Done and dropped', done);
   fs.writeFileSync(p, out);
   console.log(`ROADMAP.md: ${open.length} in Now, ${closed.length} in Done and dropped.`);
+  writePage(true);
 }
 
 // ---------- new ----------
@@ -2561,6 +2720,7 @@ if (cmd === 'brief') brief();
 else if (cmd === 'gate') runGate(args[1]);
 else if (cmd === 'run-check') runCheck();
 else if (cmd === 'roadmap') roadmap();
+else if (cmd === 'page') writePage();
 else if (cmd === 'new') newInitiative(args[1]);
 else if (cmd === 'cover') cover();
 else if (cmd === 'upgrade') upgrade();
@@ -2580,6 +2740,6 @@ else if (cmd === 'claim') claim();
 else if (cmd === 'round') round();
 else if (cmd === 'flows') flows();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | page | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }

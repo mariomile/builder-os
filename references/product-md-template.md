@@ -59,6 +59,13 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 
 {How this product speaks. Two or three adjectives with a counter-example each: "direct, not blunt". Used by every artifact-writing agent.}
 
+## Markets
+
+**Languages:** {the languages the interface, messages, help and legal pages exist in, the default first; "Italian only" is an answer} `[tag]`
+**Markets:** {the countries it sells to, and what changes per country: currency, tax and invoicing, date and number formats, data residency} `[tag]`
+
+{Drafted at init from the user's language and sentence, and confirmed with the person before phase 4, because a second language added later means rewriting every string. Read by `ux-architecture` (copy and formats), `production-setup` (legal pages), `release-ops` (help) and `stack-decisions` (payments and tax).}
+
 ## Language
 
 | Term | Means | Not to be confused with |
