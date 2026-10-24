@@ -958,7 +958,8 @@ function sensitivityInfo(bet, value) {
 // Gate 3.11: the five questions asked before approving a business case, each answered.
 function fiveQuestions(bet) {
   const sec = subsection(section(bet, 'Value') || '', 'Five questions');
-  const answers = (sec || '').split('\n').filter((l) => /^\s*\d\.\s+\S/.test(l) && l.replace(/^\s*\d\.\s+/, '').split(/[?:]/).slice(1).join('').trim().length > 3);
+  // "New" and "no" are answers; an empty line or the template's {answer} is not.
+  const answers = (sec || '').split('\n').filter((l) => { const a = l.replace(/^\s*\d\.\s+/, '').split(/[?:]/).slice(1).join('').trim(); return /^\s*\d\.\s+\S/.test(l) && a.length >= 2 && nonEmpty(a); });
   return { ok: answers.length >= 5, detail: `${answers.length} of the five questions answered (source, new or moved revenue, denominator, five times smaller, what was killed)` };
 }
 
@@ -2081,7 +2082,8 @@ function mappedTestFile(cell) {
 }
 function runEvidence(sec, ctx, label = 'Run') {
   const fail = (detail, extra = {}) => ({ valid: false, detail, ...extra });
-  const p = resourceFile(field(sec, label), ctx);
+  // The documented shape `**Production check:** **Run:** {path}` and the bare path both resolve.
+  const p = resourceFile((field(sec, label) || '').replace(/^\*\*Run:\*\*\s*/, ''), ctx);
   if (!p) return fail(`no existing **${label}:** JSON record; pasted runner text is not execution evidence`);
   let r;
   try { r = JSON.parse(read(p)); } catch { return fail('invalid run record JSON'); }

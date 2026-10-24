@@ -127,6 +127,10 @@ test('gate 3.11 wants the five questions answered', () => {
   assert.equal(gate(root, 3).by['3.11'], 'fail');
   write(root, '03-solution-bet.md', BET([VALUE(), TEST(), GTM_FEATURE, SIZE()]));
   assert.equal(gate(root, 3).by['3.11'], 'pass');
+  write(root, '03-solution-bet.md', BET([VALUE({ five: FIVE.replace(/New: a paid add-on nobody pays for today\./, 'new') }), TEST(), GTM_FEATURE, SIZE()]));
+  assert.equal(gate(root, 3).by['3.11'], 'pass', '"new" is an answer');
+  write(root, '03-solution-bet.md', BET([VALUE({ five: FIVE.replace(/New: a paid add-on nobody pays for today\./, '{answer}') }), TEST(), GTM_FEATURE, SIZE()]));
+  assert.equal(gate(root, 3).by['3.11'], 'fail', 'the template placeholder is not');
 });
 
 test('gate 3.4 runs a test only when it can change the decision, and 3.12 writes the decision before the data', () => {

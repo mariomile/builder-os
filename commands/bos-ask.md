@@ -11,8 +11,8 @@ Entry point for "I don't know where to start". Runs the routing procedure in `us
 
 ## Steps
 
-1. **Run the `using-builder-os` First Move** with the user's request verbatim. Missing memory is not an error; the routing questions cover it. Capabilities resolve inside the routed skills, not here.
-2. **Verify** the output carries the route block and `## ROUTE CHOSEN` once the request clearly authorizes that route or the user chooses it.
+1. **Run the `using-builder-os` Procedure** with the user's request verbatim. Missing memory is not an error; the routing covers it. Capabilities resolve inside the routed skills, not here.
+2. **Verify** the output names the route and its reason (its Routes table), and `## ROUTE CHOSEN` once the request clearly authorizes that route or the user chooses it.
 3. **Hand off** to the first step of the route: its `/builder-os:bos-*` command when one exists, otherwise its skill.
 
 ## Arguments

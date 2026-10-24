@@ -298,10 +298,10 @@ Version 3.0.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 | Host portability | Applied across the whole repo. No tool identifier in any skill, agent or command |
 | Zero prerequisites | Every command runs with nothing connected; files are the only hard dependency |
 | Gate enforcement | Script checks cover structural conditions and execution records; semantic conditions remain explicit model judgements. `bos.mjs record` writes gate results where shell execution is available. Regression checks run with `pnpm test`; they do not prove model compliance |
-| Runtime verification | All 9 behavioral scenarios passed on Claude Code on 2026-10-05. On 2026-10-20 the two new cases for existing products (`live-product-first-feature`, `change-with-red-suite`) and both feature-track cases passed after three fixes they found; the other five were not rerun after the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
+| Runtime verification | 11 behavioral scenarios in `tests/scenarios/`. The 9 that existed passed on Claude Code on 2026-10-05. On 2026-10-20 the two new cases for existing products (`live-product-first-feature`, `change-with-red-suite`) and both feature-track cases passed after three fixes they found; the other five were not rerun after the design and stack rework. One initiative rehearsed from `/builder-os:bos-init` to phase 7 and into its second cycle, on a stand-in for a captoo feature with synthetic evidence: seven defects found and fixed, see [`docs/runs/2026-09-27-captoo-rehearsal.md`](docs/runs/2026-09-27-captoo-rehearsal.md). Codex CLI 0.157.1 installs the plugin and assembles the prompt correctly; no phase has yet run under a Codex model |
 | Real use | One real product, an internal team tool, taken by its author from frame to phase 6 between 2026-09-29 and 2026-10-03, with phases 1 and 5 overridden. Its pilot has not started, so no phase 7 has yet run on real outcomes. What the run showed shaped the question rounds, the watch and the recap above |
 
-149 Node tests pass (`pnpm test`), including one that checks every skill against the writing standard. The eval suite in `evals/` (`claude plugin eval`) scored 1.0 with the plugin on all eleven cases that need no shell on 2026-10-22, one of them after the fix it found. They prove the script and the adapters, not model compliance; that is what the scenarios are for.
+The Node tests pass (`pnpm test`), including one that checks every skill against the writing standard, one that runs every gate against a project where every artifact exists and nothing it describes does, and one that checks the counts in this README. The eval suite in `evals/` (`claude plugin eval`) scored 1.0 with the plugin on all eleven cases that need no shell on 2026-10-22, one of them after the fix it found. They prove the script and the adapters, not model compliance; that is what the scenarios are for.
 
 Roadmap and task state: [`docs/plans/2026-09-20-lifecycle-os-v1.md`](docs/plans/2026-09-20-lifecycle-os-v1.md).
 
@@ -324,7 +324,7 @@ Patterns borrowed, not dependencies. BuilderOS installs on its own.
 | [`AGENTS.md`](AGENTS.md) | The shared contract: architecture, principles, non-negotiables |
 | [`docs/architecture.md`](docs/architecture.md) | How the pieces fit, in diagrams |
 | [`docs/hosts.md`](docs/hosts.md) | Running on Claude Code, Codex, anything else |
-| [`references/capability-map.md`](references/capability-map.md) | The 18 capabilities and their degradation ladders |
+| [`references/capability-map.md`](references/capability-map.md) | The 25 capabilities and their degradation ladders |
 | [`references/analytics-contract.md`](references/analytics-contract.md) | The five analytics question shapes, and what they mean per provider |
 | [`references/builderos-state-schema.md`](references/builderos-state-schema.md) | `.builderos/` layout and `state.json` |
 

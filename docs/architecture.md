@@ -186,16 +186,17 @@ Cross-cutting, callable from any phase: `gate-checks`, `evidence-ledger`, `press
 
 ## 7. Capabilities
 
-Fifteen named capabilities, resolved at runtime by matching the tools a session actually exposes. Never by name, never assumed.
+25 named capabilities, resolved at runtime by matching the tools a session actually exposes. Never by name, never assumed.
 
 ```
 analytics.query · analytics.events · analytics.replay
-db.query
+db.query · logs.query
 docs.search · docs.read · docs.write
-tickets.read · meetings.read · research.search
+tickets.read · tickets.write · meetings.read · research.search
 web.search · web.fetch
-repo.read · files.read · files.write
-subagent.dispatch
+deploy.run · ui.render · ui.capture · ui.record · diagram.render
+repo.read · files.read / files.write · shell.exec
+subagent.dispatch · sessions.read · schedule.run
 ```
 
 `files.read` and `files.write` are the only ones always assumed — `.builderos/` depends on them. Everything else has a degradation ladder and a floor, listed in [`../references/capability-map.md`](../references/capability-map.md).
@@ -220,7 +221,7 @@ Stated plainly rather than discovered later.
 | Debt | Size | Plan |
 |------|------|------|
 | No automated skill-triggering harness — prompts exist, no runner | Medium | Out of scope for v1.0; gates are the mechanical safety net |
-| Nothing has been executed in a live session: structurally complete, behaviorally unverified | Large | Tasks 1.9, 2.6, 2b.6, 3.4, 4.3, 5.6 in the plan |
+| Behavioral runs are few: the scenarios ran on Claude Code (2026-10-05, 2026-10-20), one real product reached phase 6, no phase has run under a Codex model, and many gate conditions still rest on a citation the script cannot check (the attested lists in each gate file) | Large | Re-run every scenario after each release; a real `change` and a real paid product to phase 7 |
 | The benchmark bands in `product-analysis` (metrics) are working heuristics, not sourced benchmarks | Small | Replace with the product's own history once two quarters exist |
 
 Roadmap: [`plans/2026-09-20-lifecycle-os-v1.md`](plans/2026-09-20-lifecycle-os-v1.md).

@@ -297,7 +297,7 @@ Written at init from the repository when it holds schemas, migrations or status 
 BuilderOS state is files, so in a git repository it lives on a branch. Rules that keep it findable:
 
 - **Before code, on the default branch.** Phases 0 to 4 (or the request and the spec on a `change`) change only `.builderos/`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`; commit them where everyone reads them, directly or through a small pull request, as the team works.
-- **From the build, with the code.** Phase 5 opens a branch for the initiative and names it in `05-build-plan.md` → `**Branch:**`. The initiative's folder changes on that branch and reaches the default branch with the pull request. The pull request description links the initiative folder.
+- **From the build, with the code, a slice at a time.** Each slice is a short branch and a small pull request to the default branch, behind a flag while the feature is incomplete; `05-build-plan.md` → `**Branch:**` names the pattern. The initiative's folder changes with each slice and reaches the default branch with it, so the trunk always holds the plan as built. Each pull request description links the initiative folder and names its slice.
 - **An abandoned branch is a decision.** A branch closed without merging means the initiative is killed or paused: merge its folder back on its own with that event recorded, so the reasoning survives the code.
 - **The briefing looks at other branches.** Where git is available it names initiatives that exist only on another branch.
 - **`ROADMAP.md` conflicts are regenerated**, never merged by hand.
