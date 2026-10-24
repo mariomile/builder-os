@@ -43,6 +43,8 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
 | Synthesize supplied research | `discovery-methods` |
 | Compare opportunities or solution alternatives | `opportunity-mapping` or `ideation-methods`, standalone |
+| What an idea is worth, a business case, which assumption carries it, whether to test before building, how much to bet | `business-case`, standalone |
+| Go-to-market, positioning, pricing and motion, which channel first, a launch plan, how the launch went | `go-to-market`, standalone |
 | Which stack, backend, database or hosting to use, and why | `stack-decisions`, standalone |
 | How the backend fits together, an API's contracts, timeouts and retries, whether it will scale, a security or threat-model review | `system-design`, standalone |
 | See design versions, choose a look or a design kit | `design-direction`, standalone |

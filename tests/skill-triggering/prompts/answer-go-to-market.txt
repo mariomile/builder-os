@@ -1,0 +1,2 @@
+# expects: skill=go-to-market (standalone)
+Il nostro tool di report settimanali costa 12 euro a utente al mese. Come lo portiamo ai primi 100 clienti, da quale canale partiamo e come prepariamo il lancio?

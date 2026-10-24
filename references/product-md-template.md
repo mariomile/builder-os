@@ -80,6 +80,7 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 **North Star:** {metric, baseline with date} `[tag]`, or "not yet selected" until the first product review
 **Revenue model:** {who pays, the price metric (seat, usage, outcome), starting price, billing period; or "not for sale, {why}"}
 **Growth engine:** {self-serve | founder-led sales | community | partners | ...: how new users arrive without the team pushing each one}
+**GTM stage:** {Signal | Resonance | Orbit, judged by the product review from signals, not revenue (`go-to-market`): the exit condition met or missed, and the one channel that works so far}
 
 ### Metric tree
 | Lever | Metric | Current | Source or question |

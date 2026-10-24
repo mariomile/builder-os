@@ -103,14 +103,18 @@ test('gate 2 passes on the fixture definition in lite mode', () => {
   assert.equal(g.failed.length, 0);
 });
 
-test('gate 3 checks kill criteria and the cheap-test rule', () => {
+test('gate 3 checks kill criteria and runs the test only when it can change the decision', () => {
   const root = project();
   const bet = (order) => `# Solution Bet\n\n## Options\n| # | Option | Primary user action | Impact | Confidence | Effort | Reversibility |\n|---|---|---|---|---|---|---|\n| 1 | CSV | the user downloads | h | \`[interview:P1]\` | s | high |\n| 2 | Email | the user subscribes | m | \`[interview:P4]\` | m | high |\n\n## Kill criteria\nOn 2026-12-01, if weekly exports are below 15% of managers, we stop.\n**Measured by:** export_completed\n\n## Cheapest test\n**Test cost:** 1 days · **Build cost:** 10 days · **Ratio:** 10%\n**Order:** ${order}\n`;
   write(root, '03-solution-bet.md', bet('build first'));
   let g = gate(root, 3);
   assert.equal(g.by['3.2'], 'pass');
-  assert.equal(g.by['3.4'], 'fail');
+  assert.equal(g.by['3.4'], 'fail', 'building first needs the reason the test could not change the decision');
+  write(root, '03-solution-bet.md', bet('build first\n**Skip because:** strong precedent, three teams shipped the same export'));
+  assert.equal(gate(root, 3).by['3.4'], 'pass');
   write(root, '03-solution-bet.md', bet('test first, a fake door for one week'));
+  assert.equal(gate(root, 3).by['3.4'], 'fail', 'a test first says which result would flip the bet');
+  write(root, '03-solution-bet.md', bet('test first, a fake door for one week\n**Changes the decision:** the build threshold of 15% sits between the pessimistic and optimistic estimate'));
   g = gate(root, 3);
   assert.equal(g.by['3.4'], 'pass');
 });
@@ -185,7 +189,7 @@ test('gate 6 requires baseline before actual verified exposure', () => {
 
 test('gate 7 needs one decision and the kill-criteria verdict', () => {
   const root = project();
-  write(root, '07-outcome.md', `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 22% | 30% | +22 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 22 > 15\n\n## Decision: ITERATE\n**Why:** below target, above kill line\n**Chosen by:** Mario, \"iterate\"\n**Re-enters at:** phase 3\n**Cleanup:** none, the flag stays while cycle 2 runs\n\n## Learning\nManagers export when the file matches the meeting agenda.\n`);
+  write(root, '07-outcome.md', `# Outcome\n\n## Measured 2026-12-01, 60 days after rollout\n| Metric | Baseline | Actual | Target | Delta | Tag |\n|---|---|---|---|---|---|\n| exports | 0 | 22% | 30% | +22 | \`[code:src/export.ts:1]\` |\n\n## Against kill criteria\n**Criterion:** below 15%\n**Verdict:** cleared, 22 > 15\n\n## Decision: ITERATE\n**Why:** below target, above kill line\n**Chosen by:** Mario, \"iterate\"\n**Re-enters at:** phase 3\n**Cleanup:** none, the flag stays while cycle 2 runs\n\n## Learning\nManagers export when the file matches the meeting agenda.\n\n## Go-to-market read\n| Channel | Reached | Converted | Source | Next |\n|---|---|---|---|---|\n| in-app banner | managers | 22% exported | \`[code:src/export.ts:1]\` | keep |\n`);
   const g = gate(root, 7);
   assert.deepEqual(g.failed, []);
   assert.equal(g.by['7.4'], 'judge');

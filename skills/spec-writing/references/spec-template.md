@@ -106,6 +106,7 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 ## Real users
 {product track: the session where a person from the ICP walked the problem, the concept or the clickable prototype; what they did, where they stuck, what changed; each with its `[interview:Pn]`, `[doc:...]` or `[data:...]` tag. Other tracks: omit.}
 **Willingness to pay:** {product for sale: what a person from the ICP did when shown the price, tagged (gate 4.14)}
+**Channel result:** {product track: what the phase 3 channel test returned against its thresholds, tagged (gate 4.22, go-to-market)}
 
 ## States
 | Flow / step | Empty | Loading | Partial | Error | Success | Permission |

@@ -14,11 +14,11 @@ The hub walks one initiative through the gated phases: it routes to the phase sk
 | 0 FRAME | Problem and falsifiable assumption | `problem-framing` | `00-frame.md` |
 | 1 DISCOVER | Evidence, synthesis, verdict | `research-methods`, `discovery-methods` | `01-discovery.md` |
 | 2 DEFINE | Opportunity and outcome metric | `opportunity-mapping`, strategy as needed | `02-definition.md` |
-| 3 IDEATE | Wide ideas, distinct options, the person's bet and test | `ideation-methods`, experiments as needed | `03-solution-bet.md` |
+| 3 IDEATE | Wide ideas, distinct options valued in money, the load-bearing assumption, go-to-market, the person's bet, its test and its stake | `ideation-methods`, `business-case`, `go-to-market`, experiments as needed | `03-solution-bet.md` |
 | 4 SHAPE | Flows drawn and tabled, then the rules, an agent's autonomy, the look and the stack decided with the person, the backend designed with its threat model, buildable spec, measurement | `spec-writing`, `ux-architecture`, `domain-model`, `agent-design` when a model acts, `design-direction`, `stack-decisions`, `system-design`, tracking as needed | `04-spec.md`, `DESIGN.md`, `TECH.md` |
 | 5 BUILD | Authorized implementation and verification, ending on a recording of the feature working | `delivery-discipline`, `feature-demo`, tracking as needed | `05-build-plan.md` |
-| 6 SHIP | Readiness, authorized exposure and verification | `release-ops`, writing as needed | `06-release.md` |
-| 7 LEARN | Compare outcomes, decide or defer | `outcome-review`, analysis as needed | `07-outcome.md` |
+| 6 SHIP | Readiness, the launch, authorized exposure and verification | `release-ops`, `go-to-market`, writing as needed | `06-release.md` |
+| 7 LEARN | Compare outcomes and channels, decide or defer | `outcome-review`, `go-to-market`, analysis as needed | `07-outcome.md` |
 
 When the open decisions of an idea, or of one phase, will not fit one session, chart them with `wayfinding` first: its destination is the initiative (or the phase artifact), and each new session works one ticket. Capabilities resolve against this session per the [capability map](../../references/capability-map.md); a phase skill may run delegated or inline, with the same result.
 

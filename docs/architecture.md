@@ -149,11 +149,11 @@ Full conditions in `skills/gate-checks/references/`, one file per gate. The shap
 | 0 Frame | Problem statement contains solution language · no single ICP with a sourced size · riskiest assumption not falsifiable · why-now is a preference, not a dated change |
 | 1 Discover | Fewer than 5 primary evidence units from 5 distinct sources · no explicit verdict · no JTBD · disconfirming evidence never sought |
 | 2 Define | Fewer than 3 traced opportunities · no written rejections · **baseline is an estimate** · scale bet at pre-PMF |
-| 3 Ideate | Options share the same primary user action · kill criteria missing a metric, threshold or date · riskiest assumption has no priced test |
+| 3 Ideate | Options share the same primary user action · kill criteria missing a metric, threshold or date · riskiest assumption has no priced test · no value in money with sources and three scenarios · the test misses the load-bearing assumption · no go-to-market · no declared stake |
 | 4 Shape | Acceptance criteria not testable · out-of-scope list empty · flows missing error and empty states · tracking plan does not measure the phase 2 metric |
 | 5 Build | An acceptance criterion with no test · tests claimed rather than shown · instrumentation not verified firing · out-of-scope items got built |
-| 6 Ship | No rollback path · baseline captured after exposure · no dashboard for the metric · no outcome review scheduled |
-| 7 Learn | Actual not compared to target · kill criteria never evaluated · no keep/iterate/kill decision |
+| 6 Ship | No rollback path · baseline captured after exposure · no dashboard for the metric · no outcome review scheduled · no launch plan |
+| 7 Learn | Actual not compared to target · kill criteria never evaluated · no keep/iterate/kill decision · channels never read |
 
 Two design notes.
 
@@ -170,11 +170,11 @@ Two design notes.
 | 0 | Frame | `problem-framing` | `problem-framer` | `/bos-frame` |
 | 1 | Discover | `research-methods`, `discovery-methods` | `research-planner`, `discovery-synthesizer` | `/bos-discover` |
 | 2 | Define | `opportunity-mapping`, `product-analysis` (strategy) | `opportunity-mapper`, `product-diagnostician` | `/bos-define` |
-| 3 | Ideate | `ideation-methods`, `experiment-methodology` | `solution-architect`, `experiment-designer` | `/bos-ideate` |
+| 3 | Ideate | `ideation-methods`, `business-case`, `go-to-market`, `experiment-methodology` | `solution-architect`, `experiment-designer` | `/bos-ideate` |
 | 4 | Shape | `spec-writing`, `ux-architecture`, `pm-artifacts` | `spec-writer`, `ux-architect`, `product-writer` | `/bos-shape` |
 | 5 | Build | `delivery-discipline`, `tracking-standards` | `delivery-planner`, `build-reviewer`, `tracking-architect` | `/bos-build` |
-| 6 | Ship | `release-ops`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
-| 7 | Learn | `outcome-review`, `product-analysis` (metrics, growth, OKRs, finance) | `product-diagnostician` | `/bos-learn` |
+| 6 | Ship | `release-ops`, `go-to-market`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
+| 7 | Learn | `outcome-review`, `go-to-market`, `product-analysis` (metrics, growth, OKRs, finance) | `product-diagnostician` | `/bos-learn` |
 
 All eight phases are live. Phase 7 adds no new specialist: it orchestrates the analysis agents against the phase 2 target and the phase 3 kill criteria, with `outcome-review` holding the judging procedure so the phase also runs on a host with no agents at all.
 

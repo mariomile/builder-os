@@ -37,6 +37,14 @@ The output contract for phase 6. Copy the headings, bold field labels and tables
 **What changes for you:** {for people already using the product: what moved, what behaves differently, what was removed, what they need to do; "nothing" when the change only adds}
 **Help:** {where users find answers about this (the help page, in-product help, the FAQ) and what changed there, in each language the product speaks; or "nothing to change, {why}"}
 
+## Launch
+{feature and product tracks, gate 6.14, per go-to-market}
+**Who hears first:** {the people closest to the problem: who asked, the testers, the waitlist, the accounts it was built for}
+**Message:** {the first line of the release notes, in the user's words}
+**Channels:** {in order, each with the source tag its arrivals carry}
+**When:** {the date, tied to the rollout share}
+**Measured by:** {the event and the source property that tells channels apart}
+
 ## Exposure verification
 **Authorized by:** {who authorized exposure, and how: the message, the ticket, the approval}
 **Status:** {planned | verified}

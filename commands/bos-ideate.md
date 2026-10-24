@@ -5,7 +5,7 @@ description: "Phase 3 — generate distinct solution options, select the bet, wr
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
 
-**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load ideation-methods; qualify skill names with `builder-os:` on Claude.
+**Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load ideation-methods, business-case and go-to-market; qualify skill names with `builder-os:` on Claude.
 
 Dispatch the `builder-os:solution-architect` agent to run BuilderOS phase 3.
 
@@ -40,7 +40,7 @@ Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 befo
 
 5. **The person chooses.** The first dispatch returns the raw ideas, the scored options and a selection round. Present the round, take the answer, then dispatch again with `Chosen by: [person and their words]` to write the bet. Never pick it for them.
 6. **Verify completion:** `## BET SELECTED` with a gate 3 verdict. The marker is the agent's claim, not the evidence: re-read the artifact it wrote and run gate 3 on it yourself per `gate-checks`. A missing artifact or a failed condition is what gets reported, whatever the marker says.
-7. **Present** the option set with its primary actions, the selected bet, the kill criteria and the test order.
+7. **Present** the option set with its primary actions and rough values, the selected bet with its value in three scenarios and its load-bearing assumption, the go-to-market, the kill criteria, the test decision and the stake.
 
 ## Arguments
 
@@ -51,6 +51,6 @@ Write .builderos/initiatives/{initiative}/03-solution-bet.md and run gate 3 befo
 
 Gate 3.5 counts raw ideas before convergence (8, lite 5); 3.6 needs who chose the bet. Gate 3.1 counts mechanisms, not entries. Three rows in the table that all describe the same primary user action count as one option and the gate fails, correctly.
 
-Gate 3.4 is where this phase earns its keep. When the test costs under 20% of the build, the test runs first. A team that overrides it is making a real decision, logged, that phase 7 will read back when judging the outcome.
+Gates 3.4 and 3.9 to 3.15 are where this phase earns its keep: every option carries a rough value, the chosen one a table whose load-bearing assumption is what the test measures, and the test runs when its result can change the decision, with its thresholds written first. Building first names why the test could not change anything. Go-to-market (3.13) and the stake (3.14) are part of the bet.
 
 In lite mode, gate 3.1 relaxes to two options. Gate 3.2 never relaxes: a bet with no kill criteria makes phase 7 decorative.
