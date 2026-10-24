@@ -64,7 +64,7 @@ Every capability has a defined fallback chain. The phase continues down the ladd
 | `ui.render` | host preview or design tool | self-contained HTML files the user opens from disk | — | text wireframes, only for a standalone answer kept in chat |
 | `ui.capture` | drive a browser on the running product | screenshots from the end-to-end run | — | the user opens each route and says whether it matches the chosen version; record the route and their words |
 | `ui.record` | the end-to-end runner's video of the passing run | a browser the host drives, recorded | a screenshot per step from the same run | the person records the screen while the flow is walked; `**Recorded by:**` names them |
-| `diagram.render` | a canvas the person edits | the page `bos.mjs flows` writes: text and live drawing side by side, edits applied back | the Mermaid block rendered by the host or the repository's Markdown view | the Mermaid text in `DESIGN.md`, which is the record in every case |
+| `diagram.render` | a canvas the person edits | the page `bos.mjs flows` writes: a hand-drawn canvas per flowchart and the text beside its drawing, edits applied back | the Mermaid block rendered by the host or the repository's Markdown view | the Mermaid text in `DESIGN.md`, which is the record in every case |
 | `subagent.dispatch` | delegate | **run the same procedure inline, in sequence** | — | — |
 | `shell.exec` | run `scripts/bos.mjs` | — | — | the model checks the same conditions and records them as `checked_by: model` |
 | `sessions.read` | the host's session history | a transcript the user exports | — | work from the current conversation and say which sessions were not read |

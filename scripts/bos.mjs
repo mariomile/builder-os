@@ -422,9 +422,20 @@ function diagramInfo(ctx) {
 
 // ---------- flows: an editable page for the diagrams, and the edits back into DESIGN.md ----------
 
-// Pele (github.com/obsidianmd/pele, MIT) renders Mermaid to SVG in the browser; the page loads it from a CDN,
-// pinned, and shows the source alone when offline. Nothing is installed in the project.
-const PELE = 'https://cdn.jsdelivr.net/npm/pele@1.3.0/dist/pele.js';
+// The page loads its libraries from a CDN, pinned, and installs nothing in the project. Pele (MIT) renders Mermaid
+// to SVG beside the text. Excalidraw (MIT) is the hand-drawn canvas: its Mermaid importer lays a flowchart out as
+// boxes and arrows the person drags, adds and relabels, and the page turns the drawing back into a flowchart.
+// Offline, the text stays editable.
+const LIBS = {
+  pele: 'https://esm.sh/pele@1.3.0',
+  react: 'https://esm.sh/react@19.3.0',
+  'react/jsx-runtime': 'https://esm.sh/react@19.3.0/jsx-runtime',
+  'react-dom': 'https://esm.sh/react-dom@19.3.0',
+  'react-dom/client': 'https://esm.sh/react-dom@19.3.0/client',
+  '@excalidraw/excalidraw': 'https://esm.sh/@excalidraw/excalidraw@0.18.1/dist/prod/index.js?external=react,react-dom',
+  '@excalidraw/mermaid-to-excalidraw': 'https://esm.sh/@excalidraw/mermaid-to-excalidraw@2.2.2',
+};
+const EXCALIDRAW_ASSETS = 'https://esm.sh/@excalidraw/excalidraw@0.18.1/dist/prod/';
 
 // Every Mermaid block DESIGN.md holds under ## Flows and ## Domain model, keyed "Section › Subsection" and,
 // when one subsection holds several, "#2", "#3".
@@ -438,38 +449,118 @@ function designDiagrams(design) {
   return out;
 }
 
-function flowsPage(title, diagrams) {
+// A drawing back into a flowchart: every box, diamond and ellipse is a node with its text, every arrow attached at
+// both ends an edge with its label, a dashed arrow an abandonment. Runs in the page; kept here so a test can run it.
+function canvasToMermaid(elements, direction = 'TD') {
+  const live = elements.filter((e) => !e.isDeleted);
+  const textOf = (id) => live.filter((e) => e.type === 'text' && e.containerId === id).map((e) => e.text).join(' ').replace(/\s+/g, ' ').trim();
+  const q = (t) => `"${t.replace(/"/g, '#quot;')}"`;
+  const shapes = live.filter((e) => ['rectangle', 'diamond', 'ellipse'].includes(e.type)).sort((a, b) => a.y - b.y || a.x - b.x);
+  const ids = new Map(shapes.map((e, i) => [e.id, `n${i + 1}`]));
+  const lines = [`flowchart ${direction}`];
+  for (const e of shapes) {
+    const t = q(textOf(e.id) || ' ');
+    lines.push(`  ${ids.get(e.id)}${e.type === 'diamond' ? `{${t}}` : e.type === 'ellipse' ? `([${t}])` : `[${t}]`}`);
+  }
+  let loose = 0;
+  for (const a of live.filter((e) => e.type === 'arrow')) {
+    const from = ids.get(a.startBinding && a.startBinding.elementId), to = ids.get(a.endBinding && a.endBinding.elementId);
+    if (!from || !to) { loose++; continue; }
+    const label = textOf(a.id);
+    lines.push(`  ${from} ${a.strokeStyle && a.strokeStyle !== 'solid' ? '-.->' : '-->'}${label ? `|${q(label)}|` : ''} ${to}`);
+  }
+  return { text: lines.join('\n'), loose };
+}
+
+const PAGE_SCRIPT = String.raw`
+const data = JSON.parse(document.getElementById('diagrams').textContent);
+const canvasToMermaid = CANVAS_TO_MERMAID;
+const $ = (id) => document.getElementById(id);
+const say = (m) => { $('note').textContent = m; };
+let render = null, lib = null;
+try { ({ render } = await import('pele')); } catch { say('Offline: the drawings did not load; the text is still editable.'); }
+try {
+  const [React, ReactDOM, Ex, M2E] = await Promise.all([import('react'), import('react-dom/client'), import('@excalidraw/excalidraw'), import('@excalidraw/mermaid-to-excalidraw')]);
+  lib = { React, ReactDOM, Ex, M2E };
+} catch { /* the canvas needs the network; the text and its drawing still work */ }
+const original = data.map((d) => d.src);
+const isFlow = (src) => /^\s*(flowchart|graph)\b/m.test(src.split('\n').find((l) => l.trim() && !/^\s*%%/.test(l)) || '');
+const direction = (src) => (src.match(/^\s*(?:flowchart|graph)\s+(TD|TB|BT|LR|RL)/m) || [, 'TD'])[1];
+data.forEach((d, i) => {
+  const card = document.createElement('section');
+  card.className = 'card';
+  card.innerHTML = '<h2></h2><div class="tabs"><button data-tab="draw">Draw</button><button data-tab="text">Text</button></div><div class="canvas" hidden></div><div class="pair" hidden><textarea spellcheck="false"></textarea><div class="view"></div></div><p class="err"></p>';
+  card.querySelector('h2').textContent = d.key;
+  $('cards').append(card);
+  const area = card.querySelector('textarea'), view = card.querySelector('.view'), err = card.querySelector('.err');
+  const canvasEl = card.querySelector('.canvas'), pair = card.querySelector('.pair');
+  area.value = d.src;
+  const draw = () => { if (!render) return; try { view.innerHTML = render(area.value).svg; err.textContent = ''; } catch (e) { err.textContent = String(e.message || e); } };
+  area.addEventListener('input', () => { draw(); drawnFrom = null; });
+  let api = null, drawnFrom = null, baseline = null;
+  const openCanvas = async () => {
+    if (drawnFrom === area.value) return;
+    try {
+      const { elements } = await lib.M2E.parseMermaidToExcalidraw(area.value);
+      const scene = lib.Ex.convertToExcalidrawElements(elements);
+      drawnFrom = area.value;
+      baseline = canvasToMermaid(scene, direction(area.value)).text;
+      if (api) { api.updateScene({ elements: scene }); api.scrollToContent(scene, { fitToViewport: true, viewportZoomFactor: 0.75 }); return; }
+      const onChange = (els) => {
+        if (drawnFrom === null) return;
+        const out = canvasToMermaid(els, direction(area.value));
+        // The text changes only when the drawing does: opening the canvas rewrites nothing.
+        if (out.text !== baseline && out.text !== area.value) { area.value = out.text; drawnFrom = out.text; baseline = out.text; draw(); }
+        err.textContent = out.loose ? out.loose + ' arrow(s) not attached at both ends are left out: drag each end onto a box.' : '';
+      };
+      lib.ReactDOM.createRoot(canvasEl).render(lib.React.createElement(lib.Ex.Excalidraw, { initialData: { elements: scene, scrollToContent: true }, excalidrawAPI: (a) => { api = a; (window.flowsCanvases ||= []).push(a); setTimeout(() => a.scrollToContent(a.getSceneElements(), { fitToViewport: true, viewportZoomFactor: 0.75 }), 300); }, onChange }));
+    } catch (e) { err.textContent = 'The canvas could not read this diagram: ' + String(e.message || e) + '. Edit it as text.'; show('text'); }
+  };
+  const show = (tab) => {
+    canvasEl.hidden = tab !== 'draw'; pair.hidden = tab !== 'text';
+    card.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
+    if (tab === 'draw') openCanvas(); else draw();
+  };
+  const drawable = lib && isFlow(d.src);
+  if (!drawable) card.querySelector('[data-tab="draw"]').hidden = true;
+  card.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => show(b.dataset.tab)));
+  show(drawable ? 'draw' : 'text');
+  d.area = area;
+});
+const changes = () => data.map((d, i) => d.area.value === original[i] ? null : '## ' + d.key + '\n\n' + '\u0060\u0060\u0060mermaid\n' + d.area.value.replace(/\s+$/, '') + '\n\u0060\u0060\u0060\n').filter(Boolean);
+const text = () => { const c = changes(); return c.length ? '# Flows edited\n\n' + c.join('\n') : ''; };
+$('copy').onclick = async () => { const t = text(); if (!t) return say('Nothing changed yet.'); try { await navigator.clipboard.writeText(t); say('Copied ' + changes().length + ' diagram(s).'); } catch { say('Copy blocked: use Save.'); } };
+$('save').onclick = () => { const t = text(); if (!t) return say('Nothing changed yet.'); const u = URL.createObjectURL(new Blob([t], { type: 'text/markdown' })); const l = document.createElement('a'); l.href = u; l.download = 'flows-edited.md'; l.click(); URL.revokeObjectURL(u); };
+`;
+
+function flowsPage(title, diagrams, libs = LIBS) {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const cards = diagrams.map((d, i) => `<section class="card"><h2>${esc(d.key)}</h2><div class="pair"><textarea id="src${i}" spellcheck="false" data-key="${esc(d.key)}">${esc(d.src)}</textarea><div class="view" id="view${i}"></div></div><p class="err" id="err${i}"></p></section>`).join('\n');
+  const json = (v) => JSON.stringify(v).replace(/</g, '\\u003c');
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flows · ${esc(title)}</title>
+<script type="importmap">${json({ imports: libs })}</script>
+<script>window.EXCALIDRAW_ASSET_PATH = ${json(EXCALIDRAW_ASSETS)};</script>
+<link rel="stylesheet" href="${esc(EXCALIDRAW_ASSETS)}index.css">
 <style>
 :root{--bg:#fffcf0;--fg:#100f0f;--muted:#6f6e69;--line:#e6e4d9;--accent:#205ea6;--bad:#af3029;--pele-bg:var(--bg);--pele-fg:var(--fg);--pele-accent:var(--accent)}
 @media (prefers-color-scheme:dark){:root{--bg:#100f0f;--fg:#cecdc3;--muted:#878580;--line:#343331;--accent:#4385be;--bad:#d14d41}}
-*{box-sizing:border-box}body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
 header{max-width:1200px;margin:0 auto 16px}h1{font-size:20px;margin:0 0 4px}header p{color:var(--muted);margin:0 0 12px}
-button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.card{max-width:1200px;margin:0 auto 20px;border:1px solid var(--line);border-radius:8px;padding:12px}.card h2{font-size:15px;margin:0 0 8px}
+button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.card{max-width:1200px;margin:0 auto 20px;border:1px solid var(--line);border-radius:8px;padding:12px}.card h2{font-size:15px;margin:0 0 8px}.tabs{display:flex;gap:6px;margin-bottom:8px}
+.canvas{height:560px;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px}@media (max-width:760px){.pair{grid-template-columns:1fr}}
 textarea{width:100%;min-height:260px;font:13px/1.45 ui-monospace,monospace;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
 .view{overflow:auto}.view svg{max-width:100%;height:auto}.err{color:var(--bad);font:12px ui-monospace,monospace;margin:6px 0 0;white-space:pre-wrap}
 </style></head><body>
 <header><h1>Flows · ${esc(title)}</h1>
-<p>Edit the text on the left; the diagram redraws as you type. When it says what you mean, copy the changes and give them to the agent, or save them and run <code>node scripts/bos.mjs flows --apply flows-edited.md</code>. DESIGN.md stays the record.</p>
-<button id="copy">Copy changes</button> <button id="save">Save flows-edited.md</button> <span id="note"></span></header>
-${cards || '<p>No Mermaid diagrams in DESIGN.md yet.</p>'}
-<script type="module">
-const areas=[...document.querySelectorAll('textarea')];const original=areas.map(a=>a.value);
-let render=null;try{({render}=await import('${PELE}'));}catch{document.getElementById('note').textContent='Offline: the renderer did not load, the text is still editable.';}
-const draw=(i)=>{const a=areas[i];const err=document.getElementById('err'+i);if(!render)return;try{document.getElementById('view'+i).innerHTML=render(a.value).svg;err.textContent='';}catch(e){err.textContent=String(e.message||e);}};
-areas.forEach((a,i)=>{draw(i);a.addEventListener('input',()=>draw(i));});
-const changes=()=>areas.map((a,i)=>a.value===original[i]?null:'## '+a.dataset.key+'\\n\\n\`\`\`mermaid\\n'+a.value.replace(/\\s+$/,'')+'\\n\`\`\`\\n').filter(Boolean);
-const text=()=>{const c=changes();return c.length?'# Flows edited\\n\\n'+c.join('\\n'):'';};
-const say=(m)=>{document.getElementById('note').textContent=m;};
-document.getElementById('copy').onclick=async()=>{const t=text();if(!t)return say('Nothing changed yet.');try{await navigator.clipboard.writeText(t);say('Copied '+changes().length+' diagram(s).');}catch{say('Copy blocked: use Save.');}};
-document.getElementById('save').onclick=()=>{const t=text();if(!t)return say('Nothing changed yet.');const u=URL.createObjectURL(new Blob([t],{type:'text/markdown'}));const l=document.createElement('a');l.href=u;l.download='flows-edited.md';l.click();URL.revokeObjectURL(u);};
-</script></body></html>
+<p>Draw: drag the boxes, add one from the toolbar, join two with an arrow, double-click to rename, a dashed arrow for abandonment. Text: the same flow as Mermaid, redrawn as you type. When it says what you mean, copy the changes and give them to the agent, or save them and run <code>node scripts/bos.mjs flows --apply flows-edited.md</code>. DESIGN.md stays the record; state diagrams are edited as text.</p>
+<button id="copy">Copy changes</button> <button id="save">Save flows-edited.md</button> <span id="note" role="status"></span></header>
+<main id="cards">${diagrams.length ? '' : '<p>No Mermaid diagrams in DESIGN.md yet.</p>'}</main>
+<script type="application/json" id="diagrams">${json(diagrams.map((d) => ({ key: d.key, src: d.src })))}</script>
+<script type="module">${PAGE_SCRIPT.replace('CANVAS_TO_MERMAID', canvasToMermaid.toString())}</script>
+</body></html>
 `;
 }
 

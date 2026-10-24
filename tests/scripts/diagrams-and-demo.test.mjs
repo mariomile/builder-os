@@ -168,6 +168,20 @@ test('flows writes an editable page of every diagram, and --apply writes the edi
   assert.match(html, /Flows › Export the week/);
   assert.match(html, /Domain model › Transitions: Export/);
   assert.match(html, /pele@\d+\.\d+\.\d+/, 'the renderer is pinned');
+  assert.match(html, /@excalidraw\/excalidraw@\d+\.\d+\.\d+/, 'the canvas is pinned');
+  // The page turns the person's drawing back into a flowchart: boxes, diamonds, labeled and dashed arrows; loose arrows counted.
+  const fn = html.match(/const canvasToMermaid = (function canvasToMermaid[\s\S]*?\n\})/)[1];
+  const canvasToMermaid = new Function(`return (${fn})`)();
+  const box = (id, type, y, text) => [{ id, type, x: 0, y }, { id: `${id}-t`, type: 'text', containerId: id, text }];
+  const out = canvasToMermaid([
+    ...box('a', 'rectangle', 0, 'Report'), ...box('b', 'diamond', 100, 'Any deals?'), ...box('c', 'rectangle', 200, 'Export "CSV"'),
+    { id: 'x', type: 'arrow', startBinding: { elementId: 'a' }, endBinding: { elementId: 'b' } },
+    { id: 'y', type: 'arrow', startBinding: { elementId: 'b' }, endBinding: { elementId: 'c' }, strokeStyle: 'dashed' }, { id: 'y-t', type: 'text', containerId: 'y', text: 'yes' },
+    { id: 'z', type: 'arrow', startBinding: { elementId: 'c' } },
+    ...box('gone', 'rectangle', 300, 'Deleted').map((e) => ({ ...e, isDeleted: true })),
+  ], 'LR');
+  assert.equal(out.text, 'flowchart LR\n  n1["Report"]\n  n2{"Any deals?"}\n  n3["Export #quot;CSV#quot;"]\n  n1 --> n2\n  n2 -.->|"yes"| n3');
+  assert.equal(out.loose, 1);
   fs.writeFileSync(path.join(root, 'flows-edited.md'), '# Flows edited\n\n## Domain model › Transitions: Export\n\n```mermaid\nstateDiagram-v2\n  [*] --> queued\n  queued --> building\n  building --> ready\n  building --> failed\n  failed --> queued : person retries\n```\n');
   r = bos(root, 'flows', '--initiative', 'csv-export', '--apply', 'flows-edited.md');
   assert.equal(r.status, 0, r.stderr);
