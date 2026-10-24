@@ -289,7 +289,7 @@ Each phase reads the one before it. Starting phase 3 without `02-definition.md` 
 
 ## Status
 
-Version 3.0.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 3.1.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|

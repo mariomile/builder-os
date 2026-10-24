@@ -2,7 +2,7 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased]
+## [3.1.0] - 2026-10-24
 
 After 3.0.0: what existing projects meet when the rules change, two sessions on one initiative, work that waits on a round, how a model-driven product behaves, the craft of what the person sees, a backend designed, secured and measured before it ships, flows drawn as diagrams the person edits, a video of every feature working, and the value, the stake and the go-to-market of a bet. Analysis and decisions (1B, 3A, 4A) in the project thread "Cosa migliorare ancora" (`cosa-migliorare-ancora-2026-10-21.md`); the backend and the interface bar in "Design eccellente e backend solido" (round 1, recommended options); diagrams and demo videos in "Diagrammi dei flussi e video e2e" (1A with an editable page and Pele, 2A with the video outside the codebase, 3A, 4A). What a person opens, clicks and receives (production from the first slice, a build tried before it is accepted, the project page, the messages a product sends, languages, help) in "Trovare cosa manca davvero a BuilderOS" (`cosa-manca-davvero-2026-10-24.md`, 1A 2A 3A 4A). The value of a bet, the stake and go-to-market in "Decidere cosa costruire con probabilità e GTM" (`probabilita-gtm-scommesse-2026-10-24.md`, 1A 2A 3A 4A).
 
