@@ -35,6 +35,8 @@
 //                                          one owner per initiative at a time, so two sessions do not write one state
 //   node bos.mjs round --asked N | --answered "1B, 2A" --by "who"
 //                                          record a round of questions put to the person, and its answer
+//   node bos.mjs flows [--apply file]      write design/flows.html, where the person edits each Mermaid diagram of
+//                                          DESIGN.md with a live preview; --apply writes the edited blocks back
 //
 // Options: --initiative <slug> acts on another initiative, --root <dir> sets the project root.
 
@@ -366,6 +368,197 @@ function firstDayInfo(ctx) {
     if (!events.some((e) => act.includes(e))) problems.push('"**Activation:**" names no event from the tracking plan');
   }
   return { problems, detail: 'first day designed, activation is a criterion and a tracked event' };
+}
+
+// ---------- diagrams and the demo (gates 4.20, 5.15) ----------
+
+const mermaidBlocks = (text) => [...(text || '').matchAll(/```mermaid[^\n]*\n([\s\S]*?)```/g)].map((m) => m[1]);
+const diagramKind = (block) => ((block.split('\n').find((l) => l.trim() && !/^\s*%%/.test(l)) || '').trim().split(/\s/)[0] || '').toLowerCase();
+const ARROW = /-->|-\.->|==>|--[^-\n>|]+-->|---/g;
+const squash = (s) => String(s || '').toLowerCase().replace(/[\s_`*-]+/g, '');
+// Every "### {name}" block inside a "## " section, in order.
+function subsections(text) {
+  const out = [];
+  for (const line of (text || '').split('\n')) {
+    if (/^###\s/.test(line)) out.push({ name: line.replace(/^###\s+/, '').trim(), lines: [] });
+    else if (/^##\s/.test(line)) break;
+    else if (out.length) out.at(-1).lines.push(line);
+  }
+  return out.map(({ name, lines }) => ({ name, body: lines.join('\n') }));
+}
+
+// Gate 4.20: each flow is drawn as well as tabled, and each lifecycle as a state diagram that agrees with its table.
+function diagramInfo(ctx) {
+  const flows = section(ctx.design || '', 'Flows');
+  if (flows === null) return { problems: ['no "## Flows" in DESIGN.md: each flow with its steps table and its Mermaid flowchart'] };
+  const problems = [];
+  const subs = subsections(flows);
+  if (!subs.length) problems.push('no "### {flow}" under ## Flows');
+  for (const s of subs) {
+    const chart = mermaidBlocks(s.body).find((b) => ['flowchart', 'graph'].includes(diagramKind(b)));
+    if (!chart) { problems.push(`${s.name}: no Mermaid flowchart`); continue; }
+    const arrows = (chart.match(ARROW) || []).length;
+    if (arrows < 2) problems.push(`${s.name}: the flowchart has ${arrows} arrow${arrows === 1 ? '' : 's'}; draw the entry, the steps and both exits`);
+    const branches = rawRows(s.body).some((r) => nonEmpty(r[3]) && !/^(none|no|—|-|–|n\/?a)$/i.test(r[3]));
+    if (branches && !/[A-Za-z0-9_]\{[^}]+\}/.test(chart)) problems.push(`${s.name}: the table has branches and the flowchart draws no decision`);
+  }
+  let lifecycles = 0;
+  const dm = section(ctx.design || '', 'Domain model');
+  if (dm !== null && !notApplicable(dm, ctx.design, 'Domain model')) {
+    for (const e of rawRows(subsection(dm, 'Entities')).filter((r) => /^yes/i.test(r[2] || ''))) {
+      const sub = subsection(dm, `Transitions: ${e[0]}`);
+      if (sub === null) continue; // gate 4.10 asks for the table
+      lifecycles++;
+      const chart = mermaidBlocks(sub).find((b) => diagramKind(b).startsWith('statediagram'));
+      if (!chart) { problems.push(`${e[0]}: no Mermaid stateDiagram for its transitions`); continue; }
+      const drawn = squash(chart);
+      const states = [...new Set(rawRows(sub).flatMap((r) => [r[0], r[1]]).filter((x) => nonEmpty(x) && !/^\[\*\]$|^(start|end|none|—|-)$/i.test(x)))];
+      const missing = states.filter((x) => !drawn.includes(squash(x)));
+      if (missing.length) problems.push(`${e[0]}: states in the table and not in the diagram: ${missing.join(', ')}`);
+    }
+  }
+  return { problems, detail: `${subs.length} flow${subs.length === 1 ? '' : 's'} drawn as flowcharts${lifecycles ? `, ${lifecycles} lifecycle${lifecycles === 1 ? '' : 's'} as state diagrams matching their tables` : ''}` };
+}
+
+// ---------- flows: an editable page for the diagrams, and the edits back into DESIGN.md ----------
+
+// Pele (github.com/obsidianmd/pele, MIT) renders Mermaid to SVG in the browser; the page loads it from a CDN,
+// pinned, and shows the source alone when offline. Nothing is installed in the project.
+const PELE = 'https://cdn.jsdelivr.net/npm/pele@1.3.0/dist/pele.js';
+
+// Every Mermaid block DESIGN.md holds under ## Flows and ## Domain model, keyed "Section › Subsection" and,
+// when one subsection holds several, "#2", "#3".
+function designDiagrams(design) {
+  const out = [];
+  for (const top of ['Flows', 'Domain model']) {
+    for (const sub of subsections(section(design, top))) {
+      mermaidBlocks(sub.body).forEach((src, i) => out.push({ key: `${top} › ${sub.name}${i ? ` #${i + 1}` : ''}`, top, sub: sub.name, index: i, src: src.replace(/\s+$/, '') }));
+    }
+  }
+  return out;
+}
+
+function flowsPage(title, diagrams) {
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const cards = diagrams.map((d, i) => `<section class="card"><h2>${esc(d.key)}</h2><div class="pair"><textarea id="src${i}" spellcheck="false" data-key="${esc(d.key)}">${esc(d.src)}</textarea><div class="view" id="view${i}"></div></div><p class="err" id="err${i}"></p></section>`).join('\n');
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flows · ${esc(title)}</title>
+<style>
+:root{--bg:#fffcf0;--fg:#100f0f;--muted:#6f6e69;--line:#e6e4d9;--accent:#205ea6;--bad:#af3029;--pele-bg:var(--bg);--pele-fg:var(--fg);--pele-accent:var(--accent)}
+@media (prefers-color-scheme:dark){:root{--bg:#100f0f;--fg:#cecdc3;--muted:#878580;--line:#343331;--accent:#4385be;--bad:#d14d41}}
+*{box-sizing:border-box}body{margin:0;padding:24px 16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif}
+header{max-width:1200px;margin:0 auto 16px}h1{font-size:20px;margin:0 0 4px}header p{color:var(--muted);margin:0 0 12px}
+button{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{max-width:1200px;margin:0 auto 20px;border:1px solid var(--line);border-radius:8px;padding:12px}.card h2{font-size:15px;margin:0 0 8px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px}@media (max-width:760px){.pair{grid-template-columns:1fr}}
+textarea{width:100%;min-height:260px;font:13px/1.45 ui-monospace,monospace;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
+.view{overflow:auto}.view svg{max-width:100%;height:auto}.err{color:var(--bad);font:12px ui-monospace,monospace;margin:6px 0 0;white-space:pre-wrap}
+</style></head><body>
+<header><h1>Flows · ${esc(title)}</h1>
+<p>Edit the text on the left; the diagram redraws as you type. When it says what you mean, copy the changes and give them to the agent, or save them and run <code>node scripts/bos.mjs flows --apply flows-edited.md</code>. DESIGN.md stays the record.</p>
+<button id="copy">Copy changes</button> <button id="save">Save flows-edited.md</button> <span id="note"></span></header>
+${cards || '<p>No Mermaid diagrams in DESIGN.md yet.</p>'}
+<script type="module">
+const areas=[...document.querySelectorAll('textarea')];const original=areas.map(a=>a.value);
+let render=null;try{({render}=await import('${PELE}'));}catch{document.getElementById('note').textContent='Offline: the renderer did not load, the text is still editable.';}
+const draw=(i)=>{const a=areas[i];const err=document.getElementById('err'+i);if(!render)return;try{document.getElementById('view'+i).innerHTML=render(a.value).svg;err.textContent='';}catch(e){err.textContent=String(e.message||e);}};
+areas.forEach((a,i)=>{draw(i);a.addEventListener('input',()=>draw(i));});
+const changes=()=>areas.map((a,i)=>a.value===original[i]?null:'## '+a.dataset.key+'\\n\\n\`\`\`mermaid\\n'+a.value.replace(/\\s+$/,'')+'\\n\`\`\`\\n').filter(Boolean);
+const text=()=>{const c=changes();return c.length?'# Flows edited\\n\\n'+c.join('\\n'):'';};
+const say=(m)=>{document.getElementById('note').textContent=m;};
+document.getElementById('copy').onclick=async()=>{const t=text();if(!t)return say('Nothing changed yet.');try{await navigator.clipboard.writeText(t);say('Copied '+changes().length+' diagram(s).');}catch{say('Copy blocked: use Save.');}};
+document.getElementById('save').onclick=()=>{const t=text();if(!t)return say('Nothing changed yet.');const u=URL.createObjectURL(new Blob([t],{type:'text/markdown'}));const l=document.createElement('a');l.href=u;l.download='flows-edited.md';l.click();URL.revokeObjectURL(u);};
+</script></body></html>
+`;
+}
+
+function flows() {
+  const init = resolveActive(loadInitiatives());
+  if (!init) die('no active initiative: pass --initiative <slug>');
+  const file = path.join(init.dir, 'DESIGN.md');
+  const design = read(file);
+  if (!design) die(`no DESIGN.md in ${rel(init.dir)}`);
+  const apply = opt('--apply');
+  if (!apply) {
+    const diagrams = designDiagrams(design);
+    const out = path.join(init.dir, 'design', 'flows.html');
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, flowsPage(init.state.title || init.slug, diagrams));
+    console.log(`${rel(out)}: ${diagrams.length} diagram${diagrams.length === 1 ? '' : 's'} to edit. Open it in a browser.`);
+    return;
+  }
+  const edited = read(path.resolve(ROOT, apply));
+  if (!edited) die(`cannot read ${apply}`);
+  const edits = [...edited.matchAll(/^##\s+(.+?)\s*\n+```mermaid[^\n]*\n([\s\S]*?)```/gm)].map((m) => ({ key: m[1].trim(), src: m[2].replace(/\s+$/, '') }));
+  if (!edits.length) die(`${apply} holds no "## Section › Subsection" heading followed by a mermaid block`);
+  const known = designDiagrams(design);
+  const unknown = edits.filter((e) => !known.some((d) => d.key === e.key));
+  if (unknown.length) die(`no diagram in DESIGN.md for: ${unknown.map((e) => e.key).join(', ')}`);
+  // Replace the n-th mermaid block of the named subsection inside the named section, leaving every other line as it was.
+  const lines = design.split('\n');
+  let top = null, sub = null, n = -1, inBlock = false, target = null, changed = 0;
+  const out = [];
+  for (const line of lines) {
+    if (inBlock) {
+      if (/^```/.test(line)) { inBlock = false; if (target) { out.push(...target.src.split('\n')); target = null; changed++; } out.push(line); }
+      else if (!target) out.push(line);
+      continue;
+    }
+    if (/^##\s/.test(line) && !/^###/.test(line)) { top = line.replace(/^##\s+/, '').trim(); sub = null; }
+    else if (/^###\s/.test(line)) { sub = line.replace(/^###\s+/, '').trim(); n = -1; }
+    out.push(line);
+    if (/^```mermaid/.test(line)) {
+      inBlock = true; n++;
+      const key = `${['Flows', 'Domain model'].find((t) => (top || '').toLowerCase().startsWith(t.toLowerCase())) || top} › ${sub}${n ? ` #${n + 1}` : ''}`;
+      target = edits.find((e) => e.key === key) || null;
+    }
+  }
+  fs.writeFileSync(file, out.join('\n'));
+  console.log(`DESIGN.md: ${changed} diagram${changed === 1 ? '' : 's'} replaced. Bring each steps or transitions table in line with its drawing, then rerun gate 4.`);
+}
+
+// Gate 5.15: the feature was seen working, recorded from the end-to-end test walking its primary flow.
+const VIDEO_FILE = /[\w./-]+\.(webm|mp4|mov|gif)\b/gi;
+const IMAGE_FILE = /[\w./-]+\.(png|jpe?g|webp)\b/gi;
+function demoInfo(plan, ctx) {
+  const vd = section(ctx.design || '', 'Visual direction');
+  if (notApplicable(vd, ctx.design, 'Visual direction')) return { skip: 'no interface (visual direction not applicable)' };
+  if (ctx.track === 'change' && notApplicable(vd, ctx.design, 'Visual direction', 'inherited')) return { skip: 'change track: no screen changes its composition' };
+  const sec = section(plan, 'Demo');
+  const na = notApplicable(sec, '', 'Demo');
+  if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
+  if (sec === null) return { problems: ['no "## Demo": a recording of the end-to-end test walking the primary flow, from a passing run (feature-demo)'] };
+  const problems = [];
+  const test = field(sec, 'Test');
+  if (!nonEmpty(test)) problems.push('no "**Test:**": the end-to-end test that walks the flow');
+  else if (!mappedTestFile(test)) problems.push(`**Test:** ${test} is not a file in the project`);
+  const run = runEvidence(sec, ctx);
+  const by = field(sec, 'Recorded by');
+  if (!run.valid && !(nonEmpty(by) && !AGENT_NAME.test(by))) problems.push(`the recording is not from a passing run: ${run.detail}; or "**Recorded by:**" the person who recorded the screen`);
+  const where = (f) => [path.join(ctx.dir, f), path.join(ROOT, f)].find((p) => fs.existsSync(p));
+  const exists = (f) => Boolean(where(f));
+  // Recordings stay out of the repository: a file git would commit fails. Outside a git repository nothing is committed.
+  const ignored = (f) => { const r = spawnSync('git', ['check-ignore', '-q', where(f)], { cwd: ROOT }); return r.status !== 1; };
+  const rows = rawRows(sec);
+  if (!rows.length) problems.push('no recordings table (Flow / Recording / Shows): the primary flow at least');
+  if (ctx.track === 'product' && !rows.some((r) => /first day/i.test(r[0]))) problems.push('no recording of the first day (product track)');
+  let stills = 0;
+  for (const r of rows) {
+    const cell = r[1] || '';
+    const videos = cell.match(VIDEO_FILE) || [];
+    const images = cell.match(IMAGE_FILE) || [];
+    const lost = [...videos, ...images].filter((f) => !exists(f));
+    const tracked = [...videos, ...images].filter((f) => exists(f) && !ignored(f));
+    if (tracked.length) problems.push(`${r[0]}: ${tracked.join(', ')} would go into the codebase; keep recordings in a git-ignored folder (.builderos/media/) or where the person opens them, and link them`);
+    if (lost.length) problems.push(`${r[0]}: ${lost.join(', ')} not found`);
+    else if (videos.length || /https:\/\/\S+/.test(cell)) { /* a video, in the project or where the person opens it */ }
+    else if (images.length >= 2) stills++;
+    else problems.push(`${r[0]}: no video file or link, nor a sequence of step screenshots from the run`);
+    if (!nonEmpty(r[2])) problems.push(`${r[0]}: no "Shows": the steps and the outcome a viewer sees`);
+  }
+  const how = run.valid ? 'from a passing run' : `recorded by ${by}`;
+  return { problems, detail: `${rows.length} flow${rows.length === 1 ? '' : 's'} recorded ${how}${stills ? `, ${stills} as step screenshots (no video)` : ''}` };
 }
 
 // ---------- the system behind the interface (gates 4.18, 4.19, 5.13, 5.14) ----------
@@ -1022,6 +1215,8 @@ function gate(n, ctx) {
     pass('4.18', ar.problems.length === 0, ar.problems.length ? ar.problems.join('; ') : ar.detail);
     const tm = threatInfo(a);
     pass('4.19', tm.problems.length === 0, tm.problems.length ? tm.problems.join('; ') : tm.detail);
+    const dg = diagramInfo(ctx);
+    (lite ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
     return R;
   }
 
@@ -1056,6 +1251,9 @@ function gate(n, ctx) {
     const pf = performanceInfo(a, ctx);
     if (pf.skip) skip('5.14', pf.skip);
     else pass('5.14', pf.problems.length === 0, pf.problems.length ? pf.problems.join('; ') : pf.detail);
+    const dd = demoInfo(a, ctx);
+    if (dd.skip) skip('5.15', dd.skip);
+    else pass('5.15', dd.problems.length === 0, dd.problems.length ? dd.problems.join('; ') : dd.detail);
     const qc = qualityChecks(ctx);
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
@@ -2289,6 +2487,7 @@ else if (cmd === 'map') map();
 else if (cmd === 'doctor') doctor();
 else if (cmd === 'claim') claim();
 else if (cmd === 'round') round();
+else if (cmd === 'flows') flows();
 else {
   console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);

@@ -1,0 +1,2 @@
+# expects: skill=feature-demo (standalone)
+Abbiamo appena finito l'export CSV dei report. Mi fai un video di come funziona, dal click su Export al file scaricato, da mettere nella PR?

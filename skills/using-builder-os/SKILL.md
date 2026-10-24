@@ -48,6 +48,8 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | See design versions, choose a look or a design kit | `design-direction`, standalone |
 | Business rules, states and transitions, data model, what a term means | `domain-model`, standalone |
 | Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |
+| A video of a feature working, a demo for a pull request or a release, an end-to-end test that records | `feature-demo`, standalone |
+| Draw a user flow or a lifecycle as a diagram | `ux-architecture` (flows) or `domain-model` (states), Mermaid in the answer |
 | Draft or revise a specification from requirements | `spec-writing`, standalone; UX/tracking as needed |
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Turn what was discussed into a spec, with no interview | `spec-writing`, synthesis (`to-spec` by name) |
