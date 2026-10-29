@@ -176,17 +176,22 @@ Invoke a specialist directly when the task is clear. `using-builder-os` briefs a
 
 **One sentence is enough to start.** `/builder-os:bos-init "a tool that warns account managers before a client churns"` drafts `PRODUCT.md` from the sentence, announces the name, track and mode it picked as defaults you can override, and opens the first round of questions in the same turn. No setup interview.
 
-**Questions come in rounds, with options and a recommendation.** At most four per round. Each lists two to four options with what each one leads to, and recommends one with the reason:
+**Questions come in rounds, with options and a recommendation.** The first round opens with the claim as it understood it, so you can correct it before anything rests on it. At most four questions per round, each with two to four options and what each leads to, one recommended with its reason; a line at the end says how much is left:
 
 ```
-1. Who feels this first?
-   A. Account managers: they lose the renewal, they see the signals first
-   B. Customer success leads: they own the number, not the daily signals
-   C. The founder: only at your size today
-   → Recommended: A, because the phase 1 evidence has to come from whoever sees the signals
+🎯 Thesis: account managers lose renewals they could have saved; it rests on the churn signals being visible weeks ahead.
+
+❓ Q1 · Who feels this first?
+- A Account managers → they lose the renewal, they see the signals first
+- B Customer success leads → they own the number, not the daily signals
+- C The founder → only at your size today
+➡️ A: the phase 1 evidence has to come from whoever sees the signals
+
+📍 0 decided · 3 open · 0 deferred · next: what the signals are
+✍️ 1A, or "go with the recommendations"
 ```
 
-You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decision, recorded as yours. A factual question never offers guessed values: its options are ways to close the gap (you know it, it can be queried, or proceed with it recorded as an unvalidated assumption).
+You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decision, recorded as yours. A fact it can look up, it looks up. A fact only you know is asked in one plain line. A fact nobody has is never filled with a guess: its options are ways to close the gap (find it, query it, or proceed with it recorded as an unvalidated assumption).
 
 **It watches while you work.** Before acting on a request mid-initiative, it checks it against recorded decisions, non-goals, the conditions earlier phases set, and the spec's out-of-scope list. It also notices when your decision has made `PRODUCT.md` or the roadmap wrong, when the request builds on an unvalidated assumption, and when more work is asked for on something whose result nobody has read or whose pilot never started. Each finding takes two lines and never blocks: you choose. The session briefing flags what the files show mechanically (see Project memory below).
 

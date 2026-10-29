@@ -66,7 +66,7 @@ Versions on the main screen of {flow step}; open the files to compare them side 
 - **A. {name}** (`design/a-v1.html`): {axis and what it optimizes}. Gives up {what}. Fits {who}.
 - **B. {name}** (`design/b-v1.html`): …
 - **C. {name}** (`design/c-v1.html`): …
-→ Recommended: **{X}**, because {voice adjective and ICP fact, with tag}.
+➡️ **{X}**: {voice adjective and ICP fact, with tag}.
 
 Answer with a letter, or combine named parts: "A's layout with C's palette".
 ```
@@ -76,10 +76,10 @@ Answer with a letter, or combine named parts: "A's layout with C's palette".
 Asked after the interface layer is decided.
 
 ```markdown
-**Q{n} — Design kit: which component library builds this direction?**
+❓ **Q{n} · Design kit**: which component library builds this direction?
 - **A. {kit}** ({one-line gloss}): fits {frontend} {yes/how}. Accessibility: {what it handles: focus, keyboard, ARIA}. Theming to the chosen tokens: {easy / partial / fights it}. Licence: {licence, tagged or unverified}. Leaving later: {what that takes}.
 - **B. …**
-→ Recommended: **{X}**, because {deciding factor}.
+➡️ **{X}**: {deciding factor}.
 ```
 
 Kinds of option: the kit already installed; a headless library that brings behaviour and accessibility while the look comes from the tokens (Radix, React Aria, Headless UI); a copy-in component collection on a utility CSS framework (shadcn/ui on Tailwind); a full opinionated kit (MUI, Mantine, Chakra); platform-native components (Material, Human Interface); custom components on the tokens alone, which is rarely right for a first version.

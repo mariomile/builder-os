@@ -4,7 +4,7 @@
 
 Follow [operating modes and resource paths](../../../references/operating-modes.md). **Standalone:** Analyze the requested competitors or positioning question using supplied material and current relevant sources. Return only the requested comparison, brief or recommendation. **Lifecycle:** The prerequisites, artifact paths and gate recording below apply only when the user requests a phase or initiative; a missing prerequisite blocks that transition, not a standalone artifact.
 
-Load `evidence-ledger` for lifecycle evidence storage, and `references/capability-map.md` when resolving a source. Retrieve facts before asking; ask what remains per the `pressure-testing` rounds: every question lists the options, recommends one and says why, and a factual question offers ways to close the gap, never guessed values.
+Load `evidence-ledger` for lifecycle evidence storage, and `references/capability-map.md` when resolving a source. Retrieve facts before asking; ask what remains per the `pressure-testing` rounds.
 
 Read [templates and source fitness](competitive-templates.md) when weighing sources for a claim, or for the feature matrix, positioning axes, brief structure, citation format and mistakes with reasons.
 

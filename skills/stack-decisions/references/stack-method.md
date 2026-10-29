@@ -41,13 +41,13 @@ Three to five drivers. If two options tie on every driver, the more reversible o
 One card per open layer, written for the owner:
 
 ```markdown
-**Q{n} — {Layer}: {the question in plain words}.**
+❓ **Q{n} · {Layer}**: {the question in plain words}
 Drivers that decide it: {the two or three that matter here}.
 
 - **A. {option}** ({one-line gloss}): gives {what it gives this product}. Costs {money with tag or "unverified, check {page} by {date}"}, {time}, {operational load}. Leaving it later: {what that would take}. We'd switch if {condition}.
 - **B. {option}** (…): …
 - **C. {option}** (…): …
-→ Recommended: **{X}**, because {the deciding driver, with its source}.
+➡️ **{X}**: {the deciding driver, with its source}.
 ```
 
 Rules for the card:
@@ -67,13 +67,13 @@ A solo builder, a B2B tool for agencies, phase 4 of a new product; the pilot is 
 **Round 1** (backend and data constrain everything else, so they go first):
 
 ```markdown
-**Q1 — Backend and data: where does the logic run and where does the data live?**
+❓ **Q1 · Backend and data**: where does the logic run and where does the data live?
 Drivers that decide it: one maintainer, EU residency, three weeks.
 
 - **A. Full-stack web framework + managed Postgres** (one codebase for pages and API; a database someone else runs and backs up): one repo, one language, the most documented path. Costs a small monthly fee for the database, unverified, check the provider's EU pricing page before acceptance. Leaving later: move the database with a dump; the framework stays. We'd switch if background jobs grow past what the host allows.
 - **B. Backend-as-a-service** (database, auth and storage as one hosted product): the fastest first slice; auth comes included. Costs a free tier then a monthly plan, unverified. Leaving later: auth and storage are its own, so about a week to rewrite them. We'd switch if pricing or residency change.
 - **C. Separate API service + database** (the backend as its own program): clean separation, more to run. Costs a second deployment and twice the setup. Leaving later: easy. Only worth it if another client (mobile, partners) will call the API this year, which nothing in PRODUCT.md says.
-→ Recommended: **B**, because it covers data and auth in one EU-hosted service and the three-week driver dominates; A is the fallback if its residency option is not confirmed.
+➡️ **B**: it covers data and auth in one EU-hosted service and the three-week driver dominates; A is the fallback if its residency option is not confirmed.
 ```
 
 Round 2 then asks hosting, background work and the model provider, which depend on the answer; the design kit goes to `design-direction` once the interface layer is settled.

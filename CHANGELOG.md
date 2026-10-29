@@ -2,6 +2,22 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased] - 2026-10-29
+
+### Changed: rounds are dry and show where they stand
+
+`pressure-testing` was run live on a real decision and compared with Pocock's `grilling`; the gaps the run showed were decided in the project thread "Migliorare la skill pressure-testing" (1A 2A 3A 4A, plus a drier visual format).
+
+- **One dry shape for every round.** 🎯 the claim in its strongest form and the assumption it rests on, open to correction; ❓ each question with options as `A option → consequence`; ➡️ one recommendation in one clause; 📍 decided, open, deferred and the next branch; ✍️ how to answer. The recommendation is the strongest option, not the safest.
+- **Three kinds of fact.** A fact the session can retrieve is looked up; a fact only the person holds is one plain line with no options, and the decisions resting on it wait a round; a fact neither side holds gets the ways to close the gap as options.
+- **A plain close.** The resolution table is followed by three lines: what was decided, what is still at risk, what will be tested and by when.
+- **Leaner.** `pressure-testing` from 1,590 to about 1,080 words; the fact-gap template, working ahead and round recording moved to `references/round-formats.md`. The round cards in `stack-decisions`, `design-direction`, `domain-model` and the README use the same markers.
+
+### Added
+
+- `tests/scripts/rounds.test.mjs`: the round template's shape, options with consequences and one-clause recommendations in every round example, plain person-only fact questions, no leftover old recommendation line, and a 1,100-word ceiling on `pressure-testing`.
+- Eval case `grill-a-decision`: "grill me" gets one dry round with the opening claim, at most four questions, no guessed values for a fact only the user knows, and the closing count. Not run yet.
+
 ## [3.1.0] - 2026-10-24
 
 After 3.0.0: what existing projects meet when the rules change, two sessions on one initiative, work that waits on a round, how a model-driven product behaves, the craft of what the person sees, a backend designed, secured and measured before it ships, flows drawn as diagrams the person edits, a video of every feature working, and the value, the stake and the go-to-market of a bet. Analysis and decisions (1B, 3A, 4A) in the project thread "Cosa migliorare ancora" (`cosa-migliorare-ancora-2026-10-21.md`); the backend and the interface bar in "Design eccellente e backend solido" (round 1, recommended options); diagrams and demo videos in "Diagrammi dei flussi e video e2e" (1A with an editable page and Pele, 2A with the video outside the codebase, 3A, 4A). What a person opens, clicks and receives (production from the first slice, a build tried before it is accepted, the project page, the messages a product sends, languages, help) in "Trovare cosa manca davvero a BuilderOS" (`cosa-manca-davvero-2026-10-24.md`, 1A 2A 3A 4A). The value of a bet, the stake and go-to-market in "Decidere cosa costruire con probabilità e GTM" (`probabilita-gtm-scommesse-2026-10-24.md`, 1A 2A 3A 4A).

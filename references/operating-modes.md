@@ -24,7 +24,7 @@ Unknown is not zero. Preserve baseline definition, population, window, capture d
 
 ## Questions and Resource Loading
 
-Read only resources relevant to the selected mode. Retrieve facts before asking. Ask for a material unresolved preference or decision outside delegated authority; make routine choices already entrusted to the agent. Ask in rounds per `pressure-testing` (Rounds): every question lists its options, recommends one and says why; a factual question offers ways to close the gap, never guessed values.
+Read only resources relevant to the selected mode. Retrieve facts before asking. Ask for a material unresolved preference or decision outside delegated authority; make routine choices already entrusted to the agent. Ask in rounds per `pressure-testing` (Rounds): every decision lists its options, recommends one and says why; a fact only the person holds is one plain line; a fact neither side holds offers ways to close the gap, never guessed values.
 
 ## Delegation
 
