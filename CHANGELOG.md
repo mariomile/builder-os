@@ -2,7 +2,7 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased] - 2026-10-29
+## [3.2.0] - 2026-10-29
 
 ### Changed: rounds are dry and show where they stand
 
