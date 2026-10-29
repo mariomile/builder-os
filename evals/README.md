@@ -26,6 +26,7 @@ claude plugin eval . --scaffold --allow-tools Write Edit --runs 2 -j 4 --no-publ
 | `demo-video` | A video of a feature is recorded from a passing end-to-end test, kept out of the repository, with a floor when video is unavailable |
 | `agent-autonomy` | A helpdesk assistant that can refund gets autonomy per action, the ticket named as an injection surface with a mitigation beyond the prompt and a test, and a plan for slow, down or wrong |
 | `going-live` | A new product goes to production from the first slice behind a door, with the production checklist (domain, secrets, email sender, live keys, error tracker, legal pages in Italian) and a preview link per change |
+| `grill-a-decision` | "Grill me" on a decision gets one dry round: the claim and its load-bearing assumption first, at most four questions with options, consequences and one recommendation, a fact only the user knows asked plainly, and a closing count of what is left |
 
 First measurements, 2026-10-21, Claude Code 2.1.306, one or two runs per arm: with the plugin every non-shell case scored 1.0; without it `idea-to-production`, `standalone-prd`, `refuses-to-skip-gates` and `state-written-by-script` scored 0.3 to 0.5. A full two-run pass costs about 2.6 USD at list price. Every failure found in a live run becomes a case.
 

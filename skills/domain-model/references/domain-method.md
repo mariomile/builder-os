@@ -69,13 +69,17 @@ The user plays it before the model is accepted. A rule they change while playing
 Rockys-like issue tracker, phase 4, after the flows. The scenarios raise three rules nobody decided; one round:
 
 ```markdown
-**Q1 — Reopening.** A ticket is done and the bug comes back.
-- **A. Reopen it:** history stays in one place; "done" counts in reports can go down.
-- **B. Open a new linked ticket:** reports stay stable; the history is split across two tickets.
-→ Recommended: **B**, because the phase 2 metric counts tickets closed per week and A would make it move backwards.
+❓ **Q1 · Reopening**: a ticket is done and the bug comes back.
+- **A** Reopen it → history stays in one place; "done" counts in reports can go down
+- **B** Open a new linked ticket → reports stay stable; the history is split across two tickets
 
-**Q2 — Who closes.** …
-**Q3 — Assignee leaves the team.** …
+➡️ **B**: the phase 2 metric counts tickets closed per week and A would make it move backwards.
+
+---
+❓ **Q2 · Who closes** …
+
+---
+❓ **Q3 · Assignee leaves the team** …
 ```
 
 Then the prototype (`design/domain-prototype.html`) with tabs "bug comes back", "assignee leaves", "two reviewers at once". The user plays it, changes Q3 after the second tab, and the model is recorded.

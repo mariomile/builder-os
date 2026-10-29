@@ -1,0 +1,64 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// A round has one dry shape everywhere it is written: the thesis first, each question with options and a one-clause recommendation, the count of what is left last.
+const REPO = new URL('../..', import.meta.url).pathname;
+const read = (f) => fs.readFileSync(path.join(REPO, f), 'utf8');
+const skill = read('skills/pressure-testing/SKILL.md');
+const fences = (s) => [...s.matchAll(/```markdown\n([\s\S]*?)```/g)].map((m) => m[1]);
+const questions = (block) => block.split(/^---$/m).filter((q) => q.includes('❓'));
+
+function walk(dir) {
+  return fs.readdirSync(path.join(REPO, dir), { withFileTypes: true }).flatMap((e) => {
+    const rel = path.join(dir, e.name);
+    return e.isDirectory() ? walk(rel) : rel.endsWith('.md') ? [rel] : [];
+  });
+}
+
+test('the round template opens with the thesis, asks at most four questions and closes with what is left', () => {
+  const round = fences(skill).find((b) => b.includes('❓'));
+  assert.ok(round, 'pressure-testing: no round template');
+  const lines = round.trim().split('\n');
+  assert.match(lines[0], /^🎯 \*\*Thesis:\*\* .+; it rests on .+\. Correct me if I misread it\.$/);
+  assert.match(lines.at(-2), /^📍 .*decided · .*open · .*deferred · next: /);
+  assert.match(lines.at(-1), /^✍️ .*go with the recommendations/);
+  const qs = questions(round);
+  assert.ok(qs.length >= 1 && qs.length <= 4, `${qs.length} questions in the template`);
+});
+
+test('a decision question lists two to four options, each with its consequence, and one recommendation in one clause', () => {
+  const blocks = [skill, read('skills/pressure-testing/references/round-formats.md'), read('skills/domain-model/references/domain-method.md')].flatMap(fences);
+  let decisions = 0;
+  for (const q of blocks.flatMap(questions)) {
+    const options = q.split('\n').filter((l) => /^- \*\*[A-D]\*\* /.test(l));
+    if (!options.length) {
+      assert.ok(!q.includes('➡️'), `a recommendation without options:\n${q}`);
+      continue;
+    }
+    decisions++;
+    assert.ok(options.length >= 2 && options.length <= 4, `${options.length} options:\n${q}`);
+    for (const o of options) assert.match(o, / → \S/, `option without its consequence: ${o}`);
+    const rec = q.split('\n').filter((l) => l.startsWith('➡️'));
+    assert.equal(rec.length, 1, `one recommendation per question:\n${q}`);
+    assert.match(rec[0], /^➡️ \*\*\{?[A-D]\}?\*\*: [^.]+\.$/, `recommendation is one clause: ${rec[0]}`);
+  }
+  assert.ok(decisions >= 2, 'the templates show decision questions');
+});
+
+test('a fact only the person holds is one plain line, with no options to guess from', () => {
+  const plain = fences(read('skills/pressure-testing/references/round-formats.md')).flatMap(questions).filter((q) => !q.includes('- **A**'));
+  assert.ok(plain.length >= 1, 'round-formats shows a plain fact question');
+  for (const q of plain) assert.equal(q.trim().split('\n').length, 2, `a title and one line:\n${q}`);
+});
+
+test('no round in the skills, references or README keeps the old recommendation line', () => {
+  const files = [...walk('skills'), ...walk('references'), 'README.md'];
+  for (const f of files) assert.ok(!/→ Recommended:/.test(read(f)), `${f}: old "→ Recommended:" line; use ➡️ **X**: {reason}`);
+});
+
+test('pressure-testing stays lean: the trim does not grow back', () => {
+  const words = skill.replace(/^---\n[\s\S]*?\n---\n/, '').split(/\s+/).filter(Boolean).length;
+  assert.ok(words <= 1100, `pressure-testing is ${words} words, ceiling 1100; disclose detail into references/`);
+});
