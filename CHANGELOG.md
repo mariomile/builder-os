@@ -2,7 +2,7 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased] - 2026-10-30
+## [3.3.0] - 2026-10-30
 
 ### Changed
 
