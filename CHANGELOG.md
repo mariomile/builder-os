@@ -7,6 +7,7 @@ All notable changes to BuilderOS. Dates are the date the work landed on a branch
 ### Changed
 
 - **Question numbers run on across rounds** (`pressure-testing`): if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question and an answer like `5B` cannot point at two; a question asked again keeps its number. The round template numbers from `Q{n}`, and `tests/scripts/rounds.test.mjs` checks it.
+- **Sessions share a question log** (`pressure-testing`, Across Sessions): a decision takes as many sessions as its frontier needs, and every session reads and extends one log (`grilling.md` in the initiative's folder, `.builderos/grilling/{topic}.md` elsewhere): each Qn, its answer, who, when, its status. Numbering resumes after the last Qn; open branches are the next frontier. Each new answer is checked against every logged answer and recorded decision: a contradiction opens the next round (⚠️, both answers quoted, which one holds), a new branch joins the tree marked with the Qn that opened it, and a replaced answer stays, marked superseded. Formats in `references/round-formats.md`; the state schema lists both files; the word ceiling on `pressure-testing` moves from 1,100 to 1,200 to hold it.
 
 ## [3.2.0] - 2026-10-29
 

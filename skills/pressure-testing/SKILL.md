@@ -11,7 +11,7 @@ An interview primitive any phase can call, against unchallenged premises turned 
 
 Interview relentlessly until you and the person share one understanding of the decision. Map it as a **design tree**: every decision branches into the decisions that hang off it.
 
-**Stop when the frontier is empty:** every branch decided by the person, accepted as a risk, or deferred with a named test and owner, and nothing silently assumed. Agreement is not a stop. A reversible detail is one branch, an irreversible bet grows many; branches past the requested decision are named once as out of scope. Act once the person confirms the understanding is shared.
+**Stop when the frontier is empty:** every branch decided by the person, accepted as a risk, or deferred with a named test and owner, and nothing silently assumed. Agreement is not a stop. Branches past the requested decision are named once as out of scope. Act once the person confirms the understanding is shared.
 
 ## Method
 
@@ -24,7 +24,7 @@ Interview relentlessly until you and the person share one understanding of the d
 
 ## Rounds
 
-A **round** asks the frontier: the open questions whose answers depend on no other open question. At most four, most load-bearing first. **Numbers run on across rounds:** if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question; a question asked again keeps its number. The attack on the load-bearing assumption is a chain, so it runs one question per round beside the independent branches.
+A **round** asks the frontier: the open questions whose answers depend on no other open question. At most four, most load-bearing first. **Numbers run on across rounds and sessions:** if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question. The attack on the load-bearing assumption is a chain, so it runs one question per round beside the independent branches.
 
 Every round has the same dry shape, in the person's language:
 
@@ -52,19 +52,23 @@ The 🎯 line opens the first round and any round after the thesis changes; the 
 
 **Options:** two to four the person could credibly pick, including the ones you would argue against (doing nothing, the cheaper version, the reversal). **Recommend the strongest option, not the safest**, in one clause naming the deciding factor; when none clearly wins, recommend the cheapest way to get the deciding fact. "Yes" accepts the recommendation.
 
-**Facts come in three kinds.** One the session can retrieve (a document, the repository, a search, a query) is yours: get it and state it with its tag, without blocking the questions that do not depend on it. One only the person holds (who uses the product, what a customer said) is one plain line with no options; the decisions resting on it wait a round. One neither side holds gets the ways to close the gap as options, per [round formats](references/round-formats.md). Guessed values as options invent evidence.
+**Facts come in three kinds.** One the session can retrieve (a document, the repository, a search, a query) is yours: get it with its tag, without blocking the other questions. One only the person holds (who uses the product, what a customer said) is one plain line with no options; the decisions resting on it wait a round. One neither side holds gets the ways to close the gap as options, per [round formats](references/round-formats.md). Guessed values as options invent evidence.
 
 **Answering costs one line:** "yes", a code (`1B, 2A, 3 other: …`), free text, or "go with the recommendations", which records every recommended decision in the round as the person's. An answer that maps to no option and decides something hard to undo, or lifts a gate or scope limit, is restated as one option for a letter; otherwise take the most likely reading and say which. A hard-to-reverse, surprising trade-off becomes an ADR in `decisions/` in lifecycle mode; the rest live in the resolution table.
 
 Each answer reshapes the tree: recompute the frontier and ask the next round. Routine reversible choices within delegated scope need no question (operating modes, Questions).
 
+## Across Sessions
+
+A decision takes as many sessions as its frontier needs, sharing one **question log**: each Qn, its answer, who, when, its status. In lifecycle mode it is `grilling.md` in the initiative's folder, so phase 0 and phase 4 answers meet; elsewhere `.builderos/grilling/{topic}.md` where a project exists, or the closing table in the conversation. Read it first: numbering resumes after its last Qn, its open branches are the frontier. Check each new answer against every logged answer and recorded decision: one that **contradicts** an earlier answer becomes the next round's first question (⚠️, both answers quoted, which one holds), and one that **opens a branch** adds it to the tree, marked with the Qn it came from. A replaced answer stays in the log, marked superseded. Format and examples: [round formats](references/round-formats.md).
+
 ## Working Ahead
 
-A waiting round does not stop the work: draft what hangs on each question on its recommended option, each block opened with `**Provisional:**`, with no `**Chosen by:**` and nothing irreversible. The answer keeps a confirmed block (marker removed) or redrafts it; gate E.2 fails while a marker is left. Details and round recording: [round formats](references/round-formats.md).
+A waiting round does not stop the work: draft on the recommended options, each block opened with `**Provisional:**`, nothing irreversible; gate E.2 fails while a marker is left. Details and round recording: [round formats](references/round-formats.md).
 
 ## Tone and Question Banks
 
-Direct, aimed at the reasoning, warm toward the person; a softened question lets the premise survive. Follow the answer, not the script; [phase question banks](references/question-banks.md) hold examples for a deeper review.
+Direct and warm; a softened question lets the premise survive. Follow the answer, not the script; [question banks](references/question-banks.md) hold examples.
 
 ## Output
 
@@ -86,7 +90,8 @@ Only unresolved branches named by the applicable gate block that gate. A mandato
 |---|---|
 | Open with the 🎯 thesis and its load-bearing assumption | Questions on a reading the person never saw |
 | Close every round with the 📍 line | The person guessing how much is left |
-| Continue the numbering from the last round | Restarting at Q1, so `1B` names two questions |
+| Continue the numbering from the last round or session | Restarting at Q1, so `1B` names two questions |
+| Ask a contradiction with an earlier answer first, both quoted | Letting the later answer silently win |
 | Stop at an empty frontier | Stopping when the person agrees |
 | Ask a fact only the person holds in one plain line | Options that guess its value |
 | Recommend the strongest option, in one clause | The safest option, or a paragraph of reasons |
