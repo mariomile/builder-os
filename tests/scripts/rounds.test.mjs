@@ -24,6 +24,8 @@ test('the round template opens with the thesis, asks at most four questions and 
   assert.match(lines[0], /^🎯 \*\*Thesis:\*\* .+; it rests on .+\. Correct me if I misread it\.$/);
   assert.match(lines.at(-2), /^📍 .*decided · .*open · .*deferred · next: /);
   assert.match(lines.at(-1), /^✍️ .*go with the recommendations/);
+  assert.match(round, /❓ \*\*Q\{n\} · /, 'the template numbers from where the last round stopped, not from Q1');
+  assert.match(skill, /Numbers run on across rounds/, 'pressure-testing: numbering across rounds');
   const qs = questions(round);
   assert.ok(qs.length >= 1 && qs.length <= 4, `${qs.length} questions in the template`);
 });

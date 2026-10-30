@@ -2,6 +2,12 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased] - 2026-10-30
+
+### Changed
+
+- **Question numbers run on across rounds** (`pressure-testing`): if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question and an answer like `5B` cannot point at two; a question asked again keeps its number. The round template numbers from `Q{n}`, and `tests/scripts/rounds.test.mjs` checks it.
+
 ## [3.2.0] - 2026-10-29
 
 ### Changed: rounds are dry and show where they stand

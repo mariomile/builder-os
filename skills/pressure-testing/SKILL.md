@@ -5,7 +5,7 @@ description: "Grills a decision before it is relied on: rounds of up to four que
 
 # Pressure Testing
 
-An interview primitive any BuilderOS phase can call. It guards against unchallenged premises elaborated into confident artifacts. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); the ADRs and gate effects below belong to a lifecycle initiative.
+An interview primitive any phase can call, against unchallenged premises turned into confident artifacts. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); the ADRs and gate effects below belong to a lifecycle initiative.
 
 ## The Design Tree
 
@@ -24,7 +24,7 @@ Interview relentlessly until you and the person share one understanding of the d
 
 ## Rounds
 
-A **round** asks the frontier: the open questions whose answers depend on no other open question. At most four, most load-bearing first. The attack on the load-bearing assumption is a chain, so it runs one question per round beside the independent branches.
+A **round** asks the frontier: the open questions whose answers depend on no other open question. At most four, most load-bearing first. **Numbers run on across rounds:** if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question; a question asked again keeps its number. The attack on the load-bearing assumption is a chain, so it runs one question per round beside the independent branches.
 
 Every round has the same dry shape, in the person's language:
 
@@ -32,7 +32,7 @@ Every round has the same dry shape, in the person's language:
 🎯 **Thesis:** {the claim in its strongest form}; it rests on {the load-bearing assumption}. Correct me if I misread it.
 
 ---
-❓ **Q1 · {short title}**
+❓ **Q{n} · {short title}**
 - **A** {option} → {what happens if chosen}
 - **B** {option} → {what happens if chosen}
 - **C** {option} → {what happens if chosen}
@@ -40,12 +40,12 @@ Every round has the same dry shape, in the person's language:
 ➡️ **B**: {the deciding factor, with its source tag when it rests on a fact}.
 
 ---
-❓ **Q2 · {short title}**
+❓ **Q{n+1} · {short title}**
 {One plain line, for a fact only the person holds.}
 
 ---
 📍 {n} decided · {n} open · {n} deferred · next: {the branch the next round opens}
-✍️ `1B, 2 …` or "go with the recommendations"
+✍️ `{n}B, {n+1} …` or "go with the recommendations"
 ```
 
 The 🎯 line opens the first round and any round after the thesis changes; the 📍 line closes every round.
@@ -86,6 +86,7 @@ Only unresolved branches named by the applicable gate block that gate. A mandato
 |---|---|
 | Open with the 🎯 thesis and its load-bearing assumption | Questions on a reading the person never saw |
 | Close every round with the 📍 line | The person guessing how much is left |
+| Continue the numbering from the last round | Restarting at Q1, so `1B` names two questions |
 | Stop at an empty frontier | Stopping when the person agrees |
 | Ask a fact only the person holds in one plain line | Options that guess its value |
 | Recommend the strongest option, in one clause | The safest option, or a paragraph of reasons |
