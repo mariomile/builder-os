@@ -28,7 +28,7 @@ script_line=""
 if command -v node >/dev/null 2>&1; then
   script_command="node $(shell_quote "${PLUGIN_ROOT}/scripts/bos.mjs")"
   script_line="
-**BuilderOS script:** \`${script_command}\` from the user's project root, subcommands (brief, init, new, resume, reframe, jump, cover, upgrade, gate, record, run-check, evidence, review, round, claim, defer-review, watch, pace, roadmap, page, flows, map, doctor, vendor, migrate)."
+**BuilderOS script:** \`${script_command}\` from the user's project root, subcommands (brief, init, new, resume, reframe, jump, cover, upgrade, gate, record, run-check, evidence, review, round, claim, defer-review, watch, pace, roadmap, page, flows, map, grill, doctor, vendor, migrate)."
 fi
 
 root_line="**BuilderOS installation root:** ${PLUGIN_ROOT}

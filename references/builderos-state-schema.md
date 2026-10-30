@@ -21,6 +21,8 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
     {slug}/tickets/NN-{slug}.md  one decision ticket: type, status, blocked by, claimed by, question, resolution
   reviews/
     {YYYY-MM-DD}.md       one product review: levers read, stage verdict, 1-3 proposals, who decided (`skills/builder-os/references/product-review.md`)
+  grilling/
+    {topic}.md            a question log for a decision grilled outside an initiative
   decisions/
     ADR-001-{slug}.md     one file per decision that is hard to reverse (shared across initiatives)
   evidence/               sources cited by PRODUCT.md, DOMAIN.md and TECH.md, same format as an initiative's
@@ -39,6 +41,7 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
       05-build-plan.md    accepted plan, test map, review record
       06-release.md       rollout, instrumentation check, baseline
       07-outcome.md       actual vs. target, decision, watch
+      grilling.md         the question log every pressure-testing session on this initiative shares: each Qn, its answer, who, when, its status (`skills/pressure-testing`)
       questionnaires/
         {recipient}.md    async questions for someone the user cannot interview, phase 1
       cycle-{N}/          artifacts of an earlier cycle of this initiative

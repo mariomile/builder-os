@@ -1,6 +1,6 @@
 # Round formats
 
-Read when a round needs a fact neither side holds, when work proceeds while a round waits, or when commands record rounds. The round shape itself is in `SKILL.md`, Rounds.
+Read when a round needs a fact neither side holds, when a session resumes or checks a question log, when work proceeds while a round waits, or when commands record rounds. The round shape itself is in `SKILL.md`, Rounds.
 
 ## A fact neither side holds
 
@@ -28,6 +28,40 @@ Who on your team opens the product at least once a week, by name?
 ```
 
 The decisions that rest on the answer (which change to make, whether a pilot comes first) go in the next round.
+
+## The question log
+
+One file per decision, shared by every session on it: `grilling.md` in the initiative's folder in lifecycle mode, `.builderos/grilling/{topic}.md` elsewhere in a project. Rows are added, never removed; a status changes.
+
+```markdown
+# Question log: {the decision}
+
+| Q | Question | Answer | By, date | Rests on | Status |
+|---|----------|--------|----------|----------|--------|
+| Q1 | Who uses the product weekly? | Four people on the team, by name | Dana, 2026-10-29 | — | decided |
+| Q2 | Pilot before the change? | B, a one-week pilot first | Dana, 2026-10-29 | Q1 | superseded by Q6 |
+| Q3 | Who runs the pilot week? | A, the team lead | Dana, 2026-10-29 | Q2 | decided |
+| Q5 | Which reports move first? | — | — | Q1 | open, from Q1 |
+| Q6 | Pilot before the change? | A, ship without a pilot | Dana, 2026-11-03 | Q1 | decided, replaces Q2 |
+```
+
+**Rests on** names the earlier answers this one assumed. Status is one of: open (with the Qn it came from, when an answer opened it), decided, deferred with its test, out of scope, superseded by Qn. When Q6 replaced Q2, Q3 rests on an answer nobody holds anymore, so it goes back on the frontier and is asked again under its own number; so is anything resting on Q3. `bos.mjs grill` lists those, and flags a number used twice or out of order, a superseded row whose replacement is missing, a decided row without answer, person and date, and a Rests on that names no row. The session's closing table and three plain lines are written from the log.
+
+## A contradiction
+
+An answer that contradicts a logged answer or a recorded decision opens the next round, numbered on, both sides quoted with their dates:
+
+```markdown
+❓ **Q6 · ⚠️ Contradicts Q2**
+Q2 (2026-10-29): a one-week pilot comes first. Today: ship the change without one.
+- **A** Q2 holds → the change waits for the pilot week
+- **B** Q6 replaces Q2 → Q2 is marked superseded, the pilot leaves the plan
+- **C** Both, on a condition → ship to one team as the pilot, the rest after a week
+
+➡️ **C**: it keeps the date and still puts the change in front of users before everyone.
+```
+
+An answer that opens a branch nobody asked about adds it to the log as open, from the Qn that opened it, and it joins the frontier.
 
 ## Working ahead while a round waits
 

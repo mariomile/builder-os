@@ -35,6 +35,8 @@
 //                                          document, design, prototype, demo and preview; the roadmap regenerates it
 //   node bos.mjs map [slug]                a wayfinding map's destination, decisions so far, frontier, claimed and blocked
 //                                          tickets and the fog (.builderos/maps/{slug}/); every open map without a slug
+//   node bos.mjs grill [name]              a question log's next number, open questions, answers to ask again because
+//                                          what they rest on was replaced, and a broken log; every log without a name
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
 //   node bos.mjs doctor                    check the install, the project memory, every initiative's state, and the
 //                                          conditions added since each passed gate that its artifact does not meet yet
@@ -2461,6 +2463,7 @@ function brief() {
   const rp = roadmapPhases();
   for (const i of all) if (rp.has(i.slug) && rp.get(i.slug) !== (i.state.current_phase ?? 0)) attention.push(`ROADMAP.md shows ${i.slug} at phase ${rp.get(i.slug)}, its state says ${i.state.current_phase}; regenerate with \`bos.mjs roadmap\``);
   for (const m of loadMaps()) { if (!m.done) lines.push(mapLine(m)); attention.push(...m.problems.map((pr) => `map ${m.slug}: ${pr}`)); }
+  for (const l of loadGrillingLogs()) { const gl = grillLine(l); if (gl) lines.push(gl); attention.push(...l.problems.map((pr) => `question log ${l.name}: ${pr}`)); }
   console.log(lines.slice(0, 6).join('\n'));
   if (attention.length) console.log(`Attention: ${attention.join('; ')}.`);
 }
@@ -2518,6 +2521,79 @@ function map() {
     if (m.blocked.length) console.log(`Blocked: ${m.blocked.map((x) => `${named(x)} by ${x.blockers.join(', ')}`).join('; ')}`);
     console.log(`Decided: ${m.decided} · Fog: ${m.fog}`);
     if (m.problems.length) console.log(`Problems: ${m.problems.join('; ')}`);
+  }
+}
+
+// ---------- question logs ----------
+
+// One question log per grilled decision, shared by every session on it (pressure-testing, Across Sessions):
+// grilling.md in an initiative's folder, or .builderos/grilling/{topic}.md. Rows: Q | Question | Answer | By, date | Rests on | Status.
+const qnums = (cell) => (String(cell || '').match(/\bQ\d+\b/gi) || []).map((q) => q.toUpperCase());
+function loadGrillingLogs() {
+  const files = [];
+  const gdir = path.join(BOS, 'grilling');
+  if (fs.existsSync(gdir)) for (const f of fs.readdirSync(gdir).filter((x) => x.endsWith('.md')).sort()) files.push({ name: f.replace(/\.md$/, ''), file: path.join(gdir, f) });
+  for (const i of loadInitiatives()) { const f = path.join(i.dir, 'grilling.md'); if (fs.existsSync(f)) files.push({ name: i.slug, file: f }); }
+  return files.map(({ name, file }) => {
+    const md = read(file);
+    const lines = md.split('\n').filter((l) => /^\s*\|/.test(l));
+    const head = lines.length ? lines[0].replace(/^\s*\||\|\s*$/g, '').split('|').map((c) => c.trim().toLowerCase()) : [];
+    const col = (re) => head.findIndex((h) => re.test(h));
+    const at = { q: col(/^q$/), question: col(/^question/), answer: col(/^answer/), by: col(/^by/), rests: col(/^rests on/), status: col(/^status/) };
+    const problems = [];
+    if (at.q < 0 || at.status < 0) problems.push('no Q and Status columns');
+    if (at.rests < 0) problems.push('no Rests on column, so a superseded answer cannot reopen what rests on it');
+    const rows = tableRows(md).map((r) => ({ q: (r[at.q] || '').toUpperCase(), question: r[at.question] || '', answer: r[at.answer] || '', by: r[at.by] || '', rests: at.rests < 0 ? [] : qnums(r[at.rests]), status: (r[at.status] || '').toLowerCase() })).filter((r) => /^Q\d+$/.test(r.q));
+    const seen = new Set();
+    let last = 0;
+    for (const r of rows) {
+      const n = Number(r.q.slice(1));
+      if (seen.has(r.q)) problems.push(`${r.q} appears twice: one number, one question`);
+      else if (n < last) problems.push(`${r.q} comes after Q${last}: numbers run on, they never restart`);
+      seen.add(r.q); last = Math.max(last, n);
+    }
+    const byQ = new Map(rows.map((r) => [r.q, r]));
+    const superseded = (r) => /^superseded\b/.test(r.status);
+    const decided = (r) => /^decided\b/.test(r.status);
+    for (const r of rows) {
+      const target = (r.status.match(/^superseded by (q\d+)/i) || [])[1];
+      if (superseded(r) && (!target || !byQ.has(target.toUpperCase()))) problems.push(`${r.q} is superseded by ${target ? target.toUpperCase() : 'nothing named'}, which is not in the log`);
+      if (decided(r) && (!nonEmpty(r.answer) || /^[—–-]$/.test(r.answer) || !/\d{4}-\d{2}-\d{2}/.test(r.by))) problems.push(`${r.q} is decided without an answer, who gave it and when`);
+      for (const d of r.rests) if (!byQ.has(d)) problems.push(`${r.q} rests on ${d}, which is not in the log`);
+    }
+    // An answer resting on a replaced answer is reopened, and so is everything resting on it.
+    const stale = new Set();
+    let grew = true;
+    while (grew) {
+      grew = false;
+      for (const r of rows) if (decided(r) && !stale.has(r.q) && r.rests.some((d) => stale.has(d) || (byQ.has(d) && superseded(byQ.get(d))))) { stale.add(r.q); grew = true; }
+    }
+    return {
+      name, file: path.relative(ROOT, file), rows, problems,
+      title: ((md.match(/^#\s*(?:Question log\s*[:—-]\s*)?(.+)$/m) || [])[1] || name).trim(),
+      next: `Q${last + 1}`,
+      open: rows.filter((r) => /^open\b/.test(r.status)),
+      reask: rows.filter((r) => stale.has(r.q)).map((r) => ({ ...r, because: r.rests.filter((d) => stale.has(d) || (byQ.has(d) && superseded(byQ.get(d)))) })),
+    };
+  });
+}
+const reaskText = (l) => l.reask.map((r) => `${r.q} (rests on ${r.because.join(', ')})`).join(', ');
+function grillLine(l) {
+  if (!l.open.length && !l.reask.length) return null;
+  return `Question log ${l.title}: next number ${l.next}; ${l.open.length} open${l.open.length ? ` (${l.open.map((r) => r.q).join(', ')})` : ''}${l.reask.length ? `, ${l.reask.length} to ask again because what they rest on was replaced: ${reaskText(l)}` : ''}.`;
+}
+function grill() {
+  const all = loadGrillingLogs();
+  const name = args[1] && !args[1].startsWith('--') ? args[1] : null;
+  const pick = name ? all.filter((l) => l.name === name) : all;
+  if (name && !pick.length) die(`no question log named ${name} (an initiative's grilling.md or .builderos/grilling/${name}.md)`);
+  if (!pick.length) { console.log('No question log in this project.'); return; }
+  for (const l of pick) {
+    console.log(`# ${l.title} (${l.file})\nNext number: ${l.next}`);
+    console.log(`Open: ${l.open.map((r) => `${r.q} ${r.question}`).join('; ') || 'none'}`);
+    console.log(`Ask again: ${l.reask.length ? l.reask.map((r) => `${r.q} ${r.question} (rests on ${r.because.join(', ')})`).join('; ') : 'none'}`);
+    console.log(`Decided: ${l.rows.filter((r) => /^decided\b/.test(r.status)).length - l.reask.length} · Superseded: ${l.rows.filter((r) => /^superseded\b/.test(r.status)).length}`);
+    if (l.problems.length) console.log(`Problems: ${l.problems.join('; ')}`);
   }
 }
 
@@ -3318,6 +3394,7 @@ else if (cmd === 'context') context();
 else if (cmd === 'evidence') evidenceAdd();
 else if (cmd === 'review') review();
 else if (cmd === 'map') map();
+else if (cmd === 'grill') grill();
 else if (cmd === 'doctor') doctor();
 else if (cmd === 'claim') claim();
 else if (cmd === 'round') round();
