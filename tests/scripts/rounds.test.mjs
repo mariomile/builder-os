@@ -71,7 +71,7 @@ test('sessions share a question log, and a contradiction with an earlier answer 
   assert.match(skill, /\*\*contradicts\*\*[^.]*next round's first question/, 'pressure-testing: contradictions open the next round');
   const log = fences(formats).find((b) => b.startsWith('# Question log'));
   assert.ok(log, 'round-formats: a question log template');
-  assert.match(log, /^\| Q \| Question \| Answer \| By, date \| Status \|$/m);
+  assert.match(log, /^\| Q \| Question \| Answer \| By, date \| Rests on \| Status \|$/m);
   assert.match(log, /superseded by Q\d+/, 'a replaced answer stays, marked superseded');
   assert.match(log, /open, from Q\d+/, 'a branch an answer opened names where it came from');
   const contradiction = fences(formats).flatMap(questions).find((q) => q.includes('⚠️ Contradicts Q'));

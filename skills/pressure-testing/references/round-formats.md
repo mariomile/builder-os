@@ -36,15 +36,16 @@ One file per decision, shared by every session on it: `grilling.md` in the initi
 ```markdown
 # Question log: {the decision}
 
-| Q | Question | Answer | By, date | Status |
-|---|----------|--------|----------|--------|
-| Q1 | Who uses the product weekly? | Four people on the team, by name | Dana, 2026-10-29 | decided |
-| Q2 | Pilot before the change? | B, a one-week pilot first | Dana, 2026-10-29 | superseded by Q6 |
-| Q5 | Which reports move first? | — | — | open, from Q1 |
-| Q6 | Pilot before the change? | A, ship without a pilot | Dana, 2026-11-03 | decided, replaces Q2 |
+| Q | Question | Answer | By, date | Rests on | Status |
+|---|----------|--------|----------|----------|--------|
+| Q1 | Who uses the product weekly? | Four people on the team, by name | Dana, 2026-10-29 | — | decided |
+| Q2 | Pilot before the change? | B, a one-week pilot first | Dana, 2026-10-29 | Q1 | superseded by Q6 |
+| Q3 | Who runs the pilot week? | A, the team lead | Dana, 2026-10-29 | Q2 | decided |
+| Q5 | Which reports move first? | — | — | Q1 | open, from Q1 |
+| Q6 | Pilot before the change? | A, ship without a pilot | Dana, 2026-11-03 | Q1 | decided, replaces Q2 |
 ```
 
-Status is one of: open (with the Qn it came from, when an answer opened it), decided, deferred with its test, out of scope, superseded by Qn. The session's closing table and three plain lines are written from it.
+**Rests on** names the earlier answers this one assumed. Status is one of: open (with the Qn it came from, when an answer opened it), decided, deferred with its test, out of scope, superseded by Qn. When Q6 replaced Q2, Q3 rests on an answer nobody holds anymore, so it goes back on the frontier and is asked again under its own number; so is anything resting on Q3. `bos.mjs grill` lists those, and flags a number used twice or out of order, a superseded row whose replacement is missing, a decided row without answer, person and date, and a Rests on that names no row. The session's closing table and three plain lines are written from the log.
 
 ## A contradiction
 
