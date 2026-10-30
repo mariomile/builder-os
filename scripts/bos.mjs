@@ -69,7 +69,7 @@ const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
 // The BuilderOS release this script belongs to, stamped on every gate record. Kept equal to package.json by a test.
-const VERSION = '3.2.0';
+const VERSION = '3.3.0';
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
