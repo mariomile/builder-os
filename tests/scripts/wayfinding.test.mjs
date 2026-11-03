@@ -44,3 +44,15 @@ test('a ticket without a type is flagged, and a done map leaves the briefing', (
   assert.doesNotMatch(p.run('brief'), /Map Pricing/);
   assert.match(p.run('map'), /No open map/);
 });
+
+test('a reopened decision returns to the frontier and the tickets resting on it are blocked again', (t) => {
+  const p = project(t);
+  p.write('MAP.md', MAP);
+  p.write('tickets/01-who-pays.md', TICKET('01', 'Who pays') + '\n## Superseded\n2026-11-03: agencies pay, not owners; the reseller interviews contradicted it.\n');
+  p.write('tickets/02-price-anchor.md', TICKET('02', 'Price anchor', { type: 'research', blocked: '01' }));
+  p.write('tickets/03-trial-length.md', TICKET('03', 'Trial length', { blocked: '02' }));
+  const out = p.run('map');
+  assert.match(out, /Frontier: 01 Who pays \(grilling\)$/m);
+  assert.match(out, /Blocked: 02 Price anchor \(research\) by 01/);
+  assert.match(out, /Decided: 0/);
+});
