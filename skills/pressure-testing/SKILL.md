@@ -5,11 +5,11 @@ description: "Interviews the person on an idea, plan or decision in numbered rou
 
 # Pressure Testing
 
-The interview every BuilderOS skill runs when it needs the person: a raw idea, a brainstorm, a problem, a choice, a plan about to be relied on. It ends when you both share one understanding and you hold all the context the next step needs. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); ADRs and gate effects belong to a lifecycle initiative.
+Grilling, for every situation BuilderOS meets: a raw idea, a brainstorm, a problem, a choice, a plan about to be relied on. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); ADRs and gate effects belong to a lifecycle initiative.
 
 ## The Design Tree
 
-Interview relentlessly. Map what is open as a **design tree**: every decision or unknown branches into the ones hanging off it. The root depends on what was brought:
+Interview the person relentlessly until you reach a shared understanding. Map it as a **design tree**: every decision branches into the decisions that hang off it. The root follows what was brought:
 
 | Brought | Root | First branches |
 |---|---|---|
@@ -19,19 +19,16 @@ Interview relentlessly. Map what is open as a **design tree**: every decision or
 
 Openers per situation and phase: [question banks](references/question-banks.md). Follow the answers, not the bank.
 
-**Stop when the frontier is empty:** every branch decided by the person, accepted as a risk, deferred with a test and owner, or named once as out of scope; nothing silently assumed. Agreement is not a stop.
-
 ## Rounds
 
-**Read before asking:** project memory, the question log, the repository, the documents the person named. A question they answer leaves the round.
-
-A **round** asks the whole **frontier**: every open question whose prerequisites are settled, most load-bearing first; one resting on another still open waits a round. **Numbers run on across rounds and sessions:** if round 1 ends at Q6, round 2 starts at Q7, so Qn always names one question. One dry shape, in the person's language:
+Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are settled: the questions you can ask now without guessing at answers you have not heard. A round asks the whole **frontier**, numbered, each with your recommended answer; then wait for the person's answers before the next round. **Numbers run on across rounds and sessions:** if round 1 ends at Q6, round 2 starts at Q7, so Qn always names one question.
 
 ```markdown
 🎯 **Thesis:** {the idea or claim in its strongest form}; it rests on {the load-bearing assumption}. Correct me if I misread it.
 
 ---
 ❓ **Q{n} · {short title}**
+{The question, with the context it needs.}
 - **A** {option} → {what happens if chosen}
 - **B** {option} → {what happens if chosen}
 - **C** {option} → {what happens if chosen}
@@ -47,21 +44,19 @@ A **round** asks the whole **frontier**: every open question whose prerequisites
 ✍️ `{n}B, {n+1} …` or "go with the recommendations"
 ```
 
-The 🎯 line opens the first round and any round after the thesis changes; 📍 closes every round.
+The 🎯 line opens the first round and any round after the thesis changes; 📍 closes every round, in the person's language. Options are the two to four the person could credibly pick, including ones you would argue against. **Recommend the strongest option, not the safest**, in one clause naming the deciding factor.
 
-**Options:** two to four the person could credibly pick, including ones you would argue against. **Recommend the strongest option, not the safest**, in one clause naming the deciding factor; when none wins, the cheapest way to get the deciding fact. Ask plainly: a softened question lets the premise survive.
+Each answered round reshapes the tree: settled decisions push the frontier outward and unblock the questions that depended on them. Recompute it and ask the next round. A question resting on another still open in this round belongs to a later round. Answers cost one line: a code (`7B, 8A, 9 other: …`), free text, or "go with the recommendations", which records each recommendation of the round as the person's.
 
-**Facts come in three kinds.** One the session can retrieve is yours: get it with its tag, delegating the search where the host allows, while the rest of the frontier is asked. One only the person holds is one plain line, no options. One neither side holds gets the ways to close the gap as options. Guessed values as options invent evidence.
+## Facts and Decisions
 
-**Answers cost one line:** "yes", a code (`7B, 8A, 9 other: …`), free text, or "go with the recommendations", which records each recommendation of the round as the person's. Recompute the frontier and ask the next round. Routine reversible choices within delegated scope need no question. Unmapped answers, ADRs, provisional work while a round waits, round recording: [round formats](references/round-formats.md).
+Finding facts is your job, never the person's. Read the memory, the question log, the repository and the documents they named before round 1; when a question needs a fact from the environment, delegate the search where the host allows, and ask the rest of the frontier meanwhile: only the questions downstream of it wait. A fact only the person holds is one plain line, with no options and no recommendation, since a guessed value invents evidence. A fact neither side holds gets the ways to close the gap as options, per [round formats](references/round-formats.md).
 
-## Across Sessions
+The decisions are the person's: put each to them and wait. Routine reversible choices within delegated scope need no question.
 
-A topic takes as many sessions as its frontier needs, sharing one **question log**: each Qn with its answer, who, when, the answers it **rests on** and its status (`grilling.md` in the initiative's folder in lifecycle mode, `.builderos/grilling/{topic}.md` elsewhere in a project). Read it first: numbering resumes after its last Qn, its open rows are the frontier. An answer that **contradicts** a logged answer or a decision becomes the next round's first question (⚠️, both quoted); a replaced answer is marked superseded and everything resting on it is asked again. `scripts/bos.mjs grill` checks the logs. Format: [round formats](references/round-formats.md).
+## Done
 
-## Output
-
-A **context brief**: the shared understanding, written so the next step, skill or session continues without asking again. Show it; act once the person confirms it.
+The interview is done when the frontier is empty: every branch visited, decided, accepted as a risk, deferred with a test and owner, or named once as out of scope, and nothing silently assumed. Then write the **context brief**, the shared understanding the next step, skill or session continues from without asking again, and act on it only once the person confirms it.
 
 ```markdown
 ## Context brief: {topic}
@@ -74,13 +69,17 @@ A **context brief**: the shared understanding, written so the next step, skill o
 **Next step:** {what happens now, and who does it}
 ```
 
-Lifecycle mode appends it to the question log and carries it into the phase artifact. Only unresolved branches the applicable gate names block it; a deferred risk leaves a mandatory condition mandatory.
+Only unresolved branches the applicable gate names block it; a deferred risk leaves a mandatory condition mandatory.
+
+## Across Sessions
+
+A topic takes as many sessions as its frontier needs, sharing one **question log**: each Qn with its answer, who, when, the answers it **rests on** and its status (`grilling.md` in the initiative's folder in lifecycle mode, `.builderos/grilling/{topic}.md` elsewhere in a project); the brief is appended to it. Read it first: numbering resumes after its last Qn, its open rows are the frontier. An answer that **contradicts** a logged answer or a decision becomes the next round's first question (⚠️, both quoted); a replaced answer is marked superseded and everything resting on it is asked again. `scripts/bos.mjs grill` checks the logs. Formats: [round formats](references/round-formats.md).
 
 ## Watch for
 
 | Do | Instead of |
 |---|---|
-| Ask the whole frontier, round after round | Rationing questions, or asking ones that rest on open answers |
+| Ask the whole frontier, then wait for the answers | Rationing questions, or acting before the round is answered |
 | Look up what can be looked up | Asking the person for a fact in the repository or the memory |
 | Continue the numbering; ask a contradiction first, both quoted | Restarting at Q1, or letting the later answer silently win |
 | Ask a fact only the person holds in one plain line | Options that guess its value |

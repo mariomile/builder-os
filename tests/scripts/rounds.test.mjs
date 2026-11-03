@@ -29,6 +29,8 @@ test('a round asks the whole frontier: the template opens with the thesis and cl
   assert.match(skill, /asks the whole \*\*frontier\*\*/, 'pressure-testing: every question whose prerequisites are settled is asked, with no cap');
   assert.ok(!/at most four|up to four/i.test(skill), 'pressure-testing: a cap on questions per round came back');
   assert.ok(questions(round).length >= 1, 'the template shows a question');
+  assert.match(skill, /then wait for the person's answers before the next round/, 'pressure-testing: the interview waits for the answers, as grilling does');
+  assert.ok(!/^## Working Ahead/m.test(skill), 'pressure-testing: drafting ahead belongs to the lifecycle, not the interview');
 });
 
 test('a decision question lists two to four options, each with its consequence, and one recommendation in one clause', () => {

@@ -69,7 +69,7 @@ An answer that opens a branch nobody asked about adds it to the log as open, fro
 
 ## Working ahead while a round waits
 
-Open each provisional block with `**Provisional:** drafted on the recommendation of round {n}, Q{k}; not chosen yet`. Work only on the recommended option, and only on branches whose upstream questions are answered. The `**Chosen by:**` line stays empty, nothing provisional goes into `decisions/`, and nothing irreversible runs on it: no exposure, no migration, no message sent outside the project.
+Lifecycle mode only, and outside the interview: the round still waits for the person's answers, while the phase work that does not rest on them goes on as drafts. Open each provisional block with `**Provisional:** drafted on the recommendation of round {n}, Q{k}; not chosen yet`. Work only on the recommended option, and only on branches whose upstream questions are answered. The `**Chosen by:**` line stays empty, nothing provisional goes into `decisions/`, and nothing irreversible runs on it: no exposure, no migration, no message sent outside the project.
 
 When the answer arrives, a confirmed block loses its marker and the decision gets its `**Chosen by:**`; a block whose question went another way is deleted and redrafted on the chosen option before anything else builds on it.
 
