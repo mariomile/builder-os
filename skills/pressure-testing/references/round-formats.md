@@ -1,6 +1,6 @@
 # Round formats
 
-Read when a round needs a fact neither side holds, when a session resumes or checks a question log, when work proceeds while a round waits, or when commands record rounds. The round shape itself is in `SKILL.md`, Rounds.
+Read when a round needs a fact neither side holds, when an answer maps to no option, when a session resumes or checks a question log, when work proceeds while a round waits, or when commands record rounds. The round shape itself is in `SKILL.md`, Rounds.
 
 ## A fact neither side holds
 
@@ -29,6 +29,10 @@ Who on your team opens the product at least once a week, by name?
 
 The decisions that rest on the answer (which change to make, whether a pilot comes first) go in the next round.
 
+## An answer that maps to no option
+
+An answer that decides something hard to undo, or lifts a gate or scope limit, is restated as one option and the person gives it a letter; any other free answer takes its likeliest reading, said in one line. A hard-to-reverse, surprising trade-off becomes an ADR in `decisions/` in lifecycle mode; the rest live in the question log and the brief.
+
 ## The question log
 
 One file per decision, shared by every session on it: `grilling.md` in the initiative's folder in lifecycle mode, `.builderos/grilling/{topic}.md` elsewhere in a project. Rows are added, never removed; a status changes.
@@ -45,7 +49,7 @@ One file per decision, shared by every session on it: `grilling.md` in the initi
 | Q6 | Pilot before the change? | A, ship without a pilot | Dana, 2026-11-03 | Q1 | decided, replaces Q2 |
 ```
 
-**Rests on** names the earlier answers this one assumed. Status is one of: open (with the Qn it came from, when an answer opened it), decided, deferred with its test, out of scope, superseded by Qn. When Q6 replaced Q2, Q3 rests on an answer nobody holds anymore, so it goes back on the frontier and is asked again under its own number; so is anything resting on Q3. `bos.mjs grill` lists those, and flags a number used twice or out of order, a superseded row whose replacement is missing, a decided row without answer, person and date, and a Rests on that names no row. The session's closing table and three plain lines are written from the log.
+**Rests on** names the earlier answers this one assumed. Status is one of: open (with the Qn it came from, when an answer opened it), decided, deferred with its test, out of scope, superseded by Qn. When Q6 replaced Q2, Q3 rests on an answer nobody holds anymore, so it goes back on the frontier and is asked again under its own number; so is anything resting on Q3. `bos.mjs grill` lists those, and flags a number used twice or out of order, a superseded row whose replacement is missing, a decided row without answer, person and date, and a Rests on that names no row. The session's context brief is written from the log and appended to it.
 
 ## A contradiction
 

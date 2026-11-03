@@ -1,8 +1,29 @@
 # Pressure-testing question banks
 
-Use only questions relevant to the material assumption. These are prompts, not a mandatory checklist.
+Openers, not a checklist: ask the ones the tree needs, then follow the answers.
 
+## By situation
 
+**An idea or a brainstorm** (pull out the context first, then widen)
+- Who would notice first if this existed tomorrow, and what would they stop doing?
+- What does done look like: what can someone do that they cannot today?
+- What have you or others tried, and where did it stop?
+- What must not change: a price, a tool, a team, a promise already made?
+- Which version of this would you be embarrassed to ship, and which would you be proud of?
+- What would make you drop it?
+
+**A plan or a decision about to be relied on** (attack the one assumption that holds it up)
+- What has to be true for this to work? Which of those is least checked?
+- What would you see in the first week if it were wrong?
+- What is the cheapest way to find out before committing?
+- If nothing could prove it wrong, it is a preference: is that acceptable here?
+
+**A choice between options** (name what the choice serves before scoring)
+- What is this choice for, and which factor decides it?
+- What does doing nothing cost? What does the cheaper version lose?
+- Which option is hardest to undo, and does that matter here?
+
+## By phase
 
 **Phase 0 — Frame**
 - Who has this problem badly enough to pay, switch, or change behavior?

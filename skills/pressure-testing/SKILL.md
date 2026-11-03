@@ -1,35 +1,34 @@
 ---
 name: pressure-testing
-description: "Grills a decision before it is relied on: rounds of up to four questions, each with options, consequences and a recommendation, until no branch is open. Use when a decision is about to pass a gate, the person asks to be grilled, or branches are open."
+description: "Interviews the person on an idea, plan or decision in numbered rounds with options and a recommendation, until nothing is assumed and the context to go on is shared. Use when asked to grill, brainstorm or stress-test, or before relying on a choice."
 ---
 
 # Pressure Testing
 
-An interview primitive any phase can call, against unchallenged premises turned into confident artifacts. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); the ADRs and gate effects below belong to a lifecycle initiative.
+The interview every BuilderOS skill runs when it needs the person: a raw idea, a brainstorm, a problem, a choice, a plan about to be relied on. It ends when you both share one understanding and you hold all the context the next step needs. Standalone or inside a phase, per [operating modes](../../references/operating-modes.md); ADRs and gate effects belong to a lifecycle initiative.
 
 ## The Design Tree
 
-Interview relentlessly until you and the person share one understanding of the decision. Map it as a **design tree**: every decision branches into the decisions that hang off it.
+Interview relentlessly. Map what is open as a **design tree**: every decision or unknown branches into the ones hanging off it. The root depends on what was brought:
 
-**Stop when the frontier is empty:** every branch decided by the person, accepted as a risk, or deferred with a named test and owner, and nothing silently assumed. Agreement is not a stop. Branches past the requested decision are named once as out of scope. Act once the person confirms the understanding is shared.
+| Brought | Root | First branches |
+|---|---|---|
+| An idea, a brainstorm | What you need to proceed | Who it is for, the problem it removes, what done looks like, constraints, what was tried, what must not change |
+| A plan or decision to rely on | The claim in its strongest form | The load-bearing assumption, what would prove it wrong, the cheapest way to find out |
+| A choice between options | What the choice serves | The deciding factor, the options nobody listed: doing nothing, the cheaper version, the reversal |
 
-## Method
+Openers per situation and phase: [question banks](references/question-banks.md). Follow the answers, not the bank.
 
-1. **Restate the claim in its strongest form**, better than the person put it, and show it in the first round, so a misreading is corrected early.
-2. **Name the load-bearing assumption:** the single belief that, if false, collapses the whole thing.
-3. **Attack that one, plainly.** Peripheral objections change nothing.
-4. **Demand the falsifier:** what would have to be true for this to be wrong? If nothing could, it is a preference; record it as one.
-5. **Price the answer:** the cheapest way to find out. Every unresolved branch exits with a test and a cost, or an explicit decision to proceed without one.
-6. **Log the deferrals.** An unnoticed risk is the failure.
+**Stop when the frontier is empty:** every branch decided by the person, accepted as a risk, deferred with a test and owner, or named once as out of scope; nothing silently assumed. Agreement is not a stop.
 
 ## Rounds
 
-A **round** asks the frontier: the open questions whose answers depend on no other open question. At most four, most load-bearing first. **Numbers run on across rounds and sessions:** if round 1 ends at Q4, round 2 starts at Q5, so Qn always names one question. The attack on the load-bearing assumption is a chain, so it runs one question per round beside the independent branches.
+**Read before asking:** project memory, the question log, the repository, the documents the person named. A question they answer leaves the round.
 
-Every round has the same dry shape, in the person's language:
+A **round** asks the whole **frontier**: every open question whose prerequisites are settled, most load-bearing first; one resting on another still open waits a round. **Numbers run on across rounds and sessions:** if round 1 ends at Q6, round 2 starts at Q7, so Qn always names one question. One dry shape, in the person's language:
 
 ```markdown
-🎯 **Thesis:** {the claim in its strongest form}; it rests on {the load-bearing assumption}. Correct me if I misread it.
+🎯 **Thesis:** {the idea or claim in its strongest form}; it rests on {the load-bearing assumption}. Correct me if I misread it.
 
 ---
 ❓ **Q{n} · {short title}**
@@ -48,51 +47,41 @@ Every round has the same dry shape, in the person's language:
 ✍️ `{n}B, {n+1} …` or "go with the recommendations"
 ```
 
-The 🎯 line opens the first round and any round after the thesis changes; the 📍 line closes every round.
+The 🎯 line opens the first round and any round after the thesis changes; 📍 closes every round.
 
-**Options:** two to four the person could credibly pick, including ones you would argue against (doing nothing, the cheaper version, the reversal). **Recommend the strongest option, not the safest**, in one clause naming the deciding factor; when none clearly wins, recommend the cheapest way to get the deciding fact. "Yes" accepts the recommendation.
+**Options:** two to four the person could credibly pick, including ones you would argue against. **Recommend the strongest option, not the safest**, in one clause naming the deciding factor; when none wins, the cheapest way to get the deciding fact. Ask plainly: a softened question lets the premise survive.
 
-**Facts come in three kinds.** One the session can retrieve (a document, the repository, a search, a query) is yours: get it with its tag, without blocking the other questions. One only the person holds (who uses the product, what a customer said) is one plain line with no options; the decisions resting on it wait a round. One neither side holds gets the ways to close the gap as options, per [round formats](references/round-formats.md). Guessed values as options invent evidence.
+**Facts come in three kinds.** One the session can retrieve is yours: get it with its tag, delegating the search where the host allows, while the rest of the frontier is asked. One only the person holds is one plain line, no options. One neither side holds gets the ways to close the gap as options. Guessed values as options invent evidence.
 
-**Answering costs one line:** "yes", a code (`1B, 2A, 3 other: …`), free text, or "go with the recommendations", which records every recommended decision in the round as the person's. An answer that maps to no option and decides something hard to undo, or lifts a gate or scope limit, is restated as one option for a letter; otherwise take the likeliest reading and say so. A hard-to-reverse, surprising trade-off becomes an ADR in `decisions/` in lifecycle mode; the rest live in the resolution table.
-
-Each answer reshapes the tree: recompute the frontier and ask the next round. Routine reversible choices within delegated scope need no question (operating modes, Questions).
+**Answers cost one line:** "yes", a code (`7B, 8A, 9 other: …`), free text, or "go with the recommendations", which records each recommendation of the round as the person's. Recompute the frontier and ask the next round. Routine reversible choices within delegated scope need no question. Unmapped answers, ADRs, provisional work while a round waits, round recording: [round formats](references/round-formats.md).
 
 ## Across Sessions
 
-A decision takes as many sessions as its frontier needs, sharing one **question log**: each Qn, its answer, who, when, the answers it **rests on**, its status. In lifecycle mode it is `grilling.md` in the initiative's folder, so phase 0 and phase 4 answers meet; elsewhere `.builderos/grilling/{topic}.md` where a project exists, or the closing table in the conversation. Read it first: numbering resumes after its last Qn, its open branches are the frontier. Check each new answer against every logged answer and recorded decision: one that **contradicts** an earlier answer becomes the next round's first question (⚠️, both answers quoted, which one holds), and one that **opens a branch** adds it to the tree, marked with the Qn it came from. A replaced answer stays, marked superseded, and every answer resting on it, directly or through another, is asked again. Where commands run, `scripts/bos.mjs grill` reads the logs: next number, open questions, answers to ask again, a broken log; the briefing shows them. Format: [round formats](references/round-formats.md).
-
-## Working Ahead
-
-A waiting round does not stop the work: draft on the recommended options, each block opened with `**Provisional:**`, nothing irreversible; gate E.2 fails while a marker is left. Details and round recording: [round formats](references/round-formats.md).
-
-## Tone and Question Banks
-
-Direct and warm; a softened question lets the premise survive. Follow the answer, not the script; [question banks](references/question-banks.md) hold examples.
+A topic takes as many sessions as its frontier needs, sharing one **question log**: each Qn with its answer, who, when, the answers it **rests on** and its status (`grilling.md` in the initiative's folder in lifecycle mode, `.builderos/grilling/{topic}.md` elsewhere in a project). Read it first: numbering resumes after its last Qn, its open rows are the frontier. An answer that **contradicts** a logged answer or a decision becomes the next round's first question (⚠️, both quoted); a replaced answer is marked superseded and everything resting on it is asked again. `scripts/bos.mjs grill` checks the logs. Format: [round formats](references/round-formats.md).
 
 ## Output
 
-Ends with the design tree as a resolution table, one row per branch, then three plain lines: what was decided, what is still at risk, what will be tested and by when.
+A **context brief**: the shared understanding, written so the next step, skill or session continues without asking again. Show it; act once the person confirms it.
 
 ```markdown
-| Branch | Status | Evidence / Test | Cost |
-|--------|--------|-----------------|------|
-| ICP is mid-market ops leads | Resolved | 5 of 7 interviews `[interview:P1-P5]` | — |
-| They will pay €200/mo | Deferred | Pricing page smoke test | 2 days |
-| Integration is the blocker | Unresolved | No test designed | — |
+## Context brief: {topic}
+**Goal:** {what this is for, in one line}
+**Decided:** {each decision with its Qn}
+**Facts:** {each established fact with its source tag}
+**Constraints and non-goals:** {what must hold, what this will not do}
+**At risk:** {accepted risks and deferred branches, each with its test, owner and date}
+**Out of scope:** {branches named once and left}
+**Next step:** {what happens now, and who does it}
 ```
 
-Only unresolved branches the applicable gate names block it; a deferred risk leaves a mandatory condition mandatory, and standalone work reports the limitation.
+Lifecycle mode appends it to the question log and carries it into the phase artifact. Only unresolved branches the applicable gate names block it; a deferred risk leaves a mandatory condition mandatory.
 
 ## Watch for
 
 | Do | Instead of |
 |---|---|
-| Continue the numbering from the last round or session | Restarting at Q1, so `1B` names two questions |
-| Ask a contradiction with an earlier answer first, both quoted | Letting the later answer silently win |
-| Reopen every answer resting on a replaced one | Keeping decisions built on an answer nobody holds anymore |
-| Stop at an empty frontier | Stopping when the person agrees |
+| Ask the whole frontier, round after round | Rationing questions, or asking ones that rest on open answers |
+| Look up what can be looked up | Asking the person for a fact in the repository or the memory |
+| Continue the numbering; ask a contradiction first, both quoted | Restarting at Q1, or letting the later answer silently win |
 | Ask a fact only the person holds in one plain line | Options that guess its value |
-| Recommend the strongest option, in one clause | The safest option, or a paragraph of reasons |
-| Decide on an explicit answer or "go with the recommendations" | Applying recommendations nobody accepted |
-| Draft ahead on the recommendation, marked provisional | Idling, or writing the recommendation in as decided |
+| Stop at an empty frontier, then write the brief | Stopping when the person agrees |

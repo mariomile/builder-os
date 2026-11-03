@@ -3098,7 +3098,7 @@ function round() {
   const answers = opt('--answered');
   if (asked !== undefined) {
     const q = Number(asked);
-    if (!Number.isInteger(q) || q < 1 || q > 4) die('--asked takes the number of questions in the round, 1 to 4');
+    if (!Number.isInteger(q) || q < 1) die('--asked takes the number of questions in the round, 1 or more');
     if (openRound(s)) die('a round is already waiting for an answer: record it with --answered first');
     s.history.push({ at: now, event: 'round_asked', phase, questions: q });
   } else if (answers !== undefined) {

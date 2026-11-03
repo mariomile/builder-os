@@ -2,6 +2,19 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+### Changed
+
+- **`pressure-testing` is the one interview, for every situation.** It grills a raw idea or a brainstorm, a problem, a choice and a plan about to be relied on, not only a decision: the root of the design tree follows what was brought (what the next step needs to know, the claim and its load-bearing assumption, or what the choice serves), and `references/question-banks.md` gains openers per situation beside the ones per phase.
+- **Each round asks the whole frontier**, as in Pocock's grilling: every question whose prerequisites are settled, with no cap of four, so the interview asks as much as the tree needs in fewer turns. `bos.mjs round --asked` takes any count from 1. Facts in the repository, the memory or the named documents are read before the first round, and a search runs while the rest of the frontier is asked.
+- **It ends on a context brief** instead of a resolution table: goal, decisions with their Qn, facts with their tags, constraints and non-goals, risks with tests and owners, out of scope, next step. Written so the next step, skill or session continues without asking again; in lifecycle mode it is appended to the question log.
+- **Leaner.** `SKILL.md` from about 1,190 to about 970 words; unmapped answers and ADRs moved to `references/round-formats.md`. The ceiling in `tests/scripts/rounds.test.mjs` drops to 1,000 words, and a new test checks the three roots, the openers per situation and the brief.
+
+### Added
+
+- Eval case `brainstorm-an-idea`: "let's brainstorm" on a raw idea gets an interview that pulls out the context first, with no plan written yet. `grill-a-decision` now checks for the whole frontier instead of a cap of four. Neither run yet.
+
 ## [3.3.0] - 2026-10-30
 
 ### Changed
