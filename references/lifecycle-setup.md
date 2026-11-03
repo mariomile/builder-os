@@ -40,7 +40,7 @@ Not every request needs all eight phases. Before the first phase runs, classify 
 |-------|-------------|------|------|
 | `spike` | "Is X worth doing?", "does anyone actually have this problem?" The output is an answer, not a product | Phases 0 and 1 | The phase 1 verdict is the answer. Status `answered`, pipeline stops |
 | `change` | A modification to a product that exists whose solution is already decided: a bug with an obvious correct behavior, agreed debt, a compliance rule, a contractual capability, a decided removal, an exactly specified small request | Mandate check, then phases 4 to 6; phase 7 only if the release sets an outcome review | Phase 6, or phase 7 when it measures something |
-| `internal` | A tool whose users are the builder or their own team, by name: the job is known, how to do it is open, nobody outside uses or pays for it | Need check, then phases 3 to 7 | Phase 7: does the team use it, did the time drop |
+| `internal` | A tool whose users are the builder or their own team, by name: the job is known, how to do it is open, nobody outside uses or pays for it | Need check, then phases 3 to 6; phase 7 only if the release sets an outcome review | Phase 6, or phase 7 when it measures whether the time dropped |
 | `feature` | A change to a product that exists, whose `PRODUCT.md` already carries evidence for the problem and the ICP, and where something is still to be chosen: whether it is worth it, which way to solve it | Coverage check, then phases 2 to 7 | Phase 7, like any pipeline |
 | `product` | A new product, a new segment, or anything whose problem has never been evidenced | Phases 0 to 7 | Phase 7 |
 

@@ -131,12 +131,14 @@ test('phase 3 on the internal track values options in time and steps around mone
   assert.match(g.detail['3.15'], /not building/);
 });
 
-test('ship and learn on the internal track skip the launch and its read', () => {
+test('ship and learn on the internal track skip the launch and its read, and close at ship with no review', () => {
   const root = project();
   start(root);
   write(root, 'proposals', '06-release.md', '# Release\n');
   const six = gate(root, 6);
-  for (const id of ['6.11', '6.12', '6.14']) assert.equal(six.by[id], 'skip', id);
+  for (const id of ['6.2', '6.3', '6.5', '6.11', '6.12', '6.14']) assert.equal(six.by[id], 'skip', id);
+  write(root, 'proposals', '06-release.md', '# Release\n\n## Outcome review\n**Owner:** Mario · **Date:** 2026-12-15\n');
+  assert.equal(gate(root, 6).by['6.5'], 'pass', 'a release that sets a review measures it');
   assert.match(six.detail['6.4'], /Users/);
   write(root, 'proposals', '07-outcome.md', '# Outcome\n');
   assert.equal(gate(root, 7).by['7.8'], 'skip');

@@ -38,7 +38,7 @@ Initiatives answer whether one bet worked; the product review decides which bet 
 
 - A passed or explicitly overridden gate advances the initiative; a failed condition stays visible.
 - A change closes after phase 6 unless its release set an outcome review. Its mandate covers phases 0 to 3; a real choice between solutions found later upgrades it to feature.
-- An internal tool (the builder or their team are the users) skips the market, not the rigor: options valued in time against not building, then spec, build, release and a phase 7 that asks whether the team uses it and the time dropped.
+- An internal tool (the builder or their team are the users) skips the market, not the rigor: options valued in time against not building, then spec, build and release; like a change, it closes at phase 6 unless the release sets an outcome review.
 - A spike closes after phase 1 with its problem verdict. A KILLED problem stops the lifecycle; continuing takes an explicit track or new-cycle decision.
 - RELEASE READY means the preparation exists. SHIPPED takes observed, authorized exposure with its environment, version, actual timestamp and source-backed verification; a planned date stays in SHIP.
 - A round that waits on the person does not stop the work: draft ahead on the recommended options, marked provisional (`pressure-testing`, Working Ahead); gate E.2 keeps provisional work from passing.

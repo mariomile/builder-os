@@ -2032,19 +2032,19 @@ function gateConditions(n, ctx) {
     const exposure = section(a, 'Exposure verification');
     const exposed = field(exposure, 'Exposed at');
     // A change with no outcome to measure carries no baseline, measurement or review; it closes at phase 6.
-    const unmeasured = ctx.track === 'change' && !bh && section(a, 'Measurement') === null && section(a, 'Outcome review') === null;
-    if (unmeasured) skip('6.2', 'change track with no outcome to measure');
+    const unmeasured = ['change', 'internal'].includes(ctx.track) && !bh && section(a, 'Measurement') === null && section(a, 'Outcome review') === null;
+    if (unmeasured) skip('6.2', `${ctx.track} track with no outcome to measure`);
     else pass('6.2', ts.length >= 1 && validTimestamp(ts[0]) && validTimestamp(exposed) && Date.parse(ts[0]) < Date.parse(exposed) && brows.length > 0, `baseline captured ${ts[0] || 'missing'}, actual exposure ${exposed || 'missing'}`);
     const observed = field(exposure, 'Verification');
     pass('6.6', /^verified$/i.test(field(exposure, 'Status') || '') && validTimestamp(exposed) && Date.parse(exposed) <= Date.now() && nonEmpty(field(exposure, 'Environment')) && nonEmpty(field(exposure, 'Version')) && observed && hasTag(observed, ['data', 'doc']) && observed.replace(TAG_RE, '').trim().length > 10, 'verified exposure requires actual non-future timestamp, environment, version and observed result with data/doc evidence');
     judge('6.7', 'does the exposure evidence demonstrate the intended behavior available to users in the stated environment/version?');
-    if (unmeasured) skip('6.3', 'change track with no outcome to measure');
+    if (unmeasured) skip('6.3', `${ctx.track} track with no outcome to measure`);
     else pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
     if (ctx.track === 'internal') judge('6.4', 'internal: do the people named under **Users:** know what changed and where to look when it breaks? A short note is enough');
     else judge('6.4', `are the release notes written for users, not a commit list, and does **Help:** say where users find answers and what changed there?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-    if (unmeasured) skip('6.5', 'change track with no outcome review: the initiative closes here');
+    if (unmeasured) skip('6.5', `${ctx.track} track with no outcome review: the initiative closes here`);
     else pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
     const authorized = field(exposure, 'Authorized by');
     const authWords = nonEmpty(authorized) ? personWords(authorized, 'Authorized by') : { ok: false, problem: 'Exposure verification names nobody under "**Authorized by:**"' };
@@ -3010,8 +3010,8 @@ function record(which) {
   } else if (verdict) die('--verdict is only valid for phase 1 or 7');
   if (n !== 7 && rawReentry !== undefined) die('--reenter is only valid for phase 7');
   const due = opt('--review-due');
-  // A change with no outcome review closes at phase 6; one that set a review goes to phase 7 like any other.
-  const closesAtShip = n === 6 && s.track === 'change' && due === undefined && section(artifact, 'Outcome review') === null;
+  // A change or an internal tool with no outcome review closes at phase 6; one that set a review goes to phase 7 like any other.
+  const closesAtShip = n === 6 && ['change', 'internal'].includes(s.track) && due === undefined && section(artifact, 'Outcome review') === null;
   if (n === 6 && !closesAtShip && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
   if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();

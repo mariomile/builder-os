@@ -13,7 +13,7 @@ Read when running gate 7. E.1, E.2 and the procedure in `SKILL.md` apply too. Re
 | 7.7 | A person made the decision | `**Chosen by:**` under the decision names who chose keep, iterate or kill, from their answer; the agent compares and recommends |
 | 7.8 | The go-to-market is read (feature and product tracks) | `## Go-to-market read` (`go-to-market`): a row per channel with a tagged result, or "unavailable" with its question; on the product track `**Stage:**`, the `PRODUCT.md` stage with the Stage exit met or missed (Signal, Resonance and Orbit name the same stages). Skipped on the change track |
 
-**Internal track.** The target is `00-request.md` → **Done when:**; 7.8 is skipped. KILL is a real outcome: an internal tool nobody opens after two weeks goes, and the routine it replaced comes back.
+**Internal track.** Phase 7 runs only when the release set an outcome review. The target is `00-request.md` → **Done when:**; 7.8 is skipped. KILL is a real outcome: an internal tool nobody opens after two weeks goes, and the routine it replaced comes back.
 
 Script-decided: 7.1, 7.2, 7.3, 7.5, 7.6, 7.7, 7.8. Model-judged: 7.4. The emitted `checked_by` split is authoritative.
 

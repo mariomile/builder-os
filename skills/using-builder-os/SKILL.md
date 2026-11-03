@@ -39,7 +39,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Whether BuilderOS is installed and set up right, what an upgrade left owed | `scripts/bos.mjs doctor` where commands run, relayed; otherwise read the install and memory per [state and session briefing](../../references/builderos-state-schema.md) |
 | What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
-| A tool for the builder or their own team, where what is wanted is known and how is not ("the customer is me") | `builder-os` on the `internal` track: need check, then options, spec, build, release, outcome |
+| A tool for the builder or their own team, where what is wanted is known and how is not ("the customer is me") | `builder-os` on the `internal` track: need check, then options, spec, build, release; outcome review only if the release sets one |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
 | Synthesize supplied research | `discovery-methods` |
