@@ -2,6 +2,18 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+### Changed: the project page answers four questions
+
+Decided in the project thread "Valutare una pagina di stato del progetto" (1A 2A 3A). An outside project template keeps a hand-written state file; BuilderOS keeps its generated page and takes the shape.
+
+- **Four sections, in the order a person acts on them.** `bos.mjs page` now writes Open decisions, In progress, Next and Done instead of one card per initiative. The page used to say "Nothing" under Waiting on you while the briefing listed open questions.
+- **Open decisions with what each one blocks.** A table of everything waiting on a person: the open round, the conditions only a person can meet (a first payment, accepting the plan, trying the build), every open question in a question log and every answer to ask again, and every decision past its Revisit when date. Each row names the initiative and phase it blocks. Technical warnings stay in the briefing.
+- **Next** lists each open initiative's next step, the same one the briefing gives, then the roadmap's Next table and Later list. **Done** lists closed initiatives with how they ended and what was learned, and the decisions taken, newest first.
+- **`.builderos/STATUS.md`**, the same model rendered in Markdown, readable on the code host, on a phone and by a new session. Generated with the page; nobody edits it.
+- `bos.mjs round` regenerates both, so an open round shows up without waiting for the next roadmap run. `tests/scripts/status-page.test.mjs` covers it.
+
 ## [3.3.0] - 2026-10-30
 
 ### Changed
