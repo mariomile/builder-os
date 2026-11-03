@@ -180,7 +180,7 @@ If the BuilderOS skills are not loaded in this session, say so in one line and k
 ## Now
 | Initiative | Track | Phase | Bet in one line | Folder |
 |------------|-------|-------|-----------------|--------|
-| {name} | {spike/change/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
+| {name} | {spike/change/internal/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
 
 ## Next
 | Initiative | Why next | What must be true first |
@@ -380,10 +380,10 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 | `status` | `open` \| `paused` \| `closed` | `closed` after phase 7 closes the cycle, a phase 1 kill, or a spike's answer |
 | `review_due` | date or `null` | Set at phase 6 from the outcome review date (gate 6.5). The briefing flags it once passed |
 | `mode` | `full` \| `lite` | Gate strictness. See `gate-checks` |
-| `track` | `spike` \| `change` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
+| `track` | `spike` \| `change` \| `internal` \| `feature` \| `product` | How much of the pipeline this work needs. Set at init, announced to the user, only ever upgraded. Absent means `product`, so files written before the field existed stay valid. See `builder-os`, section Tracks |
 | `current_phase` | `0`–`7` | Where the pipeline stands |
 | `cycle` | `1`+ | Increments when phase 7 explicitly re-enters any integer phase 0–6 |
-| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline at the phase it is in (`record N --kill`, or a phase 1 KILLED verdict). `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check, or the `change` track skipped because its mandate passed the mandate check. `answered` ends a `spike` at phase 1 |
+| `phases.N.status` | `pending` \| `in_progress` \| `passed` \| `killed` \| `covered` \| `answered` | `killed` ends the pipeline at the phase it is in (`record N --kill`, or a phase 1 KILLED verdict). `covered` marks a phase the `feature` track skipped because `PRODUCT.md` passed the coverage check, or the `change` track skipped because its mandate passed the mandate check, or the `internal` track skipped because its need passed the need check. `answered` ends a `spike` at phase 1 |
 | `phases.N.verdict` | phase 1: `validated` \| `killed` \| `reshaped`; phase 7: `keep` \| `iterate` \| `kill` | Must match the artifact. `answered` is a spike phase status, never a discovery verdict |
 | `gate.failed_conditions` | condition ids | Populated even when overridden: this is the audit trail |
 | `gate.waived` | condition ids | The conditions an override waived by name; a jumped phase records `not run` |
@@ -401,9 +401,9 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 1. **Every phase reads and writes the active initiative.** "`current_phase`", "phase 1 passed" and every other state check in a skill or command means the active initiative's `state.json`, resolved per Active Initiative. A phase never writes another initiative's file.
 2. **`state.json` is append-oriented.** `history` is never edited or truncated. Correcting a mistake means adding an event, not deleting one.
 3. **A phase owns its artifact and gate result.** Only the lifecycle recorder sets the next phase in progress, or resets phase entries when a new cycle starts. Agents never rewrite another phase's artifact.
-4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check and the `change` track's mandate check are gates too: they are how a phase becomes `covered`. A `change` with no outcome review closes at phase 6. A forced move goes through `jump`, which records the jumped phases as overridden, not run, and through `reframe`, which starts a new cycle.
+4. **`current_phase` advances only through a gate.** Passed or overridden. The `feature` track's coverage check, the `change` track's mandate check and the `internal` track's need check are gates too: they are how a phase becomes `covered`. A `change` with no outcome review closes at phase 6. A forced move goes through `jump`, which records the jumped phases as overridden, not run, and through `reframe`, which starts a new cycle.
 5. **A `killed` phase stops the pipeline.** `/bos` reports the kill and offers to start a new cycle from phase 0 with the learning carried forward.
-6. **A track only goes up.** `change` → `feature` → `product`; an answered `spike` starts a new initiative instead. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
+6. **A track only goes up.** `change` → `feature` → `product`, and `internal` → `product` (a change on an internal tool goes to `internal`); an answered `spike` starts a new initiative instead. Never down: complexity found mid-pipeline does not un-find itself. An upgrade re-enters the earliest phase the new track requires and keeps every artifact already written.
 7. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
 8. **Decision and re-entry agree.** Phase 7 `ITERATE` requires `Re-enters at: phase N` (N = 0–6) and matching `--reenter N`; `KILL` requires `none` and no re-entry; `KEEP` permits either form. A spike always closes after gate 1 with status `answered` and its actual verdict retained. A closed initiative cannot record another gate; coverage cannot reset a feature past phase 0.
 9. **Deferred reviews do not invent decisions.** At phase 7, use `defer-review --review-due YYYY-MM-DD --reason "observed evidence gap"` with a future date. It appends `review_deferred`, keeps phase 7 in progress, sets review_due, and records no KEEP/ITERATE/KILL verdict.

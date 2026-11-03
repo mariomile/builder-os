@@ -20,4 +20,6 @@ Read when running gate 3. E.1, E.2 and the procedure in `SKILL.md` apply too.
 | 3.14 | The stake is declared and the build fits it | `## Bet size`: `**Door:**` one-way or two-way, `**Confidence:**` in percent, `**Appetite:**` in days, `**If wrong:**`. The build cost in `## Cheapest test` is within the appetite; a one-way door cannot skip its test as cheap and reversible |
 | 3.15 | The evidence matches the stake | Model-judged: the evidence behind the bet meets the bar for the stage and the door (`business-case`, The evidence bar), or the person made a judgment call knowingly, recorded with its reasoning and a revisit date |
 
+**Internal track.** The value is time, not money: `## Value` is a table (Option / Hours saved per week / Days to build / Source) with a row per option (lite two, full three), each with both numbers and a tag (an estimate counts), and `**Not building:**`, the best way of not building it (an existing tool, a script, a routine), what it costs and why it loses (`business-case`, Internal Tools). 3.7, 3.8, 3.10, 3.11 and 3.13 are skipped; 3.15 asks whether the appetite fits the hours saved and why not building lost.
+
 Script-decided: 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.9 (model-judged when a judgment replaces the number), 3.10, 3.11, 3.12, 3.13, 3.14. Model-judged: 3.1, 3.8, 3.15. The emitted `checked_by` split is authoritative.

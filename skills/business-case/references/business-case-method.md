@@ -83,6 +83,22 @@ An invoicing tool for freelancers has 400,000 active accounts. It considers a pa
 - **Doing costs less than estimating**: for small, reversible decisions, decide now and measure after. Estimation pays where being wrong is expensive.
 - **Quality is the doubt**: "will it be good enough?" is answered by an experiment.
 
+## Internal tools
+
+When the builder is the user (the `internal` track), there is no revenue to estimate: the value is the time the tool gives back, against the time it takes to build and keep. The mistake this guards against is building what an hour of configuration would have done, so one line is always the best way of not building it: a tool already on the market, a script, a shared template, a routine.
+
+```markdown
+## Value
+| Option | Hours saved per week | Days to build | Source |
+|---|---|---|---|
+| Script fills the proposal template | 5 | 3 | `[estimate:mario-timing]` |
+| Sheet formulas, pasted into the doc | 2 | 1 | `[estimate:mario-timing]` |
+
+**Not building:** a proposal tool on the market, about €40 a month, cannot read the three sheets, so the copying stays
+```
+
+Hours saved come from `00-request.md` → **Today** (minutes per run times runs a week) minus what the option leaves by hand. A day to build is about eight hours of the builder's time, so an option pays back after days × 8 ÷ hours saved a week, in weeks; one that does not pay back well inside the months the tool will be used loses to not building. Upkeep counts: a tool that breaks every month when a sheet changes costs its fixing time. The appetite in `## Bet size` is set from the same arithmetic.
+
 ## The experiment card
 
 An experiment has three parts: a **question** written as a number ("does it exceed 4.5%?"), a **measure** (the exact event counted: an activation with a card on file, a payment, a second use within seven days) and a **decision written before the data**, because afterwards it moves to wherever is convenient.

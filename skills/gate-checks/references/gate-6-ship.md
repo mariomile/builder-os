@@ -25,6 +25,8 @@ Script-decided: 6.2, 6.3, 6.5, 6.6, 6.8, 6.9, 6.10, 6.11, 6.12, 6.13, 6.14. Mode
 
 **Change track.** A change whose `06-release.md` has no Baseline, Measurement or Outcome review section skips 6.2, 6.3 and 6.5, records without `--review-due`, and closes at phase 6. A change that sets an outcome review runs 6.2 to 6.5 and goes to phase 7. The emitted `checked_by` split is authoritative.
 
+**Internal track.** 6.11, 6.12 and 6.14 are skipped: the users are the team, nobody pays, nothing is announced outside. 6.4 asks whether the people named under **Users:** know what changed and where to look when it breaks. The baseline is `00-request.md` → **Today:**, measured again before exposure.
+
 **Recording.** Phase 6 passes the artifact's outcome review date with `--review-due`.
 
 A ready release stays at phase 6 and emits `RELEASE READY`. `SHIPPED` requires the exposure conditions.

@@ -11,8 +11,8 @@ Dispatch the `builder-os:solution-architect` agent to run BuilderOS phase 3.
 
 ## Steps
 
-1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 2 must have passed or been overridden. Without a selected opportunity and a success metric there is nothing to generate options against.
-2. **Read `.builderos/initiatives/{initiative}/02-definition.md` and `00-frame.md`.** The chosen opportunity, the metric with its baseline and target, and the riskiest assumption.
+1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 2 must have passed, been overridden or been `covered`. Without a selected opportunity and a success metric there is nothing to generate options against.
+2. **Read `.builderos/initiatives/{initiative}/02-definition.md` and `00-frame.md`.** The chosen opportunity, the metric with its baseline and target, and the riskiest assumption. On `internal`, pass `00-request.md` instead.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -21,7 +21,7 @@ Dispatch `builder-os:solution-architect` with this context:
 ```text
 Operating mode: [detected mode]
 Resolved capabilities: [per references/capability-map.md, or 'none beyond files']
-Pipeline state: initiative [slug], phase 3, cycle [C], mode [full|lite]
+Pipeline state: initiative [slug], phase 3, cycle [C], mode [full|lite], track [track]
 
 PRODUCT.md:
 [content]
