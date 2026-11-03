@@ -1,6 +1,7 @@
 ---
 name: bos-learn
 description: "Phase 7 — measure the shipped change against its target and its kill criteria, decide keep, iterate or kill, and record the learning"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
@@ -8,8 +9,6 @@ description: "Phase 7 — measure the shipped change against its target and its 
 **Dispatch:** On Claude Code use the namespaced profiles below, foreground (`run_in_background: false`), and await completion before the next dispatch or gate. On any other host resolve `subagent.dispatch`: pass the skill and context to an available generic agent, or run inline. Load outcome-review; qualify skill names with `builder-os:` on Claude.
 
 Run BuilderOS phase 7, orchestrating the analysis agents against the phase 2 target and the phase 3 kill criteria.
-
-Use existing specialists against recorded commitments.
 
 ## Steps
 

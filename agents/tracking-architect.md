@@ -1,6 +1,6 @@
 ---
 name: tracking-architect
-description: "Designs event taxonomies, funnels and dashboard specifications for a feature, and audits instrumentation that already exists. Use when a feature needs tracking designed before it ships, or when existing analytics cannot answer the questions being asked of it."
+description: "Designs event taxonomies, funnels and dashboard specs for a feature, and audits existing instrumentation."
 model: inherit
 ---
 

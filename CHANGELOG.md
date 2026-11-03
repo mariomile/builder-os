@@ -2,6 +2,17 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+### Changed: fewer skills, a smaller fixed context
+
+Decided in the project thread "Ridurre le skill e ottimizzare i token" (2026-11-03): fewer skills that each own a whole job, and less context loaded when it is not needed, measured before and after with the eval suite.
+
+- **34 skills become 24.** Each absorbed skill keeps its procedure as a mode of the skill that already ran beside it, in that skill's `references/`, with its own marker: `research-methods` now synthesizes (was `discovery-methods`); `ux-architecture` lets the person choose the look (was `design-direction`); `system-design` decides the stack (was `stack-decisions`); `tracking-standards` designs and reads experiments (was `experiment-methodology`, its sample-size script moved with it); `spec-writing` writes product communication (was `pm-artifacts`) and the no-interview synthesis (`to-spec`); `delivery-discipline` publishes tickets (`to-tickets`) and records the demo (was `feature-demo`); `release-ops` sets up production from the first slice (was `production-setup`); `agents-md` runs the retro (`retro`). The three names you called directly still route by name. `evidence-ledger` stays its own skill: folded into `gate-checks` it would load the whole gate method every time a claim is written.
+- **The always-loaded listing halves**, from 14,425 to about 7,500 characters of descriptions in every session: commands carry `disable-model-invocation` (typed by the person, out of the model's listing), agent descriptions are one line of at most 130 characters, ten skill descriptions are gone. `tests/scripts/token-budget.test.mjs` holds the budget.
+- **The per-message line repeats only when it changed.** Inside a project the hook sends the full standing-conditions line on the first message of a session, after every briefing (start, resume, compaction) and whenever the phase, the gate, a claim or an override changes; otherwise a one-line reminder of about 200 characters instead of about 520.
+- **The state schema splits in two.** `references/builderos-state-schema.md` keeps the layout, `state.json`, the rules and the session briefing (5,747 → 4,085 words); the `ROADMAP.md`, `TECH.md`, `DOMAIN.md` and ADR formats move to `references/memory-templates.md`, read only when one of those files is written.
+
 ## [3.3.0] - 2026-10-30
 
 ### Changed

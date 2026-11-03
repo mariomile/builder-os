@@ -1,6 +1,7 @@
 ---
 name: bos
 description: "BuilderOS hub — reads pipeline state and routes to the right phase"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

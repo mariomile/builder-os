@@ -1,6 +1,7 @@
 ---
 name: bos-frame
 description: "Phase 0 — turn an idea or complaint into a stated problem, a named ICP and a falsifiable riskiest assumption"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

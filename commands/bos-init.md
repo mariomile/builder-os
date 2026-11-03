@@ -1,6 +1,7 @@
 ---
 name: bos-init
 description: "Start a BuilderOS project or a new initiative in one: PRODUCT.md, DOMAIN.md, TECH.md, the roadmap and the .builderos/ state directory"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

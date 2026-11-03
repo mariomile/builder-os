@@ -98,7 +98,7 @@ An experiment has three parts: a **question** written as a number ("does it exce
 | Sample | About 520 accounts per group to tell 4.5% from 1.5% |
 | Still to prove | Whether subscribers stay 16 months, whether it moves upgrades to the higher plan |
 
-**Sample size.** People per group ≈ 16 × p × (1 − p) ÷ d², with p the expected conversion and d the difference to detect. The 16 is 2 × (1.96 + 0.84)²: a false alarm at most once in 20, a true difference seen 8 times in 10. Halving the difference quadruples the people. From 1% to 2%: 16 × 0.02 × 0.98 ÷ 0.0001 ≈ 3,100 per group. If the traffic of two weeks cannot reach the number, change the experiment or skip it. `experiment-methodology` has the exact calculation.
+**Sample size.** People per group ≈ 16 × p × (1 − p) ÷ d², with p the expected conversion and d the difference to detect. The 16 is 2 × (1.96 + 0.84)²: a false alarm at most once in 20, a true difference seen 8 times in 10. Halving the difference quadruples the people. From 1% to 2%: 16 × 0.02 × 0.98 ÷ 0.0001 ≈ 3,100 per group. If the traffic of two weeks cannot reach the number, change the experiment or skip it. `tracking-standards` (experiments) has the exact calculation.
 
 **Worth running** when the probability the result changes the decision × the value of the change > the cost of the experiment + the cost of the delay. Run it when building is long, costly or irreversible, the load-bearing assumption is an estimate, and the threshold falls between P14 and P86. Skip it when building is cheap and reversible, even P14 says proceed, strong precedents exist on similar products, or the measure would be unreliable.
 

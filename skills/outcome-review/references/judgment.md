@@ -89,7 +89,7 @@ This is why overrides stay visible rather than disappearing once a phase passes.
 | "The onboarding change did not help retention" | "This onboarding change did not shift retention in the measured window; acquisition mix is a confounder to test" |
 | "We shipped it late" | "Any slice that touches billing needs the finance review scheduled at spec time, not at release" |
 
-The generalized learning goes in an ADR when the decision is irreversible or expensive to unwind, and in the outcome artifact always. Format in `references/builderos-state-schema.md`; "Revisit when" is mandatory, because a decision with no reopening condition becomes dogma.
+The generalized learning goes in an ADR when the decision is irreversible or expensive to unwind, and in the outcome artifact always. Format in `references/memory-templates.md`; "Revisit when" is mandatory, because a decision with no reopening condition becomes dogma.
 
 ## Common Mistakes
 
