@@ -2,7 +2,7 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
-## [Unreleased]
+## [3.4.0] - 2026-11-04
 
 ### Added: the internal track, for tools whose users are the builder or their own team
 
