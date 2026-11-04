@@ -44,17 +44,17 @@ test('the status page has open decisions with what they block, in progress, next
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /index\.html and \.builderos\/STATUS\.md: 2 open decisions, 1 in progress, 1 done/);
   const html = p.read('.builderos/index.html');
-  const order = ['Open decisions', 'In progress', 'Next', 'Done', 'Project memory'].map((h) => html.indexOf(`<h2>${h}</h2>`));
+  const order = ['Open decisions', 'In progress', 'Next', 'Done', 'Project memory'].map((h) => html.search(new RegExp(`<h2 id="[a-z]+">${h}</h2>`)));
   assert.ok(order.every((x, k) => x > 0 && (k === 0 || x > order[k - 1])), `sections out of order: ${order}`);
-  assert.match(html, /Q2 Which reports move first\?<\/a><\/td><td>CSV export: phase 2 Define<\/td>/, 'an open question from the log, with the phase it blocks');
+  assert.match(html, /<a href=\"#i-csv-export-grilling\">Q2 Which reports move first\?<\/a><\/td><td>CSV export: phase 2 Define<\/td>/, 'an open question from the log, with the phase it blocks');
   assert.match(html, /href="initiatives\/csv-export\/grilling\.md"/);
-  assert.match(html, /revisit ADR-001-postgres<\/a><\/td><td>ADR-001-postgres stands until someone revisits it<\/td><td>2026-10-01/, 'a decision past its revisit date');
+  assert.match(html, /<a href=\"#adr-ADR-001-postgres\">revisit ADR-001-postgres<\/a><\/td><td>ADR-001-postgres stands until someone revisits it<\/td><td>2026-10-01/, 'a decision past its revisit date');
   assert.doesNotMatch(html, /revisit ADR-002/, 'a decision with no date due stays out');
-  assert.match(html, /<strong>CSV export<\/strong>: start phase 2 Define|<strong>CSV export<\/strong>: finish phase 2 Define/, 'the next step of each open initiative');
+  assert.match(html, /<strong>CSV export<\/strong><\/a>: (start|finish) phase 2 Define/, 'the next step of each open initiative');
   assert.match(html, /<strong>Team digests<\/strong> \(roadmap\): managers asked for it in four calls\. First: CSV export ships/);
   assert.match(html, /Later: Slack delivery of the report/);
-  assert.match(html, /<strong>Onboarding rework<\/strong>: killed at phase 0/, 'a closed initiative and how it ended');
-  assert.ok(html.indexOf('ADR-002-hosting') < html.indexOf('ADR-001-postgres</a> <span'), 'decisions taken, newest first');
+  assert.match(html, /<h3>Onboarding rework<\/h3><span class=\"pill\">product<\/span><span class=\"pill\">killed at phase 0<\/span>/, 'a closed initiative and how it ended');
+  assert.ok(html.indexOf('id="adr-ADR-002-hosting"') < html.indexOf('id="adr-ADR-001-postgres"'), 'decisions taken, newest first');
 });
 
 test('STATUS.md says the same as the page, readable where HTML shows as source', (t) => {
@@ -104,3 +104,25 @@ test('the session briefing rewrites the page after a hand edit, and leaves it al
   p.run('brief');
   for (const f of ['.builderos/STATUS.md', '.builderos/index.html']) assert.match(p.read(f), /on 2000-01-01/, `${f} rewritten for its date alone`);
 });
+
+test('every item opens down to its documents: phases with their gate and full text, history, question log, decisions', (t) => {
+  const p = project(t);
+  seed(p);
+  p.edit('.builderos/initiatives/csv-export/state.json', (s) => { const j = JSON.parse(s); j.phases['1'] = { status: 'passed', artifact: '01-discovery.md', gate: { passed: true, checked_at: '2026-09-02T12:00:00Z', failed_conditions: [], accepted_by: 'Dana' } }; return JSON.stringify(j, null, 2); });
+  p.write('.builderos/initiatives/csv-export/01-discovery.md', '# Discovery\n\n## Verdict\n**VALIDATED**: four managers rebuild the view by hand, see [the notes](evidence/P1.md).\n\n| Who | Hours |\n|---|---|\n| P1 | 3 |\n');
+  p.write('.builderos/initiatives/csv-export/cycle-1/03-solution-bet.md', '# Earlier bet\n\n- export to Sheets\n');
+  p.run('page');
+  const html = p.read('.builderos/index.html');
+  assert.match(html, /<nav><a href="#decisions">Open decisions <b>2<\/b><\/a>/, 'the overview counts, linked to their sections');
+  assert.match(html, /<article id="i-csv-export">[\s\S]*<details class="more"><summary>Everything on this initiative<\/summary>/, 'the detail sits one click under the card');
+  assert.match(html, /<details class="doc" id="i-csv-export-p1"><summary>1 Discover <span class="pill passed">passed<\/span> · gate passed 2026-09-02, accepted by Dana/);
+  assert.match(html, /<h5>Verdict<\/h5>\n<p><strong>VALIDATED<\/strong>: four managers rebuild the view by hand, see <a href="initiatives\/csv-export\/evidence\/P1\.md">the notes<\/a>\.<\/p>/, 'the document in full, its links resolved from the page');
+  assert.match(html, /<th>Who<\/th><th>Hours<\/th><\/tr><\/thead><tbody><tr><td>P1<\/td><td>3<\/td>/);
+  assert.match(html, /<details class="doc" id="i-csv-export-grilling"><summary>Question log \(grilling\.md\)/, 'the open question in the table lands on its log');
+  assert.match(html, /Earlier cycle: cycle-1[\s\S]*export to Sheets/);
+  assert.match(html, /<summary>History <span class="sub">\d+ events?, newest first<\/span>/);
+  assert.match(html, /<details class="doc" id="adr-ADR-001-postgres"><summary>ADR-001-postgres \(2026-09-01\)[\s\S]*<h5>Revisit when<\/h5>/, 'a decision in full, where its revisit row points');
+  assert.match(html, /<details class="doc"><summary>PRODUCT\.md <span class="sub"><a href="\.\.\/PRODUCT\.md">open file<\/a>/, 'project memory in full too');
+  assert.match(html, /function reveal\(\)/, 'a link into a closed section opens it');
+});
+

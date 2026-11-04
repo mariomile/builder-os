@@ -1579,7 +1579,7 @@ function triedInfo(plan, ctx) {
 }
 
 // `bos.mjs page`: one HTML file a person opens or sends, regenerated with the roadmap. Written by the script, so it costs
-// no model tokens; it links to the files, it never copies them.
+// no model tokens; it shows the documents in full under each item and links to every file.
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 function listFiles(dir, re, depth = 2) {
   if (!fs.existsSync(dir) || depth < 0) return [];
@@ -1607,12 +1607,12 @@ function statusModel() {
     const ph = s.current_phase ?? 0;
     const g = (s.phases && s.phases[String(ph)] && s.phases[String(ph)].gate) || null;
     const round = openRound(s);
-    if (round) decide.push({ what: `${round.questions || 'A'} question${round.questions === 1 ? '' : 's'} in the round asked`, blocks: at(i), since: String(round.at).slice(0, 10) });
+    if (round) decide.push({ what: `${round.questions || 'A'} question${round.questions === 1 ? '' : 's'} in the round asked`, blocks: at(i), since: String(round.at).slice(0, 10), anchor: `i-${i.slug}` });
     let failed = [];
     if (g && !g.passed && (g.failed_conditions || []).length) {
-      for (const id of g.failed_conditions) if (PERSON_WAITS[id]) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i) });
+      for (const id of g.failed_conditions) if (PERSON_WAITS[id]) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i), anchor: `i-${i.slug}-p${ph}` });
       failed = g.failed_conditions.filter((id) => !PERSON_WAITS[id]);
-    } else if ((s.status || 'open') === 'open') for (const id of personWaits(i)) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i) });
+    } else if ((s.status || 'open') === 'open') for (const id of personWaits(i)) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i), anchor: `i-${i.slug}-p${ph}` });
     const visuals = listFiles(path.join(i.dir, 'design'), /\.(html?|png|jpe?g|webp|svg)$/i);
     const media = listFiles(path.join(BOS, 'media'), /\.(mp4|webm|mov|gif|png)$/i, 3).filter((p) => p.includes(i.slug));
     const tried = section(read(path.join(i.dir, ARTIFACTS[5])) || '', 'Tried');
@@ -1621,30 +1621,98 @@ function statusModel() {
       next: s.status === 'paused' ? 'paused' : round ? `your answers to the round asked ${String(round.at).slice(0, 10)}` : nextStep(i) });
   }
   const bySlug = new Map(all.map((i) => [i.slug, i]));
+  const logs = [];
   for (const l of loadGrillingLogs()) {
     const init = bySlug.get(l.name);
     if (init && init.state.status === 'closed') continue;
     const blocks = init && fs.existsSync(path.join(init.dir, 'grilling.md')) && path.relative(ROOT, path.join(init.dir, 'grilling.md')) === l.file ? at(init) : `the decision on ${l.title}`;
     const file = path.join(ROOT, l.file);
-    for (const r of l.open) decide.push({ what: `${r.q} ${r.question}`, blocks, file });
-    for (const r of l.reask) decide.push({ what: `${r.q} ${r.question}, to ask again: it rests on ${r.because.join(', ')}, which was replaced`, blocks, file });
+    const inInit = blocks !== `the decision on ${l.title}`;
+    if (!inInit) logs.push(l);
+    const anchor = inInit ? `i-${init.slug}-grilling` : `log-${l.name}`;
+    for (const r of l.open) decide.push({ what: `${r.q} ${r.question}`, blocks, file, anchor });
+    for (const r of l.reask) decide.push({ what: `${r.q} ${r.question}, to ask again: it rests on ${r.because.join(', ')}, which was replaced`, blocks, file, anchor });
   }
   const today = new Date().toISOString().slice(0, 10);
   const decs = decisions();
-  for (const d of decs) if (d.revisitBy && d.revisitBy <= today) decide.push({ what: `revisit ${d.name}`, blocks: `${d.name} stands until someone revisits it`, since: d.revisitBy, file: path.join(BOS, 'decisions', `${d.name}.md`) });
+  for (const d of decs) if (d.revisitBy && d.revisitBy <= today) decide.push({ what: `revisit ${d.name}`, blocks: `${d.name} stands until someone revisits it`, since: d.revisitBy, file: path.join(BOS, 'decisions', `${d.name}.md`), anchor: `adr-${d.name}` });
   const roadmapNext = tableRows(section(rm, 'Next')).filter((r) => nonEmpty(r[0])).map((r) => ({ what: r[0], why: r[1] || '', first: r[2] || '' }));
   const later = (section(rm, 'Later') || '').split('\n').map((l) => l.trim()).filter((l) => /^[-*]\s+\S/.test(l)).map((l) => l.replace(/^[-*]\s+/, ''));
   const learned = new Map(tableRows(section(rm, 'Done')).map((r) => [String(r[0] || '').toLowerCase(), r[2]]));
   const done = all.filter((i) => i.state.status === 'closed').map((i) => {
     const l = learned.get(title(i).toLowerCase());
-    return { title: title(i), outcome: outcomeOf(i.state), learning: l && !/^see 07-outcome/.test(l) ? l : '', date: (i.state.updated_at || '').slice(0, 10), docs: docsOf(i) };
+    return { i, track: i.state.track || 'product', phase: i.state.current_phase ?? 0, title: title(i), outcome: outcomeOf(i.state), learning: l && !/^see 07-outcome/.test(l) ? l : '', date: (i.state.updated_at || '').slice(0, 10), docs: docsOf(i) };
   });
   const memory = ['PRODUCT.md', 'DOMAIN.md', 'TECH.md'].map((f) => path.join(ROOT, f)).filter((p) => fs.existsSync(p));
   if (fs.existsSync(path.join(BOS, 'ROADMAP.md'))) memory.push(path.join(BOS, 'ROADMAP.md'));
-  return { name, stage: productStage(product), env: environments(), decide, progress, roadmapNext, later, done, decided: decs.slice().reverse(), memory,
+  return { name, stage: productStage(product), env: environments(), decide, progress, roadmapNext, later, done, decided: decs.slice().reverse(), memory, logs,
     reviews: listFiles(path.join(BOS, 'reviews'), /\.md$/i, 0), stamp: `BuilderOS ${VERSION} on ${today}` };
 }
 
+// Markdown to HTML for the status page: enough for what BuilderOS writes (headings, paragraphs, lists, tables,
+// quotes, code, links), with every relative link rewritten to resolve from .builderos/. Not a general renderer.
+function mdToHtml(md, fromDir) {
+  const fix = (u) => (/^(https?:|mailto:|#)/i.test(u) ? u : path.relative(BOS, path.resolve(fromDir, u)).split(path.sep).join('/'));
+  const inline = (t) => {
+    const keep = [];
+    const put = (h) => `\u0000${keep.push(h) - 1}\u0000`;
+    let s = String(t).replace(/`([^`]+)`/g, (_, c) => put(`<code>${esc(c)}</code>`));
+    s = s.replace(/!?\[([^\]]+)\]\(([^)\s]+)\)/g, (_, txt, u) => put(`<a href="${esc(fix(u))}">${esc(txt)}</a>`));
+    s = s.replace(/https?:\/\/[^\s<>)`|]+[^\s<>)`|.,;:]/g, (u) => put(`<a href="${esc(u)}">${esc(u)}</a>`));
+    s = esc(s).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?!\w)/g, '$1<em>$2</em>');
+    return s.replace(/\u0000(\d+)\u0000/g, (_, n) => keep[Number(n)]);
+  };
+  const lines = String(md || '').replace(/\r/g, '').split('\n');
+  const isTable = (k) => /^\s*\|/.test(lines[k] || '') && /^\s*\|?\s*:?-{2,}/.test(lines[k + 1] || '');
+  const isList = (l) => /^\s*([-*+]|\d+[.)])\s+/.test(l);
+  const starts = (k) => /^```/.test(lines[k]) || /^#{1,6}\s/.test(lines[k]) || isTable(k) || isList(lines[k]) || /^>/.test(lines[k]) || /^(-{3,}|\*{3,})\s*$/.test(lines[k]);
+  const cells = (l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i];
+    if (!l.trim()) { i++; continue; }
+    if (/^```/.test(l)) {
+      const buf = [];
+      for (i++; i < lines.length && !/^```/.test(lines[i]); i++) buf.push(lines[i]);
+      i++;
+      out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`);
+    } else if (/^#{1,6}\s/.test(l)) {
+      const [, hashes, text] = l.match(/^(#{1,6})\s+(.*)$/);
+      const lv = Math.min(6, hashes.length + 3);
+      out.push(`<h${lv}>${inline(text)}</h${lv}>`);
+      i++;
+    } else if (isTable(i)) {
+      const head = cells(l);
+      const body = [];
+      for (i += 2; i < lines.length && /^\s*\|/.test(lines[i]); i++) body.push(cells(lines[i]));
+      out.push(`<div class="scroll"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${body.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+    } else if (isList(l)) {
+      const ordered = /^\s*\d/.test(l);
+      const items = [];
+      for (; i < lines.length && (isList(lines[i]) || (/^\s{2,}\S/.test(lines[i]) && items.length)); i++) {
+        if (isList(lines[i])) items.push(lines[i].replace(/^\s*([-*+]|\d+[.)])\s+/, ''));
+        else items[items.length - 1] += ` ${lines[i].trim()}`;
+      }
+      out.push(`<${ordered ? 'ol' : 'ul'}>${items.map((t) => `<li>${inline(t.replace(/^\[( |x)\]\s*/i, (m) => (/x/i.test(m) ? '✓ ' : '○ ')))}</li>`).join('')}</${ordered ? 'ol' : 'ul'}>`);
+    } else if (/^>/.test(l)) {
+      const buf = [];
+      for (; i < lines.length && /^>/.test(lines[i]); i++) buf.push(lines[i].replace(/^>\s?/, ''));
+      out.push(`<blockquote>${inline(buf.join(' '))}</blockquote>`);
+    } else if (/^(-{3,}|\*{3,})\s*$/.test(l)) {
+      out.push('<hr>');
+      i++;
+    } else {
+      const buf = [];
+      for (; i < lines.length && lines[i].trim() && !starts(i); i++) buf.push(lines[i].trim());
+      out.push(`<p>${inline(buf.join(' '))}</p>`);
+    }
+  }
+  return out.join('\n');
+}
+
+// One page to read the whole project: the four parts at the top, and under each item everything behind it, one
+// click down: each phase with its gate and its document in full, earlier cycles, the question log, the history.
 function writePage(quiet) {
   if (!fs.existsSync(BOS)) { if (quiet) return; die('no .builderos/ here'); }
   const m = statusModel();
@@ -1653,40 +1721,94 @@ function writePage(quiet) {
   const urlOf = (t) => (String(t || '').match(/https?:\/\/[^\s)`]+/) || [])[0];
   const none = (t) => `<p class="sub">${t}</p>`;
   const row = (label, items) => (items.length ? `<dt>${label}</dt><dd>${items.join(' · ')}</dd>` : '');
+  const day = (t) => String(t || '').slice(0, 10);
   const strip = (x) => `<ol class="phases">${PHASES.map((p, k) => { const st = (x.state.phases && x.state.phases[String(k)] && x.state.phases[String(k)].status) || 'pending'; return `<li class="${esc(st)}${k === (x.state.current_phase ?? 0) && x.state.status !== 'closed' ? ' now' : ''}" title="${esc(`${k} ${p}: ${st}`)}">${k}</li>`; }).join('')}</ol>`;
-  const decideHtml = m.decide.length ? `<table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${d.file ? link(d.file, d.what) : esc(d.what)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table>` : none('Nothing waits on a person.');
-  const cards = m.progress.map((c) => `<article><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
-${strip(c.i)}<dl>${c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', c.visuals.map((p) => link(p)))}${row('Demo', c.media.map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}</dl></article>`);
-  const nextItems = [...m.progress.map((c) => `<li><strong>${esc(c.title)}</strong>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
-  const doneItems = m.done.map((d) => `<li><strong>${esc(d.title)}</strong>: ${esc(d.outcome)}${d.learning ? `. ${esc(d.learning)}` : ''}${d.date ? ` <span class="sub">(${esc(d.date)})</span>` : ''}${d.docs.length ? ` · ${d.docs.map((p) => link(p)).join(' · ')}` : ''}</li>`);
-  const decidedItems = m.decided.map((d) => `<li>${link(path.join(BOS, 'decisions', `${d.name}.md`), d.name)}${d.date ? ` <span class="sub">(${esc(d.date)})</span>` : ''}</li>`);
+  // A document, closed: its name and where it lives on the summary line, its whole text one click down.
+  const doc = (file, label, id) => `<details class="doc"${id ? ` id="${esc(id)}"` : ''}><summary>${esc(label || path.basename(file))} <span class="sub">${link(file, 'open file')}</span></summary><div class="md">${mdToHtml(read(file), path.dirname(file))}</div></details>`;
+  const gateLine = (g) => {
+    if (!g) return '';
+    if (g.passed && g.overridden) return ` · <span class="warn">gate overridden ${esc(day(g.checked_at))}${g.override_reason ? `: ${esc(g.override_reason)}` : ''}</span>`;
+    if (g.passed) return ` · gate passed ${esc(day(g.checked_at))}${g.accepted_by ? `, accepted by ${esc(g.accepted_by)}` : ''}`;
+    return ` · <span class="warn">gate failed ${esc(day(g.checked_at))} on ${esc((g.failed_conditions || []).join(', '))}</span>`;
+  };
+  const historyTable = (s) => {
+    const h = Array.isArray(s.history) ? s.history : [];
+    if (!h.length) return '';
+    const what = (e) => Object.entries(e).filter(([k]) => !['at', 'event'].includes(k)).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' · ');
+    return `<details class="doc"><summary>History <span class="sub">${h.length} event${h.length === 1 ? '' : 's'}, newest first</span></summary><div class="scroll"><table><thead><tr><th>When</th><th>What</th><th>Detail</th></tr></thead><tbody>${h.slice().reverse().map((e) => `<tr><td>${esc(String(e.at || '').slice(0, 16).replace('T', ' '))}</td><td>${esc(String(e.event || '').replace(/_/g, ' '))}</td><td>${esc(what(e))}</td></tr>`).join('')}</tbody></table></div></details>`;
+  };
+  const detail = (i) => {
+    const s = i.state;
+    const phases = PHASES.map((p, k) => {
+      const ph = (s.phases || {})[String(k)] || {};
+      const file = path.join(i.dir, ARTIFACTS[k]);
+      const has = fs.existsSync(file);
+      if (!has && (!ph.status || ph.status === 'pending')) return '';
+      const head = `${k} ${p} <span class="pill ${esc(ph.status || 'pending')}">${esc(ph.status || 'pending')}</span>${gateLine(ph.gate)}`;
+      return has ? `<details class="doc" id="i-${esc(i.slug)}-p${k}"><summary>${head} <span class="sub">${link(file, 'open file')}</span></summary><div class="md">${mdToHtml(read(file), i.dir)}</div></details>` : `<div class="doc flat">${head} <span class="sub">no document</span></div>`;
+    }).join('');
+    const extra = [[REQUEST, 'Request'], ['DESIGN.md', 'Design'], ['grilling.md', 'Question log']].map(([f, label]) => [path.join(i.dir, f), label]).filter(([p]) => fs.existsSync(p))
+      .map(([p, label]) => doc(p, `${label} (${path.basename(p)})`, label === 'Question log' ? `i-${i.slug}-grilling` : null)).join('');
+    const cycles = fs.existsSync(i.dir) ? fs.readdirSync(i.dir).filter((d) => /^cycle-\d+$/.test(d)).sort() : [];
+    const earlier = cycles.map((c) => {
+      const files = listFiles(path.join(i.dir, c), /\.md$/i, 0);
+      return `<details class="doc"><summary>Earlier cycle: ${esc(c)} <span class="sub">${files.length} document${files.length === 1 ? '' : 's'}</span></summary>${files.map((f) => doc(f)).join('')}</details>`;
+    }).join('');
+    const ev = listFiles(path.join(i.dir, 'evidence'), /\.(md|txt|json|log)$/i, 1);
+    const evidence = ev.length ? `<details class="doc"><summary>Evidence <span class="sub">${ev.length} source${ev.length === 1 ? '' : 's'}</span></summary><ul class="files">${ev.map((f) => `<li>${link(f, path.relative(path.join(i.dir, 'evidence'), f))}</li>`).join('')}</ul></details>` : '';
+    return `<details class="more"><summary>Everything on this initiative</summary><h4 class="label">Phases</h4>${phases || none('No phase started.')}${extra || earlier ? `<h4 class="label">Documents</h4>${extra}${earlier}` : ''}<h4 class="label">Record</h4>${historyTable(s)}${evidence}</details>`;
+  };
+  const card = (c) => `<article id="i-${esc(c.i.slug)}"><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.closed ? esc(c.outcome) : c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
+${strip(c.i)}<dl>${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
+  const at = (d) => (d.anchor ? `<a href="#${esc(d.anchor)}">${esc(d.what)}</a>` : esc(d.what));
+  const decideHtml = m.decide.length ? `<div class="scroll"><table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${at(d)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table></div>` : none('Nothing waits on a person.');
+  const nextItems = [...m.progress.map((c) => `<li><a href="#i-${esc(c.i.slug)}"><strong>${esc(c.title)}</strong></a>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
+  const decisionDocs = m.decided.map((d) => doc(path.join(BOS, 'decisions', `${d.name}.md`), `${d.name}${d.date ? ` (${d.date})` : ''}`, `adr-${d.name}`)).join('');
+  const logs = m.logs.map((l) => doc(path.join(ROOT, l.file), `Question log: ${l.title}`, `log-${l.name}`)).join('');
+  const counts = [['decisions', 'Open decisions', m.decide.length], ['progress', 'In progress', m.progress.length], ['next', 'Next', nextItems.length], ['done', 'Done', m.done.length], ['memory', 'Project memory', null]];
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(m.name)}: BuilderOS</title>
 <style>
-:root{--bg:#fbfbfa;--fg:#1b1b1a;--muted:#6b6b66;--line:#e4e3df;--card:#fff;--accent:#2f5bd3;--ok:#2e7d4f;--warn:#b26a00}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#a3a29b;--line:#2c2c2a;--card:#1c1c1b;--accent:#8aa7ff;--ok:#6fcf97;--warn:#f2b54b}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}
-main{max-width:960px;margin:0 auto;padding:32px 16px 64px}h1{font-size:28px;margin:0}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:36px 0 12px}
-h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0}.warn{color:var(--warn)}
+:root{--bg:#fbfbfa;--fg:#1b1b1a;--muted:#6b6b66;--line:#e4e3df;--card:#fff;--soft:#f3f2ee;--accent:#2f5bd3;--ok:#2e7d4f;--warn:#b26a00}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#a3a29b;--line:#2c2c2a;--card:#1c1c1b;--soft:#232321;--accent:#8aa7ff;--ok:#6fcf97;--warn:#f2b54b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}html{scroll-padding-top:64px}
+main{max-width:960px;margin:0 auto;padding:24px 16px 64px}h1{font-size:28px;margin:0}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:36px 0 12px}
+h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0;font-weight:400}.warn{color:var(--warn)}
+nav{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);margin:16px -16px 0;padding:10px 16px;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:14px}
+nav a{text-decoration:none}nav b{color:var(--fg)}nav button{margin-left:auto;font:inherit;font-size:13px;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;color:var(--fg);cursor:pointer}nav button+button{margin-left:0}
 article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 12px}
-article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}
+article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}.pill.passed{color:var(--ok)}.pill.killed{color:var(--warn)}
 .phases{display:flex;gap:4px;list-style:none;padding:0;margin:12px 0}.phases li{flex:1;text-align:center;font-size:12px;border-radius:4px;padding:3px 0;background:var(--line);color:var(--muted)}
 .phases li.passed,.phases li.answered{background:var(--ok);color:var(--card)}.phases li.covered{background:transparent;border:1px dashed var(--muted)}.phases li.now{outline:2px solid var(--accent);color:var(--fg)}.phases li.killed{background:var(--warn);color:var(--card)}
 dl{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 16px;margin:0}dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px}th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{font-size:13px;color:var(--muted);font-weight:600}tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px}th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{font-size:13px;color:var(--muted);font-weight:600}tr:last-child td{border-bottom:0}
 ul{padding-left:18px;margin:0}li{margin:2px 0}footer{color:var(--muted);font-size:13px;margin-top:40px}
-@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}th:nth-child(3),td:nth-child(3){display:none}}
+details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}details>summary{cursor:pointer;padding:4px 0}details.more>summary{font-weight:600;color:var(--accent)}
+.doc{border:1px solid var(--line);border-radius:8px;padding:4px 12px;margin:6px 0;background:var(--soft)}.doc.flat{padding:8px 12px}.doc[open]{background:var(--card)}
+h4.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 4px}
+.md{padding:4px 0 10px;overflow-wrap:anywhere}.md h4{font-size:18px;margin:16px 0 6px}.md h5{font-size:16px;margin:14px 0 4px}.md h6{font-size:14px;margin:12px 0 4px}.md p{margin:6px 0}.md ul,.md ol{margin:6px 0}
+.md table{font-size:14px;margin:8px 0;width:auto;min-width:100%}.md th,.md td{min-width:7em;overflow-wrap:break-word}.md pre{background:var(--soft);padding:10px;border-radius:6px;overflow-x:auto;font-size:13px}.md code{font-size:13px;background:var(--soft);padding:1px 4px;border-radius:4px}.md pre code{padding:0}
+.md blockquote{margin:8px 0;padding:2px 12px;border-left:3px solid var(--line);color:var(--muted)}.files{columns:2}
+@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}.files{columns:1}nav button{margin-left:0}}
+@media print{nav{display:none}details>*{display:block}}
 </style></head><body><main>
 <h1>${esc(m.name)}</h1>
 <p class="sub">${m.stage ? `Stage ${esc(m.stage)} · ` : ''}${m.env.url ? `<a href="${esc(m.env.url)}">${esc(m.env.url)}</a>` : 'not in production yet'}${m.env.preview ? ` · previews: ${esc(m.env.preview[1] || '')}` : ''}</p>
-<h2>Open decisions</h2>${decideHtml}
-<h2>In progress</h2>${cards.join('\n') || none('Nothing open.')}
-<h2>Next</h2>${nextItems.length ? `<ul>${nextItems.join('')}</ul>` : none('Nothing planned: the roadmap has no Next.')}
-<h2>Done</h2>${doneItems.length ? `<ul>${doneItems.join('')}</ul>` : none('No initiative closed yet.')}${decidedItems.length ? `<h3 class="sub">Decisions taken</h3><ul>${decidedItems.join('')}</ul>` : ''}
-<h2>Project memory</h2><dl>${m.memory.map((p) => `<dt>${esc(path.basename(p))}</dt><dd>${link(p, 'open')}</dd>`).join('')}${m.reviews.length ? `<dt>Product reviews</dt><dd>${m.reviews.map((p) => link(p)).join(' · ')}</dd>` : ''}</dl>
+<nav>${counts.map(([id, label, n]) => `<a href="#${id}">${label}${n === null ? '' : ` <b>${n}</b>`}</a>`).join('')}<button type="button" data-open="1">Open all</button><button type="button" data-open="0">Close all</button></nav>
+<h2 id="decisions">Open decisions</h2>${decideHtml}
+<h2 id="progress">In progress</h2>${m.progress.map(card).join('\n') || none('Nothing open.')}
+<h2 id="next">Next</h2>${nextItems.length ? `<ul>${nextItems.join('')}</ul>` : none('Nothing planned: the roadmap has no Next.')}
+<h2 id="done">Done</h2>${m.done.map((d) => card({ ...d, closed: true })).join('\n') || none('No initiative closed yet.')}${decisionDocs ? `<h4 class="label">Decisions taken, newest first</h4>${decisionDocs}` : ''}
+<h2 id="memory">Project memory</h2>${m.memory.map((p) => doc(p)).join('')}${logs ? `<h4 class="label">Question logs outside an initiative</h4>${logs}` : ''}${m.reviews.length ? `<h4 class="label">Product reviews</h4>${m.reviews.map((p) => doc(p)).join('')}` : ''}
 <footer>Generated by ${esc(m.stamp)}, with STATUS.md. Regenerated on every state change and session start; edit the files, not this page.</footer>
-</main></body></html>
+</main>
+<script>
+// A link to something inside a closed section opens every section around it; the buttons open or close them all.
+function reveal(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',reveal);reveal();
+document.querySelectorAll('nav button').forEach(function(b){b.onclick=function(){var o=b.dataset.open==='1';document.querySelectorAll('details').forEach(function(d){d.open=o;});};});
+</script></body></html>
 `;
   // Written only when something besides the date line changed, so a session start leaves the checkout clean.
   const undated = (t) => t.replace(/(Generated by BuilderOS \S+ on )\d{4}-\d{2}-\d{2}/g, '$1');
