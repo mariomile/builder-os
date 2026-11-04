@@ -1591,6 +1591,25 @@ function listFiles(dir, re, depth = 2) {
 // The project's status in four parts, read from the files and never written by hand: what waits on a person and what
 // it blocks, what is in progress, what comes next, what is done. One model, two renderings: .builderos/index.html to
 // open or send, .builderos/STATUS.md to read on the code host, on a phone, or from a session.
+// A claim cut to its first sentence, without source tags or Markdown, for the summary lines; the full text is one click down.
+function gist(t, n = 220) {
+  if (!nonEmpty(t)) return '';
+  let s = String(t).replace(/`?\[(?:interview|doc|data|code|estimate|assumption|analogy|decision)[^\]]*\]`?/gi, '').replace(/[`*]/g, '').replace(/\s+/g, ' ').replace(/\s+([.,;:)])/g, '$1').trim();
+  const m = s.match(/^(.{24,}?[.;:])(\s|$)/);
+  if (m && m[1].length <= n) s = m[1].replace(/[;:]$/, '');
+  return s.length > n ? `${s.slice(0, n).replace(/\s+\S*$/, '')}…` : s;
+}
+
+// What an initiative is trying to move and how it bets on moving it, from its own documents.
+function initiativeGoal(i) {
+  const def = read(path.join(i.dir, ARTIFACTS[2])) || '';
+  const sm = section(def, 'Success metric') || '';
+  const bet = ((read(path.join(i.dir, ARTIFACTS[3])) || '').match(/^##\s*Selected:\s*(.+)$/m) || [])[1];
+  const risk = section(read(path.join(i.dir, ARTIFACTS[0])) || '', 'Riskiest assumption');
+  return { metric: gist(field(sm, 'Metric')), baseline: gist(field(sm, 'Baseline'), 120), target: gist(field(sm, 'Target'), 160),
+    bet: gist(bet && bet.replace(/^\S+\s+[—-]\s+/, '')), risk: gist(risk && risk.split('\n').map((x) => x.trim()).find((x) => x && !/^\*\*[^*]+:\*\*/.test(x))) };
+}
+
 function statusModel() {
   const product = read(path.join(ROOT, 'PRODUCT.md')) || '';
   const rm = read(path.join(BOS, 'ROADMAP.md')) || '';
@@ -1639,13 +1658,19 @@ function statusModel() {
   const roadmapNext = tableRows(section(rm, 'Next')).filter((r) => nonEmpty(r[0])).map((r) => ({ what: r[0], why: r[1] || '', first: r[2] || '' }));
   const later = (section(rm, 'Later') || '').split('\n').map((l) => l.trim()).filter((l) => /^[-*]\s+\S/.test(l)).map((l) => l.replace(/^[-*]\s+/, ''));
   const learned = new Map(tableRows(section(rm, 'Done')).map((r) => [String(r[0] || '').toLowerCase(), r[2]]));
+  const day0 = (t) => String(t || '').slice(0, 10);
   const done = all.filter((i) => i.state.status === 'closed').map((i) => {
     const l = learned.get(title(i).toLowerCase());
     return { i, track: i.state.track || 'product', phase: i.state.current_phase ?? 0, title: title(i), outcome: outcomeOf(i.state), learning: l && !/^see 07-outcome/.test(l) ? l : '', date: (i.state.updated_at || '').slice(0, 10), docs: docsOf(i) };
   });
+  for (const c of [...progress, ...done]) c.goal = initiativeGoal(c.i);
   const memory = ['PRODUCT.md', 'DOMAIN.md', 'TECH.md'].map((f) => path.join(ROOT, f)).filter((p) => fs.existsSync(p));
   if (fs.existsSync(path.join(BOS, 'ROADMAP.md'))) memory.push(path.join(BOS, 'ROADMAP.md'));
-  return { name, stage: productStage(product), env: environments(), decide, progress, roadmapNext, later, done, decided: decs.slice().reverse(), memory, logs,
+  const firstPara = (t) => (String(t || '').split(/\n\s*\n/).map((x) => x.trim()).find((x) => x && !/^\*\*/.test(x) && !/^[|#>-]/.test(x)) || '');
+  const problem = section(product, 'The Problem') ?? section(product, 'Problem');
+  const goals = { purpose: gist(firstPara(section(product, 'Purpose'))), problem: gist(firstPara(problem)), who: gist(field(problem || '', 'Who has it')),
+    northStar: gist(field(section(product, 'Business') || '', 'North Star')), updated: all.length ? day0(all[0].state.updated_at) : '' };
+  return { name, stage: productStage(product), env: environments(), decide, progress, roadmapNext, later, done, decided: decs.slice().reverse(), memory, logs, goals,
     reviews: listFiles(path.join(BOS, 'reviews'), /\.md$/i, 0), stamp: `BuilderOS ${VERSION} on ${today}` };
 }
 
@@ -1759,48 +1784,73 @@ function writePage(quiet) {
     return `<details class="more"><summary>Everything on this initiative</summary><h4 class="label">Phases</h4>${phases || none('No phase started.')}${extra || earlier ? `<h4 class="label">Documents</h4>${extra}${earlier}` : ''}<h4 class="label">Record</h4>${historyTable(s)}${evidence}</details>`;
   };
   const card = (c) => `<article id="i-${esc(c.i.slug)}"><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.closed ? esc(c.outcome) : c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
-${strip(c.i)}<dl>${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
+${strip(c.i)}<dl>${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) : ''}${c.goal && c.goal.bet ? row('Bet', [esc(c.goal.bet)]) : ''}${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
   const at = (d) => (d.anchor ? `<a href="#${esc(d.anchor)}">${esc(d.what)}</a>` : esc(d.what));
   const decideHtml = m.decide.length ? `<div class="scroll"><table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${at(d)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table></div>` : none('Nothing waits on a person.');
   const nextItems = [...m.progress.map((c) => `<li><a href="#i-${esc(c.i.slug)}"><strong>${esc(c.title)}</strong></a>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
   const decisionDocs = m.decided.map((d) => doc(path.join(BOS, 'decisions', `${d.name}.md`), `${d.name}${d.date ? ` (${d.date})` : ''}`, `adr-${d.name}`)).join('');
   const logs = m.logs.map((l) => doc(path.join(ROOT, l.file), `Question log: ${l.title}`, `log-${l.name}`)).join('');
+  const cell = (label, text) => (text ? `<div><p class="label">${label}</p><p>${esc(text)}</p></div>` : '');
+  const product = [cell('Problem', m.goals.problem), cell('Who has it', m.goals.who), cell('North Star', m.goals.northStar || (m.goals.problem ? 'Not chosen yet: the first product review sets it' : ''))].join('');
+  const goalCards = [...m.progress, ...m.done.map((d) => ({ ...d, closed: true }))].filter((c) => c.goal && (c.goal.metric || c.goal.target || c.goal.bet || c.goal.risk)).map((c) => `<article><header><h3><a href="#i-${esc(c.i.slug)}">${esc(c.title)}</a></h3><span class="pill">${c.closed ? 'done' : `phase ${c.phase}`}</span></header><dl style="margin-top:12px">${c.goal.metric ? row('Metric', [esc(c.goal.metric)]) : ''}${c.goal.baseline || c.goal.target ? row('Target', [`<span class="target">${esc(c.goal.baseline || '?')} <span class="arrow">→</span> <strong>${esc(c.goal.target || '?')}</strong></span>`]) : ''}${c.goal.bet ? row('Bet', [esc(c.goal.bet)]) : ''}${c.goal.risk ? row('Riskiest', [esc(c.goal.risk)]) : ''}</dl></article>`).join('');
+  const goalsHtml = `${product ? `<div class="goals">${product}</div>` : ''}${goalCards ? `<h4 class="label">What each initiative is trying to move</h4>${goalCards}` : ''}` || none('No goal written yet: PRODUCT.md has no Purpose or Problem, and no initiative has a success metric.');
   const counts = [['decisions', 'Open decisions', m.decide.length], ['progress', 'In progress', m.progress.length], ['next', 'Next', nextItems.length], ['done', 'Done', m.done.length], ['memory', 'Project memory', null]];
+  counts.unshift(['goals', 'Goals', null]);
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(m.name)}: BuilderOS</title>
 <style>
-:root{--bg:#fbfbfa;--fg:#1b1b1a;--muted:#6b6b66;--line:#e4e3df;--card:#fff;--soft:#f3f2ee;--accent:#2f5bd3;--ok:#2e7d4f;--warn:#b26a00}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#a3a29b;--line:#2c2c2a;--card:#1c1c1b;--soft:#232321;--accent:#8aa7ff;--ok:#6fcf97;--warn:#f2b54b}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}html{scroll-padding-top:64px}
-main{max-width:960px;margin:0 auto;padding:24px 16px 64px}h1{font-size:28px;margin:0}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:36px 0 12px}
-h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0;font-weight:400}.warn{color:var(--warn)}
-nav{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);margin:16px -16px 0;padding:10px 16px;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:14px}
-nav a{text-decoration:none}nav b{color:var(--fg)}nav button{margin-left:auto;font:inherit;font-size:13px;background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;color:var(--fg);cursor:pointer}nav button+button{margin-left:0}
-article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 12px}
-article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}.pill.passed{color:var(--ok)}.pill.killed{color:var(--warn)}
-.phases{display:flex;gap:4px;list-style:none;padding:0;margin:12px 0}.phases li{flex:1;text-align:center;font-size:12px;border-radius:4px;padding:3px 0;background:var(--line);color:var(--muted)}
-.phases li.passed,.phases li.answered{background:var(--ok);color:var(--card)}.phases li.covered{background:transparent;border:1px dashed var(--muted)}.phases li.now{outline:2px solid var(--accent);color:var(--fg)}.phases li.killed{background:var(--warn);color:var(--card)}
-dl{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 16px;margin:0}dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
-.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px}th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{font-size:13px;color:var(--muted);font-weight:600}tr:last-child td{border-bottom:0}
-ul{padding-left:18px;margin:0}li{margin:2px 0}footer{color:var(--muted);font-size:13px;margin-top:40px}
-details.more{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}details>summary{cursor:pointer;padding:4px 0}details.more>summary{font-weight:600;color:var(--accent)}
-.doc{border:1px solid var(--line);border-radius:8px;padding:4px 12px;margin:6px 0;background:var(--soft)}.doc.flat{padding:8px 12px}.doc[open]{background:var(--card)}
-h4.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 4px}
-.md{padding:4px 0 10px;overflow-wrap:anywhere}.md h4{font-size:18px;margin:16px 0 6px}.md h5{font-size:16px;margin:14px 0 4px}.md h6{font-size:14px;margin:12px 0 4px}.md p{margin:6px 0}.md ul,.md ol{margin:6px 0}
-.md table{font-size:14px;margin:8px 0;width:auto;min-width:100%}.md th,.md td{min-width:7em;overflow-wrap:break-word}.md pre{background:var(--soft);padding:10px;border-radius:6px;overflow-x:auto;font-size:13px}.md code{font-size:13px;background:var(--soft);padding:1px 4px;border-radius:4px}.md pre code{padding:0}
-.md blockquote{margin:8px 0;padding:2px 12px;border-left:3px solid var(--line);color:var(--muted)}.files{columns:2}
-@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}.files{columns:1}nav button{margin-left:0}}
-@media print{nav{display:none}details>*{display:block}}
+:root{--bg:#fff;--fg:#0a0a0a;--muted:#737373;--line:#e5e5e5;--soft:#f5f5f5;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#0a0a0a;--fg:#f5f5f5;--muted:#8a8a8a;--line:#262626;--soft:#141414}}
+*{box-sizing:border-box}html{scroll-padding-top:64px}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+main{max-width:1000px;margin:0 auto;padding:56px 20px 96px}a{color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-color:var(--muted)}a:hover{text-decoration-color:var(--fg)}
+.kicker,.label,.pill,nav,th,dt,.n,.stat span,footer,.sub{font-family:var(--mono)}
+.kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+h1{font-size:clamp(40px,7vw,72px);line-height:1;letter-spacing:-.035em;font-weight:700;margin:0}
+.lede{font-size:clamp(18px,2.2vw,22px);line-height:1.4;letter-spacing:-.01em;max-width:46ch;margin:18px 0 0}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;margin:22px 0 0;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--fg);border-bottom:1px solid var(--line);margin:44px 0 0}
+.stat{padding:18px 16px 16px 0;text-decoration:none;display:block}.stat+.stat{padding-left:16px;border-left:1px solid var(--line)}
+.stat b{display:block;font-size:44px;line-height:1;font-weight:600;letter-spacing:-.03em}.stat span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+nav{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);margin:0 -20px;padding:12px 20px;display:flex;gap:6px 18px;flex-wrap:wrap;align-items:center;font-size:12px}
+nav a{text-decoration:none;color:var(--muted)}nav a:hover{color:var(--fg)}nav b{color:var(--fg);font-weight:600}
+nav button{margin-left:auto;font:inherit;background:none;border:1px solid var(--fg);border-radius:0;padding:4px 10px;color:var(--fg);cursor:pointer}nav button:hover{background:var(--fg);color:var(--bg)}nav button+button{margin-left:0}
+h2{display:flex;align-items:baseline;gap:14px;font-size:26px;letter-spacing:-.02em;font-weight:650;margin:72px 0 20px;padding-top:14px;border-top:1px solid var(--fg)}h2 .n{font-size:12px;font-weight:400;color:var(--muted);letter-spacing:.06em}
+h3{font-size:19px;letter-spacing:-.01em;margin:0;flex:1;font-weight:650}.sub{color:var(--muted);font-size:12px;font-weight:400;margin:4px 0 0}.warn{font-weight:600}.warn::before{content:"! "}
+.goals{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid var(--line)}.goals>div{padding:16px 16px 18px 0;border-bottom:1px solid var(--line)}.goals>div:nth-child(even){padding-left:16px;border-left:1px solid var(--line)}
+.goals p{margin:6px 0 0;font-size:16px;line-height:1.45}.goals p.label{font-size:11px;margin:0}nav+h2{margin-top:44px}.label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0;font-weight:400}
+.target{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.target .arrow{color:var(--muted)}
+article{border:1px solid var(--line);padding:22px 22px 18px;margin:0 0 16px;background:var(--bg)}article:target,article:hover{border-color:var(--fg)}
+article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:11px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);padding:2px 8px;color:var(--muted)}.pill.passed,.pill.answered{border-color:var(--fg);color:var(--fg)}.pill.killed{text-decoration:line-through}
+.phases{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;list-style:none;padding:0;margin:16px 0}.phases li{text-align:center;font:11px/1 var(--mono);padding:7px 0;background:var(--soft);color:var(--muted)}
+.phases li.passed,.phases li.answered{background:var(--fg);color:var(--bg)}.phases li.covered{background:transparent;outline:1px dashed var(--muted);outline-offset:-1px}.phases li.now{background:var(--bg);color:var(--fg);outline:2px solid var(--fg);outline-offset:-2px;font-weight:700}.phases li.killed{text-decoration:line-through}
+dl{display:grid;grid-template-columns:110px 1fr;gap:6px 18px;margin:0}dt{color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding-top:3px}dd{margin:0;overflow-wrap:anywhere}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:400;border-bottom-color:var(--fg)}
+ul{padding-left:18px;margin:0}li{margin:4px 0}ul.next{list-style:none;padding:0}ul.next li{padding:10px 0;border-bottom:1px solid var(--line);margin:0}
+details>summary{cursor:pointer;padding:6px 0;list-style:none}details>summary::-webkit-details-marker{display:none}details>summary::before{content:"+";display:inline-block;width:1.2em;font-family:var(--mono);color:var(--muted)}details[open]>summary::before{content:"−"}
+details.more{margin-top:16px;border-top:1px solid var(--line);padding-top:8px}details.more>summary{font-weight:600}
+.doc{border-bottom:1px solid var(--line);padding:2px 0}.doc.flat{padding:8px 0 8px 1.2em}.doc[open]{padding-bottom:10px}
+h4.label{margin:22px 0 4px}
+.md{padding:4px 0 8px 1.2em;overflow-wrap:anywhere}.md>p,.md>ul,.md>ol,.md>blockquote{max-width:76ch}.md h4{font-size:20px;letter-spacing:-.01em;margin:18px 0 6px}.md h5{font-size:16px;margin:16px 0 4px}.md h6{font-size:14px;margin:14px 0 4px}.md p{margin:8px 0}.md ul,.md ol{margin:8px 0}
+.md .scroll{max-width:none}.md table{font-size:14px;margin:10px 0;width:auto;min-width:100%}.md th,.md td{min-width:8em;overflow-wrap:break-word}.md td:first-child{min-width:12em}
+.md pre{background:var(--soft);padding:12px;overflow-x:auto;font-size:13px}.md code{font:13px var(--mono);background:var(--soft);padding:1px 4px}.md pre code{padding:0}
+.md blockquote{margin:10px 0;padding:2px 14px;border-left:2px solid var(--fg);color:var(--muted)}.md hr{border:0;border-top:1px solid var(--line)}.files{columns:2}
+footer{color:var(--muted);font-size:11px;margin-top:72px;padding-top:14px;border-top:1px solid var(--line)}
+@media (max-width:640px){main{padding-top:36px}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(3){border-left:0;padding-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}.goals{grid-template-columns:1fr}.goals>div:nth-child(even){padding-left:0;border-left:0}dl{grid-template-columns:1fr}dt{margin-top:8px}.files{columns:1}nav{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap}nav button{margin-left:0}.phases li{font-size:10px}article{padding:16px}}
+@media print{nav{display:none}details>*{display:block}article{break-inside:avoid}}
 </style></head><body><main>
+<p class="kicker">Project status · BuilderOS</p>
 <h1>${esc(m.name)}</h1>
-<p class="sub">${m.stage ? `Stage ${esc(m.stage)} · ` : ''}${m.env.url ? `<a href="${esc(m.env.url)}">${esc(m.env.url)}</a>` : 'not in production yet'}${m.env.preview ? ` · previews: ${esc(m.env.preview[1] || '')}` : ''}</p>
+${m.goals.purpose ? `<p class="lede">${esc(m.goals.purpose)}</p>` : ''}
+<p class="meta">${m.stage ? `<span>Stage ${esc(m.stage)}</span>` : ''}<span>${m.env.url ? `<a href="${esc(m.env.url)}">${esc(m.env.url)}</a>` : 'Not in production yet'}</span>${m.env.preview ? `<span>Previews ${esc(m.env.preview[1] || '')}</span>` : ''}${m.goals.updated ? `<span>Last change ${esc(m.goals.updated)}</span>` : ''}</p>
+<div class="stats">${counts.filter((c) => c[2] !== null).map(([id, label, n]) => `<a class="stat" href="#${id}"><b>${n}</b><span>${label}</span></a>`).join('')}</div>
 <nav>${counts.map(([id, label, n]) => `<a href="#${id}">${label}${n === null ? '' : ` <b>${n}</b>`}</a>`).join('')}<button type="button" data-open="1">Open all</button><button type="button" data-open="0">Close all</button></nav>
-<h2 id="decisions">Open decisions</h2>${decideHtml}
-<h2 id="progress">In progress</h2>${m.progress.map(card).join('\n') || none('Nothing open.')}
-<h2 id="next">Next</h2>${nextItems.length ? `<ul>${nextItems.join('')}</ul>` : none('Nothing planned: the roadmap has no Next.')}
-<h2 id="done">Done</h2>${m.done.map((d) => card({ ...d, closed: true })).join('\n') || none('No initiative closed yet.')}${decisionDocs ? `<h4 class="label">Decisions taken, newest first</h4>${decisionDocs}` : ''}
-<h2 id="memory">Project memory</h2>${m.memory.map((p) => doc(p)).join('')}${logs ? `<h4 class="label">Question logs outside an initiative</h4>${logs}` : ''}${m.reviews.length ? `<h4 class="label">Product reviews</h4>${m.reviews.map((p) => doc(p)).join('')}` : ''}
+<h2 id="goals"><span class="n">01</span>Goals</h2>${goalsHtml}
+<h2 id="decisions"><span class="n">02</span>Open decisions</h2>${decideHtml}
+<h2 id="progress"><span class="n">03</span>In progress</h2>${m.progress.map(card).join('\n') || none('Nothing open.')}
+<h2 id="next"><span class="n">04</span>Next</h2>${nextItems.length ? `<ul class="next">${nextItems.join('')}</ul>` : none('Nothing planned: the roadmap has no Next.')}
+<h2 id="done"><span class="n">05</span>Done</h2>${m.done.map((d) => card({ ...d, closed: true })).join('\n') || none('No initiative closed yet.')}${decisionDocs ? `<h4 class="label">Decisions taken, newest first</h4>${decisionDocs}` : ''}
+<h2 id="memory"><span class="n">06</span>Project memory</h2>${m.memory.map((p) => doc(p)).join('')}${logs ? `<h4 class="label">Question logs outside an initiative</h4>${logs}` : ''}${m.reviews.length ? `<h4 class="label">Product reviews</h4>${m.reviews.map((p) => doc(p)).join('')}` : ''}
 <footer>Generated by ${esc(m.stamp)}, with STATUS.md. Regenerated on every state change and session start; edit the files, not this page.</footer>
 </main>
 <script>
@@ -1821,7 +1871,11 @@ function statusMarkdown(m, href) {
   const cell = (t) => String(t ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
   const md = (p, label) => `[${label || path.basename(p)}](${href(p)})`;
   const out = [`# ${m.name}: status`, '', `Generated by ${m.stamp} from the project's files, with index.html. Do not edit it: change the files it reads and it regenerates.`, ''];
-  out.push(`${m.stage ? `Stage ${m.stage} · ` : ''}${m.env.url ? `production ${m.env.url}` : 'not in production yet'}`, '', '## Open decisions', '');
+  out.push(`${m.stage ? `Stage ${m.stage} · ` : ''}${m.env.url ? `production ${m.env.url}` : 'not in production yet'}`, '', '## Goals', '');
+  const g = m.goals;
+  const goalLines = [g.purpose && `- **Purpose:** ${g.purpose}`, g.problem && `- **Problem:** ${g.problem}`, g.who && `- **Who has it:** ${g.who}`, g.northStar && `- **North Star:** ${g.northStar}`,
+    ...[...m.progress, ...m.done].filter((c) => c.goal && (c.goal.target || c.goal.bet)).map((c) => `- **${c.title}:** ${c.goal.target ? `${c.goal.baseline || '?'} → ${c.goal.target}` : ''}${c.goal.target && c.goal.bet ? '; ' : ''}${c.goal.bet ? `bet: ${c.goal.bet}` : ''}`)].filter(Boolean);
+  out.push(...(goalLines.length ? goalLines : ['No goal written yet.']), '', '## Open decisions', '');
   if (m.decide.length) out.push('| Decision | Blocks | Since |', '|----------|--------|-------|', ...m.decide.map((d) => `| ${d.file ? md(d.file, cell(d.what)) : cell(d.what)} | ${cell(d.blocks)} | ${d.since || ''} |`));
   else out.push('Nothing waits on a person.');
   out.push('', '## In progress', '');

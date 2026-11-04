@@ -44,7 +44,7 @@ test('the status page has open decisions with what they block, in progress, next
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /index\.html and \.builderos\/STATUS\.md: 2 open decisions, 1 in progress, 1 done/);
   const html = p.read('.builderos/index.html');
-  const order = ['Open decisions', 'In progress', 'Next', 'Done', 'Project memory'].map((h) => html.search(new RegExp(`<h2 id="[a-z]+">${h}</h2>`)));
+  const order = ['Goals', 'Open decisions', 'In progress', 'Next', 'Done', 'Project memory'].map((h) => html.search(new RegExp(`<h2 id="[a-z]+"><span class="n">\\d+</span>${h}</h2>`)));
   assert.ok(order.every((x, k) => x > 0 && (k === 0 || x > order[k - 1])), `sections out of order: ${order}`);
   assert.match(html, /<a href=\"#i-csv-export-grilling\">Q2 Which reports move first\?<\/a><\/td><td>CSV export: phase 2 Define<\/td>/, 'an open question from the log, with the phase it blocks');
   assert.match(html, /href="initiatives\/csv-export\/grilling\.md"/);
@@ -70,7 +70,8 @@ test('STATUS.md says the same as the page, readable where HTML shows as source',
   assert.match(md, /^- \*\*Team digests\*\* \(roadmap\)/m);
   assert.match(md, /^- \*\*Onboarding rework\*\*: killed at phase 0/m);
   const sections = [...md.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
-  assert.deepEqual(sections, ['Open decisions', 'In progress', 'Next', 'Done']);
+  assert.deepEqual(sections, ['Goals', 'Open decisions', 'In progress', 'Next', 'Done']);
+  assert.match(md, /^- \*\*CSV export:\*\* 0, product not built, first measurement 2026-10-01 → 30% of active managers by 2026-12-01$/m, 'each initiative\'s goal, source tags dropped');
 });
 
 test('an empty project says so in every section instead of leaving it blank', (t) => {
@@ -113,7 +114,8 @@ test('every item opens down to its documents: phases with their gate and full te
   p.write('.builderos/initiatives/csv-export/cycle-1/03-solution-bet.md', '# Earlier bet\n\n- export to Sheets\n');
   p.run('page');
   const html = p.read('.builderos/index.html');
-  assert.match(html, /<nav><a href="#decisions">Open decisions <b>2<\/b><\/a>/, 'the overview counts, linked to their sections');
+  assert.match(html, /<a class="stat" href="#decisions"><b>2<\/b><span>Open decisions<\/span><\/a>/, 'the overview counts, linked to their sections');
+  assert.match(html, /<nav><a href="#goals">Goals<\/a><a href="#decisions">Open decisions <b>2<\/b><\/a>/);
   assert.match(html, /<article id="i-csv-export">[\s\S]*<details class="more"><summary>Everything on this initiative<\/summary>/, 'the detail sits one click under the card');
   assert.match(html, /<details class="doc" id="i-csv-export-p1"><summary>1 Discover <span class="pill passed">passed<\/span> · gate passed 2026-09-02, accepted by Dana/);
   assert.match(html, /<h5>Verdict<\/h5>\n<p><strong>VALIDATED<\/strong>: four managers rebuild the view by hand, see <a href="initiatives\/csv-export\/evidence\/P1\.md">the notes<\/a>\.<\/p>/, 'the document in full, its links resolved from the page');
@@ -124,5 +126,17 @@ test('every item opens down to its documents: phases with their gate and full te
   assert.match(html, /<details class="doc" id="adr-ADR-001-postgres"><summary>ADR-001-postgres \(2026-09-01\)[\s\S]*<h5>Revisit when<\/h5>/, 'a decision in full, where its revisit row points');
   assert.match(html, /<details class="doc"><summary>PRODUCT\.md <span class="sub"><a href="\.\.\/PRODUCT\.md">open file<\/a>/, 'project memory in full too');
   assert.match(html, /function reveal\(\)/, 'a link into a closed section opens it');
+});
+
+test('the page opens on the goals: purpose, problem, North Star, and what each initiative is trying to move', (t) => {
+  const p = project(t);
+  p.run('page');
+  const html = p.read('.builderos/index.html');
+  assert.match(html, /<p class="lede">Acme Reports turns a sales team&#39;s CRM activity into the weekly report their manager reads\.<\/p>/);
+  assert.match(html, /<p class="label">Problem<\/p><p>Sales managers at 20-to-200-seat teams spend part of every Monday rebuilding the same pipeline view by hand from CRM exports\.<\/p>/, 'first sentence, no source tags');
+  assert.match(html, /<p class="label">North Star<\/p><p>Not chosen yet/);
+  assert.match(html, /<h3><a href="#i-csv-export">CSV export<\/a><\/h3>[\s\S]*?<dt>Metric<\/dt><dd>managers exporting the weekly view at least once a week<\/dd>[\s\S]*?<strong>30% of active managers by 2026-12-01<\/strong>/);
+  assert.match(html, /<dt>Riskiest<\/dt><dd>New managers give up before their first report<\/dd>/);
+  assert.match(html, /<dt>Goal<\/dt><dd>30% of active managers by 2026-12-01<\/dd>/, 'the card carries its goal too');
 });
 
