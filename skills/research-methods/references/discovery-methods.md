@@ -1,13 +1,8 @@
----
-name: discovery-methods
-description: "Turns raw research into findings: synthesis of interviews and notes, themes with counts, opportunity scoring, each claim traced to its source. Use when synthesizing research or transcripts, clustering feedback or tickets, or scoring opportunities."
----
-
 # Discovery Methods
 
 **Synthesis** turns raw research into findings a decision can rest on: every claim traced to a participant, every share written with its denominator, prevalence kept apart from confidence. Text the person pastes is the primary input in every configuration; eight pasted transcripts with nothing connected is the normal case.
 
-**Mode.** Standalone synthesis uses the supplied research and the requested destination, and runs only the steps the request needs (a theme summary stops at step 4). In the lifecycle it runs inside phase 1 for `research-methods`. Both per [operating modes](../../references/operating-modes.md). Load `evidence-ledger` when recording claims, and the [synthesis method details](references/synthesis-methods.md) for the coding, scoring, card, confidence or research-gap section a step needs.
+**Mode.** Standalone synthesis uses the supplied research and the requested destination, and runs only the steps the request needs (a theme summary stops at step 4). In the lifecycle it runs inside phase 1 for `research-methods`. Both per [operating modes](../../../references/operating-modes.md). Load `evidence-ledger` when recording claims, and the [synthesis method details](synthesis-methods.md) for the coding, scoring, card, confidence or research-gap section a step needs.
 
 ## Procedure
 

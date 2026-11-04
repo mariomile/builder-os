@@ -1,6 +1,6 @@
 # Direction Method
 
-The references, the axes, the defaults to steer away from, the file rules, the kit card and the token list behind `design-direction`. Product names are examples of a kind of option, never defaults.
+The references, the axes, the defaults to steer away from, the file rules, the kit card and the token list behind `ux-architecture` (direction). Product names are examples of a kind of option, never defaults.
 
 ## References
 

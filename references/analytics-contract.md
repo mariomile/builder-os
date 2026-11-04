@@ -43,7 +43,7 @@ State the unit of count explicitly in the artifact. "12,400 signups" is ambiguou
 | **Needs** | `analytics.query` |
 | **Inputs** | ordered steps (2+ events), date range, conversion window, whether steps must be strictly sequential, optional breakdown |
 | **Result** | per step: actors entering, actors converting, conversion rate from previous step and from first step; median time to convert per step where available |
-| **Used by** | `product-analysis` (growth) (activation diagnosis), gate 5 and gate 6 instrumentation checks, `experiment-methodology` |
+| **Used by** | `product-analysis` (growth) (activation diagnosis), gate 5 and gate 6 instrumentation checks, `tracking-standards` (experiments) |
 | **Floor** | a funnel assembled from separate Volume queries, one per step, clearly marked as an **unlinked funnel**: it counts distinct populations per step, not the same cohort walking through, so it flatters conversion at every step |
 
 The conversion window is the single most common source of a wrong funnel number. Every provider has one, their defaults differ, and a window of one day against a product with a weekly usage rhythm will report an activation collapse that is an artifact of the setting. Read the window, record it in the artifact next to the number.

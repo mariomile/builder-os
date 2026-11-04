@@ -1,13 +1,8 @@
----
-name: pm-artifacts
-description: "Writes product communication in a fitting format: release notes, stakeholder updates, executive summaries, decision memos. Use when someone asks for release notes, a status update, an exec summary or a memo for a product decision."
----
-
 # PM Artifacts
 
 Product communication for a named reader: each type has a reader, a length and one **default failure** it falls into unless checked. Release notes, stakeholder updates, executive summaries, decision memos and PRDs.
 
-**Mode.** Standalone by default, from supplied requirements and sources; inside an initiative the numbers carry their lifecycle tags. Both per [operating modes](../../references/operating-modes.md). Load the section of [templates and guidelines](references/templates.md) for the requested type: audience, tone, length, structure and template.
+**Mode.** Standalone by default, from supplied requirements and sources; inside an initiative the numbers carry their lifecycle tags. Both per [operating modes](../../../references/operating-modes.md). Load the section of [templates and guidelines](pm-templates.md) for the requested type: audience, tone, length, structure and template.
 
 ## Procedure
 

@@ -60,7 +60,7 @@ A ticket is **unblocked** when every ticket blocking it is closed. The **frontie
 Every ticket is worked **with** the person (they speak for themselves) or **alone** by the agent. A ticket worked with the person resolves only through that exchange: the person's answer closes it.
 
 - **Research** (alone): a fact a decision waits on, from documents, the repository, the web or connected sources. Facts are the agent's job. Delegate it where the host supports delegation, so research tickets resolve in parallel; otherwise resolve it inline. Tag what it finds per `evidence-ledger`.
-- **Prototype** (with the person): raise the fidelity of the discussion with a cheap, rough artifact to react to: a logic prototype per `domain-model`, rendered versions per `design-direction`, an outline. Link it from the ticket.
+- **Prototype** (with the person): raise the fidelity of the discussion with a cheap, rough artifact to react to: a logic prototype per `domain-model`, rendered versions per `ux-architecture` (direction), an outline. Link it from the ticket.
 - **Grilling** (with the person): the default. Run `pressure-testing` rounds until the ticket's frontier is empty; settle any term used two ways per `domain-model`, step 1.
 - **Task** (alone where possible, otherwise a checklist for the person): manual work a decision is blocked on: an account to open so an API can be judged, an export so data can be seen. It earns its place by unblocking a decision. Its resolution records what was done and the facts later tickets need.
 

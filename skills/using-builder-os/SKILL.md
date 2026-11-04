@@ -41,33 +41,33 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
-| Synthesize supplied research | `discovery-methods` |
+| Synthesize supplied research | `research-methods` (synthesis) |
 | Compare opportunities or solution alternatives | `opportunity-mapping` or `ideation-methods`, standalone |
 | What an idea is worth, a business case, which assumption carries it, whether to test before building, how much to bet | `business-case`, standalone |
 | Go-to-market, positioning, pricing and motion, which channel first, a launch plan, how the launch went | `go-to-market`, standalone |
-| Which stack, backend, database or hosting to use, and why | `stack-decisions`, standalone |
+| Which stack, backend, database or hosting to use, and why | `system-design` (stack), standalone |
 | How the backend fits together, an API's contracts, timeouts and retries, whether it will scale, a security or threat-model review | `system-design`, standalone |
-| See design versions, choose a look or a design kit | `design-direction`, standalone |
+| See design versions, choose a look or a design kit | `ux-architecture` (direction), standalone |
 | Business rules, states and transitions, data model, what a term means | `domain-model`, standalone |
 | Something is broken, regressed, slow or flaky | `bug-diagnosis`, standalone |
-| A video of a feature working, a demo for a pull request or a release, an end-to-end test that records | `feature-demo`, standalone |
+| A video of a feature working, a demo for a pull request or a release, an end-to-end test that records | `delivery-discipline` (demo), standalone |
 | Draw a user flow or a lifecycle as a diagram | `ux-architecture` (flows) or `domain-model` (states), Mermaid in the answer |
 | Draft or revise a specification from requirements | `spec-writing`, standalone; UX/tracking as needed |
 | Plan, implement or review supplied build work | `delivery-discipline`, within the authorized mode |
 | Turn what was discussed into a spec, with no interview | `spec-writing`, synthesis (`to-spec` by name) |
 | Break a plan or spec into tickets | `delivery-discipline`, [tickets](../delivery-discipline/references/tickets.md) (`to-tickets` by name) |
 | Write, update or prune a repository's `AGENTS.md` or `CLAUDE.md`; the agent keeps getting lost in the code | `agents-md`, standalone |
-| A retrospective on an agent session, or what to change so the agent works better here | [retro](../retro/SKILL.md) (`retro` by name) |
-| Deploy, go live, set up hosting, a domain, email sending or a preview link | `production-setup`, standalone |
+| A retrospective on an agent session, or what to change so the agent works better here | `agents-md`, [retro](../agents-md/references/retro.md) (`retro` by name) |
+| Deploy, go live, set up hosting, a domain, email sending or a preview link | `release-ops` (production), standalone |
 | See the whole project on one page, or send it to someone | `scripts/bos.mjs page` where commands run: `.builderos/index.html`, and `STATUS.md` in Markdown |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
 | Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |
 | Tracking plan or instrumentation audit | `tracking-standards` |
-| Experiment design or result | `experiment-methodology` |
-| Release notes, stakeholder update or other document | `pm-artifacts` |
+| Experiment design or result | `tracking-standards` (experiments) |
+| Release notes, stakeholder update or other document | `spec-writing` (communication) |
 
-Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` for a requested critique or a material unresolved assumption.
+Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` to interview the person: a brainstorm, a requested critique, or a material unresolved assumption.
 
 ## Capabilities
 

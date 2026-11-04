@@ -1,6 +1,6 @@
 # Stack Method
 
-The catalogue, the card and the example behind `stack-decisions`. Read the section the current step needs. Every product name below is an example of a kind of option, never a default or a requirement.
+The catalogue, the card and the example behind `system-design` (stack). Read the section the current step needs. Every product name below is an example of a kind of option, never a default or a requirement.
 
 ## Layer Catalogue
 
@@ -12,13 +12,13 @@ List only the layers this work touches. A small feature on an existing product u
 | **Backend / API** | Where the logic runs and in what language | Who maintains it; existing team skills; latency; long-running work | Full-stack framework in one repo, a separate API service, backend-as-a-service (Supabase, Firebase), serverless functions |
 | **Data** | Where state lives and how it is queried | Shape of the data (relational, documents, files, vectors); consistency; residency | Managed relational database, document store, object storage, vector index, a spreadsheet for a concierge pilot |
 | **Auth** | Who the user is and what they may see | B2B vs B2C; SSO demands; tenancy; compliance | Built into the backend service, a dedicated identity provider, magic links, none for an internal pilot |
-| **Hosting / runtime** | Where it runs and who keeps it up; whether it gives every change a preview link | Operational load the team can carry; region; cost curve; previews per pull request (`production-setup` uses them for gate 5.17) | Platform-as-a-service (Vercel, Render, Fly), a cloud provider directly, the user's own servers |
+| **Hosting / runtime** | Where it runs and who keeps it up; whether it gives every change a preview link | Operational load the team can carry; region; cost curve; previews per pull request (`release-ops` (production) uses them for gate 5.17) | Platform-as-a-service (Vercel, Render, Fly), a cloud provider directly, the user's own servers |
 | **Background work** | Jobs, schedules, queues, retries | Anything slower than a request, anything scheduled | Cron on the host, a managed queue, a workflow engine, a database-backed job table |
 | **Model / AI** | Which model provider and how it is called | Quality on the eval set; latency; cost per call; data handling terms | A hosted model API, an open model on managed inference, no model (rules first) |
 | **Integrations** | Email, payments, messaging, the ICP's existing tools | What the flows send or receive (`DESIGN.md` → Messages); business messaging channels need approved templates | Transactional email service, payment processor, the tool's own API, a manual export for the pilot |
 | **Payments and tax** | How the product takes money, and who issues invoices and handles VAT | Product for sale (`PRODUCT.md` → Revenue model); where customers are; who does the admin. Gate 4.14 wants this row on a product for sale | A merchant of record (sells on your behalf, handles VAT and invoices in every country, higher fee per sale); a payment processor plus your own invoicing (lower fee; in Italy, e-invoices through SdI for Italian customers, and VAT where an EU consumer lives through OSS, usually with an accountant); manual invoices for the first ten customers. Tax facts are verified with an accountant, never decided from the card |
 | **Analytics** | How the phase 2 metric gets measured | The tracking plan; `references/analytics-contract.md` | An existing provider, events in the product database, none until the pilot |
-| **Design kit** | The component library and tokens | Decided by `design-direction`, after the interface and frontend are settled | — |
+| **Design kit** | The component library and tokens | Decided by `ux-architecture` (direction), after the interface and frontend are settled | — |
 
 **Not needed is an answer.** A pilot that a person runs by hand needs no queue. Write the reason, so nobody adds one "for later".
 
@@ -76,7 +76,7 @@ Drivers that decide it: one maintainer, EU residency, three weeks.
 ➡️ **B**: it covers data and auth in one EU-hosted service and the three-week driver dominates; A is the fallback if its residency option is not confirmed.
 ```
 
-Round 2 then asks hosting, background work and the model provider, which depend on the answer; the design kit goes to `design-direction` once the interface layer is settled.
+Round 2 then asks hosting, background work and the model provider, which depend on the answer; the design kit goes to `ux-architecture` (direction) once the interface layer is settled.
 
 **Recorded:** `TECH.md` → Stack gains the rows; `decisions/ADR-004-backend-and-data.md` holds the card, the drivers, "chosen by Mario, 2026-10-20" and `Revisit when: the pilot ends, or monthly cost passes €200`; `04-spec.md` → Stack lists every layer with its status.
 

@@ -36,4 +36,4 @@ The **project root** holds user inputs, outputs and `.builderos/`. The **install
 
 Resolve the real `SKILL.md` path, following a discovery symlink. The installation root is two directories above that file's directory. Shared `references/...` and `scripts/...` paths are relative to that root; a skill-specific reference link is relative to its skill directory. Markdown links resolve relative to their containing file. Never search the user's project for plugin support files because it is the working directory.
 
-For example, `skills/spec-writing/SKILL.md` links to `../../references/operating-modes.md`, while `skills/pm-artifacts/SKILL.md` links to its own `references/templates.md`. Keep the entire installation bundle when exposing skills manually.
+For example, `skills/spec-writing/SKILL.md` links to `../../references/operating-modes.md`, while `skills/spec-writing/references/pm-artifacts.md` links to its sibling `pm-templates.md`. Keep the entire installation bundle when exposing skills manually.

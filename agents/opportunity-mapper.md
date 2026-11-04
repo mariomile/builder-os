@@ -1,6 +1,6 @@
 ---
 name: opportunity-mapper
-description: "Converts validated discovery into an opportunity solution tree, selects one opportunity with written rejections, checks coherence against PMF stage, and defines a success metric with a real baseline. Use when entering BuilderOS phase 2 or when research findings need turning into a decision."
+description: "Phase 2: turns validated discovery into an opportunity tree, picks one with written rejections, sets a metric with a baseline."
 model: inherit
 ---
 

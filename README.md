@@ -176,7 +176,7 @@ Invoke a specialist directly when the task is clear. `using-builder-os` briefs a
 
 **One sentence is enough to start.** `/builder-os:bos-init "a tool that warns account managers before a client churns"` drafts `PRODUCT.md` from the sentence, announces the name, track and mode it picked as defaults you can override, and opens the first round of questions in the same turn. No setup interview.
 
-**Questions come in rounds, with options and a recommendation.** The first round opens with the claim as it understood it, so you can correct it before anything rests on it. At most four questions per round, each with two to four options and what each leads to, one recommended with its reason; a line at the end says how much is left:
+**Questions come in rounds, with options and a recommendation.** The first round opens with the claim as it understood it, so you can correct it before anything rests on it. Each round asks every question that can be asked before an answer arrives, each with two to four options and what each leads to, one recommended with its reason; a line at the end says how much is left:
 
 ```
 🎯 Thesis: account managers lose renewals they could have saved; it rests on the churn signals being visible weeks ahead.
@@ -242,7 +242,7 @@ Details and the per-host difference table: [`docs/hosts.md`](docs/hosts.md).
 
 ## What's in the box
 
-**34 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), four cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`, `wayfinding` for work too big for one session), `agents-md` (keeps the repository's `AGENTS.md` and `CLAUDE.md` a short index the coding agent can trust), `production-setup` (production from the first slice, a preview link for every change), three you call by name (`retro`, `to-spec`, `to-tickets`, adapted from Matt Pocock's skills and costing no context until called), the rest split between the eight phases and the specialists that answer standalone questions, among them `product-analysis`, one skill for metrics, growth, revenue, strategy, OKRs and competitors, `business-case`, which values a bet in money with its load-bearing assumption and sizes the stake, and `go-to-market`, which plans how buyers arrive before the build and reads each channel after. Each `SKILL.md` holds the procedure; methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
+**24 skills.** One entry point (`using-builder-os`: briefing and routing), the lifecycle hub (`builder-os`), four cross-cutting (`gate-checks`, `evidence-ledger`, `pressure-testing`, `wayfinding` for work too big for one session), `agents-md` (keeps the repository's `AGENTS.md` and `CLAUDE.md` a short index the coding agent can trust, and runs the `retro` that turns a slow session into pointers and checks), the rest split between the eight phases and the specialists that answer standalone questions. Fewer skills, each owning a whole job: `research-methods` plans, runs and synthesizes research; `ux-architecture` designs the flows and lets the person choose the look; `system-design` decides the stack and the backend; `tracking-standards` covers events and experiments; `spec-writing` writes specs and the communication around them (`to-spec` by name); `delivery-discipline` slices, builds and records the demo (`to-tickets` by name); `release-ops` sets up production from the first slice and releases. Among the specialists, `product-analysis` is one skill for metrics, growth, revenue, strategy, OKRs and competitors, `business-case` values a bet in money with its load-bearing assumption and sizes the stake, and `go-to-market` plans how buyers arrive before the build and reads each channel after. Each `SKILL.md` holds the procedure; a second mode, methods, templates and examples sit in the skill's own `references/` and are read only when a step needs them. The gate conditions are one file per phase, so a gate loads only its own.
 
 **14 agents.** Claude Code adapters, none longer than 35 lines by contract. They name the skill they load and add only what a delegated context needs: role, Iron Law, context contract, reporting.
 
@@ -333,5 +333,6 @@ Patterns borrowed, not dependencies. BuilderOS installs on its own.
 | [`references/capability-map.md`](references/capability-map.md) | The 25 capabilities and their degradation ladders |
 | [`references/analytics-contract.md`](references/analytics-contract.md) | The five analytics question shapes, and what they mean per provider |
 | [`references/builderos-state-schema.md`](references/builderos-state-schema.md) | `.builderos/` layout and `state.json` |
+| [`references/memory-templates.md`](references/memory-templates.md) | `ROADMAP.md`, `TECH.md`, `DOMAIN.md` and ADR formats |
 
 MIT.

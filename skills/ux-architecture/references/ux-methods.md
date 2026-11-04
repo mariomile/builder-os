@@ -82,7 +82,7 @@ What the product sends when the person is not looking at it is read more often t
 
 **Previews a person opens.** An email is an HTML file in `design/messages/` with the subject, the sender name, the preheader and the body, readable at 390 px and with images off. A chat or text message is the bubble as it will look, with its length within the channel's limit and its buttons or quick replies. A push is its title and line as the lock screen cuts them. Each language in `PRODUCT.md` → Markets has its version; the preview shows the longest.
 
-**Channel rules worth knowing.** Business messaging platforms (WhatsApp and similar) require pre-approved templates for messages that open a conversation, and limit free text to a window after the person last wrote: the template text is part of the design and needs approval time in the plan. Email needs an authenticated sender (`production-setup`) and an unsubscribe link on anything that is not transactional.
+**Channel rules worth knowing.** Business messaging platforms (WhatsApp and similar) require pre-approved templates for messages that open a conversation, and limit free text to a window after the person last wrote: the template text is part of the design and needs approval time in the plan. Email needs an authenticated sender (`release-ops` (production)) and an unsubscribe link on anything that is not transactional.
 
 **Seen as received.** In phase 5 each message is sent by the built product to a test inbox or phone and captured (`**Messages received:**`, gate 5.9), because what a template renders and what a mail client shows differ.
 
@@ -114,7 +114,7 @@ The floor is a floor. A full audit belongs to a dedicated accessibility pass; st
 
 ## Interop
 
-The visual layer (typography, spacing, colour, motion, the design kit) belongs to `design-direction`, which renders versions for the user to choose from and writes the tokens into `DESIGN.md`. Where a design-quality toolchain is present it renders through it; where none is, it writes HTML files. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor; the component inventory names components of the kit `design-direction` settles.
+The visual layer (typography, spacing, colour, motion, the design kit) belongs to `ux-architecture` (direction), which renders versions for the user to choose from and writes the tokens into `DESIGN.md`. Where a design-quality toolchain is present it renders through it; where none is, it writes HTML files. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor; the component inventory names components of the kit `ux-architecture` (direction) settles.
 
 ## More Common Mistakes
 

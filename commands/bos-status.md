@@ -1,6 +1,7 @@
 ---
 name: bos-status
 description: "One-screen view of the BuilderOS project: every initiative, the active one's phases and gates, what blocks the next step"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.
