@@ -31,8 +31,9 @@
 //   node bos.mjs defer-review --review-due YYYY-MM-DD --reason "..."
 //                                          defer phase 7 without inventing an outcome verdict
 //   node bos.mjs roadmap                   regenerate the Now and Done tables of ROADMAP.md, and the project page
-//   node bos.mjs page                      write .builderos/index.html: initiatives, what waits on a person, links to every
-//                                          document, design, prototype, demo and preview; the roadmap regenerates it
+//   node bos.mjs page                      write .builderos/index.html and STATUS.md: open decisions and what they block,
+//                                          in progress, next, done, with links to every document, design, demo and
+//                                          preview; the roadmap regenerates both
 //   node bos.mjs map [slug]                a wayfinding map's destination, decisions so far, frontier, claimed and blocked
 //                                          tickets and the fog (.builderos/maps/{slug}/); every open map without a slug
 //   node bos.mjs grill [name]              a question log's next number, open questions, answers to ask again because
@@ -1120,7 +1121,7 @@ function personWaits(init) {
   if (!fs.existsSync(path.join(init.dir, ARTIFACTS[p]))) return [];
   let j;
   try { j = JSON.parse(spawnSyncSelf(['gate', String(p), '--json', '--initiative', init.slug]) || '{}'); } catch { return []; }
-  return (j.failed || []).filter((id) => PERSON_WAITS[id]).map((id) => `phase ${p} waits on ${PERSON_WAITS[id]} (${id})`);
+  return (j.failed || []).filter((id) => PERSON_WAITS[id]);
 }
 
 // The product review: a dated file in .builderos/reviews/, checked by `bos.mjs review`.
@@ -1564,63 +1565,127 @@ function listFiles(dir, re, depth = 2) {
     return d.isDirectory() ? listFiles(p, re, depth - 1) : re.test(d.name) ? [p] : [];
   }).sort();
 }
-function writePage(quiet) {
-  if (!fs.existsSync(BOS)) { if (quiet) return; die('no .builderos/ here'); }
-  const out = path.join(BOS, 'index.html');
-  const link = (p, label) => `<a href="${esc(path.relative(BOS, p).split(path.sep).join('/'))}">${esc(label || path.basename(p))}</a>`;
+// The project's status in four parts, read from the files and never written by hand: what waits on a person and what
+// it blocks, what is in progress, what comes next, what is done. One model, two renderings: .builderos/index.html to
+// open or send, .builderos/STATUS.md to read on the code host, on a phone, or from a session.
+function statusModel() {
   const product = read(path.join(ROOT, 'PRODUCT.md')) || '';
+  const rm = read(path.join(BOS, 'ROADMAP.md')) || '';
   const name = ((product.match(/^#\s+(.+)$/m) || [])[1] || path.basename(ROOT)).replace(/^PRODUCT\.md\s*[—-]\s*/, '');
-  const env = environments();
-  const stage = productStage(product);
   const all = loadInitiatives().sort((a, b) => String(b.state.updated_at || '').localeCompare(String(a.state.updated_at || '')));
-  const waiting = [];
-  const cards = all.map((i) => {
+  const title = (i) => i.state.title || i.slug;
+  const at = (i) => `${title(i)}: phase ${i.state.current_phase ?? 0} ${PHASES[i.state.current_phase ?? 0]}`;
+  const docsOf = (i) => [REQUEST, ...ARTIFACTS, 'DESIGN.md', 'grilling.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
+  const open = all.filter((i) => i.state.status !== 'closed');
+  const decide = [];
+  const progress = [];
+  for (const i of open) {
     const s = i.state;
     const ph = s.current_phase ?? 0;
     const g = (s.phases && s.phases[String(ph)] && s.phases[String(ph)].gate) || null;
     const round = openRound(s);
-    if (round) waiting.push(`${s.title || i.slug}: ${round.questions || 'a'} question${round.questions === 1 ? '' : 's'} waiting since ${String(round.at).slice(0, 10)}`);
-    if (g && !g.passed && (g.failed_conditions || []).length) waiting.push(`${s.title || i.slug}: gate ${ph} failed on ${g.failed_conditions.join(', ')}`);
-    else if ((s.status || 'open') === 'open') for (const w of personWaits(i)) waiting.push(`${s.title || i.slug}: ${w}`);
-    const docs = [REQUEST, ...ARTIFACTS, 'DESIGN.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
+    if (round) decide.push({ what: `${round.questions || 'A'} question${round.questions === 1 ? '' : 's'} in the round asked`, blocks: at(i), since: String(round.at).slice(0, 10) });
+    let failed = [];
+    if (g && !g.passed && (g.failed_conditions || []).length) {
+      for (const id of g.failed_conditions) if (PERSON_WAITS[id]) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i) });
+      failed = g.failed_conditions.filter((id) => !PERSON_WAITS[id]);
+    } else if ((s.status || 'open') === 'open') for (const id of personWaits(i)) decide.push({ what: `${PERSON_WAITS[id]} (${id})`, blocks: at(i) });
     const visuals = listFiles(path.join(i.dir, 'design'), /\.(html?|png|jpe?g|webp|svg)$/i);
     const media = listFiles(path.join(BOS, 'media'), /\.(mp4|webm|mov|gif|png)$/i, 3).filter((p) => p.includes(i.slug));
     const tried = section(read(path.join(i.dir, ARTIFACTS[5])) || '', 'Tried');
     const preview = tried && field(tried, 'Link');
-    const row = (label, items) => (items.length ? `<dt>${label}</dt><dd>${items.join(' · ')}</dd>` : '');
-    return `<article><header><h3>${esc(s.title || i.slug)}</h3><span class="pill">${esc(s.track || 'product')}</span><span class="pill ${s.status === 'closed' ? 'done' : ''}">${s.status === 'closed' ? 'closed' : `phase ${ph} ${esc(PHASES[ph])}`}</span></header>
-<ol class="phases">${PHASES.map((p, k) => { const st = (s.phases && s.phases[String(k)] && s.phases[String(k)].status) || 'pending'; return `<li class="${esc(st)}${k === ph && s.status !== 'closed' ? ' now' : ''}" title="${esc(st)}">${k}</li>`; }).join('')}</ol>
-<dl>${row('Documents', docs.map((p) => link(p)))}${row('Designs and prototypes', visuals.map((p) => link(p)))}${row('Demo', media.map((p) => link(p)))}${preview ? row('Try it', [/https?:\/\//.test(preview) ? `<a href="${esc((preview.match(/https?:\/\/[^\s)`]+/) || [])[0])}">${esc(preview)}</a>` : esc(preview)]) : ''}${claimNote(s) ? row('Owner', [esc(claimNote(s))]) : ''}</dl></article>`;
+    progress.push({ i, title: title(i), track: s.track || 'product', phase: ph, paused: s.status === 'paused', failed, docs: docsOf(i), visuals, media, preview, owner: claimNote(s),
+      next: s.status === 'paused' ? 'paused' : round ? `your answers to the round asked ${String(round.at).slice(0, 10)}` : nextStep(i) });
+  }
+  const bySlug = new Map(all.map((i) => [i.slug, i]));
+  for (const l of loadGrillingLogs()) {
+    const init = bySlug.get(l.name);
+    if (init && init.state.status === 'closed') continue;
+    const blocks = init && fs.existsSync(path.join(init.dir, 'grilling.md')) && path.relative(ROOT, path.join(init.dir, 'grilling.md')) === l.file ? at(init) : `the decision on ${l.title}`;
+    const file = path.join(ROOT, l.file);
+    for (const r of l.open) decide.push({ what: `${r.q} ${r.question}`, blocks, file });
+    for (const r of l.reask) decide.push({ what: `${r.q} ${r.question}, to ask again: it rests on ${r.because.join(', ')}, which was replaced`, blocks, file });
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  const decs = decisions();
+  for (const d of decs) if (d.revisitBy && d.revisitBy <= today) decide.push({ what: `revisit ${d.name}`, blocks: `${d.name} stands until someone revisits it`, since: d.revisitBy, file: path.join(BOS, 'decisions', `${d.name}.md`) });
+  const roadmapNext = tableRows(section(rm, 'Next')).filter((r) => nonEmpty(r[0])).map((r) => ({ what: r[0], why: r[1] || '', first: r[2] || '' }));
+  const later = (section(rm, 'Later') || '').split('\n').map((l) => l.trim()).filter((l) => /^[-*]\s+\S/.test(l)).map((l) => l.replace(/^[-*]\s+/, ''));
+  const learned = new Map(tableRows(section(rm, 'Done')).map((r) => [String(r[0] || '').toLowerCase(), r[2]]));
+  const done = all.filter((i) => i.state.status === 'closed').map((i) => {
+    const l = learned.get(title(i).toLowerCase());
+    return { title: title(i), outcome: outcomeOf(i.state), learning: l && !/^see 07-outcome/.test(l) ? l : '', date: (i.state.updated_at || '').slice(0, 10), docs: docsOf(i) };
   });
-  const decisions = listFiles(path.join(BOS, 'decisions'), /\.md$/i, 0);
-  const reviews = listFiles(path.join(BOS, 'reviews'), /\.md$/i, 0);
+  const memory = ['PRODUCT.md', 'DOMAIN.md', 'TECH.md'].map((f) => path.join(ROOT, f)).filter((p) => fs.existsSync(p));
+  if (fs.existsSync(path.join(BOS, 'ROADMAP.md'))) memory.push(path.join(BOS, 'ROADMAP.md'));
+  return { name, stage: productStage(product), env: environments(), decide, progress, roadmapNext, later, done, decided: decs.slice().reverse(), memory,
+    reviews: listFiles(path.join(BOS, 'reviews'), /\.md$/i, 0), stamp: `BuilderOS ${VERSION} on ${today}` };
+}
+
+function writePage(quiet) {
+  if (!fs.existsSync(BOS)) { if (quiet) return; die('no .builderos/ here'); }
+  const m = statusModel();
+  const href = (p) => path.relative(BOS, p).split(path.sep).join('/');
+  const link = (p, label) => `<a href="${esc(href(p))}">${esc(label || path.basename(p))}</a>`;
+  const urlOf = (t) => (String(t || '').match(/https?:\/\/[^\s)`]+/) || [])[0];
+  const none = (t) => `<p class="sub">${t}</p>`;
+  const row = (label, items) => (items.length ? `<dt>${label}</dt><dd>${items.join(' · ')}</dd>` : '');
+  const strip = (x) => `<ol class="phases">${PHASES.map((p, k) => { const st = (x.state.phases && x.state.phases[String(k)] && x.state.phases[String(k)].status) || 'pending'; return `<li class="${esc(st)}${k === (x.state.current_phase ?? 0) && x.state.status !== 'closed' ? ' now' : ''}" title="${esc(`${k} ${p}: ${st}`)}">${k}</li>`; }).join('')}</ol>`;
+  const decideHtml = m.decide.length ? `<table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${d.file ? link(d.file, d.what) : esc(d.what)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table>` : none('Nothing waits on a person.');
+  const cards = m.progress.map((c) => `<article><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
+${strip(c.i)}<dl>${c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', c.visuals.map((p) => link(p)))}${row('Demo', c.media.map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}</dl></article>`);
+  const nextItems = [...m.progress.map((c) => `<li><strong>${esc(c.title)}</strong>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
+  const doneItems = m.done.map((d) => `<li><strong>${esc(d.title)}</strong>: ${esc(d.outcome)}${d.learning ? `. ${esc(d.learning)}` : ''}${d.date ? ` <span class="sub">(${esc(d.date)})</span>` : ''}${d.docs.length ? ` · ${d.docs.map((p) => link(p)).join(' · ')}` : ''}</li>`);
+  const decidedItems = m.decided.map((d) => `<li>${link(path.join(BOS, 'decisions', `${d.name}.md`), d.name)}${d.date ? ` <span class="sub">(${esc(d.date)})</span>` : ''}</li>`);
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(name)}: BuilderOS</title>
+<title>${esc(m.name)}: BuilderOS</title>
 <style>
 :root{--bg:#fbfbfa;--fg:#1b1b1a;--muted:#6b6b66;--line:#e4e3df;--card:#fff;--accent:#2f5bd3;--ok:#2e7d4f;--warn:#b26a00}
 @media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#a3a29b;--line:#2c2c2a;--card:#1c1c1b;--accent:#8aa7ff;--ok:#6fcf97;--warn:#f2b54b}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}
 main{max-width:960px;margin:0 auto;padding:32px 16px 64px}h1{font-size:28px;margin:0}h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:36px 0 12px}
-h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0}
+h3{font-size:17px;margin:0;flex:1}a{color:var(--accent)}.sub{color:var(--muted);margin:4px 0 0}.warn{color:var(--warn)}
 article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 12px}
-article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}.pill.done{color:var(--ok)}
+article header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.pill{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:2px 9px;color:var(--muted)}
 .phases{display:flex;gap:4px;list-style:none;padding:0;margin:12px 0}.phases li{flex:1;text-align:center;font-size:12px;border-radius:4px;padding:3px 0;background:var(--line);color:var(--muted)}
 .phases li.passed,.phases li.answered{background:var(--ok);color:var(--card)}.phases li.covered{background:transparent;border:1px dashed var(--muted)}.phases li.now{outline:2px solid var(--accent);color:var(--fg)}.phases li.killed{background:var(--warn);color:var(--card)}
 dl{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:4px 16px;margin:0}dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
-ul{padding-left:18px;margin:0}.warn li{color:var(--warn)}footer{color:var(--muted);font-size:13px;margin-top:40px}
-@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px}th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{font-size:13px;color:var(--muted);font-weight:600}tr:last-child td{border-bottom:0}
+ul{padding-left:18px;margin:0}li{margin:2px 0}footer{color:var(--muted);font-size:13px;margin-top:40px}
+@media (max-width:560px){dl{grid-template-columns:1fr}dt{margin-top:6px}th:nth-child(3),td:nth-child(3){display:none}}
 </style></head><body><main>
-<h1>${esc(name)}</h1>
-<p class="sub">${stage ? `Stage ${esc(stage)} · ` : ''}${env.url ? `<a href="${esc(env.url)}">${esc(env.url)}</a>` : 'not in production yet'}${env.preview ? ` · previews: ${esc(env.preview[1] || '')}` : ''}</p>
-<h2>Waiting on you</h2>${waiting.length ? `<ul class="warn">${waiting.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : '<p class="sub">Nothing.</p>'}
-<h2>Initiatives</h2>${cards.join('\n') || '<p class="sub">None yet.</p>'}
-<h2>Project memory</h2><dl>${['PRODUCT.md', 'DOMAIN.md', 'TECH.md'].map((f) => path.join(ROOT, f)).filter((p) => fs.existsSync(p)).map((p) => `<dt>${esc(path.basename(p))}</dt><dd>${link(p, 'open')}</dd>`).join('')}${fs.existsSync(path.join(BOS, 'ROADMAP.md')) ? `<dt>Roadmap</dt><dd>${link(path.join(BOS, 'ROADMAP.md'), 'ROADMAP.md')}</dd>` : ''}${decisions.length ? `<dt>Decisions</dt><dd>${decisions.map((p) => link(p)).join(' · ')}</dd>` : ''}${reviews.length ? `<dt>Product reviews</dt><dd>${reviews.map((p) => link(p)).join(' · ')}</dd>` : ''}</dl>
-<footer>Generated by BuilderOS ${VERSION} on ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC. Regenerated with the roadmap; edit the files, not this page.</footer>
+<h1>${esc(m.name)}</h1>
+<p class="sub">${m.stage ? `Stage ${esc(m.stage)} · ` : ''}${m.env.url ? `<a href="${esc(m.env.url)}">${esc(m.env.url)}</a>` : 'not in production yet'}${m.env.preview ? ` · previews: ${esc(m.env.preview[1] || '')}` : ''}</p>
+<h2>Open decisions</h2>${decideHtml}
+<h2>In progress</h2>${cards.join('\n') || none('Nothing open.')}
+<h2>Next</h2>${nextItems.length ? `<ul>${nextItems.join('')}</ul>` : none('Nothing planned: the roadmap has no Next.')}
+<h2>Done</h2>${doneItems.length ? `<ul>${doneItems.join('')}</ul>` : none('No initiative closed yet.')}${decidedItems.length ? `<h3 class="sub">Decisions taken</h3><ul>${decidedItems.join('')}</ul>` : ''}
+<h2>Project memory</h2><dl>${m.memory.map((p) => `<dt>${esc(path.basename(p))}</dt><dd>${link(p, 'open')}</dd>`).join('')}${m.reviews.length ? `<dt>Product reviews</dt><dd>${m.reviews.map((p) => link(p)).join(' · ')}</dd>` : ''}</dl>
+<footer>Generated by ${esc(m.stamp)}, with STATUS.md. Regenerated on every state change; edit the files, not this page.</footer>
 </main></body></html>
 `;
-  fs.writeFileSync(out, html);
-  if (!quiet) console.log(`Wrote ${rel(out)}: ${all.length} initiative${all.length === 1 ? '' : 's'}, ${waiting.length} waiting on a person.`);
+  fs.writeFileSync(path.join(BOS, 'index.html'), html);
+  fs.writeFileSync(path.join(BOS, 'STATUS.md'), statusMarkdown(m, href));
+  if (!quiet) console.log(`Wrote ${rel(path.join(BOS, 'index.html'))} and ${rel(path.join(BOS, 'STATUS.md'))}: ${m.decide.length} open decision${m.decide.length === 1 ? '' : 's'}, ${m.progress.length} in progress, ${m.done.length} done.`);
+}
+
+function statusMarkdown(m, href) {
+  const cell = (t) => String(t ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
+  const md = (p, label) => `[${label || path.basename(p)}](${href(p)})`;
+  const out = [`# ${m.name}: status`, '', `Generated by ${m.stamp} from the project's files, with index.html. Do not edit it: change the files it reads and it regenerates.`, ''];
+  out.push(`${m.stage ? `Stage ${m.stage} · ` : ''}${m.env.url ? `production ${m.env.url}` : 'not in production yet'}`, '', '## Open decisions', '');
+  if (m.decide.length) out.push('| Decision | Blocks | Since |', '|----------|--------|-------|', ...m.decide.map((d) => `| ${d.file ? md(d.file, cell(d.what)) : cell(d.what)} | ${cell(d.blocks)} | ${d.since || ''} |`));
+  else out.push('Nothing waits on a person.');
+  out.push('', '## In progress', '');
+  if (m.progress.length) out.push(...m.progress.map((c) => `- **${c.title}** (${c.track}, ${c.paused ? 'paused' : `phase ${c.phase} ${PHASES[c.phase]}`})${c.failed.length ? `: gate ${c.phase} failed on ${c.failed.join(', ')}` : ''}${c.owner ? `, ${c.owner}` : ''}${c.docs.length ? ` · ${c.docs.map((p) => md(p)).join(' · ')}` : ''}${c.preview ? ` · try it: ${c.preview}` : ''}`));
+  else out.push('Nothing open.');
+  out.push('', '## Next', '');
+  const next = [...m.progress.map((c) => `- **${c.title}**: ${c.next}`), ...m.roadmapNext.map((r) => `- **${r.what}** (roadmap)${r.why ? `: ${r.why}` : ''}${r.first ? `. First: ${r.first}` : ''}`), ...m.later.map((l) => `- Later: ${l}`)];
+  out.push(...(next.length ? next : ['Nothing planned: the roadmap has no Next.']), '', '## Done', '');
+  out.push(...(m.done.length ? m.done.map((d) => `- **${d.title}**: ${d.outcome}${d.learning ? `. ${d.learning}` : ''}${d.date ? ` (${d.date})` : ''}`) : ['No initiative closed yet.']));
+  if (m.decided.length) out.push('', 'Decisions taken:', '', ...m.decided.map((d) => `- ${md(path.join(BOS, 'decisions', `${d.name}.md`), d.name)}${d.date ? ` (${d.date})` : ''}`));
+  return `${out.join('\n')}\n`;
 }
 
 // The change track owes six things: scope, criteria with their tests, the impact on what it touches, tests
@@ -2397,6 +2462,17 @@ function decisions() {
   }).sort((a, b) => (a.date + a.name).localeCompare(b.date + b.name));
 }
 
+// The next move on an initiative, as the briefing and the status page name it.
+function nextStep(i) {
+  const s = i.state;
+  const p = s.current_phase ?? 0;
+  const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
+  const coverage = p === 0 && ['feature', 'change'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
+  const round = openRound(s);
+  const waiting = round ? `the round asked ${round.at.slice(0, 16).replace('T', ' ')} waits for the person; meanwhile draft ahead on its recommended options, each block marked provisional (pressure-testing)` : null;
+  return status === 'answered' ? 'the spike is answered; reclassify to continue' : waiting || coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`;
+}
+
 function brief() {
   if (!fs.existsSync(BOS)) { console.log('No BuilderOS memory in this directory.'); return; }
   if (read(path.join(BOS, 'state.json'))) { console.log('Schema 1 state found at .builderos/state.json: run `bos.mjs migrate` before anything else.'); return; }
@@ -2420,11 +2496,7 @@ function brief() {
     if (ap) lines.push(`${ap.line}.`);
     const dec = decisions();
     if (dec.length) lines.push(`Latest decision: ${dec[dec.length - 1].name}.`);
-    const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
-    const coverage = p === 0 && ['feature', 'change'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
-    const round = openRound(s);
-    const waiting = round ? `the round asked ${round.at.slice(0, 16).replace('T', ' ')} waits for the person; meanwhile draft ahead on its recommended options, each block marked provisional (pressure-testing)` : null;
-    lines.push(`Next: ${status === 'answered' ? 'the spike is answered; reclassify to continue' : waiting || coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`}.`);
+    lines.push(`Next: ${nextStep(active)}.`);
     const others = all.filter((i) => i !== active && (i.state.status || 'open') !== 'closed');
     if (others.length) lines.push(`Also open: ${others.map((i) => `${i.state.title || i.slug} (phase ${i.state.current_phase ?? 0}, ${i.state.status || 'open'})`).join('; ')}.`);
   }
@@ -2602,6 +2674,15 @@ function grill() {
 
 // ---------- roadmap ----------
 
+// How a closed initiative ended, for the roadmap's Done table and the status page.
+function outcomeOf(s) {
+  const ph = s.phases || {};
+  const killedAt = Object.keys(ph).find((k) => ph[k] && ph[k].status === 'killed');
+  if (killedAt !== undefined) return `killed at phase ${killedAt}`;
+  if (ph[1] && ph[1].status === 'answered') return `answered: ${ph[1].verdict || 'see 01-discovery.md'}`;
+  return (ph[7] && ph[7].verdict) || 'closed';
+}
+
 function roadmap() {
   const p = path.join(BOS, 'ROADMAP.md');
   const rm = read(p);
@@ -2628,15 +2709,8 @@ function roadmap() {
   const closed = all.filter((i) => i.state.status === 'closed');
   const now = ['| Initiative | Track | Phase | Bet in one line | Folder |', '|------------|-------|-------|-----------------|--------|',
     ...open.map((i) => { const ph = i.state.current_phase ?? 0; return `| ${i.state.title || i.slug}${i.state.status === 'paused' ? ' (paused)' : ''} | ${i.state.track || 'product'} | ${ph} — ${PHASES[ph]} | ${bet(i)} | \`initiatives/${i.slug}/\` |`; })];
-  const outcome = (s) => {
-    const ph = s.phases || {};
-    const killedAt = Object.keys(ph).find((k) => ph[k] && ph[k].status === 'killed');
-    if (killedAt !== undefined) return `killed at phase ${killedAt}`;
-    if (ph[1] && ph[1].status === 'answered') return `answered: ${ph[1].verdict || 'see 01-discovery.md'}`;
-    return (ph[7] && ph[7].verdict) || 'closed';
-  };
   const done = ['| Initiative | Outcome | Learning | Date |', '|------------|---------|----------|------|',
-    ...closed.map((i) => `| ${i.state.title || i.slug} | ${outcome(i.state)} | ${learnings.get(i.slug) || learnings.get((i.state.title || '').toLowerCase()) || 'see 07-outcome.md'} | ${(i.state.updated_at || '').slice(0, 10)} |`)];
+    ...closed.map((i) => `| ${i.state.title || i.slug} | ${outcomeOf(i.state)} | ${learnings.get(i.slug) || learnings.get((i.state.title || '').toLowerCase()) || 'see 07-outcome.md'} | ${(i.state.updated_at || '').slice(0, 10)} |`)];
   const replaceTable = (md, sec, table) => {
     const lines = md.split('\n');
     const h = lines.findIndex((l) => /^##\s/.test(l) && l.replace(/^##\s+/, '').startsWith(sec));
@@ -3113,6 +3187,7 @@ function round() {
   } else die('usage: round --asked N | --answered "1B, 2A" --by "who"');
   s.updated_at = now;
   writeJSON(path.join(init.dir, 'state.json'), s);
+  writePage(true);
   console.log(asked !== undefined ? `Round of ${asked} recorded as asked at phase ${phase}. While it waits, draft ahead on the recommended options, each block marked **Provisional:**.` : `Answer recorded. Keep the provisional work the answer confirmed (drop its marker), delete the rest, then write the decisions with **Chosen by:**.`);
 }
 

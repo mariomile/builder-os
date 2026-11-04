@@ -134,5 +134,5 @@ test('bos.mjs page writes one page with the initiatives, what waits on a person 
   fs.rmSync(path.join(root, '.builderos/index.html'));
   run(root, 'round', '--asked', '2');
   run(root, 'roadmap');
-  assert.match(fs.readFileSync(path.join(root, '.builderos/index.html'), 'utf8'), /2 questions waiting since/, 'regenerated with the roadmap, with the open round');
+  assert.match(fs.readFileSync(path.join(root, '.builderos/index.html'), 'utf8'), /2 questions in the round asked/, 'regenerated with the round, with the open round');
 });
