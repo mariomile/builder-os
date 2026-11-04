@@ -4,6 +4,26 @@ All notable changes to BuilderOS. Dates are the date the work landed on a branch
 
 ## [Unreleased]
 
+### Added: the internal track, for tools whose users are the builder or their own team
+
+When the customer is you, the open question is how, not whether anyone has the problem. The lifecycle had no path for it: `product` asked for customer interviews, a business case in money, a go-to-market, a session with someone from the ICP, a first outside user and a launch.
+
+- **`internal` track** (`references/lifecycle-setup.md`, Tracks). Lite by default. The **need check** (gate N, `skills/gate-checks/references/need-check.md`) reads `00-request.md` → `## Need`: the job, the users by name, how long it takes **Today** (a number, tagged; the builder's own words count) and **Done when** (a number and a date). N.1 to N.4 are script-decided, N.5 (internal for real) is the model's call. Pass covers phases 0 to 2 and starts at phase 3; fail makes a `product`. `bos.mjs gate N`, `bos.mjs cover --n5 "..."`.
+- **Phase 3 values in time** (`business-case`, Internal tools): per option, hours saved a week against days to build, and `**Not building:**`, the best way of not building it and why it loses. Gate 3.9 checks it on this track; 3.7, 3.8, 3.10, 3.11 and 3.13 are skipped.
+- **The rest keeps its rigor.** Gate 4 needs one visual version (or the look inherited or not applicable); 4.13, 4.14 and 4.17 are skipped. Gate 6 skips 6.11, 6.12 and 6.14 and asks whether the named users know what changed. Like a change, it closes at phase 6 unless the release sets an outcome review (then 6.2, 6.3, 6.5 run and phase 7 compares against **Done when**, skipping 7.8). Kill criteria, the cheapest test, the stake, the spec, the threat model, the accepted plan, the tests and the rollback hold as on every track.
+- **Ratchet.** `internal` moves only to `product`, once people outside the team use or pay for it. A `change` on a project whose `PRODUCT.md` revenue model reads "not for sale, internal …" goes to `internal` when its mandate check fails; `upgrade --to internal` moves a change there by hand.
+- `tests/scripts/internal-track.test.mjs` (5 tests) and the eval case `internal-tool` (not run yet).
+
+### Changed: the project page answers four questions
+
+Decided in the project thread "Valutare una pagina di stato del progetto" (1A 2A 3A). An outside project template keeps a hand-written state file; BuilderOS keeps its generated page and takes the shape.
+
+- **Four sections, in the order a person acts on them.** `bos.mjs page` now writes Open decisions, In progress, Next and Done instead of one card per initiative. The page used to say "Nothing" under Waiting on you while the briefing listed open questions.
+- **Open decisions with what each one blocks.** A table of everything waiting on a person: the open round, the conditions only a person can meet (a first payment, accepting the plan, trying the build), every open question in a question log and every answer to ask again, and every decision past its Revisit when date. Each row names the initiative and phase it blocks. Technical warnings stay in the briefing.
+- **Next** lists each open initiative's next step, the same one the briefing gives, then the roadmap's Next table and Later list. **Done** lists closed initiatives with how they ended and what was learned, and the decisions taken, newest first.
+- **`.builderos/STATUS.md`**, the same model rendered in Markdown, readable on the code host, on a phone and by a new session. Generated with the page; nobody edits it.
+- `bos.mjs round` regenerates both, so an open round shows up without waiting for the next roadmap run. `tests/scripts/status-page.test.mjs` covers it.
+
 ### Changed: fewer skills, a smaller fixed context
 
 Decided in the project thread "Ridurre le skill e ottimizzare i token" (2026-11-03): fewer skills that each own a whole job, and less context loaded when it is not needed, measured before and after with the eval suite.
@@ -12,6 +32,18 @@ Decided in the project thread "Ridurre le skill e ottimizzare i token" (2026-11-
 - **The always-loaded listing halves**, from 14,425 to about 7,500 characters of descriptions in every session: commands carry `disable-model-invocation` (typed by the person, out of the model's listing), agent descriptions are one line of at most 130 characters, ten skill descriptions are gone. `tests/scripts/token-budget.test.mjs` holds the budget.
 - **The per-message line repeats only when it changed.** Inside a project the hook sends the full standing-conditions line on the first message of a session, after every briefing (start, resume, compaction) and whenever the phase, the gate, a claim or an override changes; otherwise a one-line reminder of about 200 characters instead of about 520.
 - **The state schema splits in two.** `references/builderos-state-schema.md` keeps the layout, `state.json`, the rules and the session briefing (5,747 → 4,085 words); the `ROADMAP.md`, `TECH.md`, `DOMAIN.md` and ADR formats move to `references/memory-templates.md`, read only when one of those files is written.
+
+### Changed: one interview, run like grilling
+
+- **`pressure-testing` is the one interview, for every situation.** It grills a raw idea or a brainstorm, a problem, a choice and a plan about to be relied on, not only a decision: the root of the design tree follows what was brought (what the next step needs to know, the claim and its load-bearing assumption, or what the choice serves), and `references/question-banks.md` gains openers per situation beside the ones per phase.
+- **Each round asks the whole frontier**, as in Pocock's grilling: every question whose prerequisites are settled, with no cap of four, so the interview asks as much as the tree needs in fewer turns. `bos.mjs round --asked` takes any count from 1. Facts in the repository, the memory or the named documents are read before the first round, and a search runs while the rest of the frontier is asked.
+- **It follows grilling's flow, section by section:** the design tree, rounds over the frontier, facts found by the agent and decisions put to the person, done at an empty frontier and acted on only after the person confirms. The interview waits for each round's answers; drafting ahead while a round waits moved out of the skill into the lifecycle hub (`builder-os`, `references/round-formats.md`), still checked by gate E.2. A question may carry the context it needs above its options. The one deliberate difference: a fact only the person holds gets no recommended answer, since a guessed value invents evidence.
+- **It ends on a context brief** instead of a resolution table: goal, decisions with their Qn, facts with their tags, constraints and non-goals, risks with tests and owners, out of scope, next step. Written so the next step, skill or session continues without asking again; in lifecycle mode it is appended to the question log.
+- **Leaner.** `SKILL.md` from about 1,195 to under 1,000 words; unmapped answers and ADRs moved to `references/round-formats.md`. The ceiling in `tests/scripts/rounds.test.mjs` drops to 1,000 words, and a new test checks the three roots, the openers per situation and the brief.
+
+### Added: interview evals
+
+- Eval case `brainstorm-an-idea`: "let's brainstorm" on a raw idea gets an interview that pulls out the context first, with no plan written yet. `grill-a-decision` now checks for the whole frontier instead of a cap of four. Neither run yet.
 
 ## [3.3.0] - 2026-10-30
 

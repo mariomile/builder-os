@@ -15,8 +15,8 @@ The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `Bui
 ## Steps
 
 1. **Run the Initialization procedure in `references/lifecycle-setup.md`**, steps 1 to 9. It holds the drafted `PRODUCT.md`, the defaults, the scaffold, the initiative, the track and the coverage check, so hosts without this command run the same thing.
-2. **Use the script where the procedure says so.** `new` creates the initiative, `gate C` (feature) or `gate M` (change) checks without writing anything, and `cover` records the coverage or mandate check; writing `state.json` by hand when the script can run is the failure this step exists to prevent.
-3. **Verify before reporting.** Re-read the initiative's `state.json`: the track, the current phase and, on `feature`, phases 0 and 1 `covered` (on `change`, 0 to 3) with a `phase_covered` event each. What the file says is what gets reported.
+2. **Use the script where the procedure says so.** `new` creates the initiative, `gate C` (feature), `gate M` (change) or `gate N` (internal) checks without writing anything, and `cover` records the check; writing `state.json` by hand when the script can run is the failure this step exists to prevent.
+3. **Verify before reporting.** Re-read the initiative's `state.json`: the track, the current phase and, on `feature`, phases 0 and 1 `covered` (on `change`, 0 to 3; on `internal`, 0 to 2) with a `phase_covered` event each. What the file says is what gets reported.
 
 ## Arguments
 
@@ -24,7 +24,7 @@ The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `Bui
 - `[--lite]` — Force lite mode instead of the track default.
 - `[--initiative name]` — Name the initiative up front.
 - `[--from-pm-context]` — Force migration from `PM-CONTEXT.md` without prompting.
-- `[--track spike|change|feature|product]` — Propose a track. Still announced; `feature` still has to pass the coverage check and `change` the mandate check.
+- `[--track spike|change|internal|feature|product]` — Propose a track. Still announced; `feature` still has to pass the coverage check, `change` the mandate check, `internal` the need check.
 
 ## Output
 
@@ -35,12 +35,12 @@ The BuilderOS script is the `node …/scripts/bos.mjs` command named on the `Bui
 **Stage:** {stage}
 **Initiative:** {title} — `.builderos/initiatives/{slug}/`
 **Mode:** {full | lite}
-**Track:** {spike | change | feature | product} — {one-line reason}
+**Track:** {spike | change | internal | feature | product} — {one-line reason}
 **Starting phase:** {N} — {phase name}{, phases 0–1 covered by PRODUCT.md, if feature}{, phases 0–3 covered by the mandate, if change}
 
 Created: {PRODUCT.md, DOMAIN.md, TECH.md, ROADMAP.md, the AGENTS.md and CLAUDE.md block, .builderos/bin/bos.mjs, on the first run} .builderos/initiatives/{slug}/
 
 {One line on what phase N will do.}
 
-Next: `/builder-os:bos-frame`, `/builder-os:bos-define` on the feature track, or `/builder-os:bos-shape` on the change track
+Next: `/builder-os:bos-frame`, `/builder-os:bos-define` on the feature track, `/builder-os:bos-ideate` on the internal track, or `/builder-os:bos-shape` on the change track
 ```

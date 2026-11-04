@@ -22,9 +22,9 @@ Second: **kill criteria before the build.** A metric, a threshold and a date, wr
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `02-definition.md` and `00-frame.md`, and the user's request verbatim.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `02-definition.md` and `00-frame.md` (on the `internal` track `00-request.md` in their place), and the user's request verbatim.
 
-No `02-definition.md` means stop and say so. Options generated without a chosen opportunity and its success metric are a brainstorm, and phase 4 will inherit the ambiguity.
+No `02-definition.md` (on `internal`, no Need in `00-request.md`) means stop and say so. Options generated without a chosen opportunity and its success metric are a brainstorm, and phase 4 will inherit the ambiguity.
 
 Phase 3 needs no data capability. A missing analytics capability affects only the precision of the kill threshold, not whether this phase can run.
 

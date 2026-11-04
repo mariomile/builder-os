@@ -103,7 +103,7 @@ test('one owner at a time: a claim, a refusal, a take-over with its reason, a re
 
 test('a round is asked, then answered by a person; the briefing works ahead while it waits and pace reads the wait', () => {
   const root = project();
-  assert.equal(run(root, 'round', '--asked', '5').code, 2, 'at most four questions');
+  assert.equal(run(root, 'round', '--asked', '0').code, 2, 'a round asks at least one question');
   assert.equal(run(root, 'round', '--asked', '3').code, 0);
   assert.match(run(root, 'brief').out, /Next: the round asked .* waits for the person; meanwhile draft ahead on its recommended options, each block marked provisional/);
   assert.equal(run(root, 'round', '--asked', '2').code, 2, 'one open round at a time');

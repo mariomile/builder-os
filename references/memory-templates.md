@@ -15,7 +15,7 @@ The formats of the project files BuilderOS writes besides state: `ROADMAP.md`, `
 ## Now
 | Initiative | Track | Phase | Bet in one line | Folder |
 |------------|-------|-------|-----------------|--------|
-| {name} | {spike/change/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
+| {name} | {spike/change/internal/feature/product} | {N — name} | {the change and the metric it should move} | `initiatives/{slug}/` |
 
 ## Next
 | Initiative | Why next | What must be true first |

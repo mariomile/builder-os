@@ -39,6 +39,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Whether BuilderOS is installed and set up right, what an upgrade left owed | `scripts/bos.mjs doctor` where commands run, relayed; otherwise read the install and memory per [state and session briefing](../../references/builderos-state-schema.md) |
 | What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
+| A tool for the builder or their own team, where what is wanted is known and how is not ("the customer is me") | `builder-os` on the `internal` track: need check, then options, spec, build, release; outcome review only if the release sets one |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
 | Synthesize supplied research | `research-methods` (synthesis) |
@@ -59,7 +60,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Write, update or prune a repository's `AGENTS.md` or `CLAUDE.md`; the agent keeps getting lost in the code | `agents-md`, standalone |
 | A retrospective on an agent session, or what to change so the agent works better here | `agents-md`, [retro](../agents-md/references/retro.md) (`retro` by name) |
 | Deploy, go live, set up hosting, a domain, email sending or a preview link | `release-ops` (production), standalone |
-| See the whole project on one page, or send it to someone | `scripts/bos.mjs page` where commands run: `.builderos/index.html` |
+| See the whole project on one page, or send it to someone | `scripts/bos.mjs page` where commands run: `.builderos/index.html`, and `STATUS.md` in Markdown |
 | Prepare a release; verify an authorized release | `release-ops`, distinguish readiness from shipping |
 | Review an initiative's shipped outcome | `outcome-review`, lifecycle; otherwise standalone diagnosis |
 | Product health, a metric, activation or retention, growth loops, revenue or unit economics, PMF, a north star, OKRs, competitors | `product-analysis`, the area that answers it |
@@ -67,7 +68,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Experiment design or result | `tracking-standards` (experiments) |
 | Release notes, stakeholder update or other document | `spec-writing` (communication) |
 
-Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` for a requested critique or a material unresolved assumption.
+Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` to interview the person: a brainstorm, a requested critique, or a material unresolved assumption.
 
 ## Capabilities
 
