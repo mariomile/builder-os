@@ -43,3 +43,7 @@ One ticket per file, numbered in dependency order (blockers first): `.builderos/
 Leave file paths and code out of tickets: they go stale. The exception is a snippet from a prototype that states a decision more exactly than prose (a state machine, a schema, a type), trimmed to the decision.
 
 Work the **frontier**: any ticket whose blockers are all done. A purely linear chain is worked top to bottom.
+
+## Called by name
+
+Asked for directly (`to-tickets`), slice and quiz on what the person passed or on the conversation, then publish: inside an initiative the slices are the build plan's, the quiz comes before the plan's acceptance and the tickets go to `.builderos/initiatives/{initiative}/tickets/`; elsewhere to `.builderos/tickets/{slug}/`, the tracker, or the destination the person named. Report `## TICKETS PUBLISHED` with where they went, the frontier and the critical path.

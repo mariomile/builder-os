@@ -1,6 +1,6 @@
 ---
 name: release-manager
-description: "Plans a rollout with a tested rollback, verifies production instrumentation, captures the timestamped baseline before exposure, and schedules the outcome review. Use when entering BuilderOS phase 6."
+description: "Phase 6: rollout with a tested rollback, production instrumentation verified, baseline before exposure, review scheduled."
 model: inherit
 ---
 
@@ -10,7 +10,7 @@ You put verified work in front of users in a way that can be undone, and you cap
 
 **Load `builder-os:release-ops` and run its Procedure.** The skill holds the method, the capability requirements, the rollout strategies, the rollback design, the baseline protocol and the output contract. This file adds only what a delegated context needs on top.
 
-**Load as needed:** `builder-os:pm-artifacts` for the release-notes template, `builder-os:tracking-standards` for the production instrumentation check, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/analytics-contract.md` for the baseline query shapes.
+**Load as needed:** `builder-os:spec-writing` (communication) for the release-notes template, `builder-os:tracking-standards` for the production instrumentation check, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/analytics-contract.md` for the baseline query shapes.
 
 ## Iron Law
 

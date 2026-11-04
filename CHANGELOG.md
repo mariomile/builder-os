@@ -4,7 +4,16 @@ All notable changes to BuilderOS. Dates are the date the work landed on a branch
 
 ## [Unreleased]
 
-### Changed
+### Changed: fewer skills, a smaller fixed context
+
+Decided in the project thread "Ridurre le skill e ottimizzare i token" (2026-11-03): fewer skills that each own a whole job, and less context loaded when it is not needed, measured before and after with the eval suite.
+
+- **34 skills become 24.** Each absorbed skill keeps its procedure as a mode of the skill that already ran beside it, in that skill's `references/`, with its own marker: `research-methods` now synthesizes (was `discovery-methods`); `ux-architecture` lets the person choose the look (was `design-direction`); `system-design` decides the stack (was `stack-decisions`); `tracking-standards` designs and reads experiments (was `experiment-methodology`, its sample-size script moved with it); `spec-writing` writes product communication (was `pm-artifacts`) and the no-interview synthesis (`to-spec`); `delivery-discipline` publishes tickets (`to-tickets`) and records the demo (was `feature-demo`); `release-ops` sets up production from the first slice (was `production-setup`); `agents-md` runs the retro (`retro`). The three names you called directly still route by name. `evidence-ledger` stays its own skill: folded into `gate-checks` it would load the whole gate method every time a claim is written.
+- **The always-loaded listing halves**, from 14,425 to about 7,500 characters of descriptions in every session: commands carry `disable-model-invocation` (typed by the person, out of the model's listing), agent descriptions are one line of at most 130 characters, ten skill descriptions are gone. `tests/scripts/token-budget.test.mjs` holds the budget.
+- **The per-message line repeats only when it changed.** Inside a project the hook sends the full standing-conditions line on the first message of a session, after every briefing (start, resume, compaction) and whenever the phase, the gate, a claim or an override changes; otherwise a one-line reminder of about 200 characters instead of about 520.
+- **The state schema splits in two.** `references/builderos-state-schema.md` keeps the layout, `state.json`, the rules and the session briefing (5,747 → 4,085 words); the `ROADMAP.md`, `TECH.md`, `DOMAIN.md` and ADR formats move to `references/memory-templates.md`, read only when one of those files is written.
+
+### Changed: one interview, run like grilling
 
 - **`pressure-testing` is the one interview, for every situation.** It grills a raw idea or a brainstorm, a problem, a choice and a plan about to be relied on, not only a decision: the root of the design tree follows what was brought (what the next step needs to know, the claim and its load-bearing assumption, or what the choice serves), and `references/question-banks.md` gains openers per situation beside the ones per phase.
 - **Each round asks the whole frontier**, as in Pocock's grilling: every question whose prerequisites are settled, with no cap of four, so the interview asks as much as the tree needs in fewer turns. `bos.mjs round --asked` takes any count from 1. Facts in the repository, the memory or the named documents are read before the first round, and a search runs while the rest of the frontier is asked.
@@ -12,7 +21,7 @@ All notable changes to BuilderOS. Dates are the date the work landed on a branch
 - **It ends on a context brief** instead of a resolution table: goal, decisions with their Qn, facts with their tags, constraints and non-goals, risks with tests and owners, out of scope, next step. Written so the next step, skill or session continues without asking again; in lifecycle mode it is appended to the question log.
 - **Leaner.** `SKILL.md` from about 1,195 to under 1,000 words; unmapped answers and ADRs moved to `references/round-formats.md`. The ceiling in `tests/scripts/rounds.test.mjs` drops to 1,000 words, and a new test checks the three roots, the openers per situation and the brief.
 
-### Added
+### Added: interview evals
 
 - Eval case `brainstorm-an-idea`: "let's brainstorm" on a raw idea gets an interview that pulls out the context first, with no plan written yet. `grill-a-decision` now checks for the whole frontier instead of a cap of four. Neither run yet.
 

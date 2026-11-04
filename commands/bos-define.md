@@ -1,6 +1,7 @@
 ---
 name: bos-define
 description: "Phase 2 — turn discovery evidence into an opportunity tree, select one, and define the success metric with a real baseline"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

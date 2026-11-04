@@ -168,12 +168,12 @@ Two design notes.
 | # | Phase | Skills | Agents | Command |
 |---|-------|--------|--------|---------|
 | 0 | Frame | `problem-framing` | `problem-framer` | `/bos-frame` |
-| 1 | Discover | `research-methods`, `discovery-methods` | `research-planner`, `discovery-synthesizer` | `/bos-discover` |
+| 1 | Discover | `research-methods` | `research-planner`, `discovery-synthesizer` | `/bos-discover` |
 | 2 | Define | `opportunity-mapping`, `product-analysis` (strategy) | `opportunity-mapper`, `product-diagnostician` | `/bos-define` |
-| 3 | Ideate | `ideation-methods`, `business-case`, `go-to-market`, `experiment-methodology` | `solution-architect`, `experiment-designer` | `/bos-ideate` |
-| 4 | Shape | `spec-writing`, `ux-architecture`, `pm-artifacts` | `spec-writer`, `ux-architect`, `product-writer` | `/bos-shape` |
+| 3 | Ideate | `ideation-methods`, `business-case`, `go-to-market`, `tracking-standards` (experiments) | `solution-architect`, `experiment-designer` | `/bos-ideate` |
+| 4 | Shape | `spec-writing`, `ux-architecture` | `spec-writer`, `ux-architect`, `product-writer` | `/bos-shape` |
 | 5 | Build | `delivery-discipline`, `tracking-standards` | `delivery-planner`, `build-reviewer`, `tracking-architect` | `/bos-build` |
-| 6 | Ship | `release-ops`, `go-to-market`, `pm-artifacts` | `release-manager`, `product-writer` | `/bos-ship` |
+| 6 | Ship | `release-ops`, `go-to-market`, `spec-writing` (communication) | `release-manager`, `product-writer` | `/bos-ship` |
 | 7 | Learn | `outcome-review`, `go-to-market`, `product-analysis` (metrics, growth, OKRs, finance) | `product-diagnostician` | `/bos-learn` |
 
 All eight phases are live. Phase 7 adds no new specialist: it orchestrates the analysis agents against the phase 2 target and the phase 3 kill criteria, with `outcome-review` holding the judging procedure so the phase also runs on a host with no agents at all.

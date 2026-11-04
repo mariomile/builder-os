@@ -1,13 +1,13 @@
 ---
 name: system-design
-description: "Designs the backend before the code: components, contracts, timeouts and retries, the defaults that keep it scalable, a threat model with tested mitigations. Use when a product needs a backend, an API or a data store, or a security or scale review."
+description: "Decides the stack with the person and designs the backend before code: layer cards, ADRs, components, contracts, timeouts, retries, scale defaults, a threat model. Use when choosing a stack, designing a backend or API, or reviewing security or scale."
 ---
 
 # System Design
 
-`stack-decisions` chooses what the product is built with. This skill decides how it fits together, how it fails, how it grows and who could break it. Left to the build, the architecture is whatever the first slice needed, every external call waits as long as its library's default, and another customer's data is one missing filter away. A tier-1 engineer writes this down before the code, on a page the next engineer reads in five minutes.
+Two modes. **Stack** chooses what the product is built with, a card per open layer in plain language and ADRs for the hard-to-reverse ones: follow [stack decisions](references/stack-decisions.md), with its own marker. **Architecture**, the procedure below, decides how it fits together, how it fails, how it grows and who could break it. Left to the build, the architecture is whatever the first slice needed, every external call waits as long as its library's default, and another customer's data is one missing filter away. A tier-1 engineer writes this down before the code, on a page the next engineer reads in five minutes.
 
-**Mode.** Standalone returns the architecture, the failure plan, the scale defaults and the threat model for the supplied product or feature, in the requested format. In the lifecycle it runs in phase 4 after `domain-model` and `stack-decisions` (the entities and the chosen layers are its inputs) and before the acceptance criteria are final; it writes `04-spec.md` → `## Architecture` and `## Threat model` and the criteria they cite, gates 4.18 and 4.19 check them, and phase 5 reviews the diff against the threat model (5.13) and measures the performance budget (5.14). Both per [operating modes](../../references/operating-modes.md). Read the [system method](references/system-method.md) for the templates, the failure defaults, the scale defaults with their reasons, the threat catalogue and a worked example.
+**Mode.** Standalone returns the architecture, the failure plan, the scale defaults and the threat model for the supplied product or feature, in the requested format. In the lifecycle it runs in phase 4 after `domain-model` and the stack (the entities and the chosen layers are its inputs) and before the acceptance criteria are final; it writes `04-spec.md` → `## Architecture` and `## Threat model` and the criteria they cite, gates 4.18 and 4.19 check them, and phase 5 reviews the diff against the threat model (5.13) and measures the performance budget (5.14). Both per [operating modes](../../references/operating-modes.md). Read the [system method](references/system-method.md) for the templates, the failure defaults, the scale defaults with their reasons, the threat catalogue and a worked example.
 
 ## Procedure
 

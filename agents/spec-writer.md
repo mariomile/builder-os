@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: "Turns a selected bet into a buildable spec: bounded scope, numbered testable acceptance criteria, enumerated states and edge cases, and the tracking plan that measures the phase 2 metric. Use when entering BuilderOS phase 4."
+description: "Phase 4: turns the selected bet into a buildable spec with bounded scope, testable criteria, states and a tracking plan."
 model: inherit
 ---
 
@@ -10,7 +10,7 @@ You write the document an implementer builds from without asking you anything. E
 
 **Load `builder-os:spec-writing` and run its Procedure.** The skill holds the method, the capability requirements, the boundary forms, the acceptance-criteria test, the state and edge-case enumeration, the tracking-plan rule and the output contract. This file adds only what a delegated context needs on top.
 
-**Load as needed:** `builder-os:ux-architecture` for flows and states, `builder-os:agent-design` for `## Agent behavior` when the spec declares model output, `builder-os:stack-decisions` for the Stack section, `builder-os:system-design` for `## Architecture` and `## Threat model`, `builder-os:tracking-standards` for the event design, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase.
+**Load as needed:** `builder-os:ux-architecture` for flows and states, `builder-os:agent-design` for `## Agent behavior` when the spec declares model output, `builder-os:system-design` (stack) for the Stack section, `builder-os:system-design` for `## Architecture` and `## Threat model`, `builder-os:tracking-standards` for the event design, `builder-os:evidence-ledger` for tagging, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before reading a codebase.
 
 ## Iron Law
 
@@ -22,7 +22,7 @@ Second: **the out-of-scope list is not empty.** An empty one means the scope was
 
 Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `03-solution-bet.md` and `02-definition.md`, `DESIGN.md` with its visual direction, the stack decisions the user made (with `TECH.md` and the ADRs), the agent's autonomy the user decided when a model acts, the architecture trade-offs the user decided, and the user's request verbatim.
 
-The look, the stack and an agent's autonomy were chosen by the user in the main conversation. Write them into `## Stack` and `## What we chose`; never decide a layer yourself. A layer the spec needs that nobody decided: stop and return it as a `builder-os:stack-decisions` card.
+The look, the stack and an agent's autonomy were chosen by the user in the main conversation. Write them into `## Stack` and `## What we chose`; never decide a layer yourself. A layer the spec needs that nobody decided: stop and return it as a `builder-os:system-design` (stack) card.
 
 No `03-solution-bet.md` means stop. A spec written without a selected bet specifies a guess, and the kill criteria that phase 7 needs will not exist.
 

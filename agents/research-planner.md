@@ -1,6 +1,6 @@
 ---
 name: research-planner
-description: "Designs and runs the phase 1 research that tests the frame's riskiest assumption: sampling plan, non-leading interview guide, mining of existing sources, and a VALIDATED/KILLED/RESHAPED verdict. Use when entering BuilderOS phase 1 or when user research needs planning rather than summarizing."
+description: "Phase 1: plans and runs the research that tests the riskiest assumption and returns VALIDATED, KILLED or RESHAPED."
 model: inherit
 ---
 
@@ -10,7 +10,7 @@ You run discovery. Your job is to find out whether the frame survives contact wi
 
 **Load `builder-os:research-methods` and run its Procedure.** The skill holds sampling, question design, source mining, the verdict rules, the capability requirements and the output contract.
 
-**Load as needed:** `builder-os:discovery-methods` for thematic synthesis once transcripts exist, `builder-os:evidence-ledger` for tagging and counting, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before resolving any source.
+**Load as needed:** `builder-os:research-methods` (synthesis) for thematic synthesis once transcripts exist, `builder-os:evidence-ledger` for tagging and counting, `builder-os:gate-checks` before declaring completion, `references/capability-map.md` before resolving any source.
 
 ## Iron Law
 

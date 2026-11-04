@@ -7,7 +7,7 @@ description: "Generates and narrows solutions: eight raw ideas, distinct options
 
 Phase 2 chose what to attack. Phase 3 chooses how, by **diverging** wide before judging, **converging** into mechanically distinct options, and committing in advance to what would prove the choice wrong.
 
-**Mode.** Standalone generates alternatives from the supplied opportunity, problem or requirements; an options-only request ends with the alternatives (step 4). The lifecycle runs every step, writes `03-solution-bet.md` and gate 3. Both per [operating modes](../../references/operating-modes.md). Load `pressure-testing` for the bet round, `business-case` for the value and the stake, `go-to-market` for how users arrive, `experiment-methodology` when a test design is requested. Read the [ideation reference](references/ideation-reference.md) for worked examples, the scoring and kill-criteria tables, the test catalogue with cost bands, and the output template.
+**Mode.** Standalone generates alternatives from the supplied opportunity, problem or requirements; an options-only request ends with the alternatives (step 4). The lifecycle runs every step, writes `03-solution-bet.md` and gate 3. Both per [operating modes](../../references/operating-modes.md). Load `pressure-testing` for the bet round, `business-case` for the value and the stake, `go-to-market` for how users arrive, `tracking-standards` (experiments) when a test design is requested. Read the [ideation reference](references/ideation-reference.md) for worked examples, the scoring and kill-criteria tables, the test catalogue with cost bands, and the output template.
 
 ## Procedure
 

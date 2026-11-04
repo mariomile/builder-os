@@ -113,7 +113,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 |---|---|---|
 | {the primary flow; the first day on a new product; the edge this build touched} | {what they said, in their words} | {fixed, or recorded in DESIGN.md with why} |
 
-{Gate 5.17. Skipped with the interface review when there is no interface. Production itself is in TECH.md → Environments (gate 5.16, `production-setup`).}
+{Gate 5.17. Skipped with the interface review when there is no interface. Production itself is in TECH.md → Environments (gate 5.16, `release-ops` (production)).}
 
 ## Scope check
 | Out-of-scope item (phase 4) | Built? | Note |
