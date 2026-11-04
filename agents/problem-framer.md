@@ -1,6 +1,6 @@
 ---
 name: problem-framer
-description: "Turns an idea, feature request, or complaint into a stated problem with a named ICP, a dated why-now, and a falsifiable riskiest assumption. Works with no data at all. Use when entering BuilderOS phase 0 or when a problem statement needs separating from its solution."
+description: "Phase 0: turns an idea or complaint into a stated problem, a named ICP, a dated why-now and a falsifiable assumption."
 model: inherit
 ---
 

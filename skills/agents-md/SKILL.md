@@ -1,11 +1,11 @@
 ---
 name: agents-md
-description: "Creates or prunes a repository's AGENTS.md and CLAUDE.md so the agent working in the code finds what it needs: pointers, commands and must-hold rules. Use when a repo has none, when asked to write or update one, or when one is stale or too long."
+description: "Keeps the coding agent's environment working: writes or prunes AGENTS.md and CLAUDE.md, and runs retros that turn what slowed a session into pointers, checks or cuts. Use when a repo has no AGENTS.md, one is stale or long, or for a retro."
 ---
 
 # AGENTS.md
 
-`AGENTS.md` (and `CLAUDE.md`, which imports it) loads into every session that opens the repository, so every line costs on every turn. Its job is to be an **index**: point at the material the agent cannot find in one search, give the commands it would otherwise guess, and hold the few rules that must always hold. Everything else lives where it is read on demand. Works on any repository, with or without BuilderOS.
+`AGENTS.md` (and `CLAUDE.md`, which imports it) loads into every session that opens the repository, so every line costs on every turn. Its job is to be an **index**: point at the material the agent cannot find in one search, give the commands it would otherwise guess, and hold the few rules that must always hold. Everything else lives where it is read on demand. Works on any repository, with or without BuilderOS. The **retro** mode, invoked by name (`retro`) or at the end of a build or an outcome review, reads a session and turns what slowed or misled the agent into changes to its environment: follow [retro](references/retro.md), with its own marker.
 
 ## What goes where
 
@@ -29,7 +29,7 @@ A **pointer** is one line: what the material is, and when to read it, with the t
 4. **Draft the homes.** `TECH.md` → Map from the repository (on a BuilderOS project; elsewhere a `docs/` file or the README section the index points at), and each moved line in its new place. Done when every line marked move in step 2 has a home and every pointer in the index lands on one.
 5. **Show the diff, then write.** Lines they wrote are moved or cut only with their yes, one round per `pressure-testing` for the moves and cuts that are not obviously dead; new lines and fixes to dead paths need no question. Done when the files are written and every path they name exists (`scripts/bos.mjs gate 5` checks it as 5.11 on a BuilderOS project).
 
-On a BuilderOS project this runs at initialization, at the end of each build (phase 5, step 11) and when `retro` or the briefing flags a dead pointer or a file over 150 lines.
+On a BuilderOS project this runs at initialization, at the end of each build (phase 5, step 11) and when a retro or the briefing flags a dead pointer or a file over 150 lines.
 
 ## Capabilities
 

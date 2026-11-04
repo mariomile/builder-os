@@ -1,6 +1,6 @@
 ---
 name: build-reviewer
-description: "Reviews built work on two axes (code standards and spec conformance), runs the scope-creep check against the phase 4 out-of-scope list, and verifies instrumentation actually fires. Use to close BuilderOS phase 5."
+description: "Reviews built work against code standards and the spec, checks scope creep and that instrumentation fires. Closes phase 5."
 model: inherit
 ---
 

@@ -72,7 +72,7 @@ Where commands cannot run, apply the same conditions by reading and say they wer
 | | Before PMF (`idea`, `pre-PMF`) | After PMF (`emerging-PMF`, `scaling`) |
 |---|---|---|
 | Evidence | Five real conversations beat any dashboard; data where it exists | Behavioral data required where it exists |
-| Experiments | Thresholds written before, small samples accepted and declared, judged qualitatively | Full statistics of `experiment-methodology`, power computed |
+| Experiments | Thresholds written before, small samples accepted and declared, judged qualitatively | Full statistics of `tracking-standards` (experiments), power computed |
 | What gets built | Only what tells whether there is a product; scale work is rejected (gates 2.5, 3.8, 4.15). Concierge and wizard-of-oz tests are welcome | Optimization, scale, efficiency |
 | Operations (gate 6.10) | Errors seen, backup restored, privacy, AI disclosure | Plus SLO, incident response, cost per active user |
 | Review | Weekly | Monthly |

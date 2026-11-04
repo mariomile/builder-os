@@ -1,13 +1,13 @@
 ---
 name: tracking-standards
-description: "Designs and audits product analytics: event taxonomy, naming, properties, tracking plans tied to the metric they compute, audits of existing instrumentation. Use when designing events or a tracking plan, naming events, or checking what is tracked."
+description: "Designs what to measure and reads it: event taxonomy, tracking plans tied to their metric, instrumentation audits, experiments with sample size and a readout. Use when designing events or a tracking plan, auditing tracking, or running an A/B test."
 ---
 
 # Tracking Standards
 
 A tracking plan starts from the question a number answers and works back to the events that compute it. Every event has a **question** it answers; shipped names are preserved, because funnels and dashboards already depend on them.
 
-**Mode.** Standalone designs or reviews the requested taxonomy or metric from supplied flows and existing instrumentation; a plan authorizes no implementation, analytics configuration or publishing. Inside phases 4 to 7 the plan feeds the gate that calls it. Both per [operating modes](../../references/operating-modes.md). Read the requested query shape in [the analytics contract](../../references/analytics-contract.md) for measurement design, and the section of [tracking conventions](references/conventions.md) for names, properties, identity fields or tracking location in a new schema, plus its QA checklist before shipping any tracking.
+**Mode.** Standalone designs or reviews the requested taxonomy or metric from supplied flows and existing instrumentation; a plan authorizes no implementation, analytics configuration or publishing. Inside phases 4 to 7 the plan feeds the gate that calls it. Both per [operating modes](../../references/operating-modes.md). Designing or reading an experiment (A/B test, fake door, sample size, duration, guardrails) is the **experiments** mode: follow [experiments](references/experiment-methodology.md), with its own markers. Read the requested query shape in [the analytics contract](../../references/analytics-contract.md) for measurement design, and the section of [tracking conventions](references/conventions.md) for names, properties, identity fields or tracking location in a new schema, plus its QA checklist before shipping any tracking.
 
 ## Procedure
 

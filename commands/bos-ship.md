@@ -1,6 +1,7 @@
 ---
 name: bos-ship
 description: "Phase 6 — rollout plan, tested rollback, production instrumentation check, baseline captured before exposure, release notes, scheduled review"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

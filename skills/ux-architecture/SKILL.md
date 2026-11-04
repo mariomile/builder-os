@@ -1,11 +1,11 @@
 ---
 name: ux-architecture
-description: "Designs how a feature works before it is built: information architecture, user flows, every state of each step, components, the accessibility floor. Use when a feature needs its flows, screens or states defined, or a spec needs DESIGN.md."
+description: "Designs how a feature works and looks: flows, every state of each step, components, accessibility, then rendered versions the person picks and a design kit. Use when a feature needs flows, screens or states, a look chosen, or design options."
 ---
 
 # UX Architecture
 
-The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look comes next, chosen by the person from several rendered versions in `design-direction`.
+The structural half of phase 4: placement, flows, states, components and the accessibility floor, decided before a pixel is chosen. The look comes next, in the **direction** mode: rendered versions that differ in structure, chosen by the person in rounds, then the kit and tokens; follow [design direction](references/design-direction.md), with its own marker, inside phase 4 or alone.
 
 **Mode.** Standalone designs the supplied feature or flow from the available product context and the existing design system. In the lifecycle it runs inside phase 4 for `spec-writing` and writes the initiative's `DESIGN.md`. Both per [operating modes](../../references/operating-modes.md). Read the section of [UX methods](references/ux-methods.md) behind steps 3 to 7, and Drawing the Flow for step 4.
 
@@ -19,7 +19,7 @@ The structural half of phase 4: placement, flows, states, components and the acc
 5b. **Design the messages** (gate 4.21). Every email, notification, chat or text message the product sends outside its screens, found from the flows (a sign-up sends a welcome, an export emails a file, a failed payment warns): what triggers it, who gets it, the channel, its real text in the voice, how to stop it, and a preview a person opens, an HTML file per email or a mock of the chat bubble in `design/messages/`, per [UX methods](references/ux-methods.md#messages). For an agent that talks on a channel, the messages are the product: each turn type the spec's `## Agent behavior` names gets its row. Done when every message has its row and its preview, or `**Messages:** none` with the reason.
 6. **Inventory the components:** exists, extend (naming what else it affects), new (with its justification). Done when every component in the flows has one of the three.
 7. **State the accessibility floor:** the keyboard path with tab order for the primary flow, the contrast target as a ratio, focus behavior on open, close, error and completion. Done when all three are written.
-8. **Deliver the design** to the requested destination. In the lifecycle write `DESIGN.md` per the [design template](references/design-template.md), headings and labels exact, then hand the primary flow to `design-direction` and the flow list to the spec; gate 4.9 also needs the visual direction. Done when `DESIGN.md` holds the flows, states, messages, inventory and floor.
+8. **Deliver the design** to the requested destination. In the lifecycle write `DESIGN.md` per the [design template](references/design-template.md), headings and labels exact, then hand the primary flow to `ux-architecture` (direction) and the flow list to the spec; gate 4.9 also needs the visual direction. Done when `DESIGN.md` holds the flows, states, messages, inventory and floor.
 
 ## Watch for
 
@@ -41,7 +41,7 @@ More in [UX methods](references/ux-methods.md).
 | `diagram.render` | Laying a flow out on a canvas the person edits in a workshop | The page `bos.mjs flows` writes; without commands, the Mermaid block in `DESIGN.md`, which renders wherever Markdown does |
 | `files.read` / `files.write` | Supplied context, requested design and lifecycle artifacts | Inline design needs no file write; lifecycle writes require it |
 
-**No data capability is required.** The visual layer is always covered: `design-direction` renders versions as files on any host, and uses a design toolchain where one resolved.
+**No data capability is required.** The visual layer is always covered: `ux-architecture` (direction) renders versions as files on any host, and uses a design toolchain where one resolved.
 
 ## Output Contract
 
