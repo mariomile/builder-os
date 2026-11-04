@@ -78,7 +78,7 @@ When {situation}, I want to {motivation}, so I can {expected outcome}. `[tag]`
 
 **Stage exit:** {before PMF: the thresholds that would say the product has left this stage, chosen by the user with the reason. Example: week-6 retention flat on 3 cohorts, 40% "very disappointed" on 30+ answers, a third of new users not brought by the founder}
 **North Star:** {metric, baseline with date} `[tag]`, or "not yet selected" until the first product review
-**Revenue model:** {who pays, the price metric (seat, usage, outcome), starting price, billing period; or "not for sale, {why}"}
+**Revenue model:** {who pays, the price metric (seat, usage, outcome), starting price, billing period; or "not for sale, {why}"; a tool for the builder's own team writes "not for sale, internal tool for {who}"}
 **Growth engine:** {self-serve | founder-led sales | community | partners | ...: how new users arrive without the team pushing each one}
 **Channel that works:** {the one channel that brings users so far, from the product review; "none yet" before the first}
 

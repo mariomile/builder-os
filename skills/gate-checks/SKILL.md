@@ -11,7 +11,7 @@ Read `evidence-ledger` when tag counting or source provenance needs clarifying, 
 
 ## The Conditions
 
-Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, or [M Mandate](references/mandate-check.md) on the change track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
+Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, [M Mandate](references/mandate-check.md) on the change track, or [N Need](references/need-check.md) on the internal track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
 
 E.1 and E.2 run on every gate, including the coverage check (against `PRODUCT.md` and `00-request.md`) and the mandate check. A tag without its file is an untagged claim wearing a tag; a provisional block is a recommendation wearing a decision.
 
@@ -70,19 +70,17 @@ A phase advances on a pass or a logged override, nothing in between. When a test
 
 ## Override and Kill
 
-An override waives conditions by name, each with the person's reason: `record {N} --judged ... --override "reason"` waives a single failure; several need `--waive 4.22,5.8`, and conditions left unnamed still fail. The record keeps `overridden`, the reason, the failed and waived conditions; the briefing shows them until a later cycle meets them, and phase 7 reads them. The coverage and mandate checks cannot be overridden.
+An override waives conditions by name, each with the person's reason: `record {N} --judged ... --override "reason"` waives a single failure; several need `--waive 4.22,5.8`, and conditions left unnamed still fail. The record keeps `overridden`, the reason, the failed and waived conditions; the briefing shows them until a later cycle meets them, and phase 7 reads them. The entry checks cannot be overridden.
 
 `record {N} --kill "reason"` ends the initiative at phases 0 to 6, with the person's words; phase 7 kills through its verdict. Moves the process asks for have their commands: `resume {slug}`, `reframe --reason` (a new cycle from phase 0), `jump {N} --reason` (back reopens phases; forward records the jumped phases as overridden).
 
-## Coverage Check (feature track)
+## Entry Checks and Spike Stop
 
-Runs once, at initialization, when the work is classified as `feature`, standing in for gates 0 and 1 by reading `PRODUCT.md` and the request's own evidence in `00-request.md`. Conditions, the check-before-recording rule and both outcomes: [coverage-check.md](references/coverage-check.md).
+Each runs once, at initialization, and stands in for the early gates by reading `00-request.md`:
 
-## Mandate Check (change track)
-
-Runs once, at initialization, when the work is classified as `change`, standing in for gates 0 to 3 by reading the mandate in `00-request.md`: the bug, the debt, the rule or the contract that already decided what to build. Conditions and outcomes: [mandate-check.md](references/mandate-check.md). A failure moves the work to `feature`.
-
-## Spike Stop (spike track)
+- **Coverage** (`feature`): gates 0 and 1, from `PRODUCT.md` and the request's own evidence: [coverage-check.md](references/coverage-check.md). A failure makes a `product`.
+- **Mandate** (`change`): gates 0 to 3, from the bug, debt, rule or contract that already decided what to build: [mandate-check.md](references/mandate-check.md). A failure makes a `feature`.
+- **Need** (`internal`): gates 0 to 2, from the job, its users by name, how long it takes today and when it is done: [need-check.md](references/need-check.md). A failure makes a `product`.
 
 A `spike` ends at gate 1 with phase 1 `answered` and the initiative `closed`: [gate-1-discover.md](references/gate-1-discover.md), Spike Stop.
 

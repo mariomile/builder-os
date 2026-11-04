@@ -4,6 +4,16 @@ All notable changes to BuilderOS. Dates are the date the work landed on a branch
 
 ## [Unreleased]
 
+### Added: the internal track, for tools whose users are the builder or their own team
+
+When the customer is you, the open question is how, not whether anyone has the problem. The lifecycle had no path for it: `product` asked for customer interviews, a business case in money, a go-to-market, a session with someone from the ICP, a first outside user and a launch.
+
+- **`internal` track** (`references/lifecycle-setup.md`, Tracks). Lite by default. The **need check** (gate N, `skills/gate-checks/references/need-check.md`) reads `00-request.md` → `## Need`: the job, the users by name, how long it takes **Today** (a number, tagged; the builder's own words count) and **Done when** (a number and a date). N.1 to N.4 are script-decided, N.5 (internal for real) is the model's call. Pass covers phases 0 to 2 and starts at phase 3; fail makes a `product`. `bos.mjs gate N`, `bos.mjs cover --n5 "..."`.
+- **Phase 3 values in time** (`business-case`, Internal tools): per option, hours saved a week against days to build, and `**Not building:**`, the best way of not building it and why it loses. Gate 3.9 checks it on this track; 3.7, 3.8, 3.10, 3.11 and 3.13 are skipped.
+- **The rest keeps its rigor.** Gate 4 needs one visual version (or the look inherited or not applicable); 4.13, 4.14 and 4.17 are skipped. Gate 6 skips 6.11, 6.12 and 6.14 and asks whether the named users know what changed. Like a change, it closes at phase 6 unless the release sets an outcome review (then 6.2, 6.3, 6.5 run and phase 7 compares against **Done when**, skipping 7.8). Kill criteria, the cheapest test, the stake, the spec, the threat model, the accepted plan, the tests and the rollback hold as on every track.
+- **Ratchet.** `internal` moves only to `product`, once people outside the team use or pay for it. A `change` on a project whose `PRODUCT.md` revenue model reads "not for sale, internal …" goes to `internal` when its mandate check fails; `upgrade --to internal` moves a change there by hand.
+- `tests/scripts/internal-track.test.mjs` (5 tests) and the eval case `internal-tool` (not run yet).
+
 ### Changed: the project page answers four questions
 
 Decided in the project thread "Valutare una pagina di stato del progetto" (1A 2A 3A). An outside project template keeps a hand-written state file; BuilderOS keeps its generated page and takes the shape.

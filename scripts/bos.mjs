@@ -3,9 +3,9 @@
 // Run from the project root (the directory holding PRODUCT.md and .builderos/).
 //
 //   node bos.mjs brief                     session briefing, with the attention line
-//   node bos.mjs gate <0-7|C|M> [--json]   script-decided gate conditions; the rest listed as judge
+//   node bos.mjs gate <0-7|C|M|N> [--json] script-decided gate conditions; the rest listed as judge
 //   node bos.mjs init                      first run: .builderos/ folders, an empty ROADMAP.md, the .gitignore lines
-//   node bos.mjs new <slug> --title "..." --track spike|feature|change|product [--mode full|lite] [--reason "..."]
+//   node bos.mjs new <slug> --title "..." --track spike|change|internal|feature|product [--mode full|lite] [--reason "..."]
 //                                          create an initiative with a valid state.json and make it active
 //   node bos.mjs resume <slug> [--reason "..."]   make a paused initiative the active one again
 //   node bos.mjs reframe --reason "..."    a new cycle from phase 0, keeping the history
@@ -14,7 +14,9 @@
 //                                          passes, record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
 //   node bos.mjs cover --m4 "reason"       change track: run the mandate check on 00-request.md and, if it passes, record
 //                                          phases 0 to 3 as covered and start at phase 4; a failure moves the work to feature
-//   node bos.mjs upgrade --to feature|product --reason "..."
+//   node bos.mjs cover --n5 "reason"       internal track: run the need check on 00-request.md and, if it passes, record
+//                                          phases 0 to 2 as covered and start at phase 3; a failure moves the work to product
+//   node bos.mjs upgrade --to internal|feature|product --reason "..."
 //                                          the ratchet: move the active initiative to a heavier track and restart at phase 0
 //   node bos.mjs record <0-7> --judged "id=pass|fail,..." [--accepted-by "who"] [--verdict v] [--override reason [--waive ids]] [--review-due date] [--reenter N]
 //   node bos.mjs record <0-6> --kill "reason"   end the initiative at the phase it is in, in the person's words
@@ -80,7 +82,8 @@ const PRIMARY = new Set(['data', 'interview', 'code']);
 const ACCEPTANCE_PHASES = [0, 4, 6];
 const DAY = 86400000;
 // Lightest to heaviest; the ratchet only moves right. spike stays outside it: an answered spike ends.
-const TRACKS = ['spike', 'change', 'feature', 'product'];
+// internal (the builder is the user) moves only to product: once people outside the team use it, it has a market.
+const TRACKS = ['spike', 'change', 'internal', 'feature', 'product'];
 const REQUEST = '00-request.md';
 const MANDATE_KINDS = ['bug', 'debt', 'compliance', 'contract', 'request', 'removal'];
 
@@ -856,6 +859,8 @@ function business(product) {
   const levers = rawRows(tree).map((r) => ({ name: r[0], metric: r[1] || '', current: r[2] || '', source: r[3] || '' }));
   return { sec, revenue, notForSale: /^not for sale\b/i.test(revenue || ''), levers };
 }
+// An internal tool says so in its revenue model: "not for sale, internal tool for ...".
+const internalTool = (product) => /^not for sale\b.*\binternal\b/i.test(business(product).revenue || '');
 const UNAVAILABLE = /^unavailable\b.{6,}/i;
 function businessGaps(product) {
   const b = business(product);
@@ -932,6 +937,24 @@ function valueInfo(bet, ctx, lite) {
   if (precise.length) problems.push(`false precision in "**Two-year value:**" (${precise.join(', ')} significant digits): round to what the estimates carry, "about €1.1M"`);
   if (!nonEmpty(field(sec, 'Costs'))) problems.push('no "**Costs:**": modeled when over 10% of revenue (build, upkeep, model and infrastructure per use), or "under 10%" with why');
   return { rows, problems, detail: `${rows.length} numbers (${KINDS.map((k) => `${rows.filter((r) => (r[2] || '').toLowerCase() === k).length} ${k}`).join(', ')}), ${result}` };
+}
+
+// Gate 3.9 on the internal track: the value is time. Each option's hours saved a week against its days to build,
+// and the best way of not building it at all, which is the option an internal tool most often loses to.
+function timeValue(bet, lite) {
+  const sec = section(bet, 'Value');
+  if (sec === null) return { problems: ['no "## Value": a table (Option / Hours saved per week / Days to build / Source) and **Not building:** (business-case, Internal tools)'] };
+  const rows = tableRows(sec).filter((r) => nonEmpty(r[0]));
+  const need = lite ? 2 : 3;
+  const problems = [];
+  if (rows.length < need) problems.push(`${rows.length} options in the ## Value table (${need} needed): hours saved per week and days to build for each`);
+  const blind = rows.filter((r) => !/\d/.test((r[1] || '').replace(TAG_RE, '')) || !/\d/.test((r[2] || '').replace(TAG_RE, '')));
+  if (blind.length) problems.push(`no number of hours saved or days to build for: ${blind.map((r) => r[0]).join(', ')}`);
+  const untagged = rows.filter((r) => !hasTag(r.slice(1).join(' ')));
+  if (untagged.length) problems.push(`no source tag (estimate counts) on: ${untagged.map((r) => r[0]).join(', ')}`);
+  const nb = field(sec, 'Not building');
+  if (!nonEmpty(nb) || nb.replace(TAG_RE, '').trim().length < 15) problems.push('no "**Not building:**": the best way of not building it (an existing tool, a script, a routine), what it costs, and why it loses');
+  return { problems, detail: `${rows.length} options valued in time; not building: ${(nb || '').slice(0, 80)}` };
 }
 
 // Gate 3.10: the assumption that moves the result most is named, and the test aims at it.
@@ -1777,6 +1800,22 @@ function gateConditions(n, ctx) {
     return R;
   }
 
+  if (n === 'N') {
+    const req = section(a, 'Request');
+    const ev = tags(field(req || '', 'Evidence') || '').filter((t) => ['data', 'interview', 'doc'].includes(t.cls));
+    // The builder is the user: their own words are first-hand evidence here, not a requester's wish.
+    pass('N.1', req !== null && ev.length > 0, req === null ? `no "## Request" in ${REQUEST}: the need verbatim and **Evidence:** behind it` : ev.length ? `need evidenced by ${ev.map((t) => t.raw).join(', ')}` : 'no data, interview or doc tag under "**Evidence:**" (your own words, saved as an evidence file, count)');
+    const need = section(a, 'Need') || '';
+    const users = field(need, 'Users');
+    pass('N.2', nonEmpty(users), users ? `users: ${users}` : 'no "**Users:**" under ## Need: who will use it, by name (you, or the people on your team)');
+    const today = field(need, 'Today') || '';
+    pass('N.3', /\d/.test(today.replace(TAG_RE, '')) && hasTag(today, ['data', 'doc', 'interview']), today ? (hasTag(today, ['data', 'doc', 'interview']) ? (/\d/.test(today.replace(TAG_RE, '')) ? 'how the job is done today, measured and tagged' : '"**Today:**" has no number: minutes or hours per run, and how often') : '"**Today:**" carries no data, doc or interview tag') : 'no "**Today:**": how the job is done now, the time it takes and how often, tagged');
+    const done = field(need, 'Done when') || '';
+    pass('N.4', /\d/.test(done.replace(DATE_RE, '').replace(TAG_RE, '')) && DATE_RE.test(done), done ? 'the result, with a number and a date' : 'no "**Done when:**": the result you will see (the job in N minutes instead of M, or done at all) and by when');
+    judge('N.5', 'is it internal for real: the users are the builder or their own team, reachable by name, nobody outside uses or pays for it, and the job is known while only how to do it is open? Otherwise it is a feature or a product');
+    return R;
+  }
+
   if (n === 0) {
     const prob = section(a, 'Problem');
     const hit = solutionWord(firstParagraph(prob), ctx.product);
@@ -1870,17 +1909,23 @@ function gateConditions(n, ctx) {
     pass('3.5', raw.length >= rawNeed, `${raw.length} raw ideas before convergence (${rawNeed} needed)`);
     const bet = chosenBy(section(a, 'Selected'), 'the bet');
     pass('3.6', bet.ok, bet.detail);
-    if (ctx.track !== 'product') skip('3.7', `${ctx.track} track: the product already reaches its users and is priced`);
+    if (ctx.track === 'internal') skip('3.7', 'internal track: the users are the team and nobody pays');
+    else if (ctx.track !== 'product') skip('3.7', `${ctx.track} track: the product already reaches its users and is priced`);
     else { const bc = businessCase(a, ctx.product); pass('3.7', bc.problems.length === 0, bc.problems.length ? bc.problems.join('; ') : bc.detail); }
     const stage = productStage(ctx.product);
-    if (preScale(stage)) judge('3.8', `stage ${stage}: does the bet test whether there is a product, rather than scale, optimize or harden one nobody uses yet?`);
+    if (ctx.track === 'internal') skip('3.8', 'internal track: no market to find, so no PMF stage');
+    else if (preScale(stage)) judge('3.8', `stage ${stage}: does the bet test whether there is a product, rather than scale, optimize or harden one nobody uses yet?`);
     else skip('3.8', `stage ${stage || 'unknown'}: scale work is allowed`);
     // Deciding what to build (business-case, go-to-market): the value in money, the assumption that carries it, the stake.
-    const val = valueInfo(a, ctx, lite);
-    if (val.judgment) judge('3.9', `value declared as a judgment, not a number: does it rest on what resists a number (trust, defensibility, brand), and is the reasoning explicit? "${val.judgment.slice(0, 120)}"`);
+    const val = ctx.track === 'internal' ? timeValue(a, lite) : valueInfo(a, ctx, lite);
+    if (ctx.track === 'internal') {
+      pass('3.9', val.problems.length === 0, val.problems.length ? val.problems.join('; ') : val.detail);
+      skip('3.10', 'internal track: the value is time, read straight off the table');
+      skip('3.11', 'internal track: no revenue to question');
+    } else if (val.judgment) judge('3.9', `value declared as a judgment, not a number: does it rest on what resists a number (trust, defensibility, brand), and is the reasoning explicit? "${val.judgment.slice(0, 120)}"`);
     else pass('3.9', val.problems.length === 0, val.problems.length ? val.problems.join('; ') : val.detail);
     if (val.judgment) { skip('3.10', 'value declared as a judgment'); skip('3.11', 'value declared as a judgment'); }
-    else {
+    else if (ctx.track !== 'internal') {
       const sens = sensitivityInfo(a, val);
       pass('3.10', sens.problems.length === 0, sens.problems.length ? sens.problems.join('; ') : sens.detail);
       const fq = fiveQuestions(a);
@@ -1888,11 +1933,13 @@ function gateConditions(n, ctx) {
     }
     if (!tw.first) skip('3.12', 'no test runs before the build');
     else { const card = experimentCard(a); pass('3.12', card.problems.length === 0, card.problems.length ? card.problems.join('; ') : card.detail); }
-    const gtm = gtmBefore(a, ctx.track);
-    pass('3.13', gtm.problems.length === 0, gtm.problems.length ? gtm.problems.join('; ') : gtm.detail);
+    const gtm = ctx.track === 'internal' ? { problems: [] } : gtmBefore(a, ctx.track);
+    if (ctx.track === 'internal') skip('3.13', 'internal track: the users are already there');
+    else pass('3.13', gtm.problems.length === 0, gtm.problems.length ? gtm.problems.join('; ') : gtm.detail);
     const size = betSize(a);
     pass('3.14', size.problems.length === 0, size.problems.length ? size.problems.join('; ') : size.detail);
-    judge('3.15', `stage ${stage || 'unknown'}, ${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the evidence behind the bet meet the bar for this stage and door (business-case, Evidence bar)? A judgment call is declared with its reasoning and a revisit date`);
+    if (ctx.track === 'internal') judge('3.15', `${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the appetite fit the hours the tool saves, and did the best way of not building it lose for a stated reason?`);
+    else judge('3.15', `stage ${stage || 'unknown'}, ${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the evidence behind the bet meet the bar for this stage and door (business-case, Evidence bar)? A judgment call is declared with its reasoning and a revisit date`);
     return R;
   }
 
@@ -1906,7 +1953,7 @@ function gateConditions(n, ctx) {
     pass('4.3', states.length > 0 && holes.length === 0, states.length === 0 ? 'no states table' : holes.length ? `empty or error state missing for: ${holes.map((r) => r[0]).join(', ')}` : `${states.length} flows, empty and error states enumerated`);
     const tp = section(a, 'Tracking plan');
     if (ctx.track === 'change') skip('4.4', 'change track: no phase 2 metric to compute');
-    else judge('4.4', tableRows(tp).length && nonEmpty(field(tp, 'Computes the phase 2 metric')) ? 'events listed; do they compute the phase 2 metric?' : 'tracking plan or its computation line missing');
+    else judge('4.4', tableRows(tp).length && nonEmpty(field(tp, 'Computes the phase 2 metric')) ? `events listed; do they compute the phase 2 metric${ctx.track === 'internal' ? ` (internal: ${REQUEST} → **Done when:**)` : ''}?` : 'tracking plan or its computation line missing');
     const both = (a || '') + '\n' + (ctx.design || '');
     const a11y = ['keyboard', 'contrast', 'focus'].filter((w) => !new RegExp(w, 'i').test(both));
     (lite ? warn : pass)('4.5', a11y.length === 0, a11y.length ? `missing: ${a11y.join(', ')}` : 'keyboard, contrast, focus stated');
@@ -1926,7 +1973,7 @@ function gateConditions(n, ctx) {
     pass('4.7', conflicts !== null && unowned.length === 0, conflicts === null ? 'no "## Conflicts" section: state the constraint conflicts found, or that none were' : unowned.length ? `conflicts with nobody deciding: ${unowned.map((r) => r[0]).join(', ')}` : `${conflictRows.length} conflicts, each with who decides`);
     const stack = stackInfo(a);
     pass('4.8', stack.problems.length === 0, stack.problems.length ? stack.problems.join('; ') : `${stack.rows} layers (${stack.decided} decided with a person), what we chose summarized`);
-    const vd = visualInfo(ctx, ctx.track === 'change' ? 1 : lite ? 2 : (ctx.track === 'feature' ? 2 : 3), ctx.track === 'change');
+    const vd = visualInfo(ctx, ['change', 'internal'].includes(ctx.track) ? 1 : lite ? 2 : (ctx.track === 'feature' ? 2 : 3), ['change', 'internal'].includes(ctx.track));
     pass('4.9', vd.problems.length === 0, vd.problems.length ? vd.problems.join('; ') : vd.detail);
     const dm = domainInfo(ctx);
     pass('4.10', dm.problems.length === 0, dm.problems.length ? dm.problems.join('; ') : dm.detail);
@@ -2050,18 +2097,19 @@ function gateConditions(n, ctx) {
     const exposure = section(a, 'Exposure verification');
     const exposed = field(exposure, 'Exposed at');
     // A change with no outcome to measure carries no baseline, measurement or review; it closes at phase 6.
-    const unmeasured = ctx.track === 'change' && !bh && section(a, 'Measurement') === null && section(a, 'Outcome review') === null;
-    if (unmeasured) skip('6.2', 'change track with no outcome to measure');
+    const unmeasured = ['change', 'internal'].includes(ctx.track) && !bh && section(a, 'Measurement') === null && section(a, 'Outcome review') === null;
+    if (unmeasured) skip('6.2', `${ctx.track} track with no outcome to measure`);
     else pass('6.2', ts.length >= 1 && validTimestamp(ts[0]) && validTimestamp(exposed) && Date.parse(ts[0]) < Date.parse(exposed) && brows.length > 0, `baseline captured ${ts[0] || 'missing'}, actual exposure ${exposed || 'missing'}`);
     const observed = field(exposure, 'Verification');
     pass('6.6', /^verified$/i.test(field(exposure, 'Status') || '') && validTimestamp(exposed) && Date.parse(exposed) <= Date.now() && nonEmpty(field(exposure, 'Environment')) && nonEmpty(field(exposure, 'Version')) && observed && hasTag(observed, ['data', 'doc']) && observed.replace(TAG_RE, '').trim().length > 10, 'verified exposure requires actual non-future timestamp, environment, version and observed result with data/doc evidence');
     judge('6.7', 'does the exposure evidence demonstrate the intended behavior available to users in the stated environment/version?');
-    if (unmeasured) skip('6.3', 'change track with no outcome to measure');
+    if (unmeasured) skip('6.3', `${ctx.track} track with no outcome to measure`);
     else pass('6.3', nonEmpty(field(section(a, 'Measurement'), 'Success metric measured by')), 'named query or dashboard');
-    judge('6.4', `are the release notes written for users, not a commit list, and does **Help:** say where users find answers and what changed there?${lite ? ' (lite: a fail is a warning)' : ''}`);
+    if (ctx.track === 'internal') judge('6.4', 'internal: do the people named under **Users:** know what changed and where to look when it breaks? A short note is enough');
+    else judge('6.4', `are the release notes written for users, not a commit list, and does **Help:** say where users find answers and what changed there?${lite ? ' (lite: a fail is a warning)' : ''}`);
     const orv = section(a, 'Outcome review') || '';
     const reviewDate = (field(orv, 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0];
-    if (unmeasured) skip('6.5', 'change track with no outcome review: the initiative closes here');
+    if (unmeasured) skip('6.5', `${ctx.track} track with no outcome review: the initiative closes here`);
     else pass('6.5', /\*\*Owner:\*\*\s*[^·{]+\S/.test(orv) && validDate(reviewDate), 'owner and valid review Date');
     const authorized = field(exposure, 'Authorized by');
     const authWords = nonEmpty(authorized) ? personWords(authorized, 'Authorized by') : { ok: false, problem: 'Exposure verification names nobody under "**Authorized by:**"' };
@@ -2086,7 +2134,7 @@ function gateConditions(n, ctx) {
     }
     const roll = chosenBy(section(a, 'Rollout'), 'the rollout strategy');
     pass('6.13', roll.ok, roll.detail);
-    if (ctx.track === 'change' || ctx.track === 'spike') skip('6.14', `${ctx.track} track: nothing new to announce`);
+    if (['change', 'spike', 'internal'].includes(ctx.track)) skip('6.14', `${ctx.track} track: nothing new to announce${ctx.track === 'internal' ? ' outside the team' : ''}`);
     else { const lp = launchPlan(a); pass('6.14', lp.problems.length === 0, lp.problems.length ? lp.problems.join('; ') : lp.detail); }
     return R;
   }
@@ -2114,7 +2162,7 @@ function gateConditions(n, ctx) {
     pass('7.6', nonEmpty(cleanup) && !bareNone, !cleanup ? 'no "**Cleanup:**" under the decision: the flag and old path after KEEP, the shipped code after KILL, with an owner and a date, or "none" with the reason' : bareNone ? '"none" needs its reason' : `cleanup: ${cleanup}`);
     const verdict = chosenBy(section(a, 'Decision'), 'keep, iterate or kill');
     pass('7.7', verdict.ok, verdict.detail);
-    if (ctx.track === 'change' || ctx.track === 'spike') skip('7.8', `${ctx.track} track: no launch to read`);
+    if (['change', 'spike', 'internal'].includes(ctx.track)) skip('7.8', `${ctx.track} track: no launch to read`);
     else { const gr = gtmRead(a, ctx.track); pass('7.8', gr.problems.length === 0, gr.problems.length ? gr.problems.join('; ') : gr.detail); }
     return R;
   }
@@ -2256,12 +2304,12 @@ function runCheck() {
 
 function runGate(which) {
   const all = loadInitiatives();
-  const n = /^[cm]$/i.test(which || '') ? which.toUpperCase() : Number(which);
-  if (n !== 'C' && n !== 'M' && !(Number.isInteger(n) && n >= 0 && n <= 7)) die('gate takes a phase number 0-7, C (coverage) or M (mandate)');
+  const n = /^[cmn]$/i.test(which || '') ? which.toUpperCase() : Number(which);
+  if (!['C', 'M', 'N'].includes(n) && !(Number.isInteger(n) && n >= 0 && n <= 7)) die('gate takes a phase number 0-7, C (coverage), M (mandate) or N (need)');
   const init = resolveActive(all);
   if (!init && n !== 'C') die('no active initiative: pass --initiative <slug>');
   const dir = init ? init.dir : BOS;
-  const file = n === 'C' ? path.join(ROOT, 'PRODUCT.md') : n === 'M' ? path.join(dir, REQUEST) : path.join(dir, ARTIFACTS[n]);
+  const file = n === 'C' ? path.join(ROOT, 'PRODUCT.md') : n === 'M' || n === 'N' ? path.join(dir, REQUEST) : path.join(dir, ARTIFACTS[n]);
   const artifact = read(file);
   if (!artifact) die(`${rel(file)} does not exist: the phase has not produced its artifact`);
   const ctx = {
@@ -2396,7 +2444,7 @@ function lastGate(state) {
   const done = Object.keys(ph).map(Number).filter((k) => ph[k] && ph[k].gate).sort((x, y) => y - x);
   if (!done.length) return 'no gate run yet';
   const g = ph[done[0]].gate;
-  if (ph[done[0]].status === 'covered') return state.track === 'change' ? 'phases 0 to 3 covered by the mandate' : 'phases 0 and 1 covered by PRODUCT.md';
+  if (ph[done[0]].status === 'covered') return state.track === 'change' ? 'phases 0 to 3 covered by the mandate' : state.track === 'internal' ? 'phases 0 to 2 covered by the need' : 'phases 0 and 1 covered by PRODUCT.md';
   return `gate ${done[0]} ${g.overridden ? 'overridden' : g.passed ? 'passed' : 'failed'}${g.failed_conditions && g.failed_conditions.length ? ` (${g.failed_conditions.join(', ')})` : ''}`;
 }
 
@@ -2467,7 +2515,7 @@ function nextStep(i) {
   const s = i.state;
   const p = s.current_phase ?? 0;
   const status = (s.phases || {})[p] ? s.phases[p].status : 'pending';
-  const coverage = p === 0 && ['feature', 'change'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
+  const coverage = p === 0 && ['feature', 'change', 'internal'].includes(s.track) ? (s.track === 'change' ? `write ${REQUEST} with its mandate, then the mandate check (\`gate M\`, \`cover --m4\`)` : s.track === 'internal' ? `write ${REQUEST} with the need, then the need check (\`gate N\`, \`cover --n5\`)` : `write ${REQUEST} with its evidence, then the coverage check (\`gate C\`, \`cover --c4\`)`) : null;
   const round = openRound(s);
   const waiting = round ? `the round asked ${round.at.slice(0, 16).replace('T', ' ')} waits for the person; meanwhile draft ahead on its recommended options, each block marked provisional (pressure-testing)` : null;
   return status === 'answered' ? 'the spike is answered; reclassify to continue' : waiting || coverage || `${status === 'in_progress' ? 'finish' : 'start'} phase ${p} ${PHASES[p]} (skill: ${PHASE_SKILLS[p]})`;
@@ -2737,7 +2785,7 @@ function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: run `bos.mjs init` first');
   const track = opt('--track');
-  if (!TRACKS.includes(track)) die('new needs --track spike|feature|change|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature');
+  if (!TRACKS.includes(track)) die('new needs --track spike|change|internal|feature|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature; a tool whose users are you or your team is internal');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
   if (fs.existsSync(path.join(dir, 'state.json'))) die(`initiative ${slug} already exists`);
@@ -2747,7 +2795,7 @@ function newInitiative(slug) {
   const phases = {};
   for (let k = 0; k < 8; k++) phases[k] = { status: k === 0 ? 'in_progress' : 'pending', artifact: null, gate: null };
   const state = {
-    schema: 2, slug, title: opt('--title') || slug, mode: opt('--mode') || (['feature', 'change'].includes(track) ? 'lite' : 'full'), track,
+    schema: 2, slug, title: opt('--title') || slug, mode: opt('--mode') || (['feature', 'change', 'internal'].includes(track) ? 'lite' : 'full'), track,
     status: 'open', current_phase: 0, cycle: 1, created_at: now, updated_at: now, review_due: null, phases,
     history: [{ at: now, event: 'track_set', track, reason: opt('--reason') || 'not stated' }],
   };
@@ -2848,9 +2896,10 @@ function jump(which) {
 function cover() {
   const init = resolveActive(loadInitiatives());
   if (!init) die('no active initiative');
-  if (init.state.status === 'closed' || init.state.current_phase !== 0) die('coverage can only be recorded at phase 0 of an open feature or change initiative');
+  if (init.state.status === 'closed' || init.state.current_phase !== 0) die('coverage can only be recorded at phase 0 of an open feature, change or internal initiative');
   if (init.state.track === 'change') return coverMandate(init);
-  if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature and change run a coverage check`);
+  if (init.state.track === 'internal') return coverNeed(init);
+  if (init.state.track !== 'feature') die(`${init.slug} is on the ${init.state.track} track; only feature, change and internal run a coverage check`);
   const c4 = opt('--c4');
   if (!c4) die('C.4 is judged by the model: pass --c4 "how the request serves the evidenced problem"');
   const r = spawnSyncSelf(['gate', 'C', '--json', '--initiative', init.slug]);
@@ -2891,12 +2940,14 @@ function coverMandate(init) {
   const s = init.state;
   if (j.failed.length) {
     const why = `mandate check failed: ${j.failed.join(', ')}`;
-    s.track = 'feature';
-    s.history.push({ at: now, event: 'track_upgraded', from: 'change', to: 'feature', reason: why });
+    // On an internal tool (PRODUCT.md: not for sale, internal) a change that needs a choice is internal work, not a feature.
+    const to = internalTool(read(path.join(ROOT, 'PRODUCT.md'))) ? 'internal' : 'feature';
+    s.track = to;
+    s.history.push({ at: now, event: 'track_upgraded', from: 'change', to, reason: why });
     s.updated_at = now;
     writeJSON(path.join(init.dir, 'state.json'), s);
     roadmap();
-    console.log(`${why}: ${init.slug} is now a feature, still at phase 0. Run \`gate C\`, then \`cover --c4\`.`);
+    console.log(`${why}: ${init.slug} is now ${to === 'internal' ? 'internal' : 'a feature'}, still at phase 0. ${to === 'internal' ? 'Add the need to `00-request.md`, run `gate N`, then `cover --n5`.' : 'Run `gate C`, then `cover --c4`.'}`);
     process.exit(1);
   }
   const used = [...new Set(tags(section(read(path.join(init.dir, REQUEST)), 'Request')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
@@ -2912,6 +2963,40 @@ function coverMandate(init) {
   console.log(`Mandate check passed: phases 0 to 3 covered by ${used.join(', ')}. ${init.slug} starts at phase 4.`);
 }
 
+// Internal track: the builder is the user, so the need stands in for the frame, the discovery and the outcome
+// (phases 0 to 2); the open question is how, and phase 3 starts there. A failed need check is the ratchet: product.
+function coverNeed(init) {
+  const n5 = opt('--n5');
+  if (!n5) die('N.5 is judged by the model: pass --n5 "why the users are the builder or their team, and only the how is open"');
+  const j = JSON.parse(spawnSyncSelf(['gate', 'N', '--json', '--initiative', init.slug]) || '{}');
+  if (!j.results) die(`${REQUEST} is missing: write the request, its evidence and the need first`);
+  const now = new Date().toISOString();
+  const s = init.state;
+  if (j.failed.length) {
+    const why = `need check failed: ${j.failed.join(', ')}`;
+    s.track = 'product';
+    if (s.mode === 'lite') s.mode = 'full';
+    s.history.push({ at: now, event: 'track_upgraded', from: 'internal', to: 'product', reason: why });
+    s.updated_at = now;
+    writeJSON(path.join(init.dir, 'state.json'), s);
+    roadmap();
+    console.log(`${why}: ${init.slug} is now a product, starting at phase 0.`);
+    process.exit(1);
+  }
+  const req = read(path.join(init.dir, REQUEST));
+  const used = [...new Set(tags(section(req, 'Request') + '\n' + section(req, 'Need')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
+  for (const k of ['0', '1', '2']) {
+    s.phases[k] = { status: 'covered', artifact: null, gate: { passed: true, checked_at: now, bos_version: VERSION, checked_by: { script: j.checked_by.script, model: ['N.5'] }, failed_conditions: [], overridden: false } };
+    s.history.push({ at: now, event: 'phase_covered', phase: Number(k), tags: used, n5 });
+  }
+  s.phases['3'] = { status: 'in_progress', artifact: null, gate: null };
+  s.current_phase = 3;
+  s.updated_at = now;
+  writeJSON(path.join(init.dir, 'state.json'), s);
+  roadmap();
+  console.log(`Need check passed: phases 0 to 2 covered by ${used.join(', ')}. ${init.slug} starts at phase 3: the ways to do it.`);
+}
+
 // The ratchet, by hand: the work turned out heavier than its track. Artifacts stay on disk; the pipeline restarts
 // at phase 0, where a feature runs its coverage check and a product frames the problem.
 function upgrade() {
@@ -2920,9 +3005,11 @@ function upgrade() {
   const s = init.state;
   const to = opt('--to'), reason = opt('--reason');
   if (s.status === 'closed') die('a closed initiative does not change track');
-  if (!['feature', 'product'].includes(to)) die('upgrade --to feature|product');
+  if (!['internal', 'feature', 'product'].includes(to)) die('upgrade --to internal|feature|product');
+  if (to === 'internal' && s.track !== 'change') die('only a change becomes internal: a change on an internal tool that turned out to need a choice');
   if (!nonEmpty(reason)) die('upgrade needs --reason: the observation that showed the track was too light');
   if (s.track === 'spike') die('an answered or running spike does not upgrade; start a new initiative that reuses its evidence');
+  if (s.track === 'internal' && to !== 'product') die('an internal tool moves only to product: once people outside the team use it or pay for it, it has a market to find');
   if (TRACKS.indexOf(to) <= TRACKS.indexOf(s.track)) die(`the ratchet only goes one way: ${s.track} cannot become ${to}`);
   const now = new Date().toISOString();
   s.history.push({ at: now, event: 'track_upgraded', from: s.track, to, reason });
@@ -2933,7 +3020,7 @@ function upgrade() {
   s.updated_at = now;
   writeJSON(path.join(init.dir, 'state.json'), s);
   roadmap();
-  console.log(`${init.slug} is now ${to}, back at phase 0; the artifacts written so far stay where they are.${to === 'feature' ? ' Run `gate C`, then `cover --c4`.' : ''}`);
+  console.log(`${init.slug} is now ${to}, back at phase 0; the artifacts written so far stay where they are.${to === 'feature' ? ' Run `gate C`, then `cover --c4`.' : to === 'internal' ? ' Add the need to `00-request.md`, run `gate N`, then `cover --n5`.' : ''}`);
 }
 
 // Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
@@ -3000,8 +3087,8 @@ function record(which) {
   } else if (verdict) die('--verdict is only valid for phase 1 or 7');
   if (n !== 7 && rawReentry !== undefined) die('--reenter is only valid for phase 7');
   const due = opt('--review-due');
-  // A change with no outcome review closes at phase 6; one that set a review goes to phase 7 like any other.
-  const closesAtShip = n === 6 && s.track === 'change' && due === undefined && section(artifact, 'Outcome review') === null;
+  // A change or an internal tool with no outcome review closes at phase 6; one that set a review goes to phase 7 like any other.
+  const closesAtShip = n === 6 && ['change', 'internal'].includes(s.track) && due === undefined && section(artifact, 'Outcome review') === null;
   if (n === 6 && !closesAtShip && (!validDate(due) || (field(section(artifact, 'Outcome review'), 'Date') || '').match(/^\d{4}-\d{2}-\d{2}/)?.[0] !== due)) die('phase 6 --review-due must match the valid outcome review date');
   if (n !== 6 && due !== undefined) die('--review-due is only valid for phase 6; use defer-review at phase 7');
   const now = new Date().toISOString();
@@ -3488,6 +3575,6 @@ else if (cmd === 'claim') claim();
 else if (cmd === 'round') round();
 else if (cmd === 'flows') flows();
 else {
-  console.log('usage: node bos.mjs brief | gate <0-7|C|M> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | upgrade --to feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | page | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
+  console.log('usage: node bos.mjs brief | gate <0-7|C|M|N> [--json] | new <slug> --title t --track k | cover --c4 reason | cover --m4 reason | cover --n5 reason | upgrade --to internal|feature|product --reason text | record <0-7> --judged ids | run-check --label slug -- executable args... | defer-review --review-due date --reason text | roadmap | page | migrate | pace | vendor | guard (PreToolUse hook, reads stdin) | context (UserPromptSubmit hook) | evidence add --class c --id id --where w [--shared] [--from file] | review [--file f] [--json] | map [slug] | doctor | claim --by who [--release | --take --reason text] | round --asked N | round --answered "1B, 2A" --by who | watch --note text (--recheck date | --clear --breach slug)   [--initiative slug] [--root dir]');
   process.exit(cmd ? 2 : 0);
 }
