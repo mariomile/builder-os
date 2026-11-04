@@ -1,6 +1,7 @@
 ---
 name: bos-discovery-sprint
 description: "Phases 0 → 1 → 2 in sequence: idea to selected opportunity with a success metric, gates enforced between steps"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

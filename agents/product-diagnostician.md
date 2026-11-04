@@ -1,6 +1,6 @@
 ---
 name: product-diagnostician
-description: "Answers product-analysis questions in an isolated context: product health and metric trees, activation and retention, revenue and unit economics, PMF and north star, OKRs, competitors. Works with live analytics, recorded metrics, a codebase, or nothing but the user. Use when an analysis is big enough to delegate, or when phase 7 needs the numbers re-read."
+description: "Answers product-analysis questions in an isolated context: health, activation, retention, revenue, PMF, OKRs, competitors."
 model: inherit
 ---
 

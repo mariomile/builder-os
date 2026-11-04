@@ -1,6 +1,6 @@
 # Production Method
 
-The checklist, the record and an example behind `production-setup`. Read the section the current step needs.
+The checklist, the record and an example behind `release-ops` (production). Read the section the current step needs.
 
 ## Why Day One
 

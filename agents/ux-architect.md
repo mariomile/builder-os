@@ -1,6 +1,6 @@
 ---
 name: ux-architect
-description: "Defines the structural design of a feature: information architecture, user flows with every entry and exit, six states per step, component inventory and the accessibility floor. Use alongside spec-writer in BuilderOS phase 4."
+description: "Phase 4 structure: information architecture, flows with every entry and exit, six states per step, components, accessibility."
 model: inherit
 ---
 
@@ -24,7 +24,7 @@ Your dispatch prompt carries: operating mode and resolved capabilities, pipeline
 
 The primary user action from the bet is the flow you design. Everything else serves it, and a flow that does not trace back to it is scope creep arriving before implementation.
 
-The rules and the look are not yours to pick: `builder-os:domain-model` and `builder-os:design-direction` run with the user next. Leave `## Domain model` and `## Visual direction` for them, list the entities your flows touch, and name the primary flow step it should render.
+The rules and the look are not yours to pick: `builder-os:domain-model` and `builder-os:ux-architecture` (direction) run with the user next. Leave `## Domain model` and `## Visual direction` for them, list the entities your flows touch, and name the primary flow step it should render.
 
 ## Reporting
 

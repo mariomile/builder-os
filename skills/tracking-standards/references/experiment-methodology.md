@@ -1,17 +1,12 @@
----
-name: experiment-methodology
-description: "Designs and reads experiments: hypotheses, sample sizes and duration, guardrails, and an honest reading of the result. Use when planning an A/B test or a fake door, calculating how many users a test needs, or interpreting a test result."
----
-
 # Experiment Methodology
 
 An experiment is a decision written down before the data arrives: the baseline, the effect worth detecting, the guardrails, and what ships or kills it. A change not yet shipped is **design**; results in hand are **analysis**. Run the steps the question needs: a sample-size request is answered by design steps 1 and 5. An experiment is worth its cost only when its result can change the decision; `business-case` (step 7) decides that, and its card is the short form of this design.
 
-**Mode.** Standalone or as part of phases 3, 6 and 7, per [operating modes](../../references/operating-modes.md); design and analysis apply in both. Load `evidence-ledger` when recording claims and the shapes in `references/analytics-contract.md` when querying. Skill-local resources:
+**Mode.** Standalone or as part of phases 3, 6 and 7, per [operating modes](../../../references/operating-modes.md); design and analysis apply in both. Load `evidence-ledger` when recording claims and the shapes in `references/analytics-contract.md` when querying. Skill-local resources:
 
-- [Calculations and readout](references/proportions.md) for sample size and significance.
-- [Design reference](references/design.md) for the hypothesis template, metric and randomization specification, runtime rule, worked examples, experiment types and the full list of traps.
-- [Output contracts](references/output-contracts.md) when writing the design or the readout.
+- [Calculations and readout](proportions.md) for sample size and significance.
+- [Design reference](experiment-design.md) for the hypothesis template, metric and randomization specification, runtime rule, worked examples, experiment types and the full list of traps.
+- [Output contracts](experiment-output-contracts.md) when writing the design or the readout.
 
 **Stage.** Read `PRODUCT.md` → Stage. Before PMF (`idea`, `pre-PMF`) traffic is too small for significance to mean anything: write the thresholds before the test, accept a small sample and declare its size, and judge the result qualitatively against those thresholds, reported as directional. After PMF the full procedure applies.
 
@@ -58,4 +53,4 @@ Design needs nothing connected. Analysis needs numbers, and two conversion count
 
 ## Output Contract
 
-`## EXPERIMENT DESIGN COMPLETE` or `## EXPERIMENT ANALYSIS COMPLETE`, in the shape of its [output contract](references/output-contracts.md).
+`## EXPERIMENT DESIGN COMPLETE` or `## EXPERIMENT ANALYSIS COMPLETE`, in the shape of its [output contract](experiment-output-contracts.md).

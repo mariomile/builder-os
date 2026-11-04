@@ -1,6 +1,6 @@
 ---
 name: delivery-planner
-description: "Writes the phase 5 plan before any code changes: end-to-end tracer-bullet slices with their files, blocking edges, risks, rejected alternatives, the test baseline and a planned test for every acceptance criterion. Use at the start of BuilderOS phase 5."
+description: "Writes the phase 5 build plan before any code: tracer-bullet slices, blockers, risks, test baseline, a test per criterion."
 model: inherit
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: bos-review
 description: "Product review: read every lever of the metric tree, judge the stage, propose at most three initiatives for the person to pick, and update the roadmap"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

@@ -1,6 +1,7 @@
 ---
 name: bos-ideate
 description: "Phase 3 — generate distinct solution options, select the bet, write kill criteria, and design the cheapest test"
+disable-model-invocation: true
 ---
 
 **Resources:** The installation root is the parent of this loaded `commands/` directory (or the hook’s installation-root line). Resolve `skills/`, `references/` and `scripts/` there; project artifacts belong in the working project.

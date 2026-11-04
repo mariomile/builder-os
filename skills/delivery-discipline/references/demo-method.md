@@ -1,6 +1,6 @@
 # Demo Method
 
-Read the section a step of `feature-demo` needs. Runner names below are examples of what `ui.record` resolves to, never requirements: use what the project already runs before adding anything.
+Read the section a step of `delivery-discipline` (demo) needs. Runner names below are examples of what `ui.record` resolves to, never requirements: use what the project already runs before adding anything.
 
 ## The walk as a test
 

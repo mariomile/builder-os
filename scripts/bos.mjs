@@ -664,7 +664,7 @@ function demoInfo(plan, ctx) {
   const sec = section(plan, 'Demo');
   const na = notApplicable(sec, '', 'Demo');
   if (na) return na.reason.length > 3 ? { problems: [], detail: `not applicable: ${na.reason}` } : { problems: ['"not applicable" needs its reason'] };
-  if (sec === null) return { problems: ['no "## Demo": a recording of the end-to-end test walking the primary flow, from a passing run (feature-demo)'] };
+  if (sec === null) return { problems: ['no "## Demo": a recording of the end-to-end test walking the primary flow, from a passing run (delivery-discipline, demo)'] };
   const problems = [];
   const test = field(sec, 'Test');
   if (!nonEmpty(test)) problems.push('no "**Test:**": the end-to-end test that walks the flow');
@@ -1537,7 +1537,7 @@ function environments() {
 function productionInfo(ctx) {
   const env = environments();
   const full = ctx.track === 'product';
-  if (env.sec === null) return { warnOnly: !full, problems: ['TECH.md has no "## Environments": production with its URL, how it deploys and who can see it, set up from the first slice (production-setup)'] };
+  if (env.sec === null) return { warnOnly: !full, problems: ['TECH.md has no "## Environments": production with its URL, how it deploys and who can see it, set up from the first slice (release-ops, production)'] };
   const problems = [];
   if (!env.prod) problems.push('"## Environments" has no production row (Environment / URL / Deploys from / Who can see it)');
   else {
@@ -2451,6 +2451,9 @@ function brief() {
   const all = loadInitiatives();
   const product = ((read(path.join(ROOT, 'PRODUCT.md')) || '').match(/^#\s*PRODUCT\.md\s*[—-]\s*(.+)$/m) || [])[1] || path.basename(ROOT);
   const active = resolveActive(all);
+  // A new briefing (session start, resume, compaction) makes the next message carry the full context line.
+  const local = readJSON(path.join(BOS, 'local.json'));
+  if (local && local.context) { try { const { context: _, ...rest } = local; writeJSON(path.join(BOS, 'local.json'), rest); } catch { /* the line stays short until it changes */ } }
   const lines = [];
   if (!active) {
     const open = all.filter((i) => (i.state.status || 'open') !== 'closed');
@@ -2505,7 +2508,7 @@ function brief() {
   if (unvalidated && all.some((i) => (i.state.status || 'open') !== 'closed' && (i.state.current_phase ?? 0) >= 2)) attention.push(`PRODUCT.md still rests on ${unvalidated} unvalidated assumption${unvalidated > 1 ? 's' : ''} past phase 1`);
   const stackGap = techStackGap();
   const pastShape = all.filter((i) => (i.state.status || 'open') === 'open' && (i.state.current_phase ?? 0) >= 5);
-  if (stackGap && pastShape.length) attention.push(`${pastShape.map((i) => i.state.title || i.slug).join(', ')} past phase 4 while TECH.md stack ${stackGap}: decide it with the user (stack-decisions)`);
+  if (stackGap && pastShape.length) attention.push(`${pastShape.map((i) => i.state.title || i.slug).join(', ')} past phase 4 while TECH.md stack ${stackGap}: decide it with the user (system-design, stack)`);
   const productText = read(path.join(ROOT, 'PRODUCT.md'));
   if (productText) { const due = reviewDue(productText); if (due) attention.push(due); }
   const rp = roadmapPhases();
@@ -3452,7 +3455,17 @@ function context() {
   const against = ['decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];
   if (oos) against.push(`the spec's out-of-scope (${oos} items)`);
   bits.push(`If this message asks for product work, check it against ${against.join(', ')}; name a collision in at most two lines, then continue`);
-  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: bits.join('. ') + '.' } }));
+  const full = bits.join('. ') + '.';
+  // The full line repeats only when it changed in this session; otherwise a short reminder keeps
+  // the per-message check at a fraction of the tokens. The session-start briefing carries the rules.
+  const localPath = path.join(BOS, 'local.json');
+  const local = readJSON(localPath) || {};
+  const session = typeof input.session_id === 'string' ? input.session_id : '';
+  const digest = createHash("sha1").update(full).digest('hex').slice(0, 12);
+  const same = session && local.context && local.context.session === session && local.context.digest === digest;
+  if (!same && session) { try { writeJSON(localPath, { ...local, context: { session, digest } }); } catch { /* the full line prints again next time */ } }
+  const text = same ? `BuilderOS · ${s.title || active.slug}: phase ${p} ${PHASES[p]}, unchanged since the last message; check product work against the standing conditions above.` : full;
+  console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: text } }));
 }
 
 // ---------- main ----------
