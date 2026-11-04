@@ -2,6 +2,12 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [Unreleased]
+
+### Changed
+
+- **The session briefing regenerates the status page.** `bos.mjs brief`, which the session-start hook runs, now rewrites `.builderos/index.html` and `STATUS.md`, so a question log or a decision file edited by hand shows up at the next session instead of waiting for the next state change. Both files are written only when something besides their date line changed, so opening a session leaves the checkout clean. A read-only checkout still gets its briefing. Decided in the project thread "Valutare una pagina di stato del progetto".
+
 ## [3.4.0] - 2026-11-04
 
 ### Added: the internal track, for tools whose users are the builder or their own team
