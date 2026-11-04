@@ -72,6 +72,10 @@ The map is deliberately incomplete. **Not yet specified** holds the dim view: de
 
 Fog gathers only toward the destination. Work beyond it is **out of scope**: close any ticket that turns out to sit past the destination, with status `out-of-scope`, and leave one line under **Out of scope**. It never graduates; it returns only if the destination is redrawn, as a new map.
 
+## When a closed decision turns out wrong
+
+A resolution can fail later: a fact proves false, a prototype contradicts it, the person changes their mind. Reopen it rather than working around it: set the ticket back to `**Status:** open`, clear `**Claimed by:**`, keep the old resolution under `## Superseded` with the date and why, and strike its line in Decisions so far. Every closed ticket that lists it under **Blocked by**, directly or through another, is reopened the same way, because its answer rested on the one now gone. Done when no closed ticket rests on a reopened one, and `bos.mjs map` shows them back on the frontier.
+
 ## Procedure
 
 **One ticket per session**, research tickets excepted: the next session starts from the redrawn map, not from this one's momentum.
@@ -79,7 +83,7 @@ Fog gathers only toward the destination. Work beyond it is **out of scope**: clo
 ### Chart the map
 
 1. **Name the destination.** One `pressure-testing` round on what this map is finding its way to; the destination fixes the scope, so it is settled first. Done when the person accepted a destination of one or two lines.
-2. **Map the frontier, breadth first.** Fan out across the whole space, not deep on one thread: the open decisions and the first steps takeable now. If the way is already clear and fits one session, say so and offer the direct route instead (an initiative, a spec, an answer). Done when every open decision you can see is either a sharp question or a patch of fog.
+2. **Map the frontier, breadth first.** Fan out across the whole space, not deep on one thread: the open decisions and the first steps takeable now. If the way is already clear and fits one session, say so and offer the direct route instead (an initiative, a spec, an answer). Keep the destination short of a waterfall: when the first frontier holds more than about six tickets, split it into maps run one after another, the first ending where something can be shown; and when the destination has a look or a behavior to react to, put a prototype ticket on the first frontier. Done when every open decision you can see is either a sharp question or a patch of fog.
 3. **Write the map** with Destination and Notes, an empty Decisions so far, and the fog under Not yet specified. Done when `MAP.md` exists under `.builderos/maps/{slug}/` with all five headings.
 4. **Write the tickets you can specify now**, then wire the blocking edges in a second pass, with real numbers. Done when every ticket has a type, a question and its blockers.
 5. **Start the research tickets**, in parallel where delegation is available. Done when each research ticket is claimed or resolved.
