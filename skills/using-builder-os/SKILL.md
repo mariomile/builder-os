@@ -67,7 +67,7 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 | Experiment design or result | `tracking-standards` (experiments) |
 | Release notes, stakeholder update or other document | `spec-writing` (communication) |
 
-Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` for a requested critique or a material unresolved assumption.
+Evidence and gate skills support the selected work; a standalone answer stays standalone. Load `pressure-testing` to interview the person: a brainstorm, a requested critique, or a material unresolved assumption.
 
 ## Capabilities
 

@@ -176,7 +176,7 @@ Invoke a specialist directly when the task is clear. `using-builder-os` briefs a
 
 **One sentence is enough to start.** `/builder-os:bos-init "a tool that warns account managers before a client churns"` drafts `PRODUCT.md` from the sentence, announces the name, track and mode it picked as defaults you can override, and opens the first round of questions in the same turn. No setup interview.
 
-**Questions come in rounds, with options and a recommendation.** The first round opens with the claim as it understood it, so you can correct it before anything rests on it. At most four questions per round, each with two to four options and what each leads to, one recommended with its reason; a line at the end says how much is left:
+**Questions come in rounds, with options and a recommendation.** The first round opens with the claim as it understood it, so you can correct it before anything rests on it. Each round asks every question that can be asked before an answer arrives, each with two to four options and what each leads to, one recommended with its reason; a line at the end says how much is left:
 
 ```
 🎯 Thesis: account managers lose renewals they could have saved; it rests on the churn signals being visible weeks ahead.

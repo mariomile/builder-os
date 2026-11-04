@@ -13,6 +13,18 @@ Decided in the project thread "Ridurre le skill e ottimizzare i token" (2026-11-
 - **The per-message line repeats only when it changed.** Inside a project the hook sends the full standing-conditions line on the first message of a session, after every briefing (start, resume, compaction) and whenever the phase, the gate, a claim or an override changes; otherwise a one-line reminder of about 200 characters instead of about 520.
 - **The state schema splits in two.** `references/builderos-state-schema.md` keeps the layout, `state.json`, the rules and the session briefing (5,747 → 4,085 words); the `ROADMAP.md`, `TECH.md`, `DOMAIN.md` and ADR formats move to `references/memory-templates.md`, read only when one of those files is written.
 
+### Changed: one interview, run like grilling
+
+- **`pressure-testing` is the one interview, for every situation.** It grills a raw idea or a brainstorm, a problem, a choice and a plan about to be relied on, not only a decision: the root of the design tree follows what was brought (what the next step needs to know, the claim and its load-bearing assumption, or what the choice serves), and `references/question-banks.md` gains openers per situation beside the ones per phase.
+- **Each round asks the whole frontier**, as in Pocock's grilling: every question whose prerequisites are settled, with no cap of four, so the interview asks as much as the tree needs in fewer turns. `bos.mjs round --asked` takes any count from 1. Facts in the repository, the memory or the named documents are read before the first round, and a search runs while the rest of the frontier is asked.
+- **It follows grilling's flow, section by section:** the design tree, rounds over the frontier, facts found by the agent and decisions put to the person, done at an empty frontier and acted on only after the person confirms. The interview waits for each round's answers; drafting ahead while a round waits moved out of the skill into the lifecycle hub (`builder-os`, `references/round-formats.md`), still checked by gate E.2. A question may carry the context it needs above its options. The one deliberate difference: a fact only the person holds gets no recommended answer, since a guessed value invents evidence.
+- **It ends on a context brief** instead of a resolution table: goal, decisions with their Qn, facts with their tags, constraints and non-goals, risks with tests and owners, out of scope, next step. Written so the next step, skill or session continues without asking again; in lifecycle mode it is appended to the question log.
+- **Leaner.** `SKILL.md` from about 1,195 to under 1,000 words; unmapped answers and ADRs moved to `references/round-formats.md`. The ceiling in `tests/scripts/rounds.test.mjs` drops to 1,000 words, and a new test checks the three roots, the openers per situation and the brief.
+
+### Added: interview evals
+
+- Eval case `brainstorm-an-idea`: "let's brainstorm" on a raw idea gets an interview that pulls out the context first, with no plan written yet. `grill-a-decision` now checks for the whole frontier instead of a cap of four. Neither run yet.
+
 ## [3.3.0] - 2026-10-30
 
 ### Changed
