@@ -13,7 +13,7 @@ Dispatch `builder-os:delivery-planner`, get the plan accepted, run the loop, the
 ## Steps
 
 1. **Check pipeline state.** Read the active initiative's `state.json` (schema, Active Initiative). Phase 4 must have passed or been overridden; numbered acceptance criteria are required.
-2. **Read** `04-spec.md`, `DESIGN.md` and `TECH.md` (Verify commands).
+2. **Read** `SPEC.md` and `TECH.md` (Verify commands).
 3. **Resolve capabilities** per `references/capability-map.md`. `repo.read` is required; without it, say so and offer `--plan-only`.
 4. **Detect a delivery toolchain** (plan, test-driven development, code review, or equivalent). If present, the loop delegates to it and BuilderOS keeps the plan, spec conformance, scope creep and instrumentation. Never prompt an install.
 5. **Dispatch `builder-os:delivery-planner`** (reads only, changes no code):
@@ -22,9 +22,9 @@ Dispatch `builder-os:delivery-planner`, get the plan accepted, run the loop, the
 Operating mode: [mode] · Capabilities: [resolved]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
 Delivery toolchain present: [yes, named | no]
-PRODUCT.md, DOMAIN.md, TECH.md, 04-spec.md, DESIGN.md: [content]
+PRODUCT.md, DOMAIN.md, TECH.md, SPEC.md, SPEC.md → Design: [content]
 
-Write the plan into .builderos/initiatives/{initiative}/05-build-plan.md:
+Write the plan into .builderos/initiatives/{initiative}/PLAN.md:
 slices with files, critical path, risks, rejected alternatives, captured
 baseline, criterion-to-test mapping. Leave **Accepted:** for the person.
 ```
@@ -36,8 +36,8 @@ baseline, criterion-to-test mapping. Leave **Accepted:** for the person.
 ```text
 Operating mode: [mode] · Capabilities: [resolved]
 Pipeline state: initiative [slug], phase 5, cycle [C], mode [full|lite]
-TECH.md, 04-spec.md (criteria, out of scope), DESIGN.md (states),
-05-build-plan.md (accepted plan): [content]
+TECH.md, SPEC.md (criteria, out of scope), SPEC.md → Design (states),
+PLAN.md (accepted plan): [content]
 Diff under review: [the changes]
 
 Review both axes with severity; run delivery-discipline steps 7-8.

@@ -1,8 +1,8 @@
 # Build Plan Template
 
-The output contract for phase 5. Copy the headings, bold field labels and tables exactly; the gate script parses them.
+The output contract for phase 5. Copy the headings, bold field labels and tables exactly; the gate script parses them. Two files: `PLAN.md` is the plan, read before every slice and kept under its cap (gate E.3); `LOG.md` is what the build recorded, appended as it happens and read when something is looked up. Gate 5 reads both. On the change track the plan is `CHANGE.md` → Plan.
 
-`.builderos/initiatives/{initiative}/05-build-plan.md`:
+`.builderos/initiatives/{initiative}/PLAN.md`:
 
 ```markdown
 # Build — {feature}
@@ -41,7 +41,14 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 
 ## Acceptance criteria to tests
 | # | Criterion | Test | Result |
-| 1 | {from 04-spec.md} | {literal or backticked test file path, optionally followed by the test name} | pass |
+| 1 | {from SPEC.md} | {literal or backticked test file path, optionally followed by the test name} | pass |
+
+```
+
+`.builderos/initiatives/{initiative}/LOG.md`:
+
+```markdown
+# Build log — {feature}
 
 ## Test output
 **Run:** {project-relative evidence/runs/*.json from the final run}
@@ -66,13 +73,13 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | error | {} | {} |
 | success | {} | {} |
 | permission | {or "not applicable, {why}" when the flow has no such state} | {} |
-**Messages received:** {when DESIGN.md → Messages has rows: each message sent by the built product to a test inbox or phone, with its capture file; omit otherwise}
-{A "no" is fixed, or recorded in DESIGN.md as a deviation and then yes. The change track reviews empty and error at one width. Without an interface: **Interface review:** not applicable, {reason}}
+**Messages received:** {when SPEC.md → Design → Messages has rows: each message sent by the built product to a test inbox or phone, with its capture file; omit otherwise}
+{A "no" is fixed, or recorded in SPEC.md → Design as a deviation and then yes. The change track reviews empty and error at one width. Without an interface: **Interface review:** not applicable, {reason}}
 
 ## Craft critique
-**Run by:** {a separate agent given only DESIGN.md, the voice adjectives, the captures and the reference screens; or a person who did not build it}
+**Run by:** {a separate agent given only SPEC.md → Design, the voice adjectives, the captures and the reference screens; or a person who did not build it}
 | Aspect | Finding | What happened |
-| Hierarchy | {what draws the eye first, and whether it should; or "none found"} | {fixed, or recorded in DESIGN.md} |
+| Hierarchy | {what draws the eye first, and whether it should; or "none found"} | {fixed, or recorded in SPEC.md → Design} |
 | Spacing rhythm | {} | {} |
 | Typography | {} | {} |
 | Copy against the voice | {} | {} |
@@ -86,7 +93,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 **Run:** {project-relative evidence/runs/e2e-demo-*.json from run-check: the run that was filmed, exiting 0}
 **Recorded by:** {only on the floor: the person who recorded the screen}
 | Flow | Recording | Shows |
-| {primary flow, as named in DESIGN.md} | {the https link where the person opens it (pull request, artifact); a local copy only under the git-ignored .builderos/media/{initiative}/} | {the steps and the outcome a viewer sees, with the length} |
+| {primary flow, as named in SPEC.md → Design} | {the https link where the person opens it (pull request, artifact); a local copy only under the git-ignored .builderos/media/{initiative}/} | {the steps and the outcome a viewer sees, with the length} |
 | First day | {product track} | {} |
 {With step screenshots instead of a video: the files in order, and why no video. Without an interface: **Demo:** not applicable, {reason}. Per feature-demo}
 
@@ -111,7 +118,7 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 **Tried by:** {the person who will accept the work, and the date; never the agent}
 | What they tried | What they found | What happened |
 |---|---|---|
-| {the primary flow; the first day on a new product; the edge this build touched} | {what they said, in their words} | {fixed, or recorded in DESIGN.md with why} |
+| {the primary flow; the first day on a new product; the edge this build touched} | {what they said, in their words} | {fixed, or recorded in SPEC.md → Design with why} |
 
 {Gate 5.17. Skipped with the interface review when there is no interface. Production itself is in TECH.md → Environments (gate 5.16, `release-ops` (production)).}
 

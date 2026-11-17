@@ -7,7 +7,7 @@ description: "Models the domain with the person: entities, states and transition
 
 `ux-architecture` designs what the screen shows when something is empty, loading or broken. This skill designs the things the product is about: what they are, what states they move through, who moves them, what must always be true, and how they are stored. A ticket reopened after it is closed, an invoice edited after it is sent: these are product decisions, and left to the build an agent makes them silently, one `if` at a time.
 
-**Mode.** Standalone models the supplied domain and returns the entities, the rules and the prototype. In the lifecycle it runs in phase 4 after the flows and before the visual direction and the stack (the store depends on the shape of the data), writes `DESIGN.md` → `## Domain model`, and gate 4.10 checks it. Both per [operating modes](../../references/operating-modes.md). Read the [domain method](references/domain-method.md) for the tables, the scenario technique, the logic prototype and a worked example.
+**Mode.** Standalone models the supplied domain and returns the entities, the rules and the prototype. In the lifecycle it runs in phase 4 after the flows and before the visual direction and the stack (the store depends on the shape of the data), writes `SPEC.md` → Design → `## Domain model`, and gate 4.10 checks it. Both per [operating modes](../../references/operating-modes.md). Read the [domain method](references/domain-method.md) for the tables, the scenario technique, the logic prototype and a worked example.
 
 ## Procedure
 
@@ -19,7 +19,7 @@ description: "Models the domain with the person: entities, states and transition
 5. **Put the rules to the person, in their words.** Every undecided rule becomes a `pressure-testing` round question: options with what each means for the people using the product, a recommendation and why ("Can a closed ticket be reopened? A. Yes, by anyone… B. Only by its author… C. A new one is opened and linked…"). Hard-to-reverse ones (deletion, money, permissions) become ADRs. Done when every undecided rule has the person's answer.
 6. **Build a logic prototype** when an entity has more than two states, a guarded transition, or a rule the person hesitated on: one HTML file at `.builderos/initiatives/{initiative}/design/domain-prototype.html`, a button per action, guided scenarios from step 4, the full state shown after every click, in the product's language. The logic sits in one pure, in-memory script module the build can lift. Done when the person has played it, before accepting the model.
 7. **Sketch the data.** Per entity: the fields that matter, the relationships, and what is deleted with what. The shape, short of a migration: enough for `system-design` (stack) to choose a store and for the build to write the schema with every rule already decided. Done when each entity has fields, relationships and deletion behavior.
-8. **Record and explain.** Write `## Domain model` in `DESIGN.md` per the [design template](../ux-architecture/references/design-template.md); at ship, phase 6 promotes it into `DOMAIN.md` (gate 6.9), and standalone work on a product with a `DOMAIN.md` proposes the edit there. Add a plain-language paragraph to the spec's `## What we chose`: the main objects and the two or three rules that will surprise someone. New terms go into `PRODUCT.md` → Language. Done when gate 4.10 passes on the file.
+8. **Record and explain.** Write `## Domain model` in `SPEC.md` → Design per the [design template](../ux-architecture/references/design-template.md); at ship, phase 6 promotes it into `DOMAIN.md` (gate 6.9), and standalone work on a product with a `DOMAIN.md` proposes the edit there. Add a plain-language paragraph to the spec's `## What we chose`: the main objects and the two or three rules that will surprise someone. New terms go into `PRODUCT.md` → Language. Done when gate 4.10 passes on the file.
 
 ## Watch for
 
@@ -39,7 +39,7 @@ description: "Models the domain with the person: entities, states and transition
 | `repo.read` | Existing entities, schemas, migrations, enums, status fields | Ask what exists; mark the model unverified against the code |
 | `db.query` | The real distribution of states and the rows that break the rules today | Model from the rules; mark counts unknown |
 | `ui.render` | Showing the logic prototype | A self-contained HTML file the person opens |
-| `files.read` / `files.write` | `PRODUCT.md` → Language, `DESIGN.md`, the prototype | Inline answers need no write; lifecycle writes require it |
+| `files.read` / `files.write` | `PRODUCT.md` → Language, `SPEC.md` → Design, the prototype | Inline answers need no write; lifecycle writes require it |
 
 ## Output Contract
 

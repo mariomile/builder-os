@@ -4,7 +4,7 @@ Read the section a step of `delivery-discipline` (demo) needs. Runner names belo
 
 ## The walk as a test
 
-The flow table in `DESIGN.md` is the script. Each row becomes one step of the test, in order, and the Mermaid flowchart names the happy path from entry to the success exit. A step acts the way the user does and then asserts what the user sees:
+The flow table in `SPEC.md` → Design is the script. Each row becomes one step of the test, in order, and the Mermaid flowchart names the happy path from entry to the success exit. A step acts the way the user does and then asserts what the user sees:
 
 | Flow row | Test step |
 |----------|-----------|
@@ -24,7 +24,7 @@ Seed the account the test uses with records from the product's world: the compan
 
 | Setting | Default | Why |
 |---------|---------|-----|
-| Viewport | the ICP's main width from `DESIGN.md` → Widths, 1280×720 for desktop, 390×844 for a phone-first product | The viewer sees the screen their users see |
+| Viewport | the ICP's main width from `SPEC.md` → Design → Widths, 1280×720 for desktop, 390×844 for a phone-first product | The viewer sees the screen their users see |
 | Pace | 300 to 600 ms between actions, a 1 s hold on each outcome | Long enough to read, short enough to watch to the end |
 | Captions | one line per step, the user's action in the product's words | The video explains itself without a voice-over |
 | Pointer | visible, moving to each target | The viewer follows where the action happens |

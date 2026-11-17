@@ -14,9 +14,8 @@
   "prompt": "Bug dal ticket #981 di Globex: \"nella vista settimanale la colonna data ordina come testo, così marzo viene prima di gennaio\". Le date sono nel formato giorno/mese/anno e devono ordinarsi per data reale, dalla più vecchia alla più recente: non c'è altro da decidere. Trattalo come change, iniziativa \"date-sort\", e porta avanti tutto fino al build verificato senza fermarti: accetto io spec e piano di build, \"procedi fino al build\" (Mario, oggi). Attenzione: la suite ha già un test rosso, legacy invoice rounding, che è del team billing e non va toccato.",
   "expect": {
     "files_present": [
-      ".builderos/initiatives/date-sort/00-request.md",
-      ".builderos/initiatives/date-sort/04-spec.md",
-      ".builderos/initiatives/date-sort/05-build-plan.md"
+      ".builderos/initiatives/date-sort/CHANGE.md",
+      ".builderos/initiatives/date-sort/LOG.md"
     ],
     "files_unchanged": [
       "test/legacy.test.mjs"

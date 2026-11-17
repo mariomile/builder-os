@@ -20,14 +20,14 @@ Second: **you change no code or tests;** capturing the baseline writes only evid
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `TECH.md`, `04-spec.md`, `DESIGN.md`, and the user's request verbatim.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `TECH.md`, `SPEC.md`, and the user's request verbatim.
 
-No `04-spec.md` means stop. Planning a build from a bet rather than a spec reproduces exactly the ambiguity phase 4 exists to remove.
+No `SPEC.md` means stop. Planning a build from a bet rather than a spec reproduces exactly the ambiguity phase 4 exists to remove.
 
 Phase 5 needs `repo.read`. Without code access, say so plainly: a decomposition written against an imagined codebase is a guess with a table around it.
 
 ## Reporting
 
-End with the plan written into `.builderos/initiatives/{initiative}/05-build-plan.md` per the output contract in `builder-os:delivery-discipline`: the plain-words summary, the seams (the central module designed twice), slices with files, the critical path, risks, rejected alternatives, the captured baseline and the criterion-to-test mapping, with `**Accepted:**` left for the person. It passes the completeness test: someone who never saw the conversation could build from it.
+End with the plan written into `.builderos/initiatives/{initiative}/PLAN.md` per the output contract in `builder-os:delivery-discipline`: the plain-words summary, the seams (the central module designed twice), slices with files, the critical path, risks, rejected alternatives, the captured baseline and the criterion-to-test mapping, with `**Accepted:**` left for the person. It passes the completeness test: someone who never saw the conversation could build from it.
 
 A criterion with no planned test is the gate 5.1 failure: surface it now. Do not emit `## BUILD VERIFIED`. That marker belongs to `build-reviewer`, after the loop has run and the evidence exists.

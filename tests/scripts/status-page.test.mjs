@@ -136,7 +136,7 @@ test('the page opens on the goals: purpose, problem, North Star, and what each i
   assert.match(html, /<p class="label">Problem<\/p><p>Sales managers at 20-to-200-seat teams spend part of every Monday rebuilding the same pipeline view by hand from CRM exports\.<\/p>/, 'first sentence, no source tags');
   assert.match(html, /<p class="label">North Star<\/p><p>Not chosen yet/);
   assert.match(html, /<h3><a href="#i-csv-export">CSV export<\/a><\/h3>[\s\S]*?<dt>Metric<\/dt><dd>managers exporting the weekly view at least once a week<\/dd>[\s\S]*?<strong>30% of active managers by 2026-12-01<\/strong>/);
-  assert.match(html, /<dt>Riskiest<\/dt><dd>New managers give up before their first report<\/dd>/);
+  assert.doesNotMatch(html, /<dt>Riskiest<\/dt><dd>New managers give up before their first report<\/dd>/, 'a paused initiative is not what the project is trying to move now');
   assert.match(html, /<dt>Goal<\/dt><dd>30% of active managers by 2026-12-01<\/dd>/, 'the card carries its goal too');
 });
 

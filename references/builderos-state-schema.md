@@ -31,27 +31,33 @@ CLAUDE.md                 the same pointer, for every Claude Code surface (cloud
   initiatives/
     {initiative}/         one folder per initiative: a change, a feature, a bet, a new product
       state.json          this initiative's pipeline state, the machine-read file
-      00-request.md       feature and change tracks: the request verbatim, its evidence, its population, the mandate
+      BRIEF.md            why: **Building:** and **Why:** on top, then # Request (feature and internal tracks), # Frame, # Discovery, # Definition, # Bet
+      SPEC.md             what: # Design (flows, states, components, domain model, visual direction), # Spec (scope, criteria, tracking plan)
+      PLAN.md             how: the accepted plan, seams, slices with their status, the test map
+      LOG.md              what happened while building: runs, reviews, demo, what was tried, decisions on the way; no cap
+      RESULT.md           # Release (rollout, instrumentation, baseline, exposure), # Outcome (actual vs. target, decision, watch)
+      CHANGE.md           the change track instead of the four: the thread, then # Request, # Design when the interface changes, # Spec, # Plan, # Release
       evidence/           one file per source a tag cites: interview notes, query output, excerpts
         runs/             explicitly captured checks: command/exit metadata JSON and raw output logs
-      00-frame.md         problem statement, ICP, riskiest assumption
-      01-discovery.md     evidence ledger, JTBD, verdict
-      02-definition.md    opportunity tree, selected opportunity, success metric
-      03-solution-bet.md  options scored, selected bet, kill criteria
-      DESIGN.md           information architecture, flows, states, components
-      04-spec.md          scope, flows, acceptance criteria, tracking plan
-      05-build-plan.md    accepted plan, test map, review record
-      06-release.md       rollout, instrumentation check, baseline
-      07-outcome.md       actual vs. target, decision, watch
       grilling.md         the question log every pressure-testing session on this initiative shares: each Qn, its answer, who, when, its status (`skills/pressure-testing`)
       questionnaires/
         {recipient}.md    async questions for someone the user cannot interview, phase 1
       cycle-{N}/          artifacts of an earlier cycle of this initiative
 ```
 
-Throughout the skills and commands, a bare artifact name (`state.json`, `00-frame.md`, `DESIGN.md`, `evidence/`, `questionnaires/`) means the file in the **active initiative's folder**: `.builderos/initiatives/{initiative}/`. `PRODUCT.md`, `DOMAIN.md`, `TECH.md`, `ROADMAP.md` and `decisions/` are project-wide.
+Throughout the skills and commands, a bare artifact name (`state.json`, `BRIEF.md`, `SPEC.md` → Design, `evidence/`, `questionnaires/`) means the file in the **active initiative's folder**: `.builderos/initiatives/{initiative}/`. `PRODUCT.md`, `DOMAIN.md`, `TECH.md`, `ROADMAP.md` and `decisions/` are project-wide.
 
-**What an initiative settles about the product leaves its folder at ship.** An initiative's `DESIGN.md` holds what it modeled and chose; once it ships, the entities, states, invariants and business rules go to `DOMAIN.md`, and the chosen look's kit and token location to `TECH.md` → Design system (gate 6.9). The next initiative starts from those files and asks only about what it adds or changes. Without this, every feature remodels the same entities from scratch and the third one contradicts the first.
+## Documents
+
+An initiative is four documents a person can hold in their head, not one per phase. Each phase writes a part, a level-one heading (`# Frame`, `# Spec`, …) inside its document; "`BRIEF.md` → Frame" means that part. On the change track the parts live in one `CHANGE.md`, so wherever a skill names `BRIEF.md` → Request, `SPEC.md` or `PLAN.md`, a change reads its own part of `CHANGE.md`.
+
+- **The thread comes first.** `BRIEF.md` (or `CHANGE.md`) opens with `**Building:**` and `**Why:**`, one sentence each, written with the person when the initiative starts and rewritten when the bet changes (gate E.4). The status page adds **Now** from state and the plan's slice table, so the four lines are never stale.
+- **Each part stays readable** (gate E.3, fenced blocks not counted): Request 600 words, Frame 800, Discovery 1,500, Definition 1,200, Bet 1,800, Design 3,000, Spec 3,500, Plan 2,500, Release 1,500, Outcome 1,000; on a change, Request 400, Design 1,500, Spec 1,800, Plan 1,500, Release 800. A part past its cap has stopped being read: keep what the next phase needs, move what happened to `LOG.md`, cut the rest.
+- **The plan stays a plan.** Runs, reviews, the demo, what was tried and decisions taken during the build go to `LOG.md`; each slice is one row of `PLAN.md` → Slices with its status. Gate 5 reads both.
+- **One place says where things stand.** A second plan kept by hand (`docs/PLAN.md`, `STATUS.md`, …) drifts from the first; the briefing flags it. More than two initiatives not closed means nobody holds every thread: the briefing says so.
+- **Earlier layout.** Initiatives written before 3.5, one file per phase (`00-frame.md` to `07-outcome.md`, `00-request.md`, `DESIGN.md`), still read and gate as they are. `bos.mjs migrate --layout` merges them into the four documents without changing a word, moves the build's record to `LOG.md`, and leaves the thread lines for the model to write with the person.
+
+**What an initiative settles about the product leaves its folder at ship.** An initiative's `SPEC.md` → Design holds what it modeled and chose; once it ships, the entities, states, invariants and business rules go to `DOMAIN.md`, and the chosen look's kit and token location to `TECH.md` → Design system (gate 6.9). The next initiative starts from those files and asks only about what it adds or changes. Without this, every feature remodels the same entities from scratch and the third one contradicts the first.
 
 Phase artifacts are Markdown for humans. Each initiative's `state.json` is the machine surface: no agent should have to parse prose to know where an initiative stands.
 
@@ -114,7 +120,7 @@ This is a format example; the script generates the actual digest. Failed and int
 
 For evals, `--dataset` binds the input dataset digest before execution and `--results` binds the produced JSON digest after execution. Metadata adds `dataset_file`, `dataset_sha256`, `results_file`, `results_sha256`. Under `## Eval results`, include both `**Run:** <record>` and `**Results:** <results.json>`. Results are an array of unique `{ "id": "case-id", "pass": true }` entries covering every case. The gate computes the pass rate and verifies all must-pass cases; the model verifies the real run used the specified rubric and current implementation. JSON/JSONL dataset cases require unique `id`, `input`, `expected`, optional named `judge`, and boolean `must_pass`. Markdown uses columns # / Input / Expected / Judge / Must pass. Prose counts, invalid files and unsupported formats fail.
 
-A release plan is readiness, leaving phase 6 open. Actual advancement requires this section in `06-release.md`:
+A release plan is readiness, leaving phase 6 open. Actual advancement requires this section in `RESULT.md` → Release:
 
 ```markdown
 ## Exposure verification
@@ -179,7 +185,7 @@ The ROADMAP.md, TECH.md and DOMAIN.md formats and the ADR format are in [memory 
 BuilderOS state is files, so in a git repository it lives on a branch. Rules that keep it findable:
 
 - **Before code, on the default branch.** Phases 0 to 4 (or the request and the spec on a `change`) change only `.builderos/`, `PRODUCT.md`, `DOMAIN.md` and `TECH.md`; commit them where everyone reads them, directly or through a small pull request, as the team works.
-- **From the build, with the code, a slice at a time.** Each slice is a short branch and a small pull request to the default branch, behind a flag while the feature is incomplete; `05-build-plan.md` → `**Branch:**` names the pattern. The initiative's folder changes with each slice and reaches the default branch with it, so the trunk always holds the plan as built. Each pull request description links the initiative folder and names its slice.
+- **From the build, with the code, a slice at a time.** Each slice is a short branch and a small pull request to the default branch, behind a flag while the feature is incomplete; `PLAN.md` → `**Branch:**` names the pattern. The initiative's folder changes with each slice and reaches the default branch with it, so the trunk always holds the plan as built. Each pull request description links the initiative folder and names its slice.
 - **An abandoned branch is a decision.** A branch closed without merging means the initiative is killed or paused: merge its folder back on its own with that event recorded, so the reasoning survives the code.
 - **The briefing looks at other branches.** Where git is available it names initiatives that exist only on another branch.
 - **`ROADMAP.md` conflicts are regenerated**, never merged by hand.
@@ -221,7 +227,7 @@ A phase that passed through an overridden gate:
 ```json
 "0": {
   "status": "passed",
-  "artifact": "00-frame.md",
+  "artifact": "BRIEF.md → Frame",
   "gate": {
     "passed": true,
     "checked_at": "2026-09-13T11:00:00Z",
@@ -286,6 +292,6 @@ A closed initiative that ended with KEEP carries its watch at the top level:
 7. **Missing state is not an error.** If `.builderos/` does not exist, any `bos-*` command offers `/bos-init` rather than failing.
 8. **Decision and re-entry agree.** Phase 7 `ITERATE` requires `Re-enters at: phase N` (N = 0–6) and matching `--reenter N`; `KILL` requires `none` and no re-entry; `KEEP` permits either form. A spike always closes after gate 1 with status `answered` and its actual verdict retained. A closed initiative cannot record another gate; coverage cannot reset a feature past phase 0.
 9. **Deferred reviews do not invent decisions.** At phase 7, use `defer-review --review-due YYYY-MM-DD --reason "observed evidence gap"` with a future date. It appends `review_deferred`, keeps phase 7 in progress, sets review_due, and records no KEEP/ITERATE/KILL verdict.
-10. **Cycle increments preserve prior artifacts.** An initiative's phase artifacts from cycle 1 move to its own `cycle-1/` folder when cycle 2 begins.
+10. **Cycle increments preserve prior artifacts.** An initiative's documents from cycle 1 (`BRIEF.md`, `SPEC.md`, `PLAN.md`, `LOG.md`, `RESULT.md` or `CHANGE.md`, or the earlier one-file-per-phase artifacts) move to its own `cycle-1/` folder when cycle 2 begins; the next cycle rewrites the parts from its re-entry phase on.
 11. **The roadmap follows state.** Creating an initiative, advancing a phase, killing or closing one updates `ROADMAP.md` in the same step. A phase that changed `state.json` and left the roadmap stale has not finished.
 12. **Migrating schema 1.** A `.builderos/state.json` with `schema: 1` describes a single pipeline. Pick a slug from the product name, move its fields to `initiatives/{slug}/state.json` with `schema: 2`, `slug`, `status: "open"` and a `migrated` history event, move the phase artifacts and `DESIGN.md` into the same folder, write `local.json` with the slug, create `ROADMAP.md` with that initiative under Now, and delete the old file. Tell the user what moved; never migrate silently. `node scripts/bos.mjs migrate` does exactly this where commands run.

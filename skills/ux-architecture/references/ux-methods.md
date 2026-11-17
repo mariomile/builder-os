@@ -30,7 +30,7 @@ The abandonment exit is the one that gets skipped. Every multi-step flow needs a
 
 ## Drawing the Flow
 
-Each flow is drawn as well as tabled (gate 4.20). The drawing is where a missing exit or a branch that leads nowhere becomes visible at a glance, to the person accepting the spec as much as to the agent building it. It is written as Mermaid text inside `DESIGN.md`, next to its table: it needs no tool to write, renders on GitHub and in most editors and previews, and changes in a diff like any other line.
+Each flow is drawn as well as tabled (gate 4.20). The drawing is where a missing exit or a branch that leads nowhere becomes visible at a glance, to the person accepting the spec as much as to the agent building it. It is written as Mermaid text inside `SPEC.md` → Design, next to its table: it needs no tool to write, renders on GitHub and in most editors and previews, and changes in a diff like any other line.
 
 ```mermaid
 flowchart TD
@@ -53,7 +53,7 @@ flowchart TD
 | Abandonment | a dotted arrow `-.->` to what happens to partial work |
 | Error and empty | boxes off the decision that leads to them, named after their state in `## States` |
 
-The table and the drawing say the same thing; when they disagree, the table is fixed first, because the spec and the tests read it, and the drawing follows. **The person edits the drawing by hand.** `node scripts/bos.mjs flows` writes `design/flows.html` in the initiative, at no model cost: each flowchart opens on a hand-drawn canvas (Excalidraw, MIT, laid out by its Mermaid importer) where the person drags boxes, adds one, joins two with an arrow, renames by double-click and dashes an abandonment arrow; the page turns the drawing back into the flowchart as they go. A Text tab shows the same Mermaid beside its drawing (Pele, Mermaid to SVG), with parse errors in place; state diagrams are edited there. Libraries load pinned from a CDN; offline the text stays editable. They copy or save their changes, and `bos.mjs flows --apply flows-edited.md` writes only the edited blocks back into `DESIGN.md`; the agent then brings each table in line with its drawing, reading a few lines rather than the canvas. Open the page with the person when the flows are first drawn and whenever they want to change one. Another canvas (`diagram.render`: tldraw, FigJam, …) can serve a workshop the same way: what changes there comes back into the Mermaid block and the table, which stay the record.
+The table and the drawing say the same thing; when they disagree, the table is fixed first, because the spec and the tests read it, and the drawing follows. **The person edits the drawing by hand.** `node scripts/bos.mjs flows` writes `design/flows.html` in the initiative, at no model cost: each flowchart opens on a hand-drawn canvas (Excalidraw, MIT, laid out by its Mermaid importer) where the person drags boxes, adds one, joins two with an arrow, renames by double-click and dashes an abandonment arrow; the page turns the drawing back into the flowchart as they go. A Text tab shows the same Mermaid beside its drawing (Pele, Mermaid to SVG), with parse errors in place; state diagrams are edited there. Libraries load pinned from a CDN; offline the text stays editable. They copy or save their changes, and `bos.mjs flows --apply flows-edited.md` writes only the edited blocks back into `SPEC.md` → Design; the agent then brings each table in line with its drawing, reading a few lines rather than the canvas. Open the page with the person when the flows are first drawn and whenever they want to change one. Another canvas (`diagram.render`: tldraw, FigJam, …) can serve a workshop the same way: what changes there comes back into the Mermaid block and the table, which stay the record.
 
 A lifecycle is drawn the same way, as a `stateDiagram-v2` under its transitions table in `## Domain model` (`domain-model`, step 2).
 
@@ -78,7 +78,7 @@ What the product sends when the person is not looking at it is read more often t
 
 **Find them from the flows.** Walk every flow and every transition in the domain model and ask what leaves the product: an email, a push, an in-app notification, a chat message, a text. Scheduled ones (digests, reminders, renewals) come from the business rules, not the flows; check both.
 
-**One row each**, in `DESIGN.md` → `## Messages`: what triggers it, who receives it, the channel, its real text in the voice from `PRODUCT.md`, how the person stops it (transactional messages say so), and the preview.
+**One row each**, in `SPEC.md` → Design → `## Messages`: what triggers it, who receives it, the channel, its real text in the voice from `PRODUCT.md`, how the person stops it (transactional messages say so), and the preview.
 
 **Previews a person opens.** An email is an HTML file in `design/messages/` with the subject, the sender name, the preheader and the body, readable at 390 px and with images off. A chat or text message is the bubble as it will look, with its length within the channel's limit and its buttons or quick replies. A push is its title and line as the lock screen cuts them. Each language in `PRODUCT.md` → Markets has its version; the preview shows the longest.
 
@@ -114,7 +114,7 @@ The floor is a floor. A full audit belongs to a dedicated accessibility pass; st
 
 ## Interop
 
-The visual layer (typography, spacing, colour, motion, the design kit) belongs to `ux-architecture` (direction), which renders versions for the user to choose from and writes the tokens into `DESIGN.md`. Where a design-quality toolchain is present it renders through it; where none is, it writes HTML files. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor; the component inventory names components of the kit `ux-architecture` (direction) settles.
+The visual layer (typography, spacing, colour, motion, the design kit) belongs to `ux-architecture` (direction), which renders versions for the user to choose from and writes the tokens into `SPEC.md` → Design. Where a design-quality toolchain is present it renders through it; where none is, it writes HTML files. This skill keeps information architecture, flows, states, the component inventory and the accessibility floor; the component inventory names components of the kit `ux-architecture` (direction) settles.
 
 ## More Common Mistakes
 

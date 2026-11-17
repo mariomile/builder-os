@@ -6,13 +6,13 @@ Going live is the step that bites a new product at the end: a domain that will n
 
 ## Procedure
 
-1. **Read what was decided.** `04-spec.md` → `## Stack` (hosting, data, email, payments, analytics), `TECH.md` → Verify and Operations, `PRODUCT.md` → Markets. A layer still open goes back to `system-design` (stack) as a card. Done when every row the environments need is decided or inherited.
+1. **Read what was decided.** `SPEC.md` → `## Stack` (hosting, data, email, payments, analytics), `TECH.md` → Verify and Operations, `PRODUCT.md` → Markets. A layer still open goes back to `system-design` (stack) as a card. Done when every row the environments need is decided or inherited.
 2. **Make the product run with one command.** Add `Run` to `TECH.md` → Verify: the command that starts the product locally and what it prints when ready. Done when the command, run once, prints its ready line.
 3. **Create production, closed.** The hosting account and project, the production database, the deploy from the main branch by the guardrail's CI, and a door: a password, an allow-list or a flag, so nobody outside the team sees it yet. Accounts that cost money or need the person's identity (hosting, domain, payments) are the person's to create: name each one, what it costs, and what to paste back. Done when the product answers on its production URL behind its door.
 4. **Wire what production needs**, per the [checklist](production-method.md#the-production-checklist): the domain with HTTPS; secrets in the host's settings, apart from development and out of git; the email sender's domain authenticated (SPF, DKIM, DMARC) when the product sends email; live keys for payments and providers, set in production only; the error tracker the release will name in 6.10; terms, the privacy notice, and cookie consent before any non-essential cookie or analytics loads, in each language of `PRODUCT.md` → Markets. Done when each line has its value in `TECH.md` → Environments or "not applicable" with the reason.
 5. **Give every build a link.** Preview deployments per pull request where the host offers them; otherwise a staging environment, otherwise the `Run` command with the person. Record the preview row. Done when a pull request shows a link that opens the product.
 6. **Check production from outside.** Capture a request to the production URL with `run-check` (it must answer, over HTTPS, with the expected page behind the door) and put the `**Run:**` line under `**Production check:**`; where commands cannot run, the person opens the URL and their observation is saved as evidence with its tag. Done when `**Production check:**` resolves to a passing capture or a tagged observation.
-7. **Hand the build to a person** at the end of each slice and of phase 5 (gate 5.17): the link, what to try (the primary flow, the first day on a new product, the edge the slice touched), and what they found. Write `## Tried` in `05-build-plan.md` with `**Link:**`, `**Tried by:**` (the person and the date) and a row per finding with what happened to it. Done when the person has tried it and each finding is fixed or recorded.
+7. **Hand the build to a person** at the end of each slice and of phase 5 (gate 5.17): the link, what to try (the primary flow, the first day on a new product, the edge the slice touched), and what they found. Write `## Tried` in `PLAN.md` with `**Link:**`, `**Tried by:**` (the person and the date) and a row per finding with what happened to it. Done when the person has tried it and each finding is fixed or recorded.
 
 ## Watch for
 
@@ -31,7 +31,7 @@ Going live is the step that bites a new product at the end: a domain that will n
 | `shell.exec` | The Run command, the production check through `run-check` | The person runs them; their observation becomes tagged evidence |
 | `repo.read` | Deploy configuration, CI, environment files already there | Ask what exists; mark the record unverified |
 | `web.fetch` | Opening the production and preview URLs | The person opens them and says what they saw |
-| `files.read` / `files.write` | `TECH.md`, `05-build-plan.md` | Required |
+| `files.read` / `files.write` | `TECH.md`, `PLAN.md` | Required |
 
 ## Output Contract
 

@@ -27,8 +27,8 @@ Renders the pipeline state. Read-only — never advances a phase, never writes s
 
 | # | Phase | Status | Gate | Artifact |
 |---|-------|--------|------|----------|
-| 0 | Frame | passed | ✓ | 00-frame.md |
-| 1 | Discover | passed | ⚠ overridden (1.5) | 01-discovery.md |
+| 0 | Frame | passed | ✓ | BRIEF.md → Frame |
+| 1 | Discover | passed | ⚠ overridden (1.5) | BRIEF.md → Discovery |
 | 2 | Define | in progress | — | — |
 | 3 | Ideate | pending | — | — |
 | … | | | | |

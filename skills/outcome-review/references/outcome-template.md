@@ -17,7 +17,7 @@ Read when writing the phase 7 artifact. `scripts/bos.mjs` parses its headings an
 {met / missed / ambiguous, with the number}
 
 ## Against kill criteria
-**Criterion:** {restated verbatim from 03-solution-bet.md}
+**Criterion:** {restated verbatim from BRIEF.md → Bet}
 **Verdict:** {cleared / triggered}, {the arithmetic}
 
 ## Pipeline notes

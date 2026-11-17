@@ -13,7 +13,7 @@ Run BuilderOS phase 7, orchestrating the analysis agents against the phase 2 tar
 ## Steps
 
 1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 6 must have passed or been overridden. Actual exposure verification (6.6) must exist; a RELEASE READY plan cannot enter LEARN. Read the override log.
-2. **Read `.builderos/initiatives/{initiative}/06-release.md`, `03-solution-bet.md` and `02-definition.md`.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
+2. **Read `.builderos/initiatives/{initiative}/RESULT.md` → Release, `BRIEF.md` → Bet and Definition.** The baseline with its capture method and timestamp, the kill criteria with their date, and the success metric with its target.
 3. **Check the review date.** It came from the kill criteria. If it has not arrived or measurement is unavailable, use `defer-review --review-due YYYY-MM-DD --reason ...`; hold phase 7 without inventing a verdict.
 4. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 5. **Rerun the phase 6 measurement**, identically: same definition, same shape, same parameters, same window length. Then the guardrails from the phase 4 tracking plan.
@@ -29,7 +29,7 @@ Run BuilderOS phase 7, orchestrating the analysis agents against the phase 2 tar
 Pass baseline, target, kill criteria and measurement window; await all analyses before continuing.
 
 7. **Load `outcome-review` and run its Procedure** over the returned numbers: compare against target, evaluate the kill criteria literally, read the overrides, decide, generalize the learning.
-8. **Write `.builderos/initiatives/{initiative}/07-outcome.md`** and run gate 7.
+8. **Write `.builderos/initiatives/{initiative}/RESULT.md` → Outcome** and run gate 7.
 9. **Update state.** Use the `outcome-review` decision and `gate-checks` recording protocol; KEEP closes with a `## Watch` (7.5), ITERATE re-enters, KILL closes with `Re-enters at: none`; a new direction needs a separately authorized initiative.
 10. **Verify completion:** `## OUTCOME RECORDED` with a gate 7 verdict. The marker is a claim: re-read the artifact and run gate 7 yourself per `gate-checks`. Report a missing artifact or a failed condition, whatever the marker says.
 

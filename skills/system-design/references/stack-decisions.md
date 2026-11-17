@@ -6,7 +6,7 @@ The stack is a product decision with technical consequences: what the product co
 
 ## Procedure
 
-1. **Read the inputs.** `PRODUCT.md` constraints (budget, team, regulation, distribution), `TECH.md`, the bet's primary action, the flows and the data sketch in `DESIGN.md` (the shape of the data drives the data layer), and the repository where `repo.read` resolved: a manifest is a fact, a memory of the stack is a guess. Done when you can say what exists and what this work asks of it.
+1. **Read the inputs.** `PRODUCT.md` constraints (budget, team, regulation, distribution), `TECH.md`, the bet's primary action, the flows and the data sketch in `SPEC.md` → Design (the shape of the data drives the data layer), and the repository where `repo.read` resolved: a manifest is a fact, a memory of the stack is a guess. Done when you can say what exists and what this work asks of it.
 2. **List the layers this work touches** from the catalogue, each **inherited** (exists, and nothing in this work strains it), **open** (missing, or strained by this work) or **not needed** (with the reason); a product for sale always needs payments and tax (gate 4.14). An inherited layer stays unless a driver breaks it, and reopening one is itself an open question. Done when every catalogue layer this work could touch has a status.
 3. **Name the decision drivers** before any option: three to five properties of this product that decide between technologies, in plain words, each traced to `PRODUCT.md`, `TECH.md`, the spec or the person ("one person maintains it", "data stays in the EU", "under €50 a month until 100 customers", "the pilot ships in two weeks"). A driver nothing supports goes in the first round. Done when every driver has its source.
 4. **Write a decision card per open layer.** Two to four real options, the boring default always among them and, where credible, the managed service, the do-it-later and the reuse-what-we-have. Per option: what it is in one plain sentence; what it gives this product; what it costs (money, tagged or flagged unverified; time; operational load); lock-in, meaning what leaving later would take; what would make us switch. Then the recommendation and the driver that decides it. Volatile facts (prices, limits, licences, deprecations) come from `web.search` with a tag, or stay flagged. Done when every open layer has a card judged against the drivers.
@@ -43,7 +43,7 @@ The stack is a product decision with technical consequences: what the product co
 
 `## STACK DECIDED` with the layer table (inherited, decided, not needed), the drivers, who decided each open layer, the ADRs written and any spike or deferred risk.
 
-Lifecycle: `TECH.md` → Stack updated, ADRs in `.builderos/decisions/`, and in `04-spec.md`:
+Lifecycle: `TECH.md` → Stack updated, ADRs in `.builderos/decisions/`, and in `SPEC.md`:
 
 ```markdown
 ## Stack

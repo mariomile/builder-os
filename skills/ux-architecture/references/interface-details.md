@@ -1,6 +1,6 @@
 # Interface Details
 
-What separates a product people call well made from one that merely works. The build applies these while writing components (`delivery-discipline`, step 5), the craft critique checks them (gate 5.12), and the token check in the guardrail enforces the first section on every change (gate 5.10). Numbers are starting points with their source where one exists; a product with a reason to differ records the difference in `DESIGN.md`.
+What separates a product people call well made from one that merely works. The build applies these while writing components (`delivery-discipline`, step 5), the craft critique checks them (gate 5.12), and the token check in the guardrail enforces the first section on every change (gate 5.10). Numbers are starting points with their source where one exists; a product with a reason to differ records the difference in `SPEC.md` → Design.
 
 ## Tokens in the Code
 

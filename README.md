@@ -273,29 +273,25 @@ AGENTS.md                 gets a BuilderOS block telling every new session to re
   local.json              which initiative is active on this checkout (gitignored)
   initiatives/{name}/     one folder per piece of work
     state.json            phase, track, gates, overrides, history
-    00-request.md         feature and change: the request, its own evidence, the mandate
+    BRIEF.md              Building / Why on top, then # Request or # Frame, # Discovery, # Definition, # Bet
+    SPEC.md               # Design (flows, states, components) and # Spec (scope, criteria, tracking plan)
+    PLAN.md               accepted plan, seams, slices with their status, test map
+    LOG.md                what the build recorded: runs, reviews, demo, what was tried
+    RESULT.md             # Release (rollout, rollback, baseline, exposure) and # Outcome (keep / iterate / kill)
+    CHANGE.md             a change keeps all of the above in one document
     evidence/             one file per source a tag cites
-    00-frame.md           problem, ICP, riskiest assumption
-    01-discovery.md       evidence ledger, JTBD, VALIDATED / KILLED / RESHAPED
-    02-definition.md      opportunity tree, selected opportunity, success metric
-    03-solution-bet.md    options scored, kill criteria
-    DESIGN.md             flows, states, components, accessibility
-    04-spec.md            scope, not yet specified, conflicts, acceptance criteria, tracking plan
-    05-build-plan.md      accepted plan, test map, review record
-    06-release.md         rollout, rollback test, baseline, actual exposure verification
-    07-outcome.md         actual vs target, keep / iterate / kill, watch
     questionnaires/       async questions for people the user cannot interview
 ```
 
-The bootstrap reads relevant project memory and briefs on active work and stale commitments: due watches, decisions past their revisit date or without one, unvalidated assumptions still in `PRODUCT.md` after discovery, and history events the schema does not know (a sign that state was written by hand). SessionStart refreshes this context on startup, resume, fork, clear and compact where the host supports and trusts the hook. Without it, invoke `using-builder-os` or use the project briefing block written by authorized lifecycle initialization. Standalone requests do not create lifecycle state. Several initiatives can be open at once; one is active, and lifecycle commands act on it.
+The bootstrap reads relevant project memory and briefs on active work and stale commitments: due watches, decisions past their revisit date or without one, unvalidated assumptions still in `PRODUCT.md` after discovery, and history events the schema does not know (a sign that state was written by hand). SessionStart refreshes this context on startup, resume, fork, clear and compact where the host supports and trusts the hook. Without it, invoke `using-builder-os` or use the project briefing block written by authorized lifecycle initialization. Standalone requests do not create lifecycle state. Several initiatives can be open at once; one is active, and lifecycle commands act on it. Four documents per initiative, not one per phase, each part under a word cap, and two lines on top that say what is being built and why: the status page shows them with where it stands now.
 
-Each phase reads the one before it. Starting phase 3 without `02-definition.md` produces confident fiction, so the hub refuses.
+Each phase reads the one before it. Starting phase 3 without `BRIEF.md` → Definition produces confident fiction, so the hub refuses.
 
 ---
 
 ## Status
 
-Version 3.4.1, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 3.5.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|

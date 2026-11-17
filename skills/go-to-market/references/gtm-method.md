@@ -101,14 +101,14 @@ A weekly report tool for ops leads, €12 per seat per month (about €430 a yea
 **Positioning:** {product: why this and not today's alternative, one sentence}
 **Motion:** {product: the motion the `PRODUCT.md` price can pay for (the price itself lives there)}
 **Channel:** {product: the one channel first, and why the others wait}
-**Channel test:** {product: what runs, the event, stop below, build above, the window, the cost; its result goes to `04-spec.md` → Channel result (gate 4.22)}
+**Channel test:** {product: what runs, the event, stop below, build above, the window, the cost; its result goes to `SPEC.md` → Channel result (gate 4.22)}
 **Audience:** {feature: who among existing users meets the problem, how many, tagged}
 **Message:** {the one line, in their words, with its source}
 **Where:** {feature: where they will meet it: placement, email, changelog, account manager}
 ```
 
 ```markdown
-**Channel result:** {product track, in 04-spec.md, gate 4.22: what the channel test returned against its thresholds, tagged}
+**Channel result:** {product track, in SPEC.md, gate 4.22: what the channel test returned against its thresholds, tagged}
 ```
 
 ```markdown

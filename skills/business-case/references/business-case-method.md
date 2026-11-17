@@ -97,7 +97,7 @@ When the builder is the user (the `internal` track), there is no revenue to esti
 **Not building:** a proposal tool on the market, about €40 a month, cannot read the three sheets, so the copying stays
 ```
 
-Hours saved come from `00-request.md` → **Today** (minutes per run times runs a week) minus what the option leaves by hand. A day to build is about eight hours of the builder's time, so an option pays back after days × 8 ÷ hours saved a week, in weeks; one that does not pay back well inside the months the tool will be used loses to not building. Upkeep counts: a tool that breaks every month when a sheet changes costs its fixing time. The appetite in `## Bet size` is set from the same arithmetic.
+Hours saved come from `BRIEF.md` → Request → **Today** (minutes per run times runs a week) minus what the option leaves by hand. A day to build is about eight hours of the builder's time, so an option pays back after days × 8 ÷ hours saved a week, in weeks; one that does not pay back well inside the months the tool will be used loses to not building. Upkeep counts: a tool that breaks every month when a sheet changes costs its fixing time. The appetite in `## Bet size` is set from the same arithmetic.
 
 ## The experiment card
 

@@ -30,7 +30,7 @@ PRODUCT.md:
 User request:
 [the idea, complaint, or feature request, verbatim]
 
-Write .builderos/initiatives/{initiative}/00-frame.md and run gate 0 before declaring completion.
+Write .builderos/initiatives/{initiative}/BRIEF.md → Frame and run gate 0 before declaring completion.
 ```
 
 5. **The person chooses** which assumption phase 1 tests (0.5): the dispatch returns its round instead of a `**Chosen by:**`. Ask it, then dispatch again with `Chosen by: [person, their words quoted]`.

@@ -54,7 +54,7 @@ Apply these local signal bands only with complete four-signal coverage; incomple
 
 ## Output template
 
-Lifecycle path: `.builderos/initiatives/{initiative}/02-definition.md`. Standalone output adapts it only where useful and omits lifecycle gate claims.
+Lifecycle path: `.builderos/initiatives/{initiative}/BRIEF.md` → Definition. Standalone output adapts it only where useful and omits lifecycle gate claims.
 
 ```markdown
 # Definition — {product}

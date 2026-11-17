@@ -7,7 +7,7 @@
     "output_matches": ["(?i)CSV", "(?i)(baseline|sconosciut|unknown|non.*disponibil)"],
     "output_not_matches": ["(?i)GATE.*FAILED", "(?i)override"],
     "files_unchanged": [".builderos/local.json", ".builderos/initiatives/csv-export/state.json", ".builderos/initiatives/csv-export/02-definition.md", ".builderos/ROADMAP.md"],
-    "files_absent": [".builderos/initiatives/csv-export/04-spec.md", "PRD.md", "docs/PRD.md"],
+    "files_absent": [".builderos/initiatives/csv-export/04-spec.md", ".builderos/initiatives/csv-export/SPEC.md", "PRD.md", "docs/PRD.md"],
     "state": {"initiative": "csv-export", "current_phase": 2}
   }
 }
