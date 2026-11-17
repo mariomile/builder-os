@@ -11,6 +11,9 @@ Runs once, at initialization, when the work is classified as `change`: a modific
 
 **Building:** {one sentence: what this change does, in the words of the person who asked}
 **Why:** {one sentence: the mandate in plain words, with its tag}
+**For:** {who uses it, in the person's words}
+**Done when:** {what the person will see or be able to do when it is done}
+**Not:** {what it must not do or become}
 
 # Request — {title}
 

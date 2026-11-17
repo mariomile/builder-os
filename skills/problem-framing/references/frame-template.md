@@ -9,6 +9,9 @@ The lifecycle output contract for `problem-framing`. Standalone output follows t
 
 **Building:** {one sentence: what this initiative builds, in the words of the person who asked}
 **Why:** {one sentence: the problem it removes or the result it moves, with its tag}
+**For:** {who uses it, in the person's words}
+**Done when:** {what the person will see or be able to do when it is done}
+**Not:** {what it must not do or become}
 
 # Frame — {product}
 

@@ -197,6 +197,8 @@ You answer by code (`1A, 2C`). "Go with the recommendations" counts as a decisio
 
 **The look, the stack and the bet are yours to pick.** Phase 3 lists at least eight raw ideas before converging, and you choose the bet. Phase 4 models the domain rules with you, shows at least three visual directions as pages you can open (two layout versions inside an existing design system), and turns every open stack layer into a decision card with cost, lock-in and the boring default among the options. The build then sticks to what was decided: a new framework or paid service mid-build stops the slice and comes back to you.
 
+**It asks what you want once, then shows you.** Every initiative opens with one round on your intent (who it is for, what done looks like, what it must not become), written in your words on top of the brief and checked at every request. You see the bet as clickable screens before anyone writes a spec, and every finished slice reports what it did and what you can open now. What the product is, you decide; how it is built, the agent decides and tells you in a line.
+
 **You see it, click it and can send it.** Every message the product will send (the welcome email, the reminder, the WhatsApp reply) is designed with its real text and a preview before the build. The first slice puts the product online behind a password, so launch day is opening a door, not a first deploy; every change after that has a link you open and try, and the build is not done until you have. `.builderos/index.html` shows the whole project on one page, in four parts: the open decisions and what each one blocks, what is in progress, what comes next, what is done. Each item opens down to everything behind it: every phase with its gate and its document in full, earlier cycles, the question log, the history, every decision and the project memory, with links to every file, design, demo and preview. `.builderos/STATUS.md` says the same in Markdown for the code host, a phone or a new session. Both are generated from the files on every state change and at every session start, never written by hand.
 
 **Every phase report opens with a plain recap.** Five lines at most, for someone who did not follow the work: what was decided, what changed, what is still unknown. Condition ids and file names come after.
@@ -291,7 +293,7 @@ Each phase reads the one before it. Starting phase 3 without `BRIEF.md` → Defi
 
 ## Status
 
-Version 3.5.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 3.6.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|

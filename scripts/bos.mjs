@@ -74,7 +74,7 @@ const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
 // The BuilderOS release this script belongs to, stamped on every gate record. Kept equal to package.json by a test.
-const VERSION = '3.5.0';
+const VERSION = '3.6.0';
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
@@ -290,9 +290,12 @@ function chosenBy(sec, what) {
 // hook there is no log, and the field passes marked unverified.
 const PERSON_LOG = path.join(BOS, 'person-log.jsonl');
 const normWords = (t) => String(t).toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+// What a host injects in the person's turn is not the person: a finished background task, a message from another
+// agent, a delegated task's brief. Logged, it would let an agent quote itself as the person.
+const NOT_PERSON = /^\s*(<[a-z][\w-]*[\s>]|Delegated task\b|Act as the [\w -]*sub-?agent\b|Note: the \S+ server restarted)/i;
 function personLog() {
   if (!fs.existsSync(PERSON_LOG)) return null;
-  return fs.readFileSync(PERSON_LOG, 'utf8').split('\n').map((l) => { try { return normWords(JSON.parse(l).text || ''); } catch { return ''; } }).filter(Boolean);
+  return fs.readFileSync(PERSON_LOG, 'utf8').split('\n').map((l) => { try { const t = JSON.parse(l).text || ''; return NOT_PERSON.test(t) ? '' : normWords(t); } catch { return ''; } }).filter(Boolean);
 }
 const QUOTED = /["“«]([^"”»]{2,})["”»]/g;
 function personWords(value, label) {
@@ -1659,6 +1662,57 @@ function productionInfo(ctx) {
   return { problems, warnOnly: !full, detail: `production at ${env.url}${env.preview ? ', with previews' : ''}, checked ${run.valid ? run.detail : 'by a person'}` };
 }
 
+// Gate 5.18: every slice that is done told the person what it did and what they can try now. A build that only reports
+// at the end leaves the person asking where things stand. Reports live in LOG.md under "## Reports", one "### {slice}" each.
+function reports(dir) {
+  const sec = section(read(path.join(dir, ARTIFACTS[5])) || '', 'Reports');
+  if (sec === null) return null;
+  return sec.split(/^###\s+/m).slice(1).map((b) => ({ slice: b.split('\n')[0].trim(), did: field(b, 'Did'), how: field(b, 'How'), tryIt: field(b, 'Try'), next: field(b, 'Next'), need: field(b, 'Need from you') }));
+}
+function lastReport(dir) {
+  const r = (reports(dir) || []).at(-1);
+  return r && nonEmpty(r.did) ? `${r.slice}: ${gist(r.did)}${nonEmpty(r.tryIt) ? ` Try: ${r.tryIt.replace(/`/g, '').trim()}` : ''}` : '';
+}
+function sliceRows(plan) {
+  const sec = (section(plan || '', 'Slices') || '').split('\n');
+  const from = sec.findIndex((l) => /^\s*\|/.test(l));
+  const table = from < 0 ? [] : sec.slice(from, from + Math.max(1, sec.slice(from).findIndex((l) => !/^\s*\|/.test(l)) >>> 0));
+  const rows = tableRows(table.join('\n')).filter((r) => /^\w/.test(r[0] || ''));
+  return { rows, done: rows.filter((r) => /^(done|built|merged|shipped|complete)/i.test((r.at(-1) || '').trim())) };
+}
+function reportInfo(plan, ctx) {
+  const { done } = sliceRows(plan);
+  const rs = reports(ctx.dir);
+  if (!done.length) return { warn: 'no slice is marked done in PLAN.md → Slices, so no report is owed yet: give each row its status' };
+  if (rs === null) return { problems: [`no "## Reports" in LOG.md: ${done.length} slice${done.length === 1 ? ' is' : 's are'} done and the person was told nothing (Did / How / Try / Next / Need from you)`] };
+  const problems = [];
+  if (rs.length < done.length) problems.push(`${done.length} slices done, ${rs.length} reported`);
+  for (const r of rs) {
+    if (!nonEmpty(r.did)) problems.push(`${r.slice}: no "**Did:**" in plain words`);
+    if (!nonEmpty(r.tryIt)) problems.push(`${r.slice}: no "**Try:**": the link, screenshot or command that shows it`);
+    else if (!(/https?:\/\//.test(r.tryIt) || /`[^`]+`/.test(r.tryIt) || /\.(png|jpe?g|webp|gif|mp4|webm|html?)\b/i.test(r.tryIt))) problems.push(`${r.slice}: "**Try:**" names nothing to open (a URL, a file, or a command in backticks)`);
+  }
+  return { problems, detail: `${rs.length} slice report${rs.length === 1 ? '' : 's'}, each with something to open` };
+}
+
+// Gate 3.16: the person saw the bet as screens before anyone wrote a spec for it. A clickable throwaway with fake data
+// costs an hour; a spec and a build on the wrong layout cost a week.
+function firstScreen(bet, ctx) {
+  const sec = section(bet, 'First screen');
+  if (sec === null) return { problems: ['no "## First screen": a clickable prototype of the main screens (fake data, no backend) the person opened, or "**None:**" with why this bet has nothing to look at'] };
+  if (nonEmpty(field(sec, 'None'))) return { problems: [], detail: `nothing to look at: ${field(sec, 'None')}` };
+  const problems = [];
+  const link = field(sec, 'Link') || '';
+  const file = (link.match(/`([^`]+)`/) || [])[1];
+  if (!nonEmpty(link) || !(/https?:\/\//.test(link) || file)) problems.push('no "**Link:**": the prototype file in backticks, or its URL');
+  else if (file && !/^https?:/.test(file) && !fs.existsSync(path.resolve(ctx.dir, file)) && !fs.existsSync(path.resolve(ROOT, file))) problems.push(`${file} is not there`);
+  const by = field(sec, 'Seen by') || '';
+  if (!nonEmpty(by) || AGENT_NAME.test(by)) problems.push(by ? `"${by}" is the agent: the person looks at it` : 'no "**Seen by:**": who opened it, when, and what they said');
+  else if (!DATE_RE.test(by)) problems.push('"**Seen by:**" needs the date');
+  else { const w = personWords(by, 'Seen by'); if (!w.ok) problems.push(w.problem); }
+  return { problems, detail: `seen by ${by.replace(DATE_RE, '').replace(/[·,\s]+$/, '').trim()}` };
+}
+
 // Gate 5.17: a person opened what was built and used it, before anyone authorizes exposure. The video shows that it
 // works; trying it shows whether it is right.
 function triedInfo(plan, ctx) {
@@ -1713,6 +1767,8 @@ function initiativeGoal(i) {
     bet: gist(bet && bet.replace(/^\S+\s+[—-]\s+/, '')), risk: gist(risk && risk.split('\n').map((x) => x.trim()).find((x) => x && !/^\*\*[^*]+:\*\*/.test(x))) };
 }
 
+const INTENT = ['For', 'Done when', 'Not'];
+
 // The thread of an initiative in four lines: what we are building, why, where it stands, what comes next.
 // Building and Why are written once at the top of BRIEF.md or CHANGE.md; without them they come from the bet,
 // the request and the frame. Now is computed from state and the plan's slices, so it is never stale.
@@ -1731,7 +1787,7 @@ function threadOf(i, next) {
   const slices = tableRows(table.join('\n')).filter((r) => /^\w/.test(r[0] || ''));
   const done = slices.filter((r) => /^(done|built|merged|shipped|complete)/i.test((r.at(-1) || '').trim())).length;
   const now = `${s.status === 'paused' ? 'paused at ' : ''}phase ${ph} ${PHASES[ph]}${ph === 5 && slices.length ? `, ${done} of ${slices.length} slices done` : ''}`;
-  return { building, why, now, next };
+  return { building, why, now, next, for: gist(field(top, 'For')), done: gist(field(top, 'Done when')), not: gist(field(top, 'Not')), last: lastReport(i.dir) };
 }
 
 function statusModel() {
@@ -1909,7 +1965,7 @@ function writePage(quiet) {
     return `<details class="more"><summary>Everything on this initiative</summary><h4 class="label">Phases</h4>${phases || none('No phase started.')}${extra || earlier ? `<h4 class="label">Documents</h4>${extra}${earlier}` : ''}<h4 class="label">Record</h4>${historyTable(s)}${evidence}</details>`;
   };
   const card = (c) => `<article id="i-${esc(c.i.slug)}"><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.closed ? esc(c.outcome) : c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
-${strip(c.i)}<dl>${c.thread && c.thread.building ? row('Building', [esc(c.thread.building)]) : ''}${c.thread && c.thread.why ? row('Why', [esc(c.thread.why)]) : ''}${c.thread ? row('Now', [esc(c.thread.now)]) : ''}${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) : ''}${c.goal && c.goal.bet && !(c.thread && c.thread.building === c.goal.bet) ? row('Bet', [esc(c.goal.bet)]) : ''}${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
+${strip(c.i)}<dl>${c.thread && c.thread.building ? row('Building', [esc(c.thread.building)]) : ''}${c.thread && c.thread.why ? row('Why', [esc(c.thread.why)]) : ''}${c.thread && c.thread.done ? row('Done when', [esc(c.thread.done)]) : ''}${c.thread && c.thread.not ? row('Not', [esc(c.thread.not)]) : ''}${c.thread ? row('Now', [esc(c.thread.now)]) : ''}${c.thread && c.thread.last ? row('Last', [esc(c.thread.last)]) : ''}${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) : ''}${c.goal && c.goal.bet && !(c.thread && c.thread.building === c.goal.bet) ? row('Bet', [esc(c.goal.bet)]) : ''}${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
   const at = (d) => (d.anchor ? `<a href="#${esc(d.anchor)}">${esc(d.what)}</a>` : esc(d.what));
   const decideHtml = m.decide.length ? `<div class="scroll"><table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${at(d)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table></div>` : none('Nothing waits on a person.');
   const nextItems = [...m.progress.map((c) => `<li><a href="#i-${esc(c.i.slug)}"><strong>${esc(c.title)}</strong></a>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
@@ -2005,7 +2061,7 @@ function statusMarkdown(m, href) {
   else out.push('Nothing waits on a person.');
   out.push('', '## In progress', '');
   if (m.progress.length) out.push(...m.progress.flatMap((c) => [`- **${c.title}** (${c.track}, ${c.paused ? 'paused' : `phase ${c.phase} ${PHASES[c.phase]}`})${c.failed.length ? `: gate ${c.phase} failed on ${c.failed.join(', ')}` : ''}${c.owner ? `, ${c.owner}` : ''}${c.docs.length ? ` · ${c.docs.map((p) => md(p)).join(' · ')}` : ''}${c.preview ? ` · try it: ${c.preview}` : ''}`,
-    ...(c.thread ? [c.thread.building && `  - Building: ${c.thread.building}`, c.thread.why && `  - Why: ${c.thread.why}`, `  - Now: ${c.thread.now}`].filter(Boolean) : [])]));
+    ...(c.thread ? [c.thread.building && `  - Building: ${c.thread.building}`, c.thread.why && `  - Why: ${c.thread.why}`, c.thread.done && `  - Done when: ${c.thread.done}`, c.thread.not && `  - Not: ${c.thread.not}`, `  - Now: ${c.thread.now}`, c.thread.last && `  - Last: ${c.thread.last}`].filter(Boolean) : [])]));
   else out.push('Nothing open.');
   out.push('', '## Next', '');
   const next = [...m.progress.map((c) => `- **${c.title}**: ${c.next}`), ...m.roadmapNext.map((r) => `- **${r.what}** (roadmap)${r.why ? `: ${r.why}` : ''}${r.first ? `. First: ${r.first}` : ''}`), ...m.later.map((l) => `- Later: ${l}`)];
@@ -2244,6 +2300,8 @@ function gateConditions(n, ctx) {
     pass('3.14', size.problems.length === 0, size.problems.length ? size.problems.join('; ') : size.detail);
     if (ctx.track === 'internal') judge('3.15', `${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the appetite fit the hours the tool saves, and did the best way of not building it lose for a stated reason?`);
     else judge('3.15', `stage ${stage || 'unknown'}, ${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the evidence behind the bet meet the bar for this stage and door (business-case, Evidence bar)? A judgment call is declared with its reasoning and a revisit date`);
+    const fsn = firstScreen(a, ctx);
+    (lite || ctx.track === 'internal' ? warn : pass)('3.16', fsn.problems.length === 0, fsn.problems.length ? fsn.problems.join('; ') : fsn.detail);
     return R;
   }
 
@@ -2352,6 +2410,9 @@ function gateConditions(n, ctx) {
     const tr = triedInfo(a, ctx);
     if (tr.skip) skip('5.17', tr.skip);
     else pass('5.17', tr.problems.length === 0, tr.problems.length ? tr.problems.join('; ') : tr.detail);
+    const rp = reportInfo(a, ctx);
+    if (rp.warn) warn('5.18', false, rp.warn);
+    else pass('5.18', rp.problems.length === 0, rp.problems.length ? rp.problems.join('; ') : rp.detail);
     const qc = qualityChecks(ctx);
     if (qc.declined) warn('5.10', false, `no automated quality checks, ${qc.declined}`);
     else pass('5.10', qc.problems.length === 0, qc.problems.length ? qc.problems.join('; ') : qc.detail);
@@ -2644,6 +2705,16 @@ function runGate(which) {
     const lacking = top === null ? null : ['Building', 'Why'].filter((f) => !nonEmpty(field(top, f)));
     results.push(top === null ? { id: 'E.4', status: 'warn', detail: 'one file per phase and no thread: `bos.mjs migrate --layout`, then write **Building:** and **Why:** with the person' }
       : { id: 'E.4', status: lacking.length ? 'fail' : 'pass', detail: lacking.length ? `no ${lacking.map((f) => `**${f}:**`).join(' or ')} at the top of ${top === readFile(path.join(dir, 'BRIEF.md')) ? 'BRIEF.md' : 'CHANGE.md'}: one sentence each, what this builds and why` : 'the thread is written' });
+  }
+  // The intent: who it is for, what the person will see when it is done, what it must not become. Asked once, before
+  // any phase, so a change of direction surfaces on day one; an initiative already under way is reminded, not stopped.
+  if (init) {
+    const top = readFile(path.join(dir, 'BRIEF.md')) ?? readFile(path.join(dir, 'CHANGE.md'));
+    if (top !== null) {
+      const lacking = INTENT.filter((f) => !nonEmpty(field(top, f)));
+      const entry = [0, 'C', 'M', 'N'].includes(n);
+      results.push({ id: 'E.5', status: !lacking.length ? 'pass' : entry ? 'fail' : 'warn', detail: lacking.length ? `no ${lacking.map((f) => `**${f}:**`).join(', ')} under the thread: one line each in the person's words, from the intent round (pressure-testing)` : 'the intent is written' });
+    }
   }
   results.push(...gate(n, ctx));
   // The conditions name documents by phase; on the four-document layout, say where each one lives.
@@ -3143,7 +3214,7 @@ function newInitiative(slug) {
   writeJSON(path.join(dir, 'state.json'), state);
   writeJSON(path.join(BOS, 'local.json'), { active: slug });
   roadmap();
-  console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused. Open ${track === 'change' ? 'CHANGE.md' : 'BRIEF.md'} with **Building:** and **Why:**, one sentence each, written with the person.`);
+  console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused. Open ${track === 'change' ? 'CHANGE.md' : 'BRIEF.md'} with the thread and the intent (**Building:**, **Why:**, **For:**, **Done when:**, **Not:**), one line each from the intent round with the person.`);
 }
 
 // The project memory a first run needs, and nothing invented: the folders, an empty roadmap, the ignore lines.
@@ -3738,8 +3809,8 @@ function watch() {
 // ---------- migrate ----------
 
 // What the build records while it runs, moved from the plan to LOG.md: the plan stays a plan.
-const LOG_SECTIONS = ['Test output', 'Instrumentation', 'Eval results', 'Interface review', 'Craft critique', 'Demo', 'Security review', 'Performance', 'Tried', 'Scope check', 'Review', 'Added after the spec', 'Decisions', 'Spec holes', 'Deviations', 'Retro'];
-const THREAD_LINES = '**Building:** {one sentence: what this initiative builds, in the words of the person who asked}\n**Why:** {one sentence: the problem it removes or the result it moves, with its tag}\n';
+const LOG_SECTIONS = ['Test output', 'Instrumentation', 'Eval results', 'Interface review', 'Craft critique', 'Demo', 'Security review', 'Performance', 'Tried', 'Reports', 'Scope check', 'Review', 'Added after the spec', 'Decisions', 'Spec holes', 'Deviations', 'Retro'];
+const THREAD_LINES = '**Building:** {one sentence: what this initiative builds, in the words of the person who asked}\n**Why:** {one sentence: the problem it removes or the result it moves, with its tag}\n**For:** {who uses it, in the words of the person}\n**Done when:** {what the person will see or be able to do when it is done}\n**Not:** {what it must not do or become}\n';
 
 // One pre-3.5 file as a part of a merged document: its first level-one heading names the part, any other becomes level two.
 function asPart(md, name) {
@@ -3917,7 +3988,7 @@ function context() {
   let input = {};
   try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { /* no payload: nothing to log */ }
   if (!fs.existsSync(INIT_DIR)) return;
-  if (typeof input.prompt === 'string' && input.prompt.trim()) {
+  if (typeof input.prompt === 'string' && input.prompt.trim() && !NOT_PERSON.test(input.prompt)) {
     try { fs.appendFileSync(PERSON_LOG, JSON.stringify({ at: new Date().toISOString(), text: input.prompt.slice(0, 4000) }) + '\n'); } catch { /* logging never blocks the message */ }
   }
   let active;
@@ -3938,7 +4009,7 @@ function context() {
   if (ov.length) bits.push(`overrides in force: phase ${ov.join('; phase ')}`);
   const ap = appetite(active);
   if (ap && ap.over) bits.push(ap.line);
-  const against = ['decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];
+  const against = [...(INTENT.some((f) => nonEmpty(field(readFile(path.join(dir, 'BRIEF.md')) ?? readFile(path.join(dir, 'CHANGE.md')) ?? '', f))) ? ['the intent on top of the brief (For, Done when, Not)'] : []), 'decisions/', `the PRODUCT.md non-goals${nonGoals ? ` (${nonGoals})` : ''}`, 'the conditions earlier phases set'];
   if (oos) against.push(`the spec's out-of-scope (${oos} items)`);
   bits.push(`If this message asks for product work, check it against ${against.join(', ')}; name a collision in at most two lines, then continue`);
   const full = bits.join('. ') + '.';
