@@ -11,7 +11,7 @@ Round 1 of any initiative, before its first phase: what the person has in mind, 
 
 ## Who decides what
 
-**What the product is belongs to the person:** what the user sees, does or pays, what gets built first, money or time spent, anything hard to reverse. Each is a round question. **How it is built is the agent's:** libraries, structure, naming, sequencing, internal trade-offs. Decide, and tell the person in one plain line, `**Decided:** {X}, because {Y}`, in `LOG.md` → Decisions and in the next slice report, so they can reverse it. A question the person answers with "just do it" was the agent's to decide: note the kind and stop asking it.
+**The person decides what the product is, how it looks and the technical choices that shape it:** what the user sees, does or pays, what gets built first, money or time spent; the design (layout, navigation, how many screens, the look); the stack, the architecture, the data model, an outside service, anything that costs money or is hard to reverse. Each is discussed as a round question in plain words: what it is, why it matters, each option with what it gains and costs, a recommendation. **The agent decides the details inside those choices:** a library within the chosen stack, file layout, naming, sequencing. Decide, and tell the person in one plain line, `**Decided:** {X}, because {Y}`, in `LOG.md` → Decisions and in the next slice report, so they can reverse it. A kind of question the person answers with "just do it" becomes a detail: note it and stop asking it.
 
 In the lifecycle a round arrives with the work already drafted on its recommendations ([round formats](round-formats.md), Working ahead), so "go with the recommendations" costs no wait.
 
@@ -24,4 +24,5 @@ Write to the person in their words. A term of yours (a gate number, a slice id, 
 | "found {X} in {file}: still true?" | Asking what the memory already answers |
 | Five questions at most, each with a recommendation | A questionnaire per phase |
 | Rewrite a contradicted line with its date, on the person's word | Building on the old line, or silently following the new one |
-| Decide how it is built and say so in one line | A question about a library, a schema or a file layout |
+| Discuss a design or technical choice in plain words, with what each option gains and costs | Deciding the layout or the architecture alone, or asking in jargon |
+| Decide a detail and say so in one line | A question about a file layout or a name |

@@ -52,7 +52,7 @@ Each answered round reshapes the tree: settled decisions push the frontier outwa
 
 Finding facts is your job, never the person's. Read the memory, the question log, the repository and the documents they named before round 1; when a question needs a fact from the environment, delegate the search where the host allows, and ask the rest of the frontier meanwhile: only the questions downstream of it wait. A fact only the person holds is one plain line, with no options and no recommendation, since a guessed value invents evidence. A fact neither side holds gets the ways to close the gap as options, per [round formats](references/round-formats.md).
 
-**What the product is belongs to the person** (what the user sees, does or pays, what comes first, anything hard to reverse): ask. **How it is built is yours:** decide and say so. An initiative opens with the [intent round](references/intent-round.md).
+**The product, its design and the technical choices that shape it belong to the person:** discuss each in plain words. **Details inside them are yours:** decide and say so. An initiative opens with the [intent round](references/intent-round.md).
 
 ## Done
 
