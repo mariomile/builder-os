@@ -13,7 +13,7 @@ Dispatch the `builder-os:opportunity-mapper` agent to run BuilderOS phase 2.
 ## Steps
 
 1. **Check pipeline state.** Read the active initiative's `state.json` (resolved per the schema, Active Initiative). Phase 1 must have passed, been overridden, or be `covered` (feature track). If its verdict is `KILLED`, refuse: the pipeline stopped. If it is `answered`, the spike ended there: report the verdict and offer to reclassify.
-2. **Read `.builderos/initiatives/{initiative}/01-discovery.md` and `00-frame.md`.** Without discovery evidence there is no tree to build, only a wish list. On the feature track neither exists: `PRODUCT.md` is the evidence, and the dispatch passes "covered by PRODUCT.md" in their place.
+2. **Read `.builderos/initiatives/{initiative}/BRIEF.md` → Discovery and `BRIEF.md` → Frame.** Without discovery evidence there is no tree to build, only a wish list. On the feature track neither exists: `PRODUCT.md` is the evidence, and the dispatch passes "covered by PRODUCT.md" in their place.
 3. **Resolve capabilities** per `references/capability-map.md` and derive the operating mode.
 4. **Dispatch:**
 
@@ -27,16 +27,16 @@ Pipeline state: initiative [slug], phase 2, cycle [C], mode [full|lite], track [
 PRODUCT.md:
 [content]
 
-00-frame.md:
+BRIEF.md → Frame:
 [content]
 
-01-discovery.md:
+BRIEF.md → Discovery:
 [content]
 
 User request:
 [what the user asked]
 
-Write .builderos/initiatives/{initiative}/02-definition.md and run gate 2 before declaring completion.
+Write .builderos/initiatives/{initiative}/BRIEF.md → Definition and run gate 2 before declaring completion.
 ```
 
 5. **The person chooses** the opportunity and its target (2.8): the dispatch returns its round instead of a `**Chosen by:**`. Ask it, then dispatch again with `Chosen by: [person, their words quoted]`.

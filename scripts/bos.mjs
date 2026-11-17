@@ -10,11 +10,11 @@
 //   node bos.mjs resume <slug> [--reason "..."]   make a paused initiative the active one again
 //   node bos.mjs reframe --reason "..."    a new cycle from phase 0, keeping the history
 //   node bos.mjs jump <0-7> --reason "..." a forced move: back reopens phases, forward records them overridden, not run
-//   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and 00-request.md and, if it
+//   node bos.mjs cover --c4 "reason"       feature track: run the coverage check on PRODUCT.md and the request and, if it
 //                                          passes, record phases 0 and 1 as covered and start at phase 2 (C.4 is the model's call)
-//   node bos.mjs cover --m4 "reason"       change track: run the mandate check on 00-request.md and, if it passes, record
+//   node bos.mjs cover --m4 "reason"       change track: run the mandate check on the request and, if it passes, record
 //                                          phases 0 to 3 as covered and start at phase 4; a failure moves the work to feature
-//   node bos.mjs cover --n5 "reason"       internal track: run the need check on 00-request.md and, if it passes, record
+//   node bos.mjs cover --n5 "reason"       internal track: run the need check on the request and, if it passes, record
 //                                          phases 0 to 2 as covered and start at phase 3; a failure moves the work to product
 //   node bos.mjs upgrade --to internal|feature|product --reason "..."
 //                                          the ratchet: move the active initiative to a heavier track and restart at phase 0
@@ -41,6 +41,8 @@
 //   node bos.mjs grill [name]              a question log's next number, open questions, answers to ask again because
 //                                          what they rest on was replaced, and a broken log; every log without a name
 //   node bos.mjs migrate                   move a schema 1 .builderos/state.json to schema 2
+//   node bos.mjs migrate --layout [--all]  merge an initiative's one-file-per-phase documents into BRIEF.md, SPEC.md,
+//                                          PLAN.md, LOG.md and RESULT.md (CHANGE.md on a change), words unchanged
 //   node bos.mjs doctor                    check the install, the project memory, every initiative's state, and the
 //                                          conditions added since each passed gate that its artifact does not meet yet
 //   node bos.mjs claim --by "who" [--release | --take --reason "..."]
@@ -48,7 +50,7 @@
 //   node bos.mjs round --asked N | --answered "1B, 2A" --by "who"
 //                                          record a round of questions put to the person, and its answer
 //   node bos.mjs flows [--apply file]      write design/flows.html, where the person edits each Mermaid diagram of
-//                                          DESIGN.md with a live preview; --apply writes the edited blocks back
+//                                          the design (SPEC.md → Design) with a live preview; --apply writes the edited blocks back
 //
 // Options: --initiative <slug> acts on another initiative, --root <dir> sets the project root.
 
@@ -72,7 +74,7 @@ const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
 // The BuilderOS release this script belongs to, stamped on every gate record. Kept equal to package.json by a test.
-const VERSION = '3.4.1';
+const VERSION = '3.5.0';
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
@@ -89,7 +91,108 @@ const MANDATE_KINDS = ['bug', 'debt', 'compliance', 'contract', 'request', 'remo
 
 // ---------- files ----------
 
-const read = (p) => (fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null);
+const readFile = (p) => (fs.existsSync(p) && fs.statSync(p).isFile() ? fs.readFileSync(p, 'utf8') : null);
+
+// ---------- documents: four per initiative, one for a change ----------
+// An initiative keeps its reasoning in BRIEF.md (request or frame, discovery, definition, bet), SPEC.md (design
+// and spec), PLAN.md (the build plan) and RESULT.md (release and outcome); what happens during the build (runs,
+// reviews, demo, what was tried) goes to LOG.md. A change keeps one CHANGE.md (request, design when the interface
+// changes, spec, plan, release) and LOG.md. Each phase is a "# Part" of its file. Initiatives written before 3.5,
+// one file per phase, still read as they are: the phase names below are the logical documents every gate reads.
+const DOCS = {
+  '00-request.md': [['CHANGE.md', 'Request'], ['BRIEF.md', 'Request']],
+  '00-frame.md': [['BRIEF.md', 'Frame']],
+  '01-discovery.md': [['BRIEF.md', 'Discovery']],
+  '02-definition.md': [['BRIEF.md', 'Definition']],
+  '03-solution-bet.md': [['BRIEF.md', 'Bet|Solution Bet']],
+  'DESIGN.md': [['CHANGE.md', 'Design'], ['SPEC.md', 'Design']],
+  '04-spec.md': [['CHANGE.md', 'Spec'], ['SPEC.md', 'Spec']],
+  '05-build-plan.md': [['CHANGE.md', 'Plan|Build'], ['PLAN.md', null]],
+  '06-release.md': [['CHANGE.md', 'Release'], ['RESULT.md', 'Release']],
+  '07-outcome.md': [['RESULT.md', 'Outcome']],
+};
+const DOC_FILES = ['BRIEF.md', 'CHANGE.md', 'SPEC.md', 'PLAN.md', 'LOG.md', 'RESULT.md'];
+// Words a logical document may hold, fenced blocks (diagrams, code) not counted: past this it has stopped being read.
+// A change holds about half. LOG.md has no cap: it is the record, read when something is looked up.
+const WORD_CAP = { '00-request.md': 600, '00-frame.md': 800, '01-discovery.md': 1500, '02-definition.md': 1200, '03-solution-bet.md': 1800, 'DESIGN.md': 3000, '04-spec.md': 3500, '05-build-plan.md': 2500, '06-release.md': 1500, '07-outcome.md': 1000 };
+const CHANGE_CAP = { '00-request.md': 400, 'DESIGN.md': 1500, '04-spec.md': 1800, '05-build-plan.md': 1500, '06-release.md': 800 };
+
+// The lines of "# {name}" (or any of "A|B") up to the next level-one heading, outside fenced blocks; null when absent.
+function part(md, name) {
+  if (!md) return null;
+  const lines = md.split('\n');
+  let fence = false, start = -1;
+  const wants = name.toLowerCase().split('|');
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*(```|~~~)/.test(lines[i])) { fence = !fence; continue; }
+    if (fence || !/^#\s+\S/.test(lines[i])) continue;
+    const head = lines[i].replace(/^#\s+/, '').trim().toLowerCase();
+    if (start >= 0) return lines.slice(start, i).join('\n');
+    if (wants.some((w) => head === w || head.startsWith(w + ' ') || head.startsWith(w + ':'))) start = i;
+  }
+  return start >= 0 ? lines.slice(start).join('\n') : null;
+}
+
+// Where a logical document lives: its own pre-3.5 file, or a part of one of the four.
+function locate(dir, name) {
+  const own = path.join(dir, name);
+  if (fs.existsSync(own)) return { file: own, part: null };
+  for (const [f, p] of DOCS[name] || []) {
+    const md = readFile(path.join(dir, f));
+    if (md !== null && (p === null || part(md, p) !== null)) return { file: path.join(dir, f), part: p };
+  }
+  return null;
+}
+
+// The text of a logical document without LOG.md: what its author wrote, what the word cap counts.
+function docText(dir, name) {
+  const loc = locate(dir, name);
+  if (!loc) return null;
+  const md = readFile(loc.file);
+  return loc.part ? part(md, loc.part) : md;
+}
+
+// Reading a phase document by its logical name works on both layouts; the build plan reads with its LOG.md,
+// because the gate checks what the build recorded as well as what it planned.
+const read = (p) => {
+  const own = readFile(p);
+  if (own !== null || !DOCS[path.basename(p)]) return own;
+  const dir = path.dirname(p), name = path.basename(p);
+  const text = docText(dir, name);
+  if (text === null) return null;
+  const log = name === '05-build-plan.md' ? readFile(path.join(dir, 'LOG.md')) : null;
+  return log ? `${text}\n\n${log}` : text;
+};
+const hasDoc = (p) => read(p) !== null;
+// How a logical document is named to a person: "04-spec.md", or "SPEC.md → Spec".
+const docLabel = (dir, name) => { const loc = locate(dir, name); return loc && loc.part ? `${path.basename(loc.file)} → ${loc.part.split('|')[0]}` : loc ? path.basename(loc.file) : name; };
+// Write a logical document back where it lives: its own file, or its part inside one of the four.
+function writeDoc(p, text) {
+  const loc = locate(path.dirname(p), path.basename(p));
+  if (!loc || !loc.part) return fs.writeFileSync(loc ? loc.file : p, text);
+  const md = readFile(loc.file);
+  const was = part(md, loc.part);
+  fs.writeFileSync(loc.file, md.replace(was, () => text.replace(/\n+$/, '') + was.match(/\n*$/)[0]));
+}
+// The file a person opens for a logical document.
+const fileOf = (p) => (fs.existsSync(p) ? p : (locate(path.dirname(p), path.basename(p)) || {}).file || p);
+
+const wordsIn = (md) => (stripFences(md || '').match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu) || []).length;
+
+// E.3: each logical document the gate reads stays within its cap.
+function lengthProblems(dir, names, track) {
+  const caps = track === 'change' ? { ...WORD_CAP, ...CHANGE_CAP } : WORD_CAP;
+  const out = [];
+  for (const name of names) {
+    const text = docText(dir, name);
+    if (text === null || !caps[name]) continue;
+    const loc = locate(dir, name);
+    const label = docLabel(dir, name);
+    const n = wordsIn(text);
+    if (n > caps[name]) out.push(`${label} is ${n} words, cap ${caps[name]}`);
+  }
+  return out;
+}
 const readJSON = (p) => {
   const s = read(p);
   if (s === null) return null;
@@ -651,8 +754,8 @@ function flows() {
       target = edits.find((e) => e.key === key) || null;
     }
   }
-  fs.writeFileSync(file, out.join('\n'));
-  console.log(`DESIGN.md: ${changed} diagram${changed === 1 ? '' : 's'} replaced. Bring each steps or transitions table in line with its drawing, then rerun gate 4.`);
+  writeDoc(file, out.join('\n'));
+  console.log(`${path.basename(fileOf(file))}: ${changed} diagram${changed === 1 ? '' : 's'} replaced. Bring each steps or transitions table in line with its drawing, then rerun gate 4.`);
 }
 
 // Gate 5.15: the feature was seen working, recorded from the end-to-end test walking its primary flow.
@@ -1141,7 +1244,7 @@ function productionGaps(release, ctx) {
 const PERSON_WAITS = { '4.13': 'a session with someone from the ICP', '4.14': 'what someone did when shown the price', '4.22': 'the result of the test chosen before the build', '5.6': 'the person to accept the build plan', '5.17': 'the person to try what was built', '6.8': 'the person to authorize exposure', '6.11': 'someone outside the team using it', '6.12': 'a first payment', '6.13': 'the person to choose the rollout' };
 function personWaits(init) {
   const p = init.state.current_phase ?? 0;
-  if (!fs.existsSync(path.join(init.dir, ARTIFACTS[p]))) return [];
+  if (!hasDoc(path.join(init.dir, ARTIFACTS[p]))) return [];
   let j;
   try { j = JSON.parse(spawnSyncSelf(['gate', String(p), '--json', '--initiative', init.slug]) || '{}'); } catch { return []; }
   return (j.failed || []).filter((id) => PERSON_WAITS[id]);
@@ -1610,6 +1713,27 @@ function initiativeGoal(i) {
     bet: gist(bet && bet.replace(/^\S+\s+[—-]\s+/, '')), risk: gist(risk && risk.split('\n').map((x) => x.trim()).find((x) => x && !/^\*\*[^*]+:\*\*/.test(x))) };
 }
 
+// The thread of an initiative in four lines: what we are building, why, where it stands, what comes next.
+// Building and Why are written once at the top of BRIEF.md or CHANGE.md; without them they come from the bet,
+// the request and the frame. Now is computed from state and the plan's slices, so it is never stale.
+function threadOf(i, next) {
+  const top = readFile(path.join(i.dir, 'BRIEF.md')) || readFile(path.join(i.dir, 'CHANGE.md')) || '';
+  const req = read(path.join(i.dir, REQUEST)) || '';
+  const frame = read(path.join(i.dir, ARTIFACTS[0])) || '';
+  const bet = ((read(path.join(i.dir, ARTIFACTS[3])) || '').match(/^##\s*Selected:\s*(.+)$/m) || [])[1];
+  const building = gist(field(top, 'Building')) || gist(bet && bet.replace(/^\S+\s+[—-]\s+/, ''));
+  const why = gist(field(top, 'Why')) || gist(section(frame, 'Problem'));
+  const s = i.state, ph = s.current_phase ?? 0;
+  // The first table under ## Slices, its last column the status.
+  const sec = (section(read(path.join(i.dir, ARTIFACTS[5])) || '', 'Slices') || '').split('\n');
+  const from = sec.findIndex((l) => /^\s*\|/.test(l));
+  const table = from < 0 ? [] : sec.slice(from, from + Math.max(1, sec.slice(from).findIndex((l) => !/^\s*\|/.test(l)) >>> 0));
+  const slices = tableRows(table.join('\n')).filter((r) => /^\w/.test(r[0] || ''));
+  const done = slices.filter((r) => /^(done|built|merged|shipped|complete)/i.test((r.at(-1) || '').trim())).length;
+  const now = `${s.status === 'paused' ? 'paused at ' : ''}phase ${ph} ${PHASES[ph]}${ph === 5 && slices.length ? `, ${done} of ${slices.length} slices done` : ''}`;
+  return { building, why, now, next };
+}
+
 function statusModel() {
   const product = read(path.join(ROOT, 'PRODUCT.md')) || '';
   const rm = read(path.join(BOS, 'ROADMAP.md')) || '';
@@ -1617,7 +1741,7 @@ function statusModel() {
   const all = loadInitiatives().sort((a, b) => String(b.state.updated_at || '').localeCompare(String(a.state.updated_at || '')));
   const title = (i) => i.state.title || i.slug;
   const at = (i) => `${title(i)}: phase ${i.state.current_phase ?? 0} ${PHASES[i.state.current_phase ?? 0]}`;
-  const docsOf = (i) => [REQUEST, ...ARTIFACTS, 'DESIGN.md', 'grilling.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
+  const docsOf = (i) => [...DOC_FILES, REQUEST, ...ARTIFACTS, 'DESIGN.md', 'grilling.md'].map((f) => path.join(i.dir, f)).filter((p) => fs.existsSync(p));
   const open = all.filter((i) => i.state.status !== 'closed');
   const decide = [];
   const progress = [];
@@ -1638,6 +1762,7 @@ function statusModel() {
     const preview = tried && field(tried, 'Link');
     progress.push({ i, title: title(i), track: s.track || 'product', phase: ph, paused: s.status === 'paused', failed, docs: docsOf(i), visuals, media, preview, owner: claimNote(s),
       next: s.status === 'paused' ? 'paused' : round ? `your answers to the round asked ${String(round.at).slice(0, 10)}` : nextStep(i) });
+    progress.at(-1).thread = threadOf(i, progress.at(-1).next);
   }
   const bySlug = new Map(all.map((i) => [i.slug, i]));
   const logs = [];
@@ -1742,7 +1867,7 @@ function writePage(quiet) {
   if (!fs.existsSync(BOS)) { if (quiet) return; die('no .builderos/ here'); }
   const m = statusModel();
   const href = (p) => path.relative(BOS, p).split(path.sep).join('/');
-  const link = (p, label) => `<a href="${esc(href(p))}">${esc(label || path.basename(p))}</a>`;
+  const link = (p, label) => `<a href="${esc(href(fileOf(p)))}">${esc(label || path.basename(fileOf(p)))}</a>`;
   const urlOf = (t) => (String(t || '').match(/https?:\/\/[^\s)`]+/) || [])[0];
   const none = (t) => `<p class="sub">${t}</p>`;
   const row = (label, items) => (items.length ? `<dt>${label}</dt><dd>${items.join(' · ')}</dd>` : '');
@@ -1767,13 +1892,13 @@ function writePage(quiet) {
     const phases = PHASES.map((p, k) => {
       const ph = (s.phases || {})[String(k)] || {};
       const file = path.join(i.dir, ARTIFACTS[k]);
-      const has = fs.existsSync(file);
+      const has = hasDoc(file);
       if (!has && (!ph.status || ph.status === 'pending')) return '';
       const head = `${k} ${p} <span class="pill ${esc(ph.status || 'pending')}">${esc(ph.status || 'pending')}</span>${gateLine(ph.gate)}`;
       return has ? `<details class="doc" id="i-${esc(i.slug)}-p${k}"><summary>${head} <span class="sub">${link(file, 'open file')}</span></summary><div class="md">${mdToHtml(read(file), i.dir)}</div></details>` : `<div class="doc flat">${head} <span class="sub">no document</span></div>`;
     }).join('');
-    const extra = [[REQUEST, 'Request'], ['DESIGN.md', 'Design'], ['grilling.md', 'Question log']].map(([f, label]) => [path.join(i.dir, f), label]).filter(([p]) => fs.existsSync(p))
-      .map(([p, label]) => doc(p, `${label} (${path.basename(p)})`, label === 'Question log' ? `i-${i.slug}-grilling` : null)).join('');
+    const extra = [[REQUEST, 'Request'], ['DESIGN.md', 'Design'], ['LOG.md', 'Build log'], ['grilling.md', 'Question log']].map(([f, label]) => [path.join(i.dir, f), label]).filter(([p]) => hasDoc(p))
+      .map(([p, label]) => doc(p, `${label} (${path.basename(fileOf(p))})`, label === 'Question log' ? `i-${i.slug}-grilling` : null)).join('');
     const cycles = fs.existsSync(i.dir) ? fs.readdirSync(i.dir).filter((d) => /^cycle-\d+$/.test(d)).sort() : [];
     const earlier = cycles.map((c) => {
       const files = listFiles(path.join(i.dir, c), /\.md$/i, 0);
@@ -1784,7 +1909,7 @@ function writePage(quiet) {
     return `<details class="more"><summary>Everything on this initiative</summary><h4 class="label">Phases</h4>${phases || none('No phase started.')}${extra || earlier ? `<h4 class="label">Documents</h4>${extra}${earlier}` : ''}<h4 class="label">Record</h4>${historyTable(s)}${evidence}</details>`;
   };
   const card = (c) => `<article id="i-${esc(c.i.slug)}"><header><h3>${esc(c.title)}</h3><span class="pill">${esc(c.track)}</span><span class="pill">${c.closed ? esc(c.outcome) : c.paused ? 'paused' : `phase ${c.phase} ${esc(PHASES[c.phase])}`}</span></header>
-${strip(c.i)}<dl>${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) : ''}${c.goal && c.goal.bet ? row('Bet', [esc(c.goal.bet)]) : ''}${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
+${strip(c.i)}<dl>${c.thread && c.thread.building ? row('Building', [esc(c.thread.building)]) : ''}${c.thread && c.thread.why ? row('Why', [esc(c.thread.why)]) : ''}${c.thread ? row('Now', [esc(c.thread.now)]) : ''}${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) : ''}${c.goal && c.goal.bet && !(c.thread && c.thread.building === c.goal.bet) ? row('Bet', [esc(c.goal.bet)]) : ''}${c.next && !c.closed ? row('Next', [esc(c.next)]) : ''}${c.learning ? row('Learned', [esc(c.learning)]) : ''}${c.failed && c.failed.length ? row('Gate', [`<span class="warn">gate ${c.phase} failed on ${esc(c.failed.join(', '))}</span>`]) : ''}${row('Documents', c.docs.map((p) => link(p)))}${row('Designs and prototypes', (c.visuals || []).map((p) => link(p)))}${row('Demo', (c.media || []).map((p) => link(p)))}${c.preview ? row('Try it', [urlOf(c.preview) ? `<a href="${esc(urlOf(c.preview))}">${esc(c.preview)}</a>` : esc(c.preview)]) : ''}${c.owner ? row('Owner', [esc(c.owner)]) : ''}${c.date && c.closed ? row('Closed', [esc(c.date)]) : ''}</dl>${detail(c.i)}</article>`;
   const at = (d) => (d.anchor ? `<a href="#${esc(d.anchor)}">${esc(d.what)}</a>` : esc(d.what));
   const decideHtml = m.decide.length ? `<div class="scroll"><table><thead><tr><th>Decision</th><th>Blocks</th><th>Since</th></tr></thead><tbody>${m.decide.map((d) => `<tr><td>${at(d)}</td><td>${esc(d.blocks)}</td><td>${esc(d.since || '')}</td></tr>`).join('')}</tbody></table></div>` : none('Nothing waits on a person.');
   const nextItems = [...m.progress.map((c) => `<li><a href="#i-${esc(c.i.slug)}"><strong>${esc(c.title)}</strong></a>: ${esc(c.next)}</li>`), ...m.roadmapNext.map((r) => `<li><strong>${esc(r.what)}</strong> (roadmap)${r.why ? `: ${esc(r.why)}` : ''}${r.first ? `. First: ${esc(r.first)}` : ''}</li>`), ...m.later.map((l) => `<li>Later: ${esc(l)}</li>`)];
@@ -1792,7 +1917,7 @@ ${strip(c.i)}<dl>${c.goal && c.goal.target ? row('Goal', [esc(c.goal.target)]) :
   const logs = m.logs.map((l) => doc(path.join(ROOT, l.file), `Question log: ${l.title}`, `log-${l.name}`)).join('');
   const cell = (label, text) => (text ? `<div><p class="label">${label}</p><p>${esc(text)}</p></div>` : '');
   const product = [cell('Problem', m.goals.problem), cell('Who has it', m.goals.who), cell('North Star', m.goals.northStar || (m.goals.problem ? 'Not chosen yet: the first product review sets it' : ''))].join('');
-  const goalCards = [...m.progress, ...m.done.map((d) => ({ ...d, closed: true }))].filter((c) => c.goal && (c.goal.metric || c.goal.target || c.goal.bet || c.goal.risk)).map((c) => `<article><header><h3><a href="#i-${esc(c.i.slug)}">${esc(c.title)}</a></h3><span class="pill">${c.closed ? 'done' : `phase ${c.phase}`}</span></header><dl style="margin-top:12px">${c.goal.metric ? row('Metric', [esc(c.goal.metric)]) : ''}${c.goal.baseline || c.goal.target ? row('Target', [`<span class="target">${esc(c.goal.baseline || '?')} <span class="arrow">→</span> <strong>${esc(c.goal.target || '?')}</strong></span>`]) : ''}${c.goal.bet ? row('Bet', [esc(c.goal.bet)]) : ''}${c.goal.risk ? row('Riskiest', [esc(c.goal.risk)]) : ''}</dl></article>`).join('');
+  const goalCards = [...m.progress.filter((c) => !c.paused), ...m.done.map((d) => ({ ...d, closed: true }))].filter((c) => c.goal && (c.goal.metric || c.goal.target || c.goal.bet || c.goal.risk)).map((c) => `<article><header><h3><a href="#i-${esc(c.i.slug)}">${esc(c.title)}</a></h3><span class="pill">${c.closed ? 'done' : `phase ${c.phase}`}</span></header><dl style="margin-top:12px">${c.goal.metric ? row('Metric', [esc(c.goal.metric)]) : ''}${c.goal.baseline || c.goal.target ? row('Target', [`<span class="target">${esc(c.goal.baseline || '?')} <span class="arrow">→</span> <strong>${esc(c.goal.target || '?')}</strong></span>`]) : ''}${c.goal.bet ? row('Bet', [esc(c.goal.bet)]) : ''}${c.goal.risk ? row('Riskiest', [esc(c.goal.risk)]) : ''}</dl></article>`).join('');
   const goalsHtml = `${product ? `<div class="goals">${product}</div>` : ''}${goalCards ? `<h4 class="label">What each initiative is trying to move</h4>${goalCards}` : ''}` || none('No goal written yet: PRODUCT.md has no Purpose or Problem, and no initiative has a success metric.');
   const counts = [['decisions', 'Open decisions', m.decide.length], ['progress', 'In progress', m.progress.length], ['next', 'Next', nextItems.length], ['done', 'Done', m.done.length], ['memory', 'Project memory', null]];
   counts.unshift(['goals', 'Goals', null]);
@@ -1874,12 +1999,13 @@ function statusMarkdown(m, href) {
   out.push(`${m.stage ? `Stage ${m.stage} · ` : ''}${m.env.url ? `production ${m.env.url}` : 'not in production yet'}`, '', '## Goals', '');
   const g = m.goals;
   const goalLines = [g.purpose && `- **Purpose:** ${g.purpose}`, g.problem && `- **Problem:** ${g.problem}`, g.who && `- **Who has it:** ${g.who}`, g.northStar && `- **North Star:** ${g.northStar}`,
-    ...[...m.progress, ...m.done].filter((c) => c.goal && (c.goal.target || c.goal.bet)).map((c) => `- **${c.title}:** ${c.goal.target ? `${c.goal.baseline || '?'} → ${c.goal.target}` : ''}${c.goal.target && c.goal.bet ? '; ' : ''}${c.goal.bet ? `bet: ${c.goal.bet}` : ''}`)].filter(Boolean);
+    ...[...m.progress.filter((c) => !c.paused), ...m.done].filter((c) => c.goal && (c.goal.target || c.goal.bet)).map((c) => `- **${c.title}:** ${c.goal.target ? `${c.goal.baseline || '?'} → ${c.goal.target}` : ''}${c.goal.target && c.goal.bet ? '; ' : ''}${c.goal.bet ? `bet: ${c.goal.bet}` : ''}`)].filter(Boolean);
   out.push(...(goalLines.length ? goalLines : ['No goal written yet.']), '', '## Open decisions', '');
   if (m.decide.length) out.push('| Decision | Blocks | Since |', '|----------|--------|-------|', ...m.decide.map((d) => `| ${d.file ? md(d.file, cell(d.what)) : cell(d.what)} | ${cell(d.blocks)} | ${d.since || ''} |`));
   else out.push('Nothing waits on a person.');
   out.push('', '## In progress', '');
-  if (m.progress.length) out.push(...m.progress.map((c) => `- **${c.title}** (${c.track}, ${c.paused ? 'paused' : `phase ${c.phase} ${PHASES[c.phase]}`})${c.failed.length ? `: gate ${c.phase} failed on ${c.failed.join(', ')}` : ''}${c.owner ? `, ${c.owner}` : ''}${c.docs.length ? ` · ${c.docs.map((p) => md(p)).join(' · ')}` : ''}${c.preview ? ` · try it: ${c.preview}` : ''}`));
+  if (m.progress.length) out.push(...m.progress.flatMap((c) => [`- **${c.title}** (${c.track}, ${c.paused ? 'paused' : `phase ${c.phase} ${PHASES[c.phase]}`})${c.failed.length ? `: gate ${c.phase} failed on ${c.failed.join(', ')}` : ''}${c.owner ? `, ${c.owner}` : ''}${c.docs.length ? ` · ${c.docs.map((p) => md(p)).join(' · ')}` : ''}${c.preview ? ` · try it: ${c.preview}` : ''}`,
+    ...(c.thread ? [c.thread.building && `  - Building: ${c.thread.building}`, c.thread.why && `  - Why: ${c.thread.why}`, `  - Now: ${c.thread.now}`].filter(Boolean) : [])]));
   else out.push('Nothing open.');
   out.push('', '## Next', '');
   const next = [...m.progress.map((c) => `- **${c.title}**: ${c.next}`), ...m.roadmapNext.map((r) => `- **${r.what}** (roadmap)${r.why ? `: ${r.why}` : ''}${r.first ? `. First: ${r.first}` : ''}`), ...m.later.map((l) => `- Later: ${l}`)];
@@ -2508,12 +2634,29 @@ function runGate(which) {
   // Work drafted ahead on a recommended option while a round waited is not a decision: the answer confirms or discards it.
   const provisional = (stripFences(artifact + (n === 4 ? '\n' + (ctx.design || '') : '')).match(/\*\*Provisional:?\*\*/gi) || []).length;
   results.push({ id: 'E.2', status: provisional ? 'fail' : 'pass', detail: provisional ? `${provisional} provisional block${provisional > 1 ? 's' : ''} still drafted on a recommendation: keep each one the person's answer confirmed (drop the marker), delete the rest` : 'no provisional work left' });
+  // A document past its cap has stopped being read: the person loses the thread and the next session loads it whole.
+  const capped = ['C', 'M', 'N'].includes(n) ? [REQUEST] : [ARTIFACTS[n], ...(n === 4 ? ['DESIGN.md'] : [])];
+  const long = init ? lengthProblems(dir, capped, ctx.track) : [];
+  results.push({ id: 'E.3', status: long.length ? 'fail' : 'pass', detail: long.length ? `${long.join('; ')}: keep what the next phase needs, move what happened to LOG.md, cut the rest` : 'within the word caps' });
+  // The thread: what we are building and why, in two sentences at the top, the first thing anyone reads.
+  if (init) {
+    const top = readFile(path.join(dir, 'BRIEF.md')) ?? readFile(path.join(dir, 'CHANGE.md'));
+    const lacking = top === null ? null : ['Building', 'Why'].filter((f) => !nonEmpty(field(top, f)));
+    results.push(top === null ? { id: 'E.4', status: 'warn', detail: 'one file per phase and no thread: `bos.mjs migrate --layout`, then write **Building:** and **Why:** with the person' }
+      : { id: 'E.4', status: lacking.length ? 'fail' : 'pass', detail: lacking.length ? `no ${lacking.map((f) => `**${f}:**`).join(' or ')} at the top of ${top === readFile(path.join(dir, 'BRIEF.md')) ? 'BRIEF.md' : 'CHANGE.md'}: one sentence each, what this builds and why` : 'the thread is written' });
+  }
   results.push(...gate(n, ctx));
+  // The conditions name documents by phase; on the four-document layout, say where each one lives.
+  if (init) for (const name of Object.keys(DOCS)) {
+    const label = docLabel(dir, name);
+    if (label !== name) for (const r of results) if (typeof r.detail === 'string') r.detail = r.detail.split(name).join(label);
+  }
   const au = audit(artifact);
   const checked_by = { script: results.filter((r) => ['pass', 'fail', 'warn'].includes(r.status)).map((r) => r.id), model: results.filter((r) => r.status === 'judge').map((r) => r.id) };
   const skipped = results.filter((r) => r.status === 'skip').map((r) => r.id);
   const failed = results.filter((r) => r.status === 'fail').map((r) => r.id);
-  const out = { gate: n, initiative: init ? init.slug : null, artifact: rel(file), mode: ctx.mode, bos_version: VERSION, results, failed, checked_by, skipped, audit: au };
+  const loc = init && n !== 'C' ? locate(dir, path.basename(file)) : null;
+  const out = { gate: n, initiative: init ? init.slug : null, artifact: loc ? `${rel(loc.file)}${loc.part ? ` → ${loc.part.split('|')[0]}` : ''}` : rel(file), mode: ctx.mode, bos_version: VERSION, results, failed, checked_by, skipped, audit: au };
   if (flag('--json')) console.log(JSON.stringify(out, null, 2));
   else {
     const mark = { pass: '✓', fail: '✗', judge: '?', warn: '!', skip: '–' };
@@ -2638,7 +2781,7 @@ function gateDebt(init) {
   const s = init.state, out = [];
   for (const [k, ph] of Object.entries(s.phases || {})) {
     if (!ph || ph.status !== 'passed' || !ph.gate || !ph.gate.passed || Number(k) >= (s.current_phase ?? 0) && s.status !== 'closed') continue;
-    if (!fs.existsSync(path.join(init.dir, ARTIFACTS[k]))) continue;
+    if (!hasDoc(path.join(init.dir, ARTIFACTS[k]))) continue;
     let j;
     try { j = JSON.parse(spawnSyncSelf(['gate', k, '--json', '--initiative', init.slug]) || '{}'); } catch { continue; }
     if (!j.results) continue;
@@ -2689,6 +2832,14 @@ function decisions() {
 }
 
 // The next move on an initiative, as the briefing and the status page name it.
+// More initiatives than this not closed, and nobody holds the thread of each: the briefing says so.
+const OPEN_LIMIT = 2;
+// Plans kept by hand next to BuilderOS: a second "where we are" that drifts from the first. A pointer is short.
+function parallelPlans() {
+  return ['PLAN.md', 'ROADMAP.md', 'STATUS.md', 'TODO.md', 'docs/PLAN.md', 'docs/ROADMAP.md', 'docs/STATUS.md', 'docs/TODO.md']
+    .filter((f) => wordsIn(readFile(path.join(ROOT, f))) > 300);
+}
+
 function nextStep(i) {
   const s = i.state;
   const p = s.current_phase ?? 0;
@@ -2727,6 +2878,7 @@ function brief() {
     if (others.length) lines.push(`Also open: ${others.map((i) => `${i.state.title || i.slug} (phase ${i.state.current_phase ?? 0}, ${i.state.status || 'open'})`).join('; ')}.`);
   }
   const attention = [];
+  const debts = [];
   const today = Date.now();
   for (const i of all) {
     const s = i.state;
@@ -2734,8 +2886,11 @@ function brief() {
     if ((s.status || 'open') === 'open' && s.updated_at && (today - Date.parse(s.updated_at)) / DAY > 30) attention.push(`${s.title || i.slug} unchanged since ${s.updated_at.slice(0, 10)}`);
     if (s.watch && validDate(s.watch.recheck) && Date.parse(s.watch.recheck) <= today) attention.push(`watch on ${s.title || i.slug} is due (${s.watch.metric}, recheck ${s.watch.recheck}): compare against its bands, and a breach starts a new initiative`);
     if ((s.status || 'open') === 'open' && s.claim && s.claim.at && (today - Date.parse(s.claim.at)) / DAY > 14) attention.push(`${s.title || i.slug} is ${claimNote(s)}: still theirs, or release it (\`bos.mjs claim --release\`)`);
-    if ((s.status || 'open') !== 'closed' && !schemaProblems(i).length) { const debt = gateDebt(i); if (debt.length) attention.push(debtLine(i, debt)); }
+    if ((s.status || 'open') !== 'closed' && !schemaProblems(i).length) { const debt = gateDebt(i); if (debt.length) debts.push([i, debt]); }
   }
+  // One line for the debt however many initiatives owe it: the briefing is read, not scanned.
+  if (debts.length === 1) attention.push(debtLine(...debts[0]));
+  else if (debts.length) { const ids = [...new Set(debts.flatMap(([, d]) => d.flatMap((x) => x.conditions.map((c) => c.id))))]; attention.push(`${debts.length} initiatives owe conditions added since their gates passed (${ids.slice(0, 6).join(', ')}${ids.length > 6 ? ` and ${ids.length - 6} more` : ''}): debt, not a failure; meet each when the work touches that phase again (\`bos.mjs doctor\` lists them)`); }
   for (const i of all) { const pr = schemaProblems(i); if (pr.length) attention.push(`${i.slug}/state.json does not follow the schema (${pr.slice(0, 3).join(', ')})`); }
   const ts = techStale();
   if (ts) attention.push(ts);
@@ -2749,6 +2904,10 @@ function brief() {
   if (vs) attention.push(vs);
   const elsewhere = branchOnlyInitiatives(all);
   if (elsewhere.length) attention.push(`initiatives not on this checkout: ${elsewhere.join('; ')}`);
+  const unfinished = all.filter((i) => (i.state.status || 'open') !== 'closed');
+  if (unfinished.length > OPEN_LIMIT) { const paused = unfinished.filter((i) => i.state.status === 'paused').length; attention.push(`${unfinished.length} initiatives are not closed${paused ? `, ${paused} of them paused` : ''}: finish, close or kill some before starting another (\`record N --kill\` keeps the reasoning); each one open is a thread to hold`); }
+  const parallel = parallelPlans();
+  if (parallel.length) attention.push(`${parallel.join(', ')} ${parallel.length > 1 ? 'track' : 'tracks'} the work outside .builderos/: keep one place that says where things stand, so fold ${parallel.length > 1 ? 'them' : 'it'} into ROADMAP.md and the initiatives, or cut ${parallel.length > 1 ? 'them' : 'it'} to a pointer`);
   const todayIso = new Date().toISOString().slice(0, 10);
   for (const d of decisions()) {
     if (d.revisit === null) attention.push(`decision ${d.name} has no Revisit when condition`);
@@ -2931,7 +3090,9 @@ function roadmap() {
     const kept = bets.get(i.slug);
     if (kept && kept !== '—') return kept;
     const m = (read(path.join(i.dir, ARTIFACTS[3])) || '').match(/^##\s*Selected:\s*(.+)$/m);
-    return m ? m[1].replace(/^\S+\s+[—-]\s+/, '').replace(/\|/g, '/').trim() : '—';
+    if (m) return m[1].replace(/^\S+\s+[—-]\s+/, '').replace(/\|/g, '/').trim();
+    const t = threadOf(i, '');
+    return t.building ? t.building.replace(/\|/g, '/') : '—';
   };
   const open = all.filter((i) => (i.state.status || 'open') !== 'closed');
   const closed = all.filter((i) => i.state.status === 'closed');
@@ -2982,7 +3143,7 @@ function newInitiative(slug) {
   writeJSON(path.join(dir, 'state.json'), state);
   writeJSON(path.join(BOS, 'local.json'), { active: slug });
   roadmap();
-  console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused.`);
+  console.log(`Created initiatives/${slug}/ (${track}, ${state.mode}), active on this checkout. Other open initiatives are now paused. Open ${track === 'change' ? 'CHANGE.md' : 'BRIEF.md'} with **Building:** and **Why:**, one sentence each, written with the person.`);
 }
 
 // The project memory a first run needs, and nothing invented: the folders, an empty roadmap, the ignore lines.
@@ -3127,7 +3288,7 @@ function coverMandate(init) {
     s.updated_at = now;
     writeJSON(path.join(init.dir, 'state.json'), s);
     roadmap();
-    console.log(`${why}: ${init.slug} is now ${to === 'internal' ? 'internal' : 'a feature'}, still at phase 0. ${to === 'internal' ? 'Add the need to `00-request.md`, run `gate N`, then `cover --n5`.' : 'Run `gate C`, then `cover --c4`.'}`);
+    console.log(`${why}: ${init.slug} is now ${to === 'internal' ? 'internal' : 'a feature'}, still at phase 0. ${to === 'internal' ? 'Add the need to the request (`BRIEF.md` → Request), run `gate N`, then `cover --n5`.' : 'Run `gate C`, then `cover --c4`.'}`);
     process.exit(1);
   }
   const used = [...new Set(tags(section(read(path.join(init.dir, REQUEST)), 'Request')).filter((t) => t.cls !== 'assumption' && t.cls !== 'estimate').map((t) => `${t.cls}:${t.id}`))];
@@ -3200,7 +3361,7 @@ function upgrade() {
   s.updated_at = now;
   writeJSON(path.join(init.dir, 'state.json'), s);
   roadmap();
-  console.log(`${init.slug} is now ${to}, back at phase 0; the artifacts written so far stay where they are.${to === 'feature' ? ' Run `gate C`, then `cover --c4`.' : to === 'internal' ? ' Add the need to `00-request.md`, run `gate N`, then `cover --n5`.' : ''}`);
+  console.log(`${init.slug} is now ${to}, back at phase 0; the artifacts written so far stay where they are.${to === 'feature' ? ' Run `gate C`, then `cover --c4`.' : to === 'internal' ? ' Add the need to the request (`BRIEF.md` → Request), run `gate N`, then `cover --n5`.' : ''}`);
 }
 
 // Record a gate result in state.json from the script's own verdict plus the model's verdict on the judge
@@ -3275,7 +3436,7 @@ function record(which) {
   const gateEntry = { passed: passing, checked_at: now, bos_version: VERSION, checked_by: j.checked_by, skipped: j.skipped || [], failed_conditions: failed, overridden: Boolean(passing && failed.length) };
   if (gateEntry.overridden) { gateEntry.override_reason = override; gateEntry.waived = waived; }
   if (gateEntry.passed && nonEmpty(acceptedBy)) { gateEntry.accepted_by = acceptedBy; gateEntry.accepted_at = now; }
-  const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: ARTIFACTS[n], gate: gateEntry });
+  const ph = (s.phases[String(n)] = { ...(s.phases[String(n)] || {}), artifact: docLabel(init.dir, ARTIFACTS[n]), gate: gateEntry });
   s.history = s.history || [];
   s.updated_at = now;
   if (!gateEntry.passed) {
@@ -3576,6 +3737,76 @@ function watch() {
 
 // ---------- migrate ----------
 
+// What the build records while it runs, moved from the plan to LOG.md: the plan stays a plan.
+const LOG_SECTIONS = ['Test output', 'Instrumentation', 'Eval results', 'Interface review', 'Craft critique', 'Demo', 'Security review', 'Performance', 'Tried', 'Scope check', 'Review', 'Added after the spec', 'Decisions', 'Spec holes', 'Deviations', 'Retro'];
+const THREAD_LINES = '**Building:** {one sentence: what this initiative builds, in the words of the person who asked}\n**Why:** {one sentence: the problem it removes or the result it moves, with its tag}\n';
+
+// One pre-3.5 file as a part of a merged document: its first level-one heading names the part, any other becomes level two.
+function asPart(md, name) {
+  const lines = md.replace(/\s+$/, '').split('\n');
+  let fence = false, first = true;
+  const wants = name.toLowerCase().split('|');
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*(```|~~~)/.test(lines[i])) { fence = !fence; continue; }
+    if (fence || !/^#\s+\S/.test(lines[i])) continue;
+    const head = lines[i].replace(/^#\s+/, '').trim();
+    if (first) { first = false; if (!wants.some((w) => head.toLowerCase() === w || head.toLowerCase().startsWith(w + ' ') || head.toLowerCase().startsWith(w + ':'))) lines[i] = `# ${name.split('|')[0]}: ${head}`; }
+    else lines[i] = `#${lines[i]}`;
+  }
+  if (first) lines.unshift(`# ${name.split('|')[0]}`, '');
+  return lines.join('\n');
+}
+
+// Split a build plan into what it plans and what the build recorded.
+function splitPlan(md) {
+  const lines = md.split('\n');
+  const plan = [], log = [];
+  let fence = false, into = plan;
+  for (const l of lines) {
+    if (/^\s*(```|~~~)/.test(l)) fence = !fence;
+    if (!fence && /^##\s/.test(l)) { const h = l.replace(/^##\s+/, '').toLowerCase(); into = LOG_SECTIONS.some((x) => h.startsWith(x.toLowerCase())) ? log : plan; }
+    else if (!fence && /^#\s/.test(l)) into = plan;
+    into.push(l);
+  }
+  return { plan: plan.join('\n').replace(/\s+$/, '') + '\n', log: log.join('\n').replace(/\s+$/, '') };
+}
+
+// bos.mjs migrate --layout: an initiative's one-file-per-phase documents become the four (or CHANGE.md),
+// without changing a word inside them. The thread lines are left for the model to write with the person.
+function migrateLayout() {
+  const all = loadInitiatives();
+  const targets = flag('--all') ? all.filter((i) => (i.state.status || 'open') !== 'closed') : [resolveActive(all) || die('no active initiative: pass --initiative <slug>, or --all')];
+  for (const i of targets) {
+    const own = (f) => readFile(path.join(i.dir, f));
+    const legacy = [REQUEST, ...ARTIFACTS, 'DESIGN.md'].filter((f) => own(f) !== null);
+    if (!legacy.length) { console.log(`${i.slug}: already in the four-document layout`); continue; }
+    const clash = DOC_FILES.filter((f) => own(f) !== null);
+    if (clash.length) { console.log(`${i.slug}: has both layouts (${clash.join(', ')} next to ${legacy.join(', ')}): merge by hand`); continue; }
+    const title = i.state.title || i.slug;
+    const built = own(ARTIFACTS[5]) !== null ? splitPlan(own(ARTIFACTS[5])) : null;
+    const join = (parts) => parts.filter(([f]) => own(f) !== null).map(([f, name]) => asPart(f === ARTIFACTS[5] ? built.plan : own(f), name)).join('\n\n');
+    const files = {};
+    const head = (kind) => `# ${kind}: ${title}\n\n${THREAD_LINES}\n`;
+    if ((i.state.track || 'product') === 'change') {
+      files['CHANGE.md'] = head('Change') + join([[REQUEST, 'Request'], ['DESIGN.md', 'Design'], [ARTIFACTS[4], 'Spec'], [ARTIFACTS[5], 'Plan|Build'], [ARTIFACTS[6], 'Release']]) + '\n';
+    } else {
+      const brief = join([[REQUEST, 'Request'], [ARTIFACTS[0], 'Frame'], [ARTIFACTS[1], 'Discovery'], [ARTIFACTS[2], 'Definition'], [ARTIFACTS[3], 'Bet|Solution Bet']]);
+      files['BRIEF.md'] = head('Brief') + brief + (brief ? '\n' : '');
+      const spec = join([['DESIGN.md', 'Design'], [ARTIFACTS[4], 'Spec']]);
+      if (spec) files['SPEC.md'] = spec + '\n';
+      if (built) files['PLAN.md'] = built.plan;
+      const result = join([[ARTIFACTS[6], 'Release'], [ARTIFACTS[7], 'Outcome']]);
+      if (result) files['RESULT.md'] = result + '\n';
+    }
+    if (built && built.log) files['LOG.md'] = `# Build log: ${title}\n\nWhat the build recorded while it ran: runs, reviews, the demo, what was tried, decisions taken on the way. The plan is in ${files['PLAN.md'] ? 'PLAN.md' : 'CHANGE.md → Plan'}.\n\n${built.log}\n`;
+    for (const [f, text] of Object.entries(files)) fs.writeFileSync(path.join(i.dir, f), text);
+    for (const f of legacy) fs.rmSync(path.join(i.dir, f));
+    const words = Object.fromEntries(Object.entries(files).map(([f, t]) => [f, wordsIn(t)]));
+    console.log(`${i.slug}: ${legacy.join(', ')} → ${Object.keys(files).map((f) => `${f} (${words[f]} words)`).join(', ')}. Write **Building:** and **Why:** at the top of ${files['CHANGE.md'] ? 'CHANGE.md' : 'BRIEF.md'} with the person, then cut each part to its cap (gate E.3).`);
+  }
+  roadmap();
+}
+
 function migrate() {
   const old = readJSON(path.join(BOS, 'state.json'));
   if (!old) die('no .builderos/state.json to migrate');
@@ -3740,7 +3971,7 @@ else if (cmd === 'cover') cover();
 else if (cmd === 'upgrade') upgrade();
 else if (cmd === 'record') record(args[1]);
 else if (cmd === 'defer-review') deferReview();
-else if (cmd === 'migrate') migrate();
+else if (cmd === 'migrate') flag('--layout') ? migrateLayout() : migrate();
 else if (cmd === 'pace') pace();
 else if (cmd === 'watch') watch();
 else if (cmd === 'vendor') vendor();

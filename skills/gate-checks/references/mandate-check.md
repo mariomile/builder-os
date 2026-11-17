@@ -1,12 +1,17 @@
 # Mandate Check (change track)
 
-Read when initializing work classified as `change`. E.1 and E.2 apply too, against `00-request.md`.
+Read when initializing work classified as `change`. E.1 to E.4 apply too, against `CHANGE.md` → Request.
 
 Runs once, at initialization, when the work is classified as `change`: a modification to a product that already exists whose reason and solution were decided before BuilderOS saw it. A bug with an obvious correct behavior, debt the team agreed to pay, a rule the product must now follow, a contract that promised a specific capability, a removal already decided. It stands in for gates 0 to 3: the mandate replaces the problem frame, the discovery, the outcome metric and the bet, because nobody has a choice to make there. It does not replace anything after: the spec, the build and the release run their gates in full.
 
-`00-request.md` in the initiative folder, the same file the feature track uses, plus the mandate:
+`CHANGE.md` in the initiative folder: the one document of a change. The thread on top, then the Request part with the mandate; the spec, the plan and the release add their parts below it (`# Design` only when the interface changes).
 
 ```markdown
+# Change — {title}
+
+**Building:** {one sentence: what this change does, in the words of the person who asked}
+**Why:** {one sentence: the mandate in plain words, with its tag}
+
 # Request — {title}
 
 ## Request

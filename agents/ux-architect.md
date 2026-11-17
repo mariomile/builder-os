@@ -20,7 +20,7 @@ Second: the accessibility floor is stated before building. Keyboard path, contra
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `03-solution-bet.md`, and the user's request verbatim.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `BRIEF.md` → Bet, and the user's request verbatim.
 
 The primary user action from the bet is the flow you design. Everything else serves it, and a flow that does not trace back to it is scope creep arriving before implementation.
 
@@ -28,6 +28,6 @@ The rules and the look are not yours to pick: `builder-os:domain-model` and `bui
 
 ## Reporting
 
-End with `## DESIGN COMPLETE`, writing `DESIGN.md` in the output contract from `builder-os:ux-architecture`: placement with its diff, flows with every entry point and the abandonment behavior, the state matrix with real error strings, the component inventory, and the accessibility floor.
+End with `## DESIGN COMPLETE`, writing `SPEC.md` → Design in the output contract from `builder-os:ux-architecture`: placement with its diff, flows with every entry point and the abandonment behavior, the state matrix with real error strings, the component inventory, and the accessibility floor.
 
 Hand the flow list to `builder-os:spec-writing`. Gate 4.3 and gate 4.5 are checked against your output.

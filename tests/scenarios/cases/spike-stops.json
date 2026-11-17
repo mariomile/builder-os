@@ -8,6 +8,6 @@
     "output_matches": ["(?i)spike"],
     "history_events": ["track_set"],
     "state": { "initiative": "slack-spike", "track": "spike" },
-    "files_absent": [".builderos/initiatives/slack-spike/02-definition.md", ".builderos/initiatives/slack-spike/04-spec.md"]
+    "files_absent": [".builderos/initiatives/slack-spike/02-definition.md", ".builderos/initiatives/slack-spike/04-spec.md", ".builderos/initiatives/slack-spike/SPEC.md", ".builderos/initiatives/slack-spike/PLAN.md"]
   }
 }

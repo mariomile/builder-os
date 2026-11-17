@@ -1,12 +1,17 @@
 # Need Check (internal track)
 
-Read when initializing work classified as `internal`. E.1 and E.2 apply too, against `00-request.md`.
+Read when initializing work classified as `internal`. E.1 and E.2 apply too, against `BRIEF.md` → Request.
 
 Runs once, at initialization, when the work is classified as `internal`: a tool whose users are the builder or their own team, reachable by name, where the job is known and only the way to do it is open. Nobody outside uses it or pays for it, so there is no customer to interview, no market to size and no launch to plan. It stands in for gates 0 to 2: the builder's own account of the job replaces the frame, the discovery and the outcome metric, because the person who has the problem is the person deciding. It does not replace anything after: phase 3 compares the ways to do it, and the spec, the build and the release run their gates. Phase 7 runs only when the release sets an outcome review, as on the change track.
 
-`00-request.md` in the initiative folder, the same file the feature and change tracks use, plus the need:
+`BRIEF.md` in the initiative folder, as on the feature track: the thread on top, then the Request part with the need:
 
 ```markdown
+# Brief — {title}
+
+**Building:** {one sentence: what this initiative builds, in the words of the person who asked}
+**Why:** {one sentence: the problem it removes or the result it moves, with its tag}
+
 # Request — {title}
 
 ## Request

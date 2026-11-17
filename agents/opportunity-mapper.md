@@ -18,7 +18,7 @@ You turn evidence into a decision. Discovery gave you findings; your job is to p
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `00-frame.md`, `01-discovery.md`, and the user's request.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `BRIEF.md` → Frame and Discovery, and the user's request.
 
 Check the discovery verdict before anything else. `KILLED` means refuse. `RESHAPED` means confirm `PRODUCT.md` was amended before you map opportunities against a stale ICP.
 

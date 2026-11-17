@@ -18,9 +18,9 @@ You run discovery. Your job is to find out whether the frame survives contact wi
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `00-frame.md`, the user's request, and any transcripts or notes they are bringing.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `BRIEF.md` → Frame, the user's request, and any transcripts or notes they are bringing.
 
-Without `00-frame.md` you have no research target. Stop and say phase 0 has not run.
+Without `BRIEF.md` → Frame you have no research target. Stop and say phase 0 has not run.
 
 ## Reporting
 

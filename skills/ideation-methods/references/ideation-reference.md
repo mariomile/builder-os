@@ -58,13 +58,13 @@ Cost bands are orders of magnitude for planning, not estimates for a specific te
 
 ## Output template
 
-Lifecycle path: `.builderos/initiatives/{initiative}/03-solution-bet.md`. Standalone output adapts it only where useful and omits lifecycle gate claims.
+Lifecycle path: `.builderos/initiatives/{initiative}/BRIEF.md` → Bet. Standalone output adapts it only where useful and omits lifecycle gate claims.
 
 ```markdown
 # Solution Bet — {product}
 
 ## Opportunity
-{from 02-definition.md, with its evidence tags}
+{from BRIEF.md → Definition, with its evidence tags}
 
 ## Divergence
 | # | Raw idea | Prompt | From |

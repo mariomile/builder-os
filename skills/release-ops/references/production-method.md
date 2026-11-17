@@ -50,7 +50,7 @@ The video from the end-to-end run shows the flow works. A person using it shows 
 | What they tried | What they found | What happened |
 |---|---|---|
 | the first day with a new account | the import step asks for a file before saying which | fixed: the step shows a sample file |
-| an export of 2,000 rows | took 6 seconds with no progress | recorded in DESIGN.md: progress bar in slice 3 |
+| an export of 2,000 rows | took 6 seconds with no progress | recorded in SPEC.md → Design: progress bar in slice 3 |
 ```
 
 ## Example

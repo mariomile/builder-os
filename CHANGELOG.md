@@ -2,6 +2,20 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [3.5.0] - 2026-11-17
+
+### Changed: four documents per initiative, and the thread on top
+
+A real run on a live product (eight initiatives, about 1.9 MB of Markdown in `.builderos/`) showed that one file per phase loses the thread: build plans of 200 to 300 KB that had become diaries, "light" changes with a 90 KB spec and a 100 KB plan, the roadmap's "Bet in one line" empty for seven of eight initiatives, and a hand-kept plan outside BuilderOS that was the only place saying where things stood. Proposed in the project thread "Semplificare il filo tra i documenti".
+
+- **Four documents, each phase a part.** `BRIEF.md` (request or frame, discovery, definition, bet), `SPEC.md` (design and spec), `PLAN.md` (the build plan) and `RESULT.md` (release and outcome), each phase a `# Part` inside its file. What the build records while it runs (runs, reviews, demo, what was tried, decisions taken on the way) goes to `LOG.md`, so the plan stays a plan; gate 5 reads both. A change keeps every part in one `CHANGE.md`. From 11 files per initiative to 5, or 2 on a change.
+- **The thread.** `BRIEF.md` or `CHANGE.md` opens with `**Building:**` and `**Why:**`, one sentence each, written with the person (gate E.4). The status page and `STATUS.md` show them on every initiative with **Now**, computed from state and the plan's slice table ("phase 5 Build, 4 of 12 slices done"), so the lines are never stale. The roadmap's bet column falls back to the Building line.
+- **Word caps (gate E.3).** Each part the gate reads stays under its cap, fenced blocks not counted: Request 600, Frame 800, Discovery 1,500, Definition 1,200, Bet 1,800, Design 3,000, Spec 3,500, Plan 2,500, Release 1,500, Outcome 1,000; about half on a change. `LOG.md` has none.
+- **The briefing says when the thread is split.** An Attention line when more than two initiatives are not closed (how many are paused), and when a plan is kept by hand outside `.builderos/` (`docs/PLAN.md`, `STATUS.md`, …). Debt owed by several initiatives is one line instead of one per initiative.
+- **The status page's Goals show only what is being worked on**: a paused initiative's metric no longer sits on top.
+- **Earlier initiatives keep working.** One-file-per-phase initiatives read and gate as before (E.4 warns). `bos.mjs migrate --layout [--all]` merges them into the new documents without changing a word, moves the build's record to `LOG.md`, and leaves the thread lines to write with the person. On the run above, every gate gave the same verdicts before and after.
+- Skills, templates, commands and agents name the new documents. `tests/scripts/document-layout.test.mjs` (5 tests).
+
 ## [3.4.1] - 2026-11-04
 
 ### Changed

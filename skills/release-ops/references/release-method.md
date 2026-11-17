@@ -8,7 +8,7 @@ The two failures this phase prevents are both quiet. A release with no tested ro
 
 ## Prerequisite
 
-A missing `05-build-plan.md` stops the phase: shipping unverified work is what gate 5 exists to prevent.
+A missing `PLAN.md` stops the phase: shipping unverified work is what gate 5 exists to prevent.
 
 ## Rollout Strategies
 

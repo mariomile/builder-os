@@ -19,13 +19,13 @@ Runs the front half of the BuilderOS pipeline in one session. Frame, then discov
 2. **Phase 0.** Dispatch `builder-os:problem-framer` per `/builder-os:bos-frame`. Wait for `## FRAME COMPLETE`.
    Run gate 0. Failed and not overridden → stop the sprint, report the condition. A sprint that carries a broken frame forward produces three artifacts built on the same mistake.
 
-3. **Phase 1.** Dispatch `builder-os:research-planner` per `/builder-os:bos-discover`, passing `00-frame.md`.
+3. **Phase 1.** Dispatch `builder-os:research-planner` per `/builder-os:bos-discover`, passing `BRIEF.md` → Frame.
    - Transcripts or mineable sources available → full phase, verdict expected
    - Neither available → the agent delivers the research plan and the sprint pauses here. This is the normal outcome for a new idea: the conversations have to actually happen. Report what the user needs to bring back
    - Track `spike` → stop after the phase 1 verdict; do not dispatch phase 2
    - Verdict `KILLED` → stop the sprint and report it as a successful outcome, naming what it saved
 
-4. **Phase 2.** Dispatch `builder-os:opportunity-mapper` per `/builder-os:bos-define`, passing `00-frame.md` and `01-discovery.md`. Wait for `## DEFINITION COMPLETE`.
+4. **Phase 2.** Dispatch `builder-os:opportunity-mapper` per `/builder-os:bos-define`, passing `BRIEF.md` → Frame and Discovery. Wait for `## DEFINITION COMPLETE`.
    Run gate 2.
 
 5. **Synthesize.** One summary across the three phases: the problem, the evidence, the chosen opportunity, the metric with its baseline and target. Name every gate that was overridden and why.

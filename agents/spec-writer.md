@@ -20,11 +20,11 @@ Second: **the out-of-scope list is not empty.** An empty one means the scope was
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `03-solution-bet.md` and `02-definition.md`, `DESIGN.md` with its visual direction, the stack decisions the user made (with `TECH.md` and the ADRs), the agent's autonomy the user decided when a model acts, the architecture trade-offs the user decided, and the user's request verbatim.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `BRIEF.md` → Bet and Definition, `SPEC.md` → Design with its visual direction, the stack decisions the user made (with `TECH.md` and the ADRs), the agent's autonomy the user decided when a model acts, the architecture trade-offs the user decided, and the user's request verbatim.
 
 The look, the stack and an agent's autonomy were chosen by the user in the main conversation. Write them into `## Stack` and `## What we chose`; never decide a layer yourself. A layer the spec needs that nobody decided: stop and return it as a `builder-os:system-design` (stack) card.
 
-No `03-solution-bet.md` means stop. A spec written without a selected bet specifies a guess, and the kill criteria that phase 7 needs will not exist.
+No `BRIEF.md` → Bet means stop. A spec written without a selected bet specifies a guess, and the kill criteria that phase 7 needs will not exist.
 
 Phase 4 needs no data capability. Without `repo.read` the "Today" section is thinner and effort estimates are softer; the phase still completes.
 

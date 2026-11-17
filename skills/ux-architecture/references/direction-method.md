@@ -86,7 +86,7 @@ Kinds of option: the kit already installed; a headless library that brings behav
 
 ## Tokens
 
-Extracted from the chosen version into `DESIGN.md`, in a table the build reads:
+Extracted from the chosen version into `SPEC.md` → Design, in a table the build reads:
 
 | Token group | What to write |
 |-------------|---------------|

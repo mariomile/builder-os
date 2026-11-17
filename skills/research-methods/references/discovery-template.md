@@ -2,13 +2,13 @@
 
 The lifecycle output contract for `research-methods`. Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims.
 
-`.builderos/initiatives/{initiative}/01-discovery.md`:
+`.builderos/initiatives/{initiative}/BRIEF.md` → Discovery:
 
 ```markdown
 # Discovery — {product}
 
 ## Assumption under test
-{From 00-frame.md} `[assumption:unvalidated]`
+{From BRIEF.md → Frame} `[assumption:unvalidated]`
 **Would be falsified by:** {observation}
 
 ## Method

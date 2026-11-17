@@ -20,7 +20,7 @@ Second: **review both axes, against the spec and the accepted plan.** Code that 
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `TECH.md`, `04-spec.md` with its numbered criteria and out-of-scope list, `DESIGN.md` with its state matrix, `05-build-plan.md` with the accepted plan, and the diff under review. It does not carry the build conversation: you are the fresh context.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `TECH.md`, `SPEC.md` with its numbered criteria and out-of-scope list, `SPEC.md` → Design with its state matrix, `PLAN.md` with the accepted plan, and the diff under review. It does not carry the build conversation: you are the fresh context.
 
 The out-of-scope list is the input to gate 5.4. Check the diff against it item by item, not impressionistically.
 

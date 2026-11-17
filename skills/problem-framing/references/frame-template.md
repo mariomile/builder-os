@@ -2,9 +2,14 @@
 
 The lifecycle output contract for `problem-framing`. Standalone output follows the requested format and destination; adapt the template only where useful and omit lifecycle gate claims.
 
-`.builderos/initiatives/{initiative}/00-frame.md`:
+`.builderos/initiatives/{initiative}/BRIEF.md`, which this phase creates: the thread on top (gate E.4), then the Frame part. Later phases add their parts below it.
 
 ```markdown
+# Brief — {title}
+
+**Building:** {one sentence: what this initiative builds, in the words of the person who asked}
+**Why:** {one sentence: the problem it removes or the result it moves, with its tag}
+
 # Frame — {product}
 
 ## Problem

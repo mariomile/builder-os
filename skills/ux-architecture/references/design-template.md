@@ -1,6 +1,6 @@
 # Design Template
 
-The lifecycle output contract for `DESIGN.md` in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction, gate 4.10 its domain model, gate 4.20 the diagrams of its flows and lifecycles and gate 4.21 its messages; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
+The lifecycle output contract for `SPEC.md` → Design in the active initiative's folder, `.builderos/initiatives/{initiative}/`. Gate 4.5 reads its accessibility floor, gate 4.9 its visual direction, gate 4.10 its domain model, gate 4.20 the diagrams of its flows and lifecycles and gate 4.21 its messages; keep the headings and bold labels exactly. Standalone output follows the requested format and destination, adapting this template only where useful and omitting lifecycle gate claims.
 
 ````markdown
 # Design — {feature}

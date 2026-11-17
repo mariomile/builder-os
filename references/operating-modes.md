@@ -10,7 +10,7 @@ A request for a guide, diagnosis, recommendation, document, plan, review or calc
 2. Apply the relevant method, preserving the requested depth and format. State assumptions, unavailable measurements and contradictions without manufacturing a baseline, customer quote or source.
 3. Return the answer inline or write to the requested destination. Do not create initiative state, run lifecycle gates, or log a gate override to justify a standalone draft. A local mirror is required only when an authorized lifecycle needs readback.
 
-Examples: An interview guide can use the supplied research goal without `00-frame.md`. A PRD can use requirements without `03-solution-bet.md`. A task breakdown can use the attached spec without building or claiming tests pass. Release planning does not authorize exposure or publishing.
+Examples: An interview guide can use the supplied research goal without `BRIEF.md` → Frame. A PRD can use requirements without `BRIEF.md` → Bet. A task breakdown can use the attached spec without building or claiming tests pass. Release planning does not authorize exposure or publishing.
 
 Standalone source citations may link directly to sources or identify supplied material. Save raw evidence only when the requested artifact or reproducible analysis needs it, beside that artifact at a permitted destination. Do not initialize `.builderos/` to store citations. Never copy secrets or unrelated customer rows into outputs.
 

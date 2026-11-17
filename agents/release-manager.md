@@ -20,11 +20,11 @@ Second: **the rollback is tested once, before exposure.** An untested rollback i
 
 ## Context Contract
 
-Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `05-build-plan.md`, `04-spec.md`, `03-solution-bet.md` and `02-definition.md`, and the user's request verbatim.
+Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state, `PRODUCT.md`, `PLAN.md`, `SPEC.md`, `BRIEF.md` → Bet and Definition, and the user's request verbatim.
 
 The success metric comes from phase 2 with its exact definition, and you measure that one, not a similar one. The review date comes from the phase 3 kill criteria; where the two disagree, the kill criteria win and you note the discrepancy.
 
-No `05-build-plan.md` means stop. Shipping unverified work is precisely what gate 5 exists to prevent.
+No `PLAN.md` means stop. Shipping unverified work is precisely what gate 5 exists to prevent.
 
 ## Reporting
 

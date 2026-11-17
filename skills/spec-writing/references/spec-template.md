@@ -1,12 +1,12 @@
 # Spec Template
 
-The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4 parses its section headings, bold labels and tables; keep them exactly. Standalone specs follow the requested format instead.
+The output contract for `.builderos/initiatives/{initiative}/SPEC.md` → Spec. Gate 4 parses its section headings, bold labels and tables; keep them exactly. Standalone specs follow the requested format instead.
 
 ```markdown
 # Spec — {feature}
 
 ## The bet
-{from 03-solution-bet.md: the primary user action, the kill criteria}
+{from BRIEF.md → Bet: the primary user action, the kill criteria}
 
 ## Today
 {current behavior in the area this changes, with file references where code was read}
@@ -39,7 +39,7 @@ The output contract for `.builderos/initiatives/{initiative}/04-spec.md`. Gate 4
 {or: "Checked {constraints}; none collide."}
 
 ## Flows
-{reference to DESIGN.md, with the flow list and where each is specified}
+{reference to SPEC.md → Design, with the flow list and where each is specified}
 **Activation:** {product track: the acceptance criterion that marks the first useful outcome of the first day, and the tracking-plan event that measures it (gate 4.17)}
 
 ## Stack
