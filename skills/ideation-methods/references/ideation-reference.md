@@ -100,6 +100,11 @@ Lifecycle path: `.builderos/initiatives/{initiative}/BRIEF.md` → Bet. Standalo
 **Price:** {the price in `PRODUCT.md` → Revenue model, which is written once there, or the change this bet proposes to it (amended in PRODUCT.md when chosen); omit when not for sale}
 **Willingness to pay test:** {how a person from the ICP will show they would pay before the build: pre-order, letter of intent, a click on a price, the price asked in the real-user session}
 
+## First screen
+**Link:** {`design/first-screen.html`, or the prototype's URL}
+**Seen by:** {the person, the date, and what they said in quotes}
+{Or `**None:**` and why this bet has nothing to look at. Gate 3.16.}
+
 ## Kill criteria
 On {date}, below {stop} we {stop / revert / rebuild differently}; between {stop} and {keep} we iterate; above {keep} we keep.
 **Measured by:** {query, event or dashboard}

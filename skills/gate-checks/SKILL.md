@@ -13,14 +13,15 @@ Read `evidence-ledger` when tag counting or source provenance needs clarifying, 
 
 Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, [M Mandate](references/mandate-check.md) on the change track, or [N Need](references/need-check.md) on the internal track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
 
-E.1 and E.2 run on every gate, including the coverage check (against `PRODUCT.md` and the request) and the mandate check, E.3 and E.4 on every initiative gate. A tag without its file is an untagged claim wearing a tag; a provisional block is a recommendation wearing a decision.
+E.1 and E.2 run on every gate, including the coverage check (against `PRODUCT.md` and the request) and the mandate check, E.3 to E.5 on every initiative gate.
 
 | # | Condition | Check |
 |---|-----------|-------|
 | E.1 | Every source tag points at something | Each `interview`, `doc` and `data` tag in the artifact has its file in `evidence/` per the schema, Evidence Files; each `code` tag names a file that exists |
-| E.2 | No provisional work is left | No `**Provisional:**` marker outside code fences, in the artifact or (phase 4) `SPEC.md` → Design: work drafted ahead while a round waited is kept with its marker removed when the person's answer confirmed it, deleted otherwise (`pressure-testing`, Working Ahead) |
+| E.2 | No provisional work is left | No `**Provisional:**` marker outside code fences, in the artifact or (phase 4) `SPEC.md` → Design: drafted-ahead work is kept, marker removed, when the person's answer confirmed it, deleted otherwise (`pressure-testing`, Working Ahead) |
 | E.3 | Each document stays readable | Each part the gate reads is within its word cap (schema, Documents) |
 | E.4 | The thread is written | `BRIEF.md` or `CHANGE.md` opens with `**Building:**` and `**Why:**`; one file per phase warns |
+| E.5 | The intent is written | Under the thread: `**For:**`, `**Done when:**`, `**Not:**` (`pressure-testing`, intent round); fails at an initiative's first gate, warns later |
 
 ## Who Checks
 

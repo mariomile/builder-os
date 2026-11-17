@@ -2,6 +2,22 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [3.6.0] - 2026-11-17
+
+### Changed: the flow asks what you want once, shows the product before the documents, and reports as it builds
+
+The person's own messages on a real run (248 over nineteen days) showed where the flow lost them: the first page of the product six days in, eight "where are we?" messages, questions numbered up to Q27 with some that were never theirs to answer, and the real direction surfacing on day 13.
+
+- **The intent round (gate E.5).** Every initiative opens with one round, before any phase: the agent reads the memory first and presents what it found as "found X in Y: still true?", asks at most five questions for what is missing, and writes the answers in the person's words under the thread: `**For:**`, `**Done when:**`, `**Not:**`. Every phase rereads them; the per-message check names a request that contradicts them; a contradicted line is rewritten with its date. E.5 fails at an initiative's first gate and warns on one already under way. `skills/pressure-testing/references/intent-round.md`.
+- **Design and technical choices are discussed; details are decided and said.** What the user sees, does or pays, the design (layout, navigation, how many screens, the look) and the technical choices that shape the product (stack, architecture, data model, outside services, cost, anything hard to reverse) go to the person as round questions in plain words, each option with what it gains and costs. Details inside those choices are decided by the agent and said in one line, `**Decided:** X, because Y`, reversible. Rounds arrive with the work already drafted on their recommendations.
+- **The first screen before the spec (gate 3.16).** After the bet is chosen, a clickable throwaway of its main screens (fake data, no backend) that the person opens and corrects: `## First screen` with `**Link:**` and `**Seen by:**` in their words, or `**None:**` and why. A warning in lite mode and on the internal track. Where the evidence is thin and the door two-way, phases 0 to 3 fit one session ending on that screen.
+- **A report after every slice (gate 5.18).** `LOG.md` → `## Reports`, one entry per slice marked done: `**Did:**`, `**How:**`, `**Try:**` (a URL, a file or a command to open), `**Next:**`, `**Need from you:**`, in plain words. The status page and `STATUS.md` show **Done when**, **Not** and the **Last** report on every initiative.
+- **Plain words.** A term the agent coined (a gate number, a slice id, a module) is explained the first time it reaches the person, or replaced by what it does.
+
+### Fixed
+
+- **The person log held the host's messages as the person's.** Finished background tasks, messages between agents and delegated-task briefs arrive in the person's turn on some hosts and were appended to `.builderos/person-log.jsonl` (63% of the lines on the run above), so a field that must quote the person could quote an agent. They are no longer logged, and existing lines of that kind are ignored when a quote is checked.
+
 ## [3.5.0] - 2026-11-17
 
 ### Changed: four documents per initiative, and the thread on top

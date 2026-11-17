@@ -23,8 +23,9 @@ function project(t, name) {
   const gate = (n, slug) => JSON.parse(run('gate', String(n), '--json', '--initiative', slug).stdout);
   return { root, write, edit, run, read, exists, gate };
 }
-const verdicts = (g) => g.results.filter((r) => r.id !== 'E.4').map((r) => `${r.id}:${r.status}`).join(' ');
+const verdicts = (g) => g.results.filter((r) => !['E.4', 'E.5'].includes(r.id)).map((r) => `${r.id}:${r.status}`).join(' ');
 const THREAD = '**Building:** a reminder that cuts no-shows\n**Why:** clinics lose a slot a day to patients who forget `[assumption:unvalidated]`\n';
+const INTENT = '**For:** the front desk of a small clinic\n**Done when:** I see tomorrow\'s patients confirmed or flagged on one screen\n**Not:** a booking system\n';
 
 test('migrating to the four documents changes no gate verdict, and leaves the thread to write', (t) => {
   const p = project(t, 'hollow');

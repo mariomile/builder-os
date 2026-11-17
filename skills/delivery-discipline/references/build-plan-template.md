@@ -113,6 +113,16 @@ The output contract for phase 5. Copy the headings, bold field labels and tables
 | {largest contentful paint at the narrowest width; with an interface} | {2.5 s} | {} | {} | {} |
 {Skipped when the spec's quality bar says performance does not apply}
 
+## Reports
+### {slice number and name}
+**Did:** {what now works, in the person's words: no gate numbers, no module names}
+**How:** {one line a non-engineer follows; each choice made alone as "Decided: X, because Y"}
+**Try:** {the preview URL, a screenshot file, or the `Run` command and where to click}
+**Next:** {the slice that follows, and what the person will be able to open after it}
+**Need from you:** {a decision, an account, a look; "nothing" when nothing}
+
+{Gate 5.18: one report per slice marked done in PLAN.md → Slices, sent to the person when the slice closes and kept here. A slice with nothing to open (a migration, a refactor) shows the test run or the screen it leaves unchanged.}
+
 ## Tried
 **Link:** {the preview URL, or the `Run` command from TECH.md → Verify}
 **Tried by:** {the person who will accept the work, and the date; never the agent}
