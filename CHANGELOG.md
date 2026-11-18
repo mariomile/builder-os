@@ -2,6 +2,17 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [3.9.0] - 2026-11-18
+
+### Changed: the need on the build track is a job to be done
+
+The need named a job, the users, the time it takes today and the target, but not why anyone would switch, nor what they pay for it today. The case Mario hit was replacing a tool the client pays for: nothing asked what it costs, when it renews, what has to move, or which of its features are used at all.
+
+- **The job as a job (N.8).** **Job:** reads "When {situation}, I want {…}, so {…}", in the person's language.
+- **What is hired today and the forces (N.9).** **Hired today:** names what does the job now and what it costs, tagged; `### Forces` carries **Push**, **Pull**, **Anxiety** and **Habit**. Anxiety and habit are the release's risks.
+- **Replacing a paid tool (N.10, 3.17).** When what is hired today is paid for, `### Replacing` holds the tool, its cost, renewal date, the data to export, the integrations, and its features rated by use (daily to never). Only the features in use enter the feature map, and `## Value` counts **Licence saved:** beside the hours: keeping the tool is the option to beat.
+- **Drafted, then asked.** The agent drafts the need from the person's account and their materials (the tool's feature page, an export, the invoice) and asks only what is missing, in one round.
+
 ## [3.8.0] - 2026-11-18
 
 ### Changed: an idea goes straight to building it well; discovery is asked for, not assumed

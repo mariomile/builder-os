@@ -35,7 +35,7 @@ const write = (root, slug, file, body) => {
 const state = (root, slug) => JSON.parse(fs.readFileSync(path.join(INIT(root, slug), 'state.json'), 'utf8'));
 const evidence = (root, slug) => write(root, slug, 'evidence/user-2026-11-03-proposals.md', '# user-2026-11-03-proposals\n\n**Class:** doc\n**Captured:** 2026-11-03 · **By:** Mario · **Where:** the thread\n\n"Every proposal takes me 90 minutes of copying from three sheets, about four a week."\n');
 
-const NEED = (today = 'about 90 minutes per proposal, four a week `[doc:user-2026-11-03-proposals]`') => `# Request — Proposal builder
+const NEED = (today = 'about 90 minutes per proposal, four a week `[doc:user-2026-11-03-proposals]`', extra = '') => `# Request — Proposal builder
 
 ## Request
 "I want proposals to build themselves from the three sheets." (Mario)
@@ -44,10 +44,17 @@ const NEED = (today = 'about 90 minutes per proposal, four a week `[doc:user-202
 **Population:** Mario
 
 ## Need
-**Job:** turning a client's data in three sheets into a proposal
+**Job:** when a client sends their three sheets, I want the proposal drafted from them, so I can send it the same day
 **Users:** Mario
 **Today:** ${today}
+**Hired today:** a Word template and copy-paste by hand \`[doc:user-2026-11-03-proposals]\`
 **Done when:** a proposal takes under 15 minutes, by 2026-12-15
+${extra}
+### Forces
+**Push:** 90 minutes each and typos in prices
+**Pull:** a proposal out the same day the sheets arrive
+**Anxiety:** a wrong price reaching a client
+**Habit:** the template Mario knows by heart
 
 ### Steps today
 1. Mario exports the client's three sheets
@@ -88,7 +95,8 @@ test('a clear idea starts from the pressure test and its need: gate N, then phas
   assert.match(gate(root, 'N').detail['N.7'], /no "## Context brief"/);
   grilled(root);
   g = gate(root, 'N');
-  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.6', 'N.7', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
+  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.6', 'N.7', 'N.8', 'N.9', 'N.10', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
+  assert.match(g.detail['N.10'], /not replacing a paid tool/);
   assert.equal(run(root, 'cover').code, 2, 'N.5 must be judged first');
   assert.equal(run(root, 'cover', '--n5', 'Mario is the only user; the job is known, the how is open').code, 0);
   const s = state(root, 'proposals');
@@ -290,4 +298,61 @@ test('the startup path is the product track by the name people use for it', () =
   assert.equal(run(root, 'new', 'venture', '--title', 'New venture', '--track', 'startup', '--reason', 'founding from zero').code, 0);
   const s = state(root, 'venture');
   assert.deepEqual([s.track, s.mode], ['product', 'full']);
+});
+
+const REPLACING = `
+### Replacing
+**Tool:** PandaDoc
+**Cost:** 1,140 EUR a year, 3 seats \`[doc:user-2026-11-03-proposals]\`
+**Renewal:** 2027-02-01
+**Data out:** templates and 2 years of signed proposals, as PDF export
+**Integrations:** HubSpot deal sync
+
+| Feature | Use | Must keep |
+|---|---|---|
+| Proposal templates | daily | yes |
+| E-signature | weekly | yes |
+| Content library | never | no |
+| Analytics on opens | rarely | no |
+`;
+
+test('the need is a job: the situation, the motivation and the result, what is hired today and the four forces', () => {
+  const root = project();
+  start(root);
+  evidence(root, 'proposals');
+  grilled(root);
+  write(root, 'proposals', '00-request.md', NEED().replace(/\*\*Job:\*\*.*\n/, '**Job:** proposals from sheets\n').replace(/\*\*Anxiety:\*\*.*\n/, ''));
+  const g = gate(root, 'N');
+  assert.equal(g.by['N.8'], 'fail');
+  assert.match(g.detail['N.8'], /When \{situation\}/);
+  assert.equal(g.by['N.9'], 'fail');
+  assert.match(g.detail['N.9'], /Anxiety/);
+  write(root, 'proposals', '00-request.md', NEED().replace(/\*\*Job:\*\*.*\n/, '**Job:** quando arriva un listino, voglio la proposta pronta, così la mando in giornata\n'));
+  assert.equal(gate(root, 'N').by['N.8'], 'pass', 'the person\'s own language is kept');
+});
+
+test('replacing a paid tool: the cost, renewal, data and features in use are written, and only those enter the feature map', () => {
+  const root = project();
+  start(root);
+  evidence(root, 'proposals');
+  grilled(root);
+  const paid = NEED().replace(/\*\*Hired today:\*\*.*\n/, '**Hired today:** PandaDoc, 95 EUR a month for 3 seats `[doc:user-2026-11-03-proposals]`\n');
+  write(root, 'proposals', '00-request.md', paid);
+  let g = gate(root, 'N');
+  assert.equal(g.by['N.10'], 'fail');
+  assert.match(g.detail['N.10'], /### Replacing/);
+  write(root, 'proposals', '00-request.md', paid.replace('### Forces', REPLACING.replace('| E-signature | weekly |', '| E-signature | often |') + '\n### Forces'));
+  g = gate(root, 'N');
+  assert.match(g.detail['N.10'], /"Use" is not .* E-signature/);
+  write(root, 'proposals', '00-request.md', paid.replace('### Forces', REPLACING + '\n### Forces'));
+  g = gate(root, 'N');
+  assert.equal(g.by['N.10'], 'pass');
+  assert.match(g.detail['N.10'], /3 of 4 features used/);
+  assert.equal(run(root, 'cover', '--n5', 'Mario, the job is known, the how is open').code, 0);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP('| Proposal templates | a template engine, 3 days | PandaDoc; Docupilot `[doc:user-2026-11-03-proposals]` | build | |\n')));
+  g = gate(root, 3);
+  assert.equal(g.by['3.17'], 'fail');
+  assert.match(g.detail['3.17'], /E-signature, Analytics on opens/);
+  assert.match(g.detail['3.17'], /Licence saved/);
+  assert.doesNotMatch(g.detail['3.17'], /Content library/, 'a feature nobody uses is not rebuilt');
 });
