@@ -29,7 +29,7 @@ Read when running gate 4. E.1, E.2 and the procedure in `SKILL.md` apply too. **
 
 Attested (the script checks the citation and its file, not the event): 4.13, 4.14, 4.22.
 
-**Internal track.** 4.4 maps the tracking plan to `BRIEF.md` → Request → **Done when:** (a log line per run is a tracking plan). 4.9 needs one version, or the look `inherited` or `not applicable` with its reason for a tool with no screen. 4.13, 4.14 and 4.17 are skipped. The threat model holds: an internal tool often holds credentials and client data.
+**Internal track.** 4.4 maps the tracking plan to `BRIEF.md` → Request → **Done when:** (a log line per run is a tracking plan). 4.9 needs one version (the prototype version picked at the solution stop counts), or the look `inherited` or `not applicable` with its reason for a tool with no screen. The rules (4.10), the stack and the trade-offs are drafted on their recommendations and put to the person in the build stop, so one answer can be quoted in each. 4.13, 4.14 and 4.17 are skipped. The threat model holds: an internal tool often holds credentials and client data.
 
 **Change track.** `SPEC.md` → `**Touches:**` lists what the change touches, comma-separated, each explained in parentheses: `interface`, `copy`, `data`, `personal data`, `permissions`, `money`, `messages`, `contracts`, `stack`, or `none of these`. The change always owes 4.1, 4.2 and 4.11; the rest applies by what it touches: interface 4.3, 4.5, 4.9, 4.20; data 4.10, 4.18; personal data or permissions 4.12, 4.19; money 4.7, 4.12, 4.19; messages 4.21; contracts 4.18; stack 4.8. Everything else is skipped and says why. Without `**Touches:**` every condition runs and 4.2 fails.
 

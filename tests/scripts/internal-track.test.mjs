@@ -160,3 +160,43 @@ test('the internal ratchet: only to product; a change on an internal tool that n
   assert.equal(state(other, 'export-fix').track, 'internal');
   assert.equal(run(other, 'upgrade', '--to', 'internal', '--reason', 'x').code, 2, 'internal already, and only a change becomes internal');
 });
+
+test('an estimated today starts the tool with a warning, so nobody is asked to measure before anything exists', () => {
+  const root = project();
+  start(root);
+  evidence(root, 'proposals');
+  write(root, 'proposals', '00-request.md', NEED('about 90 minutes per proposal, four a week `[estimate:mario-guess]`'));
+  const g = gate(root, 'N');
+  assert.equal(g.by['N.3'], 'warn');
+  assert.match(g.detail['N.3'], /estimate/);
+  assert.equal(run(root, 'cover', '--n5', 'the client\'s sales team, named; the job is known, the how is open').code, 0);
+  assert.equal(state(root, 'proposals').current_phase, 3);
+});
+
+const MAP = (rows) => `
+## Feature map
+| Feature | Build | Buy or integrate | Chosen | Source |
+|---|---|---|---|---|
+${rows}
+`;
+
+test('phase 3 on the internal track explores each feature as build, buy or integrate instead of eight abstract ideas', () => {
+  const root = project();
+  start(root);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE));
+  let g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'fail');
+  assert.match(g.detail['3.5'], /Feature map/);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP('| Read the three sheets | a script over the export | the sheets API | maybe | |')));
+  g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'fail');
+  assert.match(g.detail['3.5'], /Chosen/);
+  assert.match(g.detail['3.5'], /source tag/);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP([
+    '| Read the three sheets | a script over the export | the sheets API, free `[doc:sheets-api-pricing]` | integrate | `[doc:sheets-api-pricing]` |',
+    '| Fill the proposal | a template engine `[estimate:mario-timing]` | none found: searched proposal tools that read sheets | build | `[estimate:mario-timing]` |',
+  ].join('\n'))));
+  g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'pass');
+  assert.match(g.detail['3.5'], /2 features mapped: 1 build, 0 buy, 1 integrate/);
+});

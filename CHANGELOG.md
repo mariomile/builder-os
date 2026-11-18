@@ -2,6 +2,19 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [3.7.0] - 2026-11-18
+
+### Changed: a tool for named users goes straight to the solution, with three stops
+
+Tried on a client, the internal track still asked too much: a tool for a client's team failed the need check (it accepted only the builder's own team) and fell onto the full product path, with market size, buying power, why-now and research; and where it passed, about fifteen fields asked the person to choose, accept, authorize or try something before release, while exploring the solution meant eight abstract ideas.
+
+- **A client's team counts (need check N.5).** The internal track covers tools whose users are named people: the builder, their team, or one client's team that commissioned it. It is built for them, not sold to a market. A tool for many buyers is still a feature or a product.
+- **Drafted, not asked (N.3).** The agent writes the need from the person's words and the intent round. An estimated **Today** (`[estimate:*]` or `[assumption:*]`) warns instead of failing, to be measured before the release.
+- **Three stops.** After the intent round the person is asked at three moments only: the solution (feature map, options valued in time, the prototype in two or three versions), the build (the short spec with the rules, stack, connectors and plan), and go live. Every choice in between is drafted on its recommendation and rides in the next stop, so one answer is quoted in each field it settles. `skills/pressure-testing/references/intent-round.md`, Three stops.
+- **The feature map (gate 3.5 on the internal track).** Each feature the tool needs, a way to build it and a way to buy or integrate it (an API, a connector, a service, open source), searched with prices tagged, and the choice: integrate, buy, build or skip. The options are combinations of those choices; the stack reads the map. `skills/ideation-methods/references/ideation-reference.md`, Feature map.
+- **The picked prototype is the spec's source.** On the internal track the design part points at the prototype version chosen at the solution stop and writes only what a screen cannot show: data, rules, integrations, failures, who may do what.
+- **Tried at the release stop (5.17).** A warning on the internal track: the users try it when they are asked to go live.
+
 ## [3.6.0] - 2026-11-17
 
 ### Changed: the flow asks what you want once, shows the product before the documents, and reports as it builds

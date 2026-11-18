@@ -15,6 +15,16 @@ Round 1 of any initiative, before its first phase: what the person has in mind, 
 
 In the lifecycle a round arrives with the work already drafted on its recommendations ([round formats](round-formats.md), Working ahead), so "go with the recommendations" costs no wait.
 
+## Three stops
+
+On the `internal` track the person is asked at three moments after the intent round, and every choice due in between is drafted on its recommendation and rides in the next stop, so one answer covers it and is quoted in each field it settles:
+
+1. **Solution:** the feature map with build, buy or integrate per feature, the options valued in time, and the prototype in two or three versions to click. The answer picks the bet and the version (gates 3.6, 3.16, 4.9).
+2. **Build:** the short spec written from the picked prototype, with the rules, the stack, the connectors and the build plan, each in plain words with what it gains and costs. The answer accepts the spec and the plan (gates 4.10, 4 acceptance, 5.6).
+3. **Go live:** what was built, to open and try, and the rollout. The answer authorizes the release (gates 5.17, 6.8, 6.13, 6 acceptance).
+
+Between stops the work goes on: slice reports carry a link and `**Decided:**` lines, never a question. A choice that cannot wait for its stop (it changes what was picked) is its own round, said as the exception.
+
 ## Plain words
 
 Write to the person in their words. A term of yours (a gate number, a slice id, a module, a name coined in an earlier session) is explained the first time it appears in a message, or replaced by what it does. Product nouns are the ones in `PRODUCT.md` → Language.

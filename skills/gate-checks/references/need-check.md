@@ -2,7 +2,7 @@
 
 Read when initializing work classified as `internal`. E.1 and E.2 apply too, against `BRIEF.md` → Request.
 
-Runs once, at initialization, when the work is classified as `internal`: a tool whose users are the builder or their own team, reachable by name, where the job is known and only the way to do it is open. Nobody outside uses it or pays for it, so there is no customer to interview, no market to size and no launch to plan. It stands in for gates 0 to 2: the builder's own account of the job replaces the frame, the discovery and the outcome metric, because the person who has the problem is the person deciding. It does not replace anything after: phase 3 compares the ways to do it, and the spec, the build and the release run their gates. Phase 7 runs only when the release sets an outcome review, as on the change track.
+Runs once, at initialization, when the work is classified as `internal`: a tool whose users are named people: the builder, their own team, or the team of one client who commissioned it. The job is known and only the way to do it is open. It is built for those people, not sold to a market, so there is no customer to interview, no market to size and no launch to plan. It stands in for gates 0 to 2: the builder's own account of the job replaces the frame, the discovery and the outcome metric, because the person who has the problem is the person deciding. It does not replace anything after: phase 3 compares the ways to do it, and the spec, the build and the release run their gates. Phase 7 runs only when the release sets an outcome review, as on the change track.
 
 `BRIEF.md` in the initiative folder, as on the feature track: the thread on top, then the Request part with the need:
 
@@ -25,8 +25,8 @@ Runs once, at initialization, when the work is classified as `internal`: a tool 
 
 ## Need
 **Job:** {the job the tool does, in the words of the person who does it}
-**Users:** {by name: the builder, or the people on their team}
-**Today:** {how the job is done now: minutes or hours per run and how often, tagged}
+**Users:** {by name: the builder, the people on their team, or the client's people who will use it}
+**Today:** {how the job is done now: minutes or hours per run and how often, tagged; an estimate from what you were told is enough to start}
 **Done when:** {the result the builder will see, with a number and a date: the job in 15 minutes instead of 90, by 2026-12-15}
 ```
 
@@ -34,9 +34,9 @@ Runs once, at initialization, when the work is classified as `internal`: a tool 
 |---|-----------|-------|
 | N.1 | The need has a source | **Evidence** under Request has a `data`, `interview` or `doc` tag. The builder's own words, saved per `evidence-ledger`, are first-hand here: the requester is the user |
 | N.2 | The users are named | **Users** names who will use it |
-| N.3 | Today is measured | **Today** has a number (time per run, runs per week, errors per month) and a `data`, `doc` or `interview` tag. It is the baseline a release with an outcome review captures again |
+| N.3 | Today is counted | **Today** has a number (time per run, runs per week, errors per month) and a tag. Drafted by the agent from what it was told, never asked as a questionnaire: an `estimate` or `assumption` tag warns, to be measured before the release; a `data`, `doc` or `interview` tag passes. It is the baseline a release with an outcome review captures again |
 | N.4 | Done is a result with a date | **Done when** has a number and a date. It is the success metric and the target for phase 4's tracking plan (4.4) and, when it runs, phase 7 (7.1) |
-| N.5 | Internal for real | The users are the builder or their own team, nobody outside uses or pays for it, and the job is known while the way to do it is open. A tool meant for clients, for sale, or for a team the builder cannot reach by name is a `feature` or a `product` |
+| N.5 | Named users for real | The users are the builder, their own team, or one client's team, each reachable by name; the tool is built for them, not sold to a market; and the job is known while the way to do it is open. A tool meant for many buyers, or for people nobody can name, is a `feature` or a `product` |
 
 Script-decided: N.1 to N.4. Model-judged: N.5. The emitted `checked_by` split is authoritative.
 
