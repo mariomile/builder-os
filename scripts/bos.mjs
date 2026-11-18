@@ -74,7 +74,7 @@ const BOS = path.join(ROOT, '.builderos');
 const INIT_DIR = path.join(BOS, 'initiatives');
 
 // The BuilderOS release this script belongs to, stamped on every gate record. Kept equal to package.json by a test.
-const VERSION = '3.8.0';
+const VERSION = '3.9.0';
 const PHASES = ['Frame', 'Discover', 'Define', 'Ideate', 'Shape', 'Build', 'Ship', 'Learn'];
 const PHASE_SKILLS = ['problem-framing', 'research-methods', 'opportunity-mapping', 'ideation-methods', 'spec-writing', 'delivery-discipline', 'release-ops', 'outcome-review'];
 const ARTIFACTS = ['00-frame.md', '01-discovery.md', '02-definition.md', '03-solution-bet.md', '04-spec.md', '05-build-plan.md', '06-release.md', '07-outcome.md'];
@@ -1065,6 +1065,51 @@ function timeValue(bet, lite) {
   const nb = field(sec, 'Not building');
   if (!nonEmpty(nb) || nb.replace(TAG_RE, '').trim().length < 15) problems.push('no "**Not building:**": the best way of not building it (an existing tool, a script, a routine), what it costs, and why it loses');
   return { problems, detail: `${rows.length} options valued in time; not building: ${(nb || '').slice(0, 80)}` };
+}
+
+// The job, as a job: the situation it starts in, what the person wants to get done, and the result that buys them.
+// English or Italian, since the person's own words are kept.
+const JOB_RE = /\b(when|whenever|quando|ogni volta che)\b[\s\S]*?\b(want|need|have to|vogli\w*|vuol\w*|devo|dobbiamo|deve)\b[\s\S]*?(?:\b(?:so|in modo|per)\b|\bcosì)/i;
+const PAID_RE = /[€$£]|\b(eur|usd|gbp|per (month|year|seat|user)|\/(mo|month|yr|year|seat)|al mese|all'anno|a(l)? posto|licen[sz]\w*|subscription|abbonamento|canone)\b/i;
+const USE_RE = /^(daily|weekly|monthly|sometimes|rarely|never|ogni giorno|giornaliero|settimanale|mensile|a volte|raramente|mai)\b/i;
+const NEVER_RE = /^(never|mai)\b/i;
+
+// Gate N.10: when the job is done today by a tool someone pays for, what that tool really is to them: the cost and
+// the renewal that set the deadline, the data and the integrations that have to move, and which of its features are
+// used at all. Only the used ones enter the feature map; keeping the tool is the option to beat.
+function replacing(need) {
+  const hired = field(need, 'Hired today') || '';
+  const sec = subsection(need, 'Replacing');
+  if (sec === null) return PAID_RE.test(hired.replace(TAG_RE, '')) ? { problems: ['"**Hired today:**" names a paid tool and there is no "### Replacing": the tool, its cost, renewal, the data to export, the integrations, and its features with how often each is used'], paid: true } : { problems: [], detail: 'not replacing a paid tool', paid: false };
+  const problems = [];
+  if (!nonEmpty(field(sec, 'Tool'))) problems.push('no "**Tool:**": the product being replaced');
+  const cost = field(sec, 'Cost') || '';
+  if (!/\d/.test(cost.replace(TAG_RE, '')) || !hasTag(cost)) problems.push('"**Cost:**" needs the amount a year (or a month, and the seats) with a tag: the invoice or the pricing page is a doc');
+  const renewal = field(sec, 'Renewal') || '';
+  if (!DATE_RE.test(renewal) && !/\b(monthly|month to month|no contract|mensile|nessun contratto|disdetta libera)\b/i.test(renewal)) problems.push('"**Renewal:**" needs the date the contract renews, or "monthly, no contract": it is the deadline the build races');
+  if (!nonEmpty(field(sec, 'Data out'))) problems.push('no "**Data out:**": what has to leave the tool and how (an export, an API, by hand), or "none"');
+  if (!nonEmpty(field(sec, 'Integrations'))) problems.push('no "**Integrations:**": what is wired to the tool today, or "none"');
+  const rows = tableRows(sec).filter((r) => nonEmpty(r[0]));
+  if (rows.length < 3) problems.push(`${rows.length} features in the "### Replacing" table (3 needed): Feature / Use / Must keep, from the tool's own feature list`);
+  const unrated = rows.filter((r) => !USE_RE.test((r[1] || '').trim()));
+  if (unrated.length) problems.push(`"Use" is not daily, weekly, monthly, sometimes, rarely or never for: ${unrated.map((r) => r[0]).join(', ')}`);
+  const used = rows.filter((r) => !NEVER_RE.test((r[1] || '').trim())).map((r) => r[0]);
+  return { problems, used, paid: true, detail: `replacing ${field(sec, 'Tool')}: ${used.length} of ${rows.length} features used, cost ${cost.replace(TAG_RE, '').trim()}` };
+}
+
+// Gate 3.17 on the build track: a tool being replaced shapes the bet. Every feature in use has a row in the
+// feature map, and the value counts the licence saved beside the hours, since keeping the tool is what this loses to.
+function replacedCovered(bet, request) {
+  const rep = replacing(section(request || '', 'Need') || '');
+  if (!rep.paid || !rep.used) return null;
+  const map = (section(bet, 'Feature map') || '').toLowerCase();
+  const words = (f) => f.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 3);
+  const missing = rep.used.filter((f) => { const w = words(f); return w.length ? !w.some((x) => map.includes(x)) : !map.includes(f.toLowerCase()); });
+  const problems = [];
+  if (missing.length) problems.push(`features of the replaced tool in use with no row in "## Feature map": ${missing.join(', ')} (build, buy, integrate, or skip with the reason)`);
+  const saved = field(section(bet, 'Value') || '', 'Licence saved') || field(section(bet, 'Value') || '', 'License saved') || '';
+  if (!/\d/.test(saved.replace(TAG_RE, '')) || !hasTag(saved)) problems.push('no "**Licence saved:**" under ## Value: what stops being paid a year, tagged, against the cost of building and running the replacement');
+  return { problems, detail: `${rep.used.length} features in use mapped; licence saved: ${saved.replace(TAG_RE, '').trim()}` };
 }
 
 // Gate 3.5 on the build track: the solution is explored feature by feature. Each feature the tool needs, how it
@@ -2226,6 +2271,15 @@ function gateConditions(n, ctx) {
     const brief = section(log, 'Context brief') !== null ? log.slice(log.search(/^##\s+Context brief/m)) : '';
     const briefGaps = ['Goal', 'Decided', 'Out of scope', 'Next step'].filter((k) => !nonEmpty(field(brief, k)));
     pass('N.7', brief && !briefGaps.length, !log ? 'no grilling.md in the initiative folder: pressure-test what to build and where to focus first (pressure-testing)' : !brief ? 'grilling.md has no "## Context brief": the interview is not done until the frontier is empty and the brief is written' : briefGaps.length ? `the context brief has no ${briefGaps.map((k) => `"**${k}:**"`).join(', ')}` : 'pressure-tested, context brief written');
+    // The job as a job, what is hired for it today, and the forces that decide whether the person will switch.
+    const job = field(need, 'Job') || '';
+    pass('N.8', JOB_RE.test(job), !job ? 'no "**Job:**": "When {situation}, I want {to get something done}, so {the result}"' : JOB_RE.test(job) ? 'the job, with its situation, the motivation and the result' : '"**Job:**" is not written as a job: "When {situation}, I want {to get something done}, so {the result}", in the words of the person who does it');
+    const hired = field(need, 'Hired today') || '';
+    const forces = subsection(need, 'Forces') || '';
+    const noForce = ['Push', 'Pull', 'Anxiety', 'Habit'].filter((k) => !nonEmpty(field(forces, k)));
+    pass('N.9', nonEmpty(hired) && hasTag(hired) && !noForce.length, !nonEmpty(hired) ? 'no "**Hired today:**": what does the job now (a tool, a sheet, a person, nothing) and what it costs, tagged' : !hasTag(hired) ? '"**Hired today:**" has no tag' : noForce.length ? `"### Forces" has no ${noForce.map((k) => `"**${k}:**"`).join(', ')}: what pushes away from today, what pulls to the new one, what worries about switching, what habit holds` : `hired today: ${hired.replace(TAG_RE, '').trim().slice(0, 60)}; four forces stated`);
+    const rep = replacing(need);
+    pass('N.10', rep.problems.length === 0, rep.problems.length ? rep.problems.join('; ') : rep.detail);
     judge('N.5', 'is the idea clear: the person knows what to build and for whom, only how to build it is open, and nobody asked to prove the problem first? A problem still unproven, or a request for discovery, is a product');
     return R;
   }
@@ -2359,6 +2413,7 @@ function gateConditions(n, ctx) {
     pass('3.14', size.problems.length === 0, size.problems.length ? size.problems.join('; ') : size.detail);
     if (ctx.track === 'build') judge('3.15', `${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the appetite fit the hours the tool saves, and did the best way of not building it lose for a stated reason?`);
     else judge('3.15', `stage ${stage || 'unknown'}, ${size.door ? size.door.split(/[,.;]/)[0] + ' door' : 'door not declared'}: does the evidence behind the bet meet the bar for this stage and door (business-case, Evidence bar)? A judgment call is declared with its reasoning and a revisit date`);
+    if (ctx.track === 'build') { const rc = replacedCovered(a, ctx.request); if (rc) pass('3.17', rc.problems.length === 0, rc.problems.length ? rc.problems.join('; ') : rc.detail); else skip('3.17', 'not replacing a paid tool'); }
     const fsn = firstScreen(a, ctx);
     (lite || ctx.track === 'build' ? warn : pass)('3.16', fsn.problems.length === 0, fsn.problems.length ? fsn.problems.join('; ') : fsn.detail);
     return R;

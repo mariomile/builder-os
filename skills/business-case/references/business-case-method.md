@@ -99,6 +99,8 @@ On the `build` track, unless `PRODUCT.md` names a revenue model, there is no rev
 
 Hours saved come from `BRIEF.md` → Request → **Today** (minutes per run times runs a week) minus what the option leaves by hand. A day to build is about eight hours of the builder's time, so an option pays back after days × 8 ÷ hours saved a week, in weeks; one that does not pay back well inside the months the tool will be used loses to not building. Upkeep counts: a tool that breaks every month when a sheet changes costs its fixing time. The appetite in `## Bet size` is set from the same arithmetic.
 
+**Replacing a paid tool.** When the need replaces one (`### Replacing`, gate N.10), the licence it stops paying counts beside the hours: `**Licence saved:** 1,140 EUR a year [doc:invoice]` under the table (gate 3.17). The option to beat is keeping it, or moving to a cheaper tool that covers the features in use; the build has to pay back its days and its upkeep (hosting, the APIs it calls, the fixes) before the renewal after next. Data out and integrations are days to build too.
+
 ## The experiment card
 
 An experiment has three parts: a **question** written as a number ("does it exceed 4.5%?"), a **measure** (the exact event counted: an activation with a card on file, a payment, a second use within seven days) and a **decision written before the data**, because afterwards it moves to wherever is convenient.
