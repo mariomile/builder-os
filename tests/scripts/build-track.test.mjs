@@ -284,3 +284,10 @@ test('the spec says how the code will last, and the build is reviewed against it
   spec('\n## Maintainability\n**Structure:** `scripts/proposal.mjs` reads the sheets, `templates/proposal.md` holds the text\n**Simple to change:** the price rules live in `scripts/prices.mjs` only\n**Dependencies:** none new\n');
   assert.equal(gate(root, 4).by['4.23'], 'pass');
 });
+
+test('the startup path is the product track by the name people use for it', () => {
+  const root = project();
+  assert.equal(run(root, 'new', 'venture', '--title', 'New venture', '--track', 'startup', '--reason', 'founding from zero').code, 0);
+  const s = state(root, 'venture');
+  assert.deepEqual([s.track, s.mode], ['product', 'full']);
+});

@@ -5,7 +5,7 @@
 //   node bos.mjs brief                     session briefing, with the attention line
 //   node bos.mjs gate <0-7|C|M|N> [--json] script-decided gate conditions; the rest listed as judge
 //   node bos.mjs init                      first run: .builderos/ folders, an empty ROADMAP.md, the .gitignore lines
-//   node bos.mjs new <slug> --title "..." --track spike|change|build|feature|product [--mode full|lite] [--reason "..."]
+//   node bos.mjs new <slug> --title "..." --track spike|change|build|feature|product (startup) [--mode full|lite] [--reason "..."]
 //                                          create an initiative with a valid state.json and make it active
 //   node bos.mjs resume <slug> [--reason "..."]   make a paused initiative the active one again
 //   node bos.mjs reframe --reason "..."    a new cycle from phase 0, keeping the history
@@ -3258,7 +3258,8 @@ function roadmap() {
 function newInitiative(slug) {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) die('new needs a lowercase hyphenated slug');
   if (!fs.existsSync(path.join(BOS, 'ROADMAP.md'))) die('no .builderos/ROADMAP.md: run `bos.mjs init` first');
-  const track = opt('--track') === 'internal' ? 'build' : opt('--track');
+  // Accepted aliases: internal (build before 3.8.0), startup (the product track by the name people use for it).
+  const track = { internal: 'build', startup: 'product' }[opt('--track')] || opt('--track');
   if (!TRACKS.includes(track)) die('new needs --track spike|change|build|feature|product: classify the work and say why before creating it (references/lifecycle-setup.md, Tracks); on an existing product a change with a mandate (bug, debt, compliance, contract) is change, a new behavior to bet on is feature; an idea whose what is clear and whose how is open is build (the default); product only when the problem itself is unproven or discovery was asked for');
   if (opt('--mode') && !['full', 'lite'].includes(opt('--mode'))) die('mode is full or lite');
   const dir = path.join(INIT_DIR, slug);
@@ -3477,7 +3478,7 @@ function upgrade() {
   const init = resolveActive(loadInitiatives());
   if (!init) die('no active initiative');
   const s = init.state;
-  const to = opt('--to') === 'internal' ? 'build' : opt('--to'), reason = opt('--reason');
+  const to = { internal: 'build', startup: 'product' }[opt('--to')] || opt('--to'), reason = opt('--reason');
   if (s.status === 'closed') die('a closed initiative does not change track');
   if (!['build', 'feature', 'product'].includes(to)) die('upgrade --to build|feature|product');
   if (to === 'build' && s.track !== 'change') die('only a change becomes build: a change on a product not for sale that turned out to need a choice');
