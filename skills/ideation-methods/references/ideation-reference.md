@@ -58,7 +58,7 @@ Cost bands are orders of magnitude for planning, not estimates for a specific te
 
 ## Feature map
 
-On the internal track a tool is a set of features, and most of them already exist somewhere: an API, a connector the agent can call (an MCP server, a native integration), a service with a free tier, an open-source library. Exploring the solution means checking each feature against what exists before drawing anything, because what can be integrated decides what the options are.
+On the build track a product is a set of features, and most of them already exist somewhere: an API, a connector the agent can call (an MCP server, a native integration), a service with a free tier, an open-source library. Exploring the solution means checking each feature against what exists before drawing anything, because what can be integrated decides what the options are.
 
 1. **List the features** from the need and the intent lines: what the tool must do, one verb each ("read the leads from the listing site", "score each lead", "notify the right agent"). Five to ten is usual; more means the tool is two tools.
 2. **Search each feature** with `web.search` and the repository: the services and APIs that do it, the connectors the session already exposes, the open-source options, the client's existing tools (their CRM, their sheets). Prices, limits and terms come with a `[doc:*]` tag from the vendor's page; a price from memory is flagged unverified.

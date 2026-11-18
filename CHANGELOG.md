@@ -2,6 +2,19 @@
 
 All notable changes to BuilderOS. Dates are the date the work landed on a branch, not a publication date.
 
+## [3.8.0] - 2026-11-18
+
+### Changed: an idea goes straight to building it well; discovery is asked for, not assumed
+
+Most work arrives with the idea already clear: a product for oneself, a tool for a client, a feature someone can describe. BuilderOS sent every new idea down the product track, as if each one were a startup to found from zero. Decided by Mario in the project thread (Q5 to Q8, all A).
+
+- **The `build` track, and it is the default** (was `internal`). Any idea the person can describe, for themselves, a team, a client or the users they name. It replaces the frame, the discovery and the definition with a pressure test and the need check, then runs phases 3 to 6. The `product` track, with discovery and the market, runs when the person asks to prove the problem first or does not know yet what to build. Projects from before keep working: `internal` in `state.json` reads as `build`, and `--track internal` makes `build`.
+- **The pressure test (N.7).** On `build` the intent round is the full interview on what to build and where to focus, until the frontier is empty, closed by `## Context brief` in the initiative's `grilling.md` with **Goal:**, **Decided:**, **Out of scope:** and **Next step:**.
+- **Money and market only when it is for sale.** On `build`, go-to-market (3.13) runs once `PRODUCT.md` names a revenue model; otherwise the value is time, and the business case and the money scenarios stay off.
+- **Maintainability (4.23, 5.19).** The spec carries `## Maintainability`: **Structure:** (modules and paths, against `TECH.md` → Map), **Simple to change:** (what will change and the one place it lives), **Dependencies:** (each new one and why). The build review holds the diff to it.
+
+What the default path no longer runs: 31 conditions (gates 0 to 2, 3.7, 3.8, 3.10, 3.11, 3.13 unless for sale, 4.13, 4.14, 4.17, 6.11, 6.12, 6.14, 7.8), replaced by N.1 to N.7, the feature map and the two maintainability checks. Nothing is removed: the product track keeps all of them.
+
 ## [3.7.0] - 2026-11-18
 
 ### Changed: a tool for named users goes deep on the problem and the design, not on the market

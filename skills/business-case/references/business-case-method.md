@@ -85,7 +85,7 @@ An invoicing tool for freelancers has 400,000 active accounts. It considers a pa
 
 ## Internal tools
 
-When the builder is the user (the `internal` track), there is no revenue to estimate: the value is the time the tool gives back, against the time it takes to build and keep. The mistake this guards against is building what an hour of configuration would have done, so one line is always the best way of not building it: a tool already on the market, a script, a shared template, a routine.
+On the `build` track, unless `PRODUCT.md` names a revenue model, there is no revenue to estimate: the value is the time the tool gives back, against the time it takes to build and keep. The mistake this guards against is building what an hour of configuration would have done, so one line is always the best way of not building it: a tool already on the market, a script, a shared template, a routine.
 
 ```markdown
 ## Value

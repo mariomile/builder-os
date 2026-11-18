@@ -11,7 +11,7 @@ Read `evidence-ledger` when tag counting or source provenance needs clarifying, 
 
 ## The Conditions
 
-Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, [M Mandate](references/mandate-check.md) on the change track, or [N Need](references/need-check.md) on the internal track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
+Read `current_phase` from `state.json`, then read only the conditions file for that gate: [0 Frame](references/gate-0-frame.md), [1 Discover](references/gate-1-discover.md), [2 Define](references/gate-2-define.md), [3 Ideate](references/gate-3-ideate.md), [4 Shape](references/gate-4-shape.md), [5 Build](references/gate-5-build.md), [6 Ship](references/gate-6-ship.md), [7 Learn](references/gate-7-learn.md), [C Coverage](references/coverage-check.md) on the feature track, [M Mandate](references/mandate-check.md) on the change track, or [N Need](references/need-check.md) on the build track. Each holds the condition table (id, condition, check), which conditions the script decides, and the phase's recording flags. Read [lite mode](references/lite-mode.md) when `state.json` sets `mode: "lite"`.
 
 E.1 and E.2 run on every gate, including the coverage check (against `PRODUCT.md` and the request) and the mandate check, E.3 to E.5 on every initiative gate.
 
@@ -83,7 +83,7 @@ Each runs once, at initialization, on the request, in place of the early gates:
 
 - **Coverage** (`feature`), gates 0 and 1: [coverage-check.md](references/coverage-check.md). A failure makes a `product`.
 - **Mandate** (`change`), gates 0 to 3: [mandate-check.md](references/mandate-check.md). A failure makes a `feature`.
-- **Need** (`internal`), gates 0 to 2: [need-check.md](references/need-check.md). A failure makes a `product`.
+- **Need** (`build`), gates 0 to 2: [need-check.md](references/need-check.md). A failure makes a `product`.
 
 A `spike` ends at gate 1, `answered` and `closed`: [gate-1-discover.md](references/gate-1-discover.md), Spike Stop.
 
