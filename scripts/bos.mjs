@@ -1074,6 +1074,9 @@ function featureMap(bet) {
   if (!rows.length) problems.push('"## Feature map" has no rows: one per feature the tool needs');
   const open = rows.filter((r) => !nonEmpty(r[1]) || !nonEmpty(r[2]));
   if (open.length) problems.push(`no way to build or to buy or integrate for: ${open.map((r) => r[0]).join(', ')} (write "none found" with what was searched)`);
+  // The first tool that comes up is a candidate, not a choice: two compared, or none found after a search.
+  const single = rows.filter((r) => nonEmpty(r[2]) && !/none found/i.test(r[2]) && r[2].replace(TAG_RE, '').split(/;|\bvs\.?\b/i).filter((x) => x.trim().length > 2).length < 2);
+  if (single.length) problems.push(`one candidate to buy or integrate for: ${single.map((r) => r[0]).join(', ')} (compare at least two, separated by ";", or "none found" with what was searched)`);
   const unchosen = rows.filter((r) => !/^(build|buy|integrate|skip)\b/i.test((r[3] || '').trim()));
   if (unchosen.length) problems.push(`"Chosen" is not build, buy, integrate or skip for: ${unchosen.map((r) => r[0]).join(', ')}`);
   const untagged = rows.filter((r) => !hasTag(r.slice(1).join(' ')));
@@ -2194,6 +2197,10 @@ function gateConditions(n, ctx) {
     (counted && estimated ? warn : pass)('N.3', counted && measured, !today ? 'no "**Today:**": how the job is done now, the time it takes and how often, tagged' : !counted ? '"**Today:**" has no number: minutes or hours per run, and how often' : measured ? 'how the job is done today, measured and tagged' : estimated ? 'today is an estimate: fine to start, measure it before the release so the outcome has a baseline' : '"**Today:**" carries no data, doc, interview or estimate tag');
     const done = field(need, 'Done when') || '';
     pass('N.4', /\d/.test(done.replace(DATE_RE, '').replace(TAG_RE, '')) && DATE_RE.test(done), done ? 'the result, with a number and a date' : 'no "**Done when:**": the result you will see (the job in N minutes instead of M, or done at all) and by when');
+    // Depth on the problem without a discovery: how the job runs today, step by step, and where it breaks.
+    const steps = (subsection(need, 'Steps today') || '').split('\n').filter((l) => /^\s*\d+[.)]\s+\S/.test(l));
+    const breaks = steps.filter((l) => /\bbreaks?:/i.test(l));
+    pass('N.6', steps.length >= 3 && breaks.length >= 1, steps.length < 3 ? `${steps.length} steps under "### Steps today" (3 needed): how the job runs now, one numbered line per step, who does it` : breaks.length ? `${steps.length} steps today, ${breaks.length} marked where it breaks` : 'no step marked "breaks:" under "### Steps today": where the time goes, the errors, the waiting');
     judge('N.5', 'is it a tool for named users: the builder, their team or one client\'s team, reachable by name, built for them and not sold to a market, with the job known and only how to do it open? A tool meant for many buyers is a feature or a product');
     return R;
   }
@@ -2386,7 +2393,7 @@ function gateConditions(n, ctx) {
     const tm = threatInfo(a);
     pass('4.19', tm.problems.length === 0, tm.problems.length ? tm.problems.join('; ') : tm.detail);
     const dg = diagramInfo(ctx);
-    (lite ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
+    (lite && ctx.track !== 'internal' ? warn : pass)('4.20', dg.problems.length === 0, dg.problems.length ? dg.problems.join('; ') : dg.detail);
     const ms = messagesInfo(ctx);
     pass('4.21', ms.problems.length === 0, ms.problems.length ? ms.problems.join('; ') : ms.detail);
     const tr = testsRead(ctx);

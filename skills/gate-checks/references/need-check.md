@@ -28,6 +28,11 @@ Runs once, at initialization, when the work is classified as `internal`: a tool 
 **Users:** {by name: the builder, the people on their team, or the client's people who will use it}
 **Today:** {how the job is done now: minutes or hours per run and how often, tagged; an estimate from what you were told is enough to start}
 **Done when:** {the result the builder will see, with a number and a date: the job in 15 minutes instead of 90, by 2026-12-15}
+
+### Steps today
+1. {who does what, in the tool they use now}
+2. {the next step, breaks: where the time goes, the errors, the waiting}
+3. {…}
 ```
 
 | # | Condition | Check |
@@ -37,8 +42,9 @@ Runs once, at initialization, when the work is classified as `internal`: a tool 
 | N.3 | Today is counted | **Today** has a number (time per run, runs per week, errors per month) and a tag. Drafted by the agent from what it was told, never asked as a questionnaire: an `estimate` or `assumption` tag warns, to be measured before the release; a `data`, `doc` or `interview` tag passes. It is the baseline a release with an outcome review captures again |
 | N.4 | Done is a result with a date | **Done when** has a number and a date. It is the success metric and the target for phase 4's tracking plan (4.4) and, when it runs, phase 7 (7.1) |
 | N.5 | Named users for real | The users are the builder, their own team, or one client's team, each reachable by name; the tool is built for them, not sold to a market; and the job is known while the way to do it is open. A tool meant for many buyers, or for people nobody can name, is a `feature` or a `product` |
+| N.6 | The job is understood step by step | `### Steps today` under the Need lists at least 3 numbered steps (who does what, in which tool) and at least one marked `breaks:` with where the time, the errors or the waiting are. It is the depth a discovery would give, from the people who do the job and their materials in one session; a real discovery runs only when the person asks for one |
 
-Script-decided: N.1 to N.4. Model-judged: N.5. The emitted `checked_by` split is authoritative.
+Script-decided: N.1 to N.4 and N.6. Model-judged: N.5. The emitted `checked_by` split is authoritative.
 
 Where commands run: `scripts/bos.mjs gate N` first (it only reads), fix drafting errors, judge N.5, then `scripts/bos.mjs cover --n5 "why the users are the team and only the how is open"`. Pass: phases 0 to 2 are written `covered`, one `phase_covered` event each with the tags of Request and Need, and the pipeline starts at phase 3 in lite mode. If you judge N.5 a fail, do not call `cover`: run `scripts/bos.mjs upgrade --to product --reason "..."`.
 

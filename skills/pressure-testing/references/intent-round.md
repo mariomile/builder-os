@@ -15,15 +15,14 @@ Round 1 of any initiative, before its first phase: what the person has in mind, 
 
 In the lifecycle a round arrives with the work already drafted on its recommendations ([round formats](round-formats.md), Working ahead), so "go with the recommendations" costs no wait.
 
-## Three stops
+## Depth where it pays (internal track)
 
-On the `internal` track the person is asked at three moments after the intent round, and every choice due in between is drafted on its recommendation and rides in the next stop, so one answer covers it and is quoted in each field it settles:
+A tool for named users skips the market, not the thinking. The depth goes to two places, and the ceremony around them goes away.
 
-1. **Solution:** the feature map with build, buy or integrate per feature, the options valued in time, and the prototype in two or three versions to click. The answer picks the bet and the version (gates 3.6, 3.16, 4.9).
-2. **Build:** the short spec written from the picked prototype, with the rules, the stack, the connectors and the build plan, each in plain words with what it gains and costs. The answer accepts the spec and the plan (gates 4.10, 4 acceptance, 5.6).
-3. **Go live:** what was built, to open and try, and the rollout. The answer authorizes the release (gates 5.17, 6.8, 6.13, 6 acceptance).
+- **The problem, without a discovery.** How the job runs today, step by step, who does each step in which tool, and where it breaks: the time, the errors, the waiting (`### Steps today`, gate N.6). It comes from the people who do the job and their materials, in one session. A month of research runs only when the person asks for it, and then the work is a `spike` or a `product`.
+- **The solution, designed.** The journeys and flows the users will walk, drawn (4.20); the features they need; for each, how to build it and at least two real candidates to buy or integrate, searched and priced (3.5); the stack decided with cards that weigh real alternatives, never the first tool suggested.
 
-Between stops the work goes on: slice reports carry a link and `**Decided:**` lines, never a question. A choice that cannot wait for its stop (it changes what was picked) is its own round, said as the exception.
+The person is asked where a choice is theirs: the solution and the prototype version (3.6, 3.16, 4.9), the spec with its rules, stack, connectors and plan (4.10, 4 acceptance, 5.6), going live (5.17, 6.8, 6.13, 6 acceptance). Choices that fall in between are drafted on their recommendation and ride in the next of these rounds, so one answer is quoted in each field it settles. Slice reports carry a link and `**Decided:**` lines, never a question.
 
 ## Plain words
 
