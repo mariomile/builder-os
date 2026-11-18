@@ -15,12 +15,14 @@ Round 1 of any initiative, before its first phase: what the person has in mind, 
 
 In the lifecycle a round arrives with the work already drafted on its recommendations ([round formats](round-formats.md), Working ahead), so "go with the recommendations" costs no wait.
 
-## Depth where it pays (internal track)
+## Depth where it pays (build track)
 
-A tool for named users skips the market, not the thinking. The depth goes to two places, and the ceremony around them goes away.
+The `build` track is the default for an idea the person can describe. It skips the discovery and the market, not the thinking. The depth goes to three places, and the ceremony around them goes away.
+
+- **What to build, pressure-tested.** On `build` the intent round does not stop at five questions: it is the full interview on what the person really wants and where to focus (for whom, what the first version does and leaves out, what would make it the best), run until the frontier is empty and closed by the context brief in `grilling.md` (gate N.7).
 
 - **The problem, without a discovery.** How the job runs today, step by step, who does each step in which tool, and where it breaks: the time, the errors, the waiting (`### Steps today`, gate N.6). It comes from the people who do the job and their materials, in one session. A month of research runs only when the person asks for it, and then the work is a `spike` or a `product`.
-- **The solution, designed.** The journeys and flows the users will walk, drawn (4.20); the features they need; for each, how to build it and at least two real candidates to buy or integrate, searched and priced (3.5); the stack decided with cards that weigh real alternatives, never the first tool suggested.
+- **The solution, designed.** The journeys and flows the users will walk, drawn (4.20); the features they need; for each, how to build it and at least two real candidates to buy or integrate, searched and priced (3.5); the stack decided with cards that weigh real alternatives, never the first tool suggested; and the spec says how the code will last, `## Maintainability` (4.23), which the build review holds the diff to (5.19).
 
 The person is asked where a choice is theirs: the solution and the prototype version (3.6, 3.16, 4.9), the spec with its rules, stack, connectors and plan (4.10, 4 acceptance, 5.6), going live (5.17, 6.8, 6.13, 6 acceptance). Choices that fall in between are drafted on their recommendation and ride in the next of these rounds, so one answer is quoted in each field it settles. Slice reports carry a link and `**Decided:**` lines, never a question.
 

@@ -33,13 +33,13 @@ The briefing's Attention line covers what the files decide mechanically; the fir
 
 | Requested result | Skill / mode |
 |------------------|--------------|
-| An idea or problem in one sentence ("I want to build X") | Lifecycle requested or project initialized: `builder-os`, starting with no setup questions per [lifecycle setup](../../references/lifecycle-setup.md). Otherwise `problem-framing`'s first round inline, then offer to keep it as an initiative |
+| An idea in one sentence ("I want to build X", "a tool for my client") | `builder-os` on the `build` track, no setup questions ([lifecycle setup](../../references/lifecycle-setup.md)): the pressure test on what to build, then the job today, journeys, features and technology compared, prototype, build, release |
+| A problem to prove before building, discovery asked for, no idea yet of what to build | `builder-os` on the `product` track, or `problem-framing` standalone |
 | Run or continue an initiative; explicitly request a spike | `builder-os`, lifecycle |
 | An effort too big or too foggy for one session; continue a map in `.builderos/maps/` | `wayfinding` |
 | Whether BuilderOS is installed and set up right, what an upgrade left owed | `scripts/bos.mjs doctor` where commands run, relayed; otherwise read the install and memory per [state and session briefing](../../references/builderos-state-schema.md) |
 | What to build next, the weekly or monthly product review, whether the product has reached PMF, in a project with BuilderOS memory | `builder-os`, product review |
 | A fix, a small modification, debt, a compliance or contract change, or a removal on a product with BuilderOS memory | `builder-os` on the `change` track: mandate check, then spec, build, release |
-| A tool for the builder, their team or one client's team, where what is wanted is known and how is not ("the customer is me", "a tool for my client") | `builder-os` on the `internal` track: how the job runs today, then journeys, features and technology compared, prototype, build, release |
 | Frame a problem | `problem-framing`, standalone unless phase 0 requested |
 | Research plan or interview guide | `research-methods`, standalone unless DISCOVER requested |
 | Synthesize supplied research | `research-methods` (synthesis) |

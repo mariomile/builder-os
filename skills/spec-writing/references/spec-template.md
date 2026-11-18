@@ -95,6 +95,12 @@ The output contract for `.builderos/initiatives/{initiative}/SPEC.md` → Spec. 
 | {the highest point the behavior can be tested from: an API, a module interface, the UI} | {criteria by number} | {yes, or new} |
 {Prefer existing seams and as few as possible; phase 5 plans its tests at these}
 
+## Maintainability
+**Structure:** {the modules this work adds or changes and their paths in backticks, following `TECH.md` → Map; or not applicable, why}
+**Simple to change:** {what is likely to change (a rule, a provider, a price, a screen) and the one place it lives}
+**Dependencies:** {each new library or service and why it beats writing it or the alternative compared; or none new}
+{Phase 5 reviews the diff against this section (5.19)}
+
 ## Quality bar
 | Area | Criteria | Not applicable because |
 |------|----------|------------------------|

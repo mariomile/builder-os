@@ -1,5 +1,5 @@
-// Tests for the internal track: a tool whose users are the builder or their own team. The need check stands in
-// for phases 0 to 2, phase 3 values the options in time against the best way of not building, and the gates
+// Tests for the build track (the internal track before 3.8.0): a clear idea, built for the person, their team, a client
+// or whoever they name. The pressure test and the need check stand in for phases 0 to 2, phase 3 values the options in time against the best way of not building, and the gates
 // that look for a market (business case, go-to-market, launch, first outside use) step aside.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -55,11 +55,25 @@ const NEED = (today = 'about 90 minutes per proposal, four a week `[doc:user-202
 3. Mario sends the PDF
 `;
 
+const GRILL = `# Grilling: proposals
+
+| Q | Question | Answer | By | When | Rests on | Status |
+|---|---|---|---|---|---|---|
+| 1 | Who uses it | Mario | Mario | 2026-11-03 | | decided |
+
+## Context brief: proposals
+**Goal:** proposals build themselves from the three sheets
+**Decided:** Q1 Mario is the only user
+**Out of scope:** sending the proposal for the client
+**Next step:** the feature map, by the agent
+`;
+const grilled = (root, slug = 'proposals') => write(root, slug, 'grilling.md', GRILL);
+
 const start = (root, slug = 'proposals') => {
-  assert.equal(run(root, 'new', slug, '--title', 'Proposal builder', '--track', 'internal', '--reason', 'the builder is the user').code, 0);
+  assert.equal(run(root, 'new', slug, '--title', 'Proposal builder', '--track', 'build', '--reason', 'the idea is clear').code, 0);
 };
 
-test('an internal tool starts from its need: gate N, then phases 0 to 2 covered and phase 3 next', () => {
+test('a clear idea starts from the pressure test and its need: gate N, then phases 0 to 2 covered and phase 3 next', () => {
   const root = project();
   start(root);
   assert.equal(state(root, 'proposals').mode, 'lite', 'internal defaults to lite');
@@ -67,8 +81,14 @@ test('an internal tool starts from its need: gate N, then phases 0 to 2 covered 
   assert.equal(run(root, 'cover', '--n5', 'Mario is the only user').code, 2, 'no 00-request.md yet');
   evidence(root, 'proposals');
   write(root, 'proposals', '00-request.md', NEED());
-  const g = gate(root, 'N');
-  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.6', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
+  let g = gate(root, 'N');
+  assert.equal(g.by['N.7'], 'fail', 'no pressure test yet');
+  assert.match(g.detail['N.7'], /grilling\.md/);
+  write(root, 'proposals', 'grilling.md', GRILL.split('## Context brief')[0]);
+  assert.match(gate(root, 'N').detail['N.7'], /no "## Context brief"/);
+  grilled(root);
+  g = gate(root, 'N');
+  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.6', 'N.7', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
   assert.equal(run(root, 'cover').code, 2, 'N.5 must be judged first');
   assert.equal(run(root, 'cover', '--n5', 'Mario is the only user; the job is known, the how is open').code, 0);
   const s = state(root, 'proposals');
@@ -149,7 +169,7 @@ test('ship and learn on the internal track skip the launch and its read, and clo
   assert.equal(gate(root, 7).by['7.8'], 'skip');
 });
 
-test('the internal ratchet: only to product; a change on an internal tool that needs a choice becomes internal', () => {
+test('the build ratchet: only to product; a change on a product not for sale that needs a choice becomes build', () => {
   const root = project();
   start(root);
   assert.equal(run(root, 'upgrade', '--to', 'feature', '--reason', 'colleagues want it').code, 2);
@@ -162,14 +182,15 @@ test('the internal ratchet: only to product; a change on an internal tool that n
   write(other, 'export-fix', 'evidence/user-2026-11-03-proposals.md', '# e\n\n**Class:** doc\n**Captured:** 2026-11-03\n\n"x"\n');
   write(other, 'export-fix', '00-request.md', '# Request — Export\n\n## Request\n"Export it."\n\n**Evidence:** `[doc:user-2026-11-03-proposals]`\n**Population:** Mario\n\n## Mandate\n**Kind:** wish\n**Why no bet:** short\n');
   assert.equal(run(other, 'cover', '--m4', 'x').code, 1);
-  assert.equal(state(other, 'export-fix').track, 'internal');
-  assert.equal(run(other, 'upgrade', '--to', 'internal', '--reason', 'x').code, 2, 'internal already, and only a change becomes internal');
+  assert.equal(state(other, 'export-fix').track, 'build');
+  assert.equal(run(other, 'upgrade', '--to', 'build', '--reason', 'x').code, 2, 'build already, and only a change becomes build');
 });
 
 test('an estimated today starts the tool with a warning, so nobody is asked to measure before anything exists', () => {
   const root = project();
   start(root);
   evidence(root, 'proposals');
+  grilled(root);
   write(root, 'proposals', '00-request.md', NEED('about 90 minutes per proposal, four a week `[estimate:mario-guess]`'));
   const g = gate(root, 'N');
   assert.equal(g.by['N.3'], 'warn');
@@ -222,4 +243,44 @@ test('the need goes deep on how the job runs today, and a feature map compares m
   g = gate(root, 3);
   assert.equal(g.by['3.5'], 'fail');
   assert.match(g.detail['3.5'], /one candidate/);
+});
+
+test('a project from before 3.8.0 keeps working: the internal track reads as build, and --track internal makes build', () => {
+  const root = project();
+  assert.equal(run(root, 'new', 'old', '--title', 'Old tool', '--track', 'internal', '--reason', 'legacy name').code, 0);
+  assert.equal(state(root, 'old').track, 'build');
+  const p = path.join(INIT(root, 'old'), 'state.json');
+  fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace('"track": "build"', '"track": "internal"'));
+  assert.match(run(root, 'brief').out, /need check/);
+  assert.doesNotMatch(run(root, 'brief').out, /does not follow the schema/);
+  evidence(root, 'old');
+  write(root, 'old', '00-request.md', NEED());
+  assert.equal(gate(root, 'N').by['N.5'], 'judge', 'the need check runs on the legacy track');
+});
+
+test('the market questions run on the build track only when the product is for sale', () => {
+  const root = project();
+  start(root);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE));
+  assert.equal(gate(root, 3).by['3.13'], 'skip');
+  fs.appendFileSync(path.join(root, 'PRODUCT.md'), '\n## Business\n**Revenue model:** subscription, €19 a month per agency `[assumption:unvalidated]`\n');
+  const g = gate(root, 3);
+  assert.equal(g.by['3.13'], 'fail');
+  assert.match(g.detail['3.13'], /Go-to-market/);
+});
+
+test('the spec says how the code will last, and the build is reviewed against it (4.23, 5.19)', () => {
+  const root = project();
+  start(root);
+  const spec = (body) => write(root, 'proposals', 'SPEC.md', `# Spec\n\n## The bet\nTemplate filled by a script\n${body}`);
+  spec('');
+  let g = gate(root, 4);
+  assert.equal(g.by['4.23'], 'fail');
+  assert.match(g.detail['4.23'], /Maintainability/);
+  spec('\n## Maintainability\n**Structure:** a script\n**Simple to change:** the template\n');
+  g = gate(root, 4);
+  assert.match(g.detail['4.23'], /no path in backticks/);
+  assert.match(g.detail['4.23'], /Dependencies/);
+  spec('\n## Maintainability\n**Structure:** `scripts/proposal.mjs` reads the sheets, `templates/proposal.md` holds the text\n**Simple to change:** the price rules live in `scripts/prices.mjs` only\n**Dependencies:** none new\n');
+  assert.equal(gate(root, 4).by['4.23'], 'pass');
 });

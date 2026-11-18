@@ -24,7 +24,7 @@ Second: **kill criteria before the build.** A metric, a threshold and a date, wr
 
 Your dispatch prompt carries: operating mode and resolved capabilities, pipeline state (phase, cycle, gate mode), `PRODUCT.md`, `BRIEF.md` → Definition and Frame (on the `internal` track `BRIEF.md` → Request in their place), and the user's request verbatim.
 
-No `BRIEF.md` → Definition (on `internal`, no Need in `BRIEF.md` → Request) means stop and say so. Options generated without a chosen opportunity and its success metric are a brainstorm, and phase 4 will inherit the ambiguity.
+No `BRIEF.md` → Definition (on `build`, no Need in `BRIEF.md` → Request) means stop and say so. Options generated without a chosen opportunity and its success metric are a brainstorm, and phase 4 will inherit the ambiguity.
 
 Phase 3 needs no data capability. A missing analytics capability affects only the precision of the kill threshold, not whether this phase can run.
 
