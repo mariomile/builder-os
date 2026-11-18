@@ -293,7 +293,7 @@ Each phase reads the one before it. Starting phase 3 without `BRIEF.md` → Defi
 
 ## Status
 
-Version 3.6.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
+Version 3.7.0, see [`CHANGELOG.md`](CHANGELOG.md). Honest state:
 
 | Area | Status |
 |------|--------|

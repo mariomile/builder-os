@@ -56,6 +56,25 @@ The threshold is the hard part, because a number written before launch can embar
 
 Cost bands are orders of magnitude for planning, not estimates for a specific team. Write the estimate in days for *this* team, on *this* assumption, and say what it is based on.
 
+## Feature map
+
+On the internal track a tool is a set of features, and most of them already exist somewhere: an API, a connector the agent can call (an MCP server, a native integration), a service with a free tier, an open-source library. Exploring the solution means checking each feature against what exists before drawing anything, because what can be integrated decides what the options are.
+
+1. **List the features** from the need and the intent lines: what the tool must do, one verb each ("read the leads from the listing site", "score each lead", "notify the right agent"). Five to ten is usual; more means the tool is two tools.
+2. **Search each feature** with `web.search` and the repository: the services and APIs that do it, the connectors the session already exposes, the open-source options, the client's existing tools (their CRM, their sheets). Prices, limits and terms come with a `[doc:*]` tag from the vendor's page; a price from memory is flagged unverified.
+3. **Compare beyond the first tool.** The first service a search or a memory suggests is one candidate: name at least two for every feature you would buy or integrate, separated by `;`, each with what it costs, its limits and its fit with what the client already uses, or write none found with what was searched (gate 3.5).
+4. **Write a way to build it and the candidates to buy or integrate it**, with days and money for each, and choose: **integrate** (their existing tool or an API), **buy** (a service that does the whole feature), **build**, or **skip** (not needed now). Prefer what the client already pays for, then integrate, then buy, then build; build where the feature is the reason the tool exists.
+5. **Combine the choices into the options** for step 3: the all-integrate version, the build-the-core version, the not-building version. Their value in time comes next (`business-case`, Internal tools).
+
+```markdown
+## Feature map
+| Feature | Build | Buy or integrate | Chosen | Source |
+|---------|-------|------------------|--------|--------|
+| Read the leads | parse the notification emails, 2 days | the listing site's partner API, free with a contract; a scraping service, about €30 a month | integrate | `[doc:listing-api-terms]` |
+| Send on WhatsApp | no | provider A, about €0.05 a message; provider B, €0.04 plus €15 a month | buy | `[doc:provider-pricing]` |
+| Score the lead | a model call with their rules, 2 days | none found: searched lead-scoring tools for agencies | build | `[estimate:days]` |
+```
+
 ## Output template
 
 Lifecycle path: `.builderos/initiatives/{initiative}/BRIEF.md` → Bet. Standalone output adapts it only where useful and omits lifecycle gate claims.

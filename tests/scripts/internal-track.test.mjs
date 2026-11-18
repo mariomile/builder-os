@@ -48,6 +48,11 @@ const NEED = (today = 'about 90 minutes per proposal, four a week `[doc:user-202
 **Users:** Mario
 **Today:** ${today}
 **Done when:** a proposal takes under 15 minutes, by 2026-12-15
+
+### Steps today
+1. Mario exports the client's three sheets
+2. Mario copies prices and quantities into the template, breaks: 60 of the 90 minutes, and the typos
+3. Mario sends the PDF
 `;
 
 const start = (root, slug = 'proposals') => {
@@ -63,7 +68,7 @@ test('an internal tool starts from its need: gate N, then phases 0 to 2 covered 
   evidence(root, 'proposals');
   write(root, 'proposals', '00-request.md', NEED());
   const g = gate(root, 'N');
-  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
+  assert.deepEqual(['E.1', 'N.1', 'N.2', 'N.3', 'N.4', 'N.6', 'N.5'].map((id) => g.by[id]), ['pass', 'pass', 'pass', 'pass', 'pass', 'pass', 'judge']);
   assert.equal(run(root, 'cover').code, 2, 'N.5 must be judged first');
   assert.equal(run(root, 'cover', '--n5', 'Mario is the only user; the job is known, the how is open').code, 0);
   const s = state(root, 'proposals');
@@ -159,4 +164,62 @@ test('the internal ratchet: only to product; a change on an internal tool that n
   assert.equal(run(other, 'cover', '--m4', 'x').code, 1);
   assert.equal(state(other, 'export-fix').track, 'internal');
   assert.equal(run(other, 'upgrade', '--to', 'internal', '--reason', 'x').code, 2, 'internal already, and only a change becomes internal');
+});
+
+test('an estimated today starts the tool with a warning, so nobody is asked to measure before anything exists', () => {
+  const root = project();
+  start(root);
+  evidence(root, 'proposals');
+  write(root, 'proposals', '00-request.md', NEED('about 90 minutes per proposal, four a week `[estimate:mario-guess]`'));
+  const g = gate(root, 'N');
+  assert.equal(g.by['N.3'], 'warn');
+  assert.match(g.detail['N.3'], /estimate/);
+  assert.equal(run(root, 'cover', '--n5', 'the client\'s sales team, named; the job is known, the how is open').code, 0);
+  assert.equal(state(root, 'proposals').current_phase, 3);
+});
+
+const MAP = (rows) => `
+## Feature map
+| Feature | Build | Buy or integrate | Chosen | Source |
+|---|---|---|---|---|
+${rows}
+`;
+
+test('phase 3 on the internal track explores each feature as build, buy or integrate instead of eight abstract ideas', () => {
+  const root = project();
+  start(root);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE));
+  let g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'fail');
+  assert.match(g.detail['3.5'], /Feature map/);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP('| Read the three sheets | a script over the export | the sheets API | maybe | |')));
+  g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'fail');
+  assert.match(g.detail['3.5'], /Chosen/);
+  assert.match(g.detail['3.5'], /source tag/);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP([
+    '| Read the three sheets | a script over the export | the sheets API, free; a sync service, €20 a month `[doc:sheets-api-pricing]` | integrate | `[doc:sheets-api-pricing]` |',
+    '| Fill the proposal | a template engine `[estimate:mario-timing]` | none found: searched proposal tools that read sheets | build | `[estimate:mario-timing]` |',
+  ].join('\n'))));
+  g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'pass');
+  assert.match(g.detail['3.5'], /2 features mapped: 1 build, 0 buy, 1 integrate/);
+});
+
+test('the need goes deep on how the job runs today, and a feature map compares more than the first tool found', () => {
+  const root = project();
+  start(root);
+  evidence(root, 'proposals');
+  write(root, 'proposals', '00-request.md', NEED().replace(/### Steps today[\s\S]*$/, '### Steps today\n1. Mario exports the sheets\n2. Mario sends the PDF\n'));
+  let g = gate(root, 'N');
+  assert.equal(g.by['N.6'], 'fail');
+  assert.match(g.detail['N.6'], /3 needed/);
+  write(root, 'proposals', '00-request.md', NEED().replace(', breaks: 60 of the 90 minutes, and the typos', ''));
+  g = gate(root, 'N');
+  assert.equal(g.by['N.6'], 'fail');
+  assert.match(g.detail['N.6'], /breaks/);
+  write(root, 'proposals', '03-solution-bet.md', BET(VALUE + MAP('| Read the three sheets | a script over the export | the sheets API `[doc:sheets-api-pricing]` | integrate | `[doc:sheets-api-pricing]` |')));
+  g = gate(root, 3);
+  assert.equal(g.by['3.5'], 'fail');
+  assert.match(g.detail['3.5'], /one candidate/);
 });
